@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	. "yu/common"
 	"yu/event"
 	"yu/txn"
 )
@@ -11,11 +12,10 @@ type IBlock interface {
 	Events() []event.Event
 }
 
+
 type IHeader interface {
 	Num() BlockNum
 	ParentHash() string
 	TRoot() string
 	SRoot() string
 }
-
-type BlockNum = uint64

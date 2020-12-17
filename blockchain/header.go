@@ -1,5 +1,9 @@
 package blockchain
 
+import (
+	. "yu/common"
+)
+
 type Header struct {
 	parentHash string
 	number BlockNum
