@@ -6,13 +6,10 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	. "yu/blockchain"
 	. "yu/common"
 )
 
 type Pod interface {
-
-	Name() string
 
 	PodHeader() *PodHeader
 
@@ -23,7 +20,19 @@ type Pod interface {
 }
 
 type PodHeader struct {
+	name string
 	callFns map[string]Execution
+}
+
+func NewPodHeader(name string) *PodHeader {
+	return &PodHeader{
+		name: name,
+		callFns: make(map[string]Execution),
+	}
+}
+
+func (ph *PodHeader) Name() string {
+	return ph.name
 }
 
 func(ph *PodHeader) SetCallFns(fns ...Execution) {

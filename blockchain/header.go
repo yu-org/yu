@@ -5,13 +5,13 @@ import (
 )
 
 type Header struct {
-	parentHash string
+	parentHash Hash
 	number BlockNum
-	txnRoot string
-	stateRoot string
+	txnRoot Hash
+	stateRoot Hash
 }
 
-func NewHeader(parentHash string, number BlockNum, txnRoot string, stateRoot string) *Header {
+func NewHeader(parentHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash) *Header {
 	return &Header{
 		parentHash,
 		number,
@@ -24,14 +24,14 @@ func (h *Header) Num() BlockNum {
 	return h.number
 }
 
-func (h *Header) ParentHash() string {
+func (h *Header) ParentHash() Hash {
 	return h.parentHash
 }
 
-func (h *Header) TRoot() string {
+func (h *Header) TxnRoot() Hash {
 	return h.txnRoot
 }
 
-func (h *Header) SRoot() string {
+func (h *Header) StateRoot() Hash {
 	return h.stateRoot
 }
