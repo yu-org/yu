@@ -1,6 +1,8 @@
 package blockchain
 
 import (
+	"bytes"
+	"encoding/gob"
 	"time"
 	"yu/event"
 	"yu/txn"
@@ -21,12 +23,32 @@ func NewBlock(header *Header, txns []*txn.Txn) *Block {
 	}
 }
 
-func(b *Block) Head() IHeader {
+func(b *Block) Head() *Header {
 	return b.header
 }
 
 func(b *Block) Txns() []*txn.Txn {
 	return b.txns
+}
+
+func(b *Block) Encode() ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(b)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func Decode(data []byte) (*Block, error) {
+	var block Block
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&block)
+	if err != nil {
+		return nil, err
+	}
+	return &block, nil
 }
 
 func(b *Block) Events() []event.Event {

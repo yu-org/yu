@@ -26,4 +26,7 @@ const (
 	AddressLen = 20
 )
 
-type Hash [HashLen]byte
+type (
+	Hash [HashLen]byte
+	AccountId [AddressLen]byte
+)
