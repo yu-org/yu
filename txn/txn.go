@@ -6,28 +6,29 @@ import (
 	"encoding/gob"
 	. "yu/common"
 	"yu/event"
+	. "yu/keypair"
 )
 
 type Txn struct {
-	id Hash
+	id     Hash
 	caller AccountId
-	calls []*Call
+	calls  []*Call
 	events []event.Event
 }
 
 func NewTxn(caller AccountId, calls []*Call) *Txn {
-	return &Txn {
+	return &Txn{
 		caller: caller,
-		calls: calls,
+		calls:  calls,
 		events: make([]event.Event, 0),
 	}
 }
 
-func(t *Txn) Events() []event.Event {
+func (t *Txn) Events() []event.Event {
 	return t.events
 }
 
-func(t *Txn) Hash() (Hash, error) {
+func (t *Txn) Hash() (Hash, error) {
 	var hash Hash
 	byt, err := t.Encode()
 	if err != nil {
@@ -37,7 +38,19 @@ func(t *Txn) Hash() (Hash, error) {
 	return hash, nil
 }
 
-func(t *Txn) Encode() ([]byte, error) {
+func (t *Txn) Sign(key KeyPair) ([]byte, error) {
+
+}
+
+func (t *Txn) Verify(key KeyPair) (bool, error) {
+
+}
+
+func (t *Txn) Check() (bool, error) {
+
+}
+
+func (t *Txn) Encode() ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
 	err := encoder.Encode(t)
@@ -57,6 +70,6 @@ func Decode(data []byte) (*Txn, error) {
 	return &txn, nil
 }
 
-func(t *Txn) IsSigned() bool {
+func (t *Txn) IsSigned() bool {
 
 }

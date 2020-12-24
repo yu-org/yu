@@ -10,28 +10,28 @@ import (
 
 type Block struct {
 	header *Header
-	txns []*txn.Txn
+	txns   []*txn.Txn
 
 	ReceiveTime time.Time
 }
 
 func NewBlock(header *Header, txns []*txn.Txn) *Block {
 	return &Block{
-		header: header,
-		txns: txns,
+		header:      header,
+		txns:        txns,
 		ReceiveTime: time.Now(),
 	}
 }
 
-func(b *Block) Head() *Header {
+func (b *Block) Head() *Header {
 	return b.header
 }
 
-func(b *Block) Txns() []*txn.Txn {
+func (b *Block) Txns() []*txn.Txn {
 	return b.txns
 }
 
-func(b *Block) Encode() ([]byte, error) {
+func (b *Block) Encode() ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
 	err := encoder.Encode(b)
@@ -51,10 +51,10 @@ func Decode(data []byte) (*Block, error) {
 	return &block, nil
 }
 
-func(b *Block) Events() []event.Event {
+func (b *Block) Events() []event.Event {
 	allEvents := make([]event.Event, 0)
 	for _, tx := range b.txns {
-		events:= tx.Events()
+		events := tx.Events()
 		allEvents = append(allEvents, events...)
 	}
 	return allEvents

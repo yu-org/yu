@@ -63,4 +63,3 @@ func newMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
 
 	return &mNode
 }
-

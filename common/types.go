@@ -12,9 +12,9 @@ type (
 	Query func(ctx *context.Context, blockNum BlockNum) error
 	// The Call from clients, it is an instance of an 'Execution'.
 	Call struct {
-		PodName string
+		PodName  string
 		FuncName string
-		Params []interface{}
+		Params   []interface{}
 	}
 )
 
@@ -27,6 +27,6 @@ const (
 )
 
 type (
-	Hash [HashLen]byte
+	Hash      [HashLen]byte
 	AccountId [AddressLen]byte
 )

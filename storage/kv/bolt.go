@@ -16,7 +16,7 @@ func NewBolt(fpath string) (*boltKV, error) {
 	return &boltKV{db: db}, nil
 }
 
-func(b *boltKV) Get(key []byte) ([]byte, error) {
+func (b *boltKV) Get(key []byte) ([]byte, error) {
 	var value []byte
 	err := b.db.View(func(tx *bbolt.Tx) error {
 		bu := tx.Bucket(bucket)
@@ -26,7 +26,7 @@ func(b *boltKV) Get(key []byte) ([]byte, error) {
 	return value, err
 }
 
-func(b *boltKV) Set(key []byte, value []byte) error {
+func (b *boltKV) Set(key []byte, value []byte) error {
 	return b.db.Update(func(tx *bbolt.Tx) error {
 		return tx.Bucket(bucket).Put(key, value)
 	})

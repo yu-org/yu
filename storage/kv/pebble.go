@@ -14,7 +14,7 @@ func NewPebble(fpath string) (*pebbleKV, error) {
 	return &pebbleKV{db: db}, nil
 }
 
-func(p *pebbleKV) Get(key []byte) ([]byte, error) {
+func (p *pebbleKV) Get(key []byte) ([]byte, error) {
 	value, closer, err := p.db.Get(key)
 	if err != nil {
 		return nil, err
@@ -25,6 +25,6 @@ func(p *pebbleKV) Get(key []byte) ([]byte, error) {
 	return value, nil
 }
 
-func(p *pebbleKV) Set(key []byte, value []byte) error {
+func (p *pebbleKV) Set(key []byte, value []byte) error {
 	return p.db.Set(key, value, pebble.Sync)
 }

@@ -11,23 +11,21 @@ import (
 )
 
 type Pod interface {
-
 	PodHeader() *PodHeader
 
 	OnInitialize(block *Block) error
 
 	OnFinalize(block *Block) error
-
 }
 
 type PodHeader struct {
-	name string
+	name   string
 	exeFns map[string]Execution
 }
 
 func NewPodHeader(name string) *PodHeader {
 	return &PodHeader{
-		name: name,
+		name:   name,
 		exeFns: make(map[string]Execution),
 	}
 }
@@ -36,11 +34,11 @@ func (ph *PodHeader) Name() string {
 	return ph.name
 }
 
-func(ph *PodHeader) SetExeFns(fns ...Execution) {
+func (ph *PodHeader) SetExeFns(fns ...Execution) {
 	for _, fn := range fns {
 		ptr := reflect.ValueOf(fn).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
-		nameEnd:= filepath.Ext(nameFull)
+		nameEnd := filepath.Ext(nameFull)
 		name := strings.TrimPrefix(nameEnd, ".")
 		ph.exeFns[name] = fn
 		fmt.Printf("register CallFn (%s) into PodHeader \n", name)

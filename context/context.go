@@ -6,7 +6,7 @@ import (
 )
 
 type Context struct {
-	params map[string]interface {}
+	params map[string]interface{}
 }
 
 var TypeError = errors.New("the type of params error")
@@ -17,7 +17,7 @@ func NewContext() *Context {
 	}
 }
 
-func(c *Context) PutParams(params []interface{}) {
+func (c *Context) PutParams(params []interface{}) {
 	for _, param := range params {
 		typ := reflect.TypeOf(param)
 		name := typ.Name()
@@ -58,7 +58,7 @@ func (c *Context) GetUint(name string) (uint, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint {
 		return pi.(uint), nil
 	}
-	return 0,TypeError
+	return 0, TypeError
 }
 
 func (c *Context) GetInt8(name string) (int8, error) {

@@ -7,11 +7,10 @@ import (
 )
 
 type IBlock interface {
-	Head()  IHeader
+	Head() IHeader
 	Txns() []*txn.Txn
 	Events() []event.Event
 }
-
 
 type IHeader interface {
 	Num() BlockNum

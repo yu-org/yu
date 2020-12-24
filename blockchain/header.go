@@ -6,9 +6,9 @@ import (
 
 type Header struct {
 	parentHash Hash
-	number BlockNum
-	txnRoot Hash
-	stateRoot Hash
+	number     BlockNum
+	txnRoot    Hash
+	stateRoot  Hash
 }
 
 func NewHeader(parentHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash) *Header {
