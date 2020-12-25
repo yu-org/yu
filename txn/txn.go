@@ -16,12 +16,18 @@ type Txn struct {
 	events []event.Event
 }
 
-func NewTxn(caller AccountId, calls []*Call) *Txn {
-	return &Txn{
+func NewTxn(caller AccountId, calls []*Call) (*Txn, error) {
+	txn := &Txn{
 		caller: caller,
 		calls:  calls,
 		events: make([]event.Event, 0),
 	}
+	id, err := txn.Hash()
+	if err != nil {
+		return nil, err
+	}
+	txn.id = id
+	return txn, nil
 }
 
 func (t *Txn) Events() []event.Event {
