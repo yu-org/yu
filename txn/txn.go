@@ -14,6 +14,7 @@ type Txn struct {
 	caller AccountId
 	calls  []*Call
 	events []event.Event
+	signature []byte
 }
 
 func NewTxn(caller AccountId, calls []*Call) (*Txn, error) {
@@ -21,6 +22,7 @@ func NewTxn(caller AccountId, calls []*Call) (*Txn, error) {
 		caller: caller,
 		calls:  calls,
 		events: make([]event.Event, 0),
+		signature: nil,
 	}
 	id, err := txn.Hash()
 	if err != nil {
@@ -44,16 +46,24 @@ func (t *Txn) Hash() (Hash, error) {
 	return hash, nil
 }
 
-func (t *Txn) Sign(key KeyPair) ([]byte, error) {
-
+func (t *Txn) Sign(key KeyPair) (err error) {
+	// Notice:  Use encoder of the txn or hash?
+	var data []byte
+	data, err = t.Encode()
+	if err != nil {
+		return
+	}
+	t.signature, err = key.SignData(data)
+	return
 }
 
 func (t *Txn) Verify(key KeyPair) (bool, error) {
-
-}
-
-func (t *Txn) Check() (bool, error) {
-
+	// Notice:  Use encoder of the txn or hash?
+	data, err := t.Encode()
+	if err != nil {
+		return false, err
+	}
+	return key.VerifySigner(data, t.signature)
 }
 
 func (t *Txn) Encode() ([]byte, error) {
@@ -77,5 +87,5 @@ func Decode(data []byte) (*Txn, error) {
 }
 
 func (t *Txn) IsSigned() bool {
-
+	return t.signature != nil
 }
