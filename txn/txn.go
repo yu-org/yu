@@ -11,13 +11,13 @@ import (
 
 type Txn struct {
 	id     Hash
-	caller AccountId
+	caller Address
 	calls  []*Call
 	events []event.Event
 	signature []byte
 }
 
-func NewTxn(caller AccountId, calls []*Call) (*Txn, error) {
+func NewTxn(caller Address, calls []*Call) (*Txn, error) {
 	txn := &Txn{
 		caller: caller,
 		calls:  calls,

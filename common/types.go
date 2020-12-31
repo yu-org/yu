@@ -28,5 +28,5 @@ const (
 
 type (
 	Hash      [HashLen]byte
-	AccountId [AddressLen]byte
+	Address   []byte
 )

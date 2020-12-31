@@ -1,16 +1,23 @@
 package keypair
 
+import (
+	"yu/common"
+)
+
 type KeyPair interface {
+
+	Address() common.Address
+
 	SignData([]byte) ([]byte, error)
 
-	VerifySigner(msg, sig []byte) (bool, error)
+	VerifySigner(msg, sig []byte) bool
 }
 
 func GenKeyPair(keyType string) (KeyPair, error) {
 	switch keyType {
 	case "sr25519":
-		return generateSr25519(), nil
+		return genSr25519(), nil
 	default:
-		return generateEd25519()
+		return genEd25519(), nil
 	}
 }
