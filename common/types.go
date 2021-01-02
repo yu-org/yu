@@ -30,3 +30,7 @@ type (
 	Hash      [HashLen]byte
 	Address   []byte
 )
+
+func(h Hash) Bytes() []byte {
+	return h[:]
+}

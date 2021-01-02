@@ -34,7 +34,7 @@ func (ph *PodHeader) Name() string {
 	return ph.name
 }
 
-func (ph *PodHeader) SetExeFns(fns ...Execution) {
+func (ph *PodHeader) SetExecFns(fns ...Execution) {
 	for _, fn := range fns {
 		ptr := reflect.ValueOf(fn).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
@@ -43,4 +43,8 @@ func (ph *PodHeader) SetExeFns(fns ...Execution) {
 		ph.exeFns[name] = fn
 		fmt.Printf("register CallFn (%s) into PodHeader \n", name)
 	}
+}
+
+func(ph *PodHeader) GetExecFn(name string) Execution {
+	return ph.exeFns[name]
 }

@@ -36,6 +36,14 @@ func (t *Txn) Events() []event.Event {
 	return t.events
 }
 
+func (t *Txn) Caller() Address {
+	return t.caller
+}
+
+func (t *Txn) Calls() []*Call {
+	return t.calls
+}
+
 func (t *Txn) Hash() (Hash, error) {
 	var hash Hash
 	byt, err := t.Encode()
@@ -47,23 +55,23 @@ func (t *Txn) Hash() (Hash, error) {
 }
 
 func (t *Txn) Sign(key KeyPair) (err error) {
-	// Notice:  Use encoder of the txn or hash?
-	var data []byte
-	data, err = t.Encode()
+	// Notice:  Use Encoder of the txn or Hash?
+	var data Hash
+	data, err = t.Hash()
 	if err != nil {
 		return
 	}
-	t.signature, err = key.SignData(data)
+	t.signature, err = key.SignData(data.Bytes())
 	return
 }
 
 func (t *Txn) Verify(key KeyPair) (bool, error) {
-	// Notice:  Use encoder of the txn or hash?
-	data, err := t.Encode()
+	// Notice:  Use Encoder of the txn or Hash?
+	data, err := t.Hash()
 	if err != nil {
 		return false, err
 	}
-	return key.VerifySigner(data, t.signature)
+	return key.VerifySigner(data.Bytes(), t.signature), nil
 }
 
 func (t *Txn) Encode() ([]byte, error) {

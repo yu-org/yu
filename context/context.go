@@ -17,7 +17,7 @@ func NewContext() *Context {
 	}
 }
 
-func (c *Context) PutParams(params []interface{}) {
+func (c *Context) SetParams(params []interface{}) {
 	for _, param := range params {
 		typ := reflect.TypeOf(param)
 		name := typ.Name()
