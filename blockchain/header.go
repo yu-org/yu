@@ -1,22 +1,26 @@
 package blockchain
 
 import (
+	"time"
 	. "yu/common"
 )
 
 type Header struct {
-	parentHash Hash
+	preHash Hash
 	number     BlockNum
 	txnRoot    Hash
 	stateRoot  Hash
+	timestamp int64
 }
 
-func NewHeader(parentHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash) *Header {
+func NewHeader(preHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash) *Header {
+	timestamp := time.Now().UnixNano()
 	return &Header{
-		parentHash,
+		preHash,
 		number,
 		txnRoot,
 		stateRoot,
+		timestamp,
 	}
 }
 
@@ -24,8 +28,8 @@ func (h *Header) Num() BlockNum {
 	return h.number
 }
 
-func (h *Header) ParentHash() Hash {
-	return h.parentHash
+func (h *Header) PreHash() Hash {
+	return h.preHash
 }
 
 func (h *Header) TxnRoot() Hash {

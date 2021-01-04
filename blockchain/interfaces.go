@@ -14,7 +14,7 @@ type IBlock interface {
 
 type IHeader interface {
 	Num() BlockNum
-	ParentHash() Hash
+	PreHash() Hash
 	TxnRoot() Hash
 	StateRoot() Hash
 }

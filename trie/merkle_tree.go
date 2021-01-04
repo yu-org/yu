@@ -2,6 +2,7 @@ package trie
 
 import (
 	"crypto/sha256"
+	. "yu/common"
 )
 
 // MerkleTree represent a Merkle tree
@@ -13,11 +14,11 @@ type MerkleTree struct {
 type MerkleNode struct {
 	Left  *MerkleNode
 	Right *MerkleNode
-	Data  []byte
+	Data  Hash
 }
 
 // NewMerkleTree creates a new Merkle tree from a sequence of data
-func NewMerkleTree(data [][]byte) *MerkleTree {
+func NewMerkleTree(data []Hash) *MerkleTree {
 	var nodes []MerkleNode
 
 	if len(data)%2 != 0 {
@@ -33,7 +34,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 		var newLevel []MerkleNode
 
 		for j := 0; j < len(nodes); j += 2 {
-			node := newMerkleNode(&nodes[j], &nodes[j+1], nil)
+			node := newMerkleNode(&nodes[j], &nodes[j+1], NullHash)
 			newLevel = append(newLevel, *node)
 		}
 
@@ -46,16 +47,14 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 }
 
 // NewMerkleNode creates a new Merkle tree node
-func newMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
+func newMerkleNode(left, right *MerkleNode, data Hash) *MerkleNode {
 	mNode := MerkleNode{}
 
 	if left == nil && right == nil {
-		hash := sha256.Sum256(data)
-		mNode.Data = hash[:]
+		mNode.Data = sha256.Sum256(data.Bytes())
 	} else {
-		prevHashes := append(left.Data, right.Data...)
-		hash := sha256.Sum256(prevHashes)
-		mNode.Data = hash[:]
+		prevHashes := append(left.Data.Bytes(), right.Data.Bytes()...)
+		mNode.Data = sha256.Sum256(prevHashes)
 	}
 
 	mNode.Left = left

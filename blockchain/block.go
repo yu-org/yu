@@ -3,24 +3,37 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
-	"time"
+	. "yu/common"
 	"yu/event"
+	"yu/trie"
 	"yu/txn"
 )
 
 type Block struct {
 	header *Header
 	txns   []*txn.Txn
-
-	ReceiveTime time.Time
 }
 
-func NewBlock(header *Header, txns []*txn.Txn) *Block {
-	return &Block{
-		header:      header,
-		txns:        txns,
-		ReceiveTime: time.Now(),
+func NewBlock(preHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, error) {
+	preHash := preHeader.txnRoot
+	blocknum := preHeader.number + 1
+
+	txnsBytes := make([]Hash, 0)
+	for _, tx := range txns {
+		hash, err := tx.Hash()
+		if err != nil {
+			return nil, err
+		}
+		txnsBytes = append(txnsBytes, hash)
 	}
+	mTree := trie.NewMerkleTree(txnsBytes)
+	txnRoot := mTree.RootNode.Data
+
+	header := NewHeader(preHash, blocknum, txnRoot, stateRoot)
+	return &Block{
+		header,
+		txns,
+	},nil
 }
 
 func (b *Block) Head() *Header {
@@ -29,6 +42,10 @@ func (b *Block) Head() *Header {
 
 func (b *Block) Txns() []*txn.Txn {
 	return b.txns
+}
+
+func (b *Block) Hash() Hash {
+	return b.header.TxnRoot()
 }
 
 func (b *Block) Encode() ([]byte, error) {

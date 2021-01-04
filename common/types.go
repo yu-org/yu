@@ -31,6 +31,8 @@ type (
 	Address   []byte
 )
 
+var NullHash Hash = [HashLen]byte{}
+
 func(h Hash) Bytes() []byte {
 	return h[:]
 }

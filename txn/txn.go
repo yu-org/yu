@@ -48,7 +48,7 @@ func (t *Txn) Hash() (Hash, error) {
 	var hash Hash
 	byt, err := t.Encode()
 	if err != nil {
-		return [HashLen]byte{}, err
+		return NullHash, err
 	}
 	hash = sha256.Sum256(byt)
 	return hash, nil
