@@ -1,32 +1,33 @@
 package keypair
 
 import (
-	. "github.com/tendermint/tendermint/crypto/sr25519"
+	"github.com/tendermint/tendermint/crypto/sr25519"
 	. "yu/common"
 )
 
-type Sr25519 struct {
-	pubKey  PubKey
-	privKey PrivKey
+type SrPubkey struct {
+	pubkey sr25519.PubKey
 }
 
-func(sr *Sr25519) Address() Address {
-	return sr.pubKey.Address().Bytes()
+func(spb *SrPubkey) Address() Address {
+	return spb.pubkey.Address().Bytes()
 }
 
-func (sr *Sr25519) SignData(data []byte) ([]byte, error) {
-	return sr.privKey.Sign(data)
+func (spb *SrPubkey) VerifySignature(msg, sig []byte) bool {
+	return spb.pubkey.VerifySignature(msg, sig)
 }
 
-func (sr *Sr25519) VerifySigner(msg, sig []byte) bool {
-	return sr.pubKey.VerifySignature(msg, sig)
+type SrPrivkey struct {
+	privkey sr25519.PrivKey
 }
 
-func genSr25519() *Sr25519 {
-	privKey := GenPrivKey()
-	pubKey := privKey.PubKey()
-	return &Sr25519{
-		pubKey.(PubKey),
-		privKey,
-	}
+func (spr *SrPrivkey) SignData(data []byte) ([]byte, error) {
+	return spr.privkey.Sign(data)
+}
+
+func genSr25519() (*SrPubkey, *SrPrivkey) {
+	srPrivkey := sr25519.GenPrivKey()
+	privkey := &SrPrivkey{srPrivkey}
+	pubkey := &SrPubkey{srPrivkey.PubKey().(sr25519.PubKey)}
+	return pubkey, privkey
 }

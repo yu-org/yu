@@ -14,9 +14,9 @@ type Block struct {
 	txns   []*txn.Txn
 }
 
-func NewBlock(preHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, error) {
-	preHash := preHeader.txnRoot
-	blocknum := preHeader.number + 1
+func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, error) {
+	prevHash := prevHeader.txnRoot
+	blocknum := prevHeader.number + 1
 
 	txnsBytes := make([]Hash, 0)
 	for _, tx := range txns {
@@ -29,11 +29,11 @@ func NewBlock(preHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, error
 	mTree := trie.NewMerkleTree(txnsBytes)
 	txnRoot := mTree.RootNode.Data
 
-	header := NewHeader(preHash, blocknum, txnRoot, stateRoot)
+	header := NewHeader(prevHash, blocknum, txnRoot, stateRoot)
 	return &Block{
 		header,
 		txns,
-	},nil
+	}, nil
 }
 
 func (b *Block) Head() *Header {

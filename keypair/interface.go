@@ -4,20 +4,21 @@ import (
 	"yu/common"
 )
 
-type KeyPair interface {
-
-	Address() common.Address
-
-	SignData([]byte) ([]byte, error)
-
-	VerifySigner(msg, sig []byte) bool
-}
-
-func GenKeyPair(keyType string) (KeyPair, error) {
+func GenKeyPair(keyType string) (PubKey, PrivKey) {
 	switch keyType {
 	case "sr25519":
-		return genSr25519(), nil
+		return genSr25519()
 	default:
-		return genEd25519(), nil
+		return genEd25519()
 	}
+}
+
+type PubKey interface {
+	Address() common.Address
+
+	VerifySignature(msg, sig []byte) bool
+}
+
+type PrivKey interface {
+	SignData([]byte) ([]byte, error)
 }

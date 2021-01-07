@@ -1,32 +1,38 @@
 package keypair
 
 import (
-	. "github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	. "yu/common"
 )
 
-type Ed25519 struct {
-	pubKey  PubKey
-	privKey PrivKey
+//type Ed25519 struct {
+//	pubKey  ed25519.PubKey
+//	privKey ed25519.PrivKey
+//}
+
+type EdPubkey struct {
+	pubkey ed25519.PubKey
 }
 
-func(ed *Ed25519) Address() Address {
-	return ed.pubKey.Address().Bytes()
+func(epb *EdPubkey) Address() Address {
+	return epb.pubkey.Address().Bytes()
 }
 
-func (ed *Ed25519) SignData(data []byte) ([]byte, error) {
-	return ed.privKey.Sign(data)
+func (epb *EdPubkey) VerifySignature(msg, sig []byte) bool {
+	return epb.pubkey.VerifySignature(msg, sig)
 }
 
-func (ed *Ed25519) VerifySigner(msg, sig []byte) bool {
-	return ed.pubKey.VerifySignature(msg, sig)
+type EdPrivkey struct {
+	privkey ed25519.PrivKey
 }
 
-func genEd25519() *Ed25519 {
-	privKey := GenPrivKey()
-	pubKey := privKey.PubKey()
-	return &Ed25519{
-		pubKey.(PubKey),
-		privKey,
-	}
+func (epr *EdPrivkey) SignData(data []byte) ([]byte, error) {
+	return epr.privkey.Sign(data)
+}
+
+func genEd25519() (*EdPubkey, *EdPrivkey) {
+	edPrivKey := ed25519.GenPrivKey()
+	privkey := &EdPrivkey{edPrivKey}
+	pubkey := &EdPubkey{edPrivKey.PubKey().(ed25519.PubKey)}
+	return pubkey, privkey
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"time"
 	. "yu/common"
 	"yu/event"
 	. "yu/keypair"
@@ -15,6 +16,7 @@ type Txn struct {
 	calls  []*Call
 	events []event.Event
 	signature []byte
+	timestamp int64
 }
 
 func NewTxn(caller Address, calls []*Call) (*Txn, error) {
@@ -23,6 +25,7 @@ func NewTxn(caller Address, calls []*Call) (*Txn, error) {
 		calls:  calls,
 		events: make([]event.Event, 0),
 		signature: nil,
+		timestamp: time.Now().UnixNano(),
 	}
 	id, err := txn.Hash()
 	if err != nil {
@@ -54,7 +57,7 @@ func (t *Txn) Hash() (Hash, error) {
 	return hash, nil
 }
 
-func (t *Txn) Sign(key KeyPair) (err error) {
+func (t *Txn) Sign(key PrivKey) (err error) {
 	// Notice:  Use Encoder of the txn or Hash?
 	var data Hash
 	data, err = t.Hash()
@@ -65,13 +68,13 @@ func (t *Txn) Sign(key KeyPair) (err error) {
 	return
 }
 
-func (t *Txn) Verify(key KeyPair) (bool, error) {
+func (t *Txn) Verify(key PubKey) (bool, error) {
 	// Notice:  Use Encoder of the txn or Hash?
 	data, err := t.Hash()
 	if err != nil {
 		return false, err
 	}
-	return key.VerifySigner(data.Bytes(), t.signature), nil
+	return key.VerifySignature(data.Bytes(), t.signature), nil
 }
 
 func (t *Txn) Encode() ([]byte, error) {
