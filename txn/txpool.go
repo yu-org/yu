@@ -1,21 +1,47 @@
 package txn
 
+import (
+	"github.com/pkg/errors"
+	"sync"
+)
+
+var PoolOverflowErr error = errors.New("pool size is full")
+var TxnSignatureErr error = errors.New("the signature of Txn illegal")
+
 type TxPool struct {
-	poolSize uint64
-	txns []*Txn
+	sync.RWMutex
+
+	poolSize   int
+	SignedTxns []*Txn
 }
 
-func NewTxPool(poolSize uint64) *TxPool {
+func NewTxPool(poolSize int) *TxPool {
 	return &TxPool{
-		poolSize: poolSize,
-		txns: make([]*Txn, 0),
+		poolSize:   poolSize,
+		SignedTxns: make([]*Txn, 0),
 	}
 }
 
-func(tp *TxPool) PutTxn(txn *Txn) bool {
-	tp.txns = append(tp.txns, txn)
+func (tp *TxPool) InsertTxn(txn *Txn) (err error) {
+	err = tp.checkPoolLimit()
+	if err != nil {
+		return
+	}
+
+	err = txn.Verify()
+	if err != nil {
+		return
+	}
+
+	tp.Lock()
+	tp.SignedTxns = append(tp.SignedTxns, txn)
+	tp.Unlock()
+	return
 }
 
-func (tp *TxPool) checkTxn(txn *Txn) bool {
-
+func (tp *TxPool) checkPoolLimit() error {
+	if len(tp.SignedTxns) >= tp.poolSize {
+		return PoolOverflowErr
+	}
+	return nil
 }

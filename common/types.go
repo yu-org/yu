@@ -27,12 +27,12 @@ const (
 )
 
 type (
-	Hash      [HashLen]byte
-	Address   []byte
+	Hash    [HashLen]byte
+	Address []byte
 )
 
 var NullHash Hash = [HashLen]byte{}
 
-func(h Hash) Bytes() []byte {
+func (h Hash) Bytes() []byte {
 	return h[:]
 }

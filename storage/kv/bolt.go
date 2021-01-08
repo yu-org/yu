@@ -31,3 +31,25 @@ func (b *boltKV) Set(key []byte, value []byte) error {
 		return tx.Bucket(bucket).Put(key, value)
 	})
 }
+
+func (b *boltKV) Iter(key []byte) (Iterator, error) {
+	var c *bbolt.Cursor
+	err := b.db.View(func(tx *bbolt.Tx) error {
+		c = tx.Bucket(bucket).Cursor()
+		return nil
+	})
+	return &boltIterator{c: c}, err
+}
+
+type boltIterator struct {
+	c *bbolt.Cursor
+}
+
+func (bi *boltIterator) Next() ([]byte, []byte, error) {
+	k, v := bi.c.Next()
+	return k, v, nil
+}
+
+func (bi *boltIterator) Close() {
+
+}

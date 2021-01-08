@@ -45,6 +45,6 @@ func (ph *PodHeader) SetExecFns(fns ...Execution) {
 	}
 }
 
-func(ph *PodHeader) GetExecFn(name string) Execution {
+func (ph *PodHeader) GetExecFn(name string) Execution {
 	return ph.exeFns[name]
 }

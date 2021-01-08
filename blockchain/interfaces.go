@@ -7,7 +7,6 @@ import (
 )
 
 type IBlock interface {
-	Head() IHeader
 	Txns() []*txn.Txn
 	Events() []event.Event
 }
@@ -17,4 +16,12 @@ type IHeader interface {
 	PrevHash() Hash
 	TxnRoot() Hash
 	StateRoot() Hash
+	Extra() interface{}
+}
+
+type IBlockChain interface {
+	AppendBlock(b IBlock) error
+	Children(hash Hash) []IBlock
+	LastFinalized() IBlock
+	Leaves() []IBlock
 }

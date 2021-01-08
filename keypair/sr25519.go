@@ -9,7 +9,7 @@ type SrPubkey struct {
 	pubkey sr25519.PubKey
 }
 
-func(spb *SrPubkey) Address() Address {
+func (spb *SrPubkey) Address() Address {
 	return spb.pubkey.Address().Bytes()
 }
 

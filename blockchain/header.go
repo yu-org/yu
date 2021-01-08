@@ -6,20 +6,22 @@ import (
 )
 
 type Header struct {
-	prevHash Hash
-	number     BlockNum
-	txnRoot    Hash
-	stateRoot  Hash
+	prevHash  Hash
+	number    BlockNum
+	txnRoot   Hash
+	stateRoot Hash
+	extra     interface{}
 	timestamp int64
 }
 
-func NewHeader(prevHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash) *Header {
+func NewHeader(prevHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash, extra interface{}) *Header {
 	timestamp := time.Now().UnixNano()
 	return &Header{
 		prevHash,
 		number,
 		txnRoot,
 		stateRoot,
+		extra,
 		timestamp,
 	}
 }
@@ -38,4 +40,8 @@ func (h *Header) TxnRoot() Hash {
 
 func (h *Header) StateRoot() Hash {
 	return h.stateRoot
+}
+
+func (h *Header) Extra() interface{} {
+	return h.extra
 }

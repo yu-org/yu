@@ -14,7 +14,7 @@ type Block struct {
 	txns   []*txn.Txn
 }
 
-func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, error) {
+func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash, extra interface{}) (*Block, error) {
 	prevHash := prevHeader.txnRoot
 	blocknum := prevHeader.number + 1
 
@@ -29,7 +29,7 @@ func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash) (*Block, erro
 	mTree := trie.NewMerkleTree(txnsBytes)
 	txnRoot := mTree.RootNode.Data
 
-	header := NewHeader(prevHash, blocknum, txnRoot, stateRoot)
+	header := NewHeader(prevHash, blocknum, txnRoot, stateRoot, extra)
 	return &Block{
 		header,
 		txns,

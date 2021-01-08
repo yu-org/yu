@@ -14,7 +14,7 @@ type EdPubkey struct {
 	pubkey ed25519.PubKey
 }
 
-func(epb *EdPubkey) Address() Address {
+func (epb *EdPubkey) Address() Address {
 	return epb.pubkey.Address().Bytes()
 }
 

@@ -11,19 +11,19 @@ import (
 )
 
 type Txn struct {
-	id     Hash
-	caller Address
-	calls  []*Call
-	events []event.Event
+	id        Hash
+	caller    PubKey
+	calls     []*Call
+	events    []event.Event
 	signature []byte
 	timestamp int64
 }
 
-func NewTxn(caller Address, calls []*Call) (*Txn, error) {
+func NewTxn(caller PubKey, calls []*Call) (*Txn, error) {
 	txn := &Txn{
-		caller: caller,
-		calls:  calls,
-		events: make([]event.Event, 0),
+		caller:    caller,
+		calls:     calls,
+		events:    make([]event.Event, 0),
 		signature: nil,
 		timestamp: time.Now().UnixNano(),
 	}
@@ -39,12 +39,16 @@ func (t *Txn) Events() []event.Event {
 	return t.events
 }
 
-func (t *Txn) Caller() Address {
+func (t *Txn) Caller() PubKey {
 	return t.caller
 }
 
 func (t *Txn) Calls() []*Call {
 	return t.calls
+}
+
+func (t *Txn) Timestamp() int64 {
+	return t.timestamp
 }
 
 func (t *Txn) Hash() (Hash, error) {
@@ -68,13 +72,16 @@ func (t *Txn) Sign(key PrivKey) (err error) {
 	return
 }
 
-func (t *Txn) Verify(key PubKey) (bool, error) {
+func (t *Txn) Verify() error {
 	// Notice:  Use Encoder of the txn or Hash?
 	data, err := t.Hash()
 	if err != nil {
-		return false, err
+		return err
 	}
-	return key.VerifySignature(data.Bytes(), t.signature), nil
+	if t.caller.VerifySignature(data.Bytes(), t.signature) {
+		return nil
+	}
+	return TxnSignatureErr
 }
 
 func (t *Txn) Encode() ([]byte, error) {
@@ -95,8 +102,4 @@ func Decode(data []byte) (*Txn, error) {
 		return nil, err
 	}
 	return &txn, nil
-}
-
-func (t *Txn) IsSigned() bool {
-	return t.signature != nil
 }
