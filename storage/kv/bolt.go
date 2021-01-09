@@ -43,16 +43,16 @@ func (b *boltKV) Iter(keyPrefix []byte) (Iterator, error) {
 		return nil
 	})
 	return &boltIterator{
-		c: c,
+		c:         c,
 		keyPrefix: keyPrefix,
 	}, err
 }
 
 type boltIterator struct {
 	keyPrefix []byte
-	key []byte
-	value []byte
-	c *bbolt.Cursor
+	key       []byte
+	value     []byte
+	c         *bbolt.Cursor
 }
 
 func (bi *boltIterator) Valid() bool {

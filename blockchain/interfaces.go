@@ -10,6 +10,7 @@ type IBlock interface {
 	BlockId() BlockId
 	BlockNumber() BlockNum
 	Hash() Hash
+	PrevHash() Hash
 	Header() IHeader
 	Txns() []*txn.Txn
 	Events() []event.Event
@@ -26,6 +27,7 @@ type IHeader interface {
 type IBlockChain interface {
 	AppendBlock(b IBlock) error
 	Children(id BlockId) ([]IBlock, error)
+	Finalize(id BlockId) error
 	LastFinalized() (IBlock, error)
 	Leaves() ([]IBlock, error)
 }

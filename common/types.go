@@ -51,6 +51,11 @@ func NewBlockId(bn BlockNum, hash Hash) BlockId {
 	return id
 }
 
+func DecodeBlockId(byt []byte) (id BlockId) {
+	copy(id[:], byt)
+	return
+}
+
 func (bi BlockId) Bytes() []byte {
 	return bi[:]
 }

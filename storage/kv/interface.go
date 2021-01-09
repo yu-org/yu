@@ -5,7 +5,6 @@ import (
 )
 
 var NoKvdbType = errors.New("no kvdb type")
-var EntryInvalid = errors.New("entry invalid")
 
 type KV interface {
 	Get(key []byte) ([]byte, error)

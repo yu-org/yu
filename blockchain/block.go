@@ -56,6 +56,10 @@ func (b *Block) Hash() Hash {
 	return b.header.TxnRoot()
 }
 
+func (b *Block) PrevHash() Hash {
+	return b.Header().PrevHash()
+}
+
 func (b *Block) Encode() ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
@@ -66,7 +70,7 @@ func (b *Block) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func Decode(data []byte) (*Block, error) {
+func DecodeBlock(data []byte) (*Block, error) {
 	var block Block
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&block)
