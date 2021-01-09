@@ -1,9 +1,16 @@
 package common
 
-import "yu/context"
+import (
+	"encoding/binary"
+	"unsafe"
+	"yu/context"
+)
 
 type (
 	BlockNum uint64
+	// Use to be a Key to store into KVDB.
+	// Add BlockHash to the BlockNum's end.
+	BlockId [BlockIdLen]byte
 	// Developers define the 'Execution' in the pod to let clients call.
 	// Just like transactions in ETH, extrinsic in Substrate
 	Execution func(ctx *context.Context) error
@@ -18,12 +25,51 @@ type (
 	}
 )
 
-// Lengths of hashes and addresses in bytes.
+func (bn BlockNum) len() int {
+	return int(unsafe.Sizeof(bn))
+}
+
+func (bn BlockNum) Bytes() []byte {
+	byt := make([]byte, bn.len())
+	binary.BigEndian.PutUint64(byt, uint64(bn))
+	return byt
+}
+
+func ToBlockNum(byt []byte) BlockNum {
+	u := binary.BigEndian.Uint64(byt)
+	return BlockNum(u)
+}
+
+func NewBlockId(bn BlockNum, hash Hash) BlockId {
+	bnByt := bn.Bytes()
+	hashByt := hash.Bytes()
+
+	var id BlockId
+	bnLen := bn.len()
+	copy(id[:bnLen], bnByt)
+	copy(id[bnLen:], hashByt)
+	return id
+}
+
+func (bi BlockId) Bytes() []byte {
+	return bi[:]
+}
+
+func (bi BlockId) Separate() (bn BlockNum, hash Hash) {
+	byt := bi.Bytes()
+	bnLen := bn.len()
+	bn = ToBlockNum(byt[:bnLen])
+	copy(hash[:], byt[bnLen:])
+	return
+}
+
 const (
 	// HashLength is the expected length of the hash
 	HashLen = 32
 	// AddressLength is the expected length of the address
 	AddressLen = 20
+	// len(BlockNum) + HashLen = 40
+	BlockIdLen = 40
 )
 
 type (

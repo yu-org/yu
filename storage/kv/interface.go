@@ -28,6 +28,8 @@ func NewKV(kvType string, cfg *KVconf) (KV, error) {
 }
 
 type Iterator interface {
-	Next() ([]byte, []byte, error)
+	Valid() bool
+	Next() error
+	Entry() ([]byte, []byte, error)
 	Close()
 }

@@ -56,12 +56,17 @@ type badgerIterator struct {
 	iter *badger.Iterator
 }
 
-func (bgi *badgerIterator) Next() ([]byte, []byte, error) {
-	var value []byte
+func (bgi *badgerIterator) Valid() bool {
+	return bgi.iter.ValidForPrefix(bgi.key)
+}
+
+func (bgi *badgerIterator) Next() error {
 	bgi.iter.Next()
-	if !bgi.iter.ValidForPrefix(bgi.key) {
-		return nil, nil, EntryInvalid
-	}
+	return nil
+}
+
+func (bgi *badgerIterator) Entry() ([]byte, []byte, error) {
+	var value []byte
 	item := bgi.iter.Item()
 	key := item.Key()
 	err := item.Value(func(val []byte) error {
@@ -69,7 +74,6 @@ func (bgi *badgerIterator) Next() ([]byte, []byte, error) {
 		return nil
 	})
 	return key, value, err
-
 }
 
 func (bgi *badgerIterator) Close() {

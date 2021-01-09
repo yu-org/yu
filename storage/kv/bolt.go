@@ -1,6 +1,9 @@
 package kv
 
-import "go.etcd.io/bbolt"
+import (
+	"bytes"
+	"go.etcd.io/bbolt"
+)
 
 type boltKV struct {
 	db *bbolt.DB
@@ -32,22 +35,37 @@ func (b *boltKV) Set(key []byte, value []byte) error {
 	})
 }
 
-func (b *boltKV) Iter(key []byte) (Iterator, error) {
+func (b *boltKV) Iter(keyPrefix []byte) (Iterator, error) {
 	var c *bbolt.Cursor
 	err := b.db.View(func(tx *bbolt.Tx) error {
 		c = tx.Bucket(bucket).Cursor()
+		c.Seek(keyPrefix)
 		return nil
 	})
-	return &boltIterator{c: c}, err
+	return &boltIterator{
+		c: c,
+		keyPrefix: keyPrefix,
+	}, err
 }
 
 type boltIterator struct {
+	keyPrefix []byte
+	key []byte
+	value []byte
 	c *bbolt.Cursor
 }
 
-func (bi *boltIterator) Next() ([]byte, []byte, error) {
-	k, v := bi.c.Next()
-	return k, v, nil
+func (bi *boltIterator) Valid() bool {
+	return bi.key != nil && bytes.HasPrefix(bi.key, bi.keyPrefix)
+}
+
+func (bi *boltIterator) Next() error {
+	bi.key, bi.value = bi.c.Next()
+	return nil
+}
+
+func (bi *boltIterator) Entry() ([]byte, []byte, error) {
+	return bi.key, bi.value, nil
 }
 
 func (bi *boltIterator) Close() {

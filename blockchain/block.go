@@ -36,8 +36,16 @@ func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash, extra interfa
 	}, nil
 }
 
-func (b *Block) Head() *Header {
+func (b *Block) Header() IHeader {
 	return b.header
+}
+
+func (b *Block) BlockId() BlockId {
+	return NewBlockId(b.BlockNumber(), b.Hash())
+}
+
+func (b *Block) BlockNumber() BlockNum {
+	return b.header.Num()
 }
 
 func (b *Block) Txns() []*txn.Txn {

@@ -1,7 +1,6 @@
 package kv
 
 import (
-	"errors"
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/store/tikv"
 	goctx "golang.org/x/net/context"
@@ -60,15 +59,16 @@ type tikvIterator struct {
 	iter kv.Iterator
 }
 
-func (ti *tikvIterator) Next() ([]byte, []byte, error) {
-	err := ti.iter.Next()
-	if err != nil {
-		return nil, nil, err
-	}
-	if ti.iter.Valid() {
-		return ti.iter.Key()[:], ti.iter.Value(), nil
-	}
-	return nil, nil, EntryInvalid
+func (ti *tikvIterator) Valid() bool {
+	return ti.iter.Valid()
+}
+
+func (ti *tikvIterator) Next() error {
+	return ti.iter.Next()
+}
+
+func (ti *tikvIterator) Entry() ([]byte, []byte, error) {
+	return ti.iter.Key()[:], ti.iter.Value(), nil
 }
 
 func (ti *tikvIterator) Close() {
