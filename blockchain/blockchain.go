@@ -13,8 +13,8 @@ type BlockChain struct {
 	kvdb kv.KV
 }
 
-func NewBlockChain(kvType string, kvCfg *kv.KVconf) *BlockChain {
-	kvdb, err := kv.NewKV(kvType, kvCfg)
+func NewBlockChain(kvCfg *kv.KVconf) *BlockChain {
+	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
 		log.Fatal("cannot load kvdb")
 	}
@@ -33,7 +33,15 @@ func (bc *BlockChain) AppendBlock(ib IBlock) error {
 	return bc.kvdb.Set(blockId, blockByt)
 }
 
-func (bc *BlockChain) Children(prevId BlockId) (blocks []IBlock, err error) {
+func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
+	blockByt, err := bc.kvdb.Get(id.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return DecodeBlock(blockByt)
+}
+
+func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 	prevBlockNum, prevHash := prevId.Separate()
 	blockNum := prevBlockNum + 1
 	iter, err := bc.kvdb.Iter(blockNum.Bytes())
@@ -41,14 +49,15 @@ func (bc *BlockChain) Children(prevId BlockId) (blocks []IBlock, err error) {
 		return nil, err
 	}
 	defer iter.Close()
+	var blocks []IBlock
 	for iter.Valid() {
 		_, blockByt, err := iter.Entry()
 		if err != nil {
-			return
+			return nil, err
 		}
 		block, err := DecodeBlock(blockByt)
 		if err != nil {
-			return
+			return nil, err
 		}
 		if block.PrevHash() == prevHash {
 			blocks = append(blocks, block)
@@ -56,10 +65,10 @@ func (bc *BlockChain) Children(prevId BlockId) (blocks []IBlock, err error) {
 
 		err = iter.Next()
 		if err != nil {
-			return
+			return nil, err
 		}
 	}
-	return
+	return blocks, nil
 }
 
 func (bc *BlockChain) Finalize(id BlockId) error {
@@ -79,5 +88,22 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 }
 
 func (bc *BlockChain) Leaves() ([]IBlock, error) {
-
+	iter, err := bc.kvdb.Iter(BlockNum(0).Bytes())
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+	var blocks []IBlock
+	for iter.Valid() {
+		_, blockByt, err := iter.Entry()
+		if err != nil {
+			return nil, err
+		}
+		block, err := DecodeBlock(blockByt)
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks, nil
 }

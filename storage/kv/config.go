@@ -1,8 +1,10 @@
 package kv
 
 type KVconf struct {
+	// "bolt" "badger" "tikv"
+	KVtype string
 	// embedded kvdb, such as boltdb, pebble
-	path string
+	Path string
 	// distributed kvdb
-	hosts []string
+	Hosts []string
 }

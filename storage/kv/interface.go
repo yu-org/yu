@@ -12,14 +12,14 @@ type KV interface {
 	Iter(key []byte) (Iterator, error)
 }
 
-func NewKV(kvType string, cfg *KVconf) (KV, error) {
-	switch kvType {
+func NewKV(cfg *KVconf) (KV, error) {
+	switch cfg.KVtype {
 	case "badger":
-		return NewBadger(cfg.path)
+		return NewBadger(cfg.Path)
 	case "bolt":
-		return NewBolt(cfg.path)
+		return NewBolt(cfg.Path)
 	case "tikv":
-		return NewTiKV(cfg.path)
+		return NewTiKV(cfg.Path)
 
 	default:
 		return nil, NoKvdbType

@@ -26,6 +26,7 @@ type IHeader interface {
 
 type IBlockChain interface {
 	AppendBlock(b IBlock) error
+	GetBlock(id BlockId) (IBlock, error)
 	Children(id BlockId) ([]IBlock, error)
 	Finalize(id BlockId) error
 	LastFinalized() (IBlock, error)
