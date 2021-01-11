@@ -1,5 +1,6 @@
 package pow
 
+
 import (
 	"bytes"
 	"crypto/sha256"
