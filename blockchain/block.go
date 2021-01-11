@@ -14,6 +14,7 @@ type Block struct {
 	txns   []*txn.Txn
 }
 
+// todo: txnRoot应在上层计算好之后传进来
 func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash, extra interface{}) (*Block, error) {
 	prevHash := prevHeader.txnRoot
 	blocknum := prevHeader.number + 1
@@ -57,7 +58,15 @@ func (b *Block) Hash() Hash {
 }
 
 func (b *Block) PrevHash() Hash {
-	return b.Header().PrevHash()
+	return b.header.PrevHash()
+}
+
+func (b *Block) Timestamp() int64 {
+	return b.header.Timestamp()
+}
+
+func (b *Block) Extra() interface{} {
+	return b.header.Extra()
 }
 
 func (b *Block) Encode() ([]byte, error) {

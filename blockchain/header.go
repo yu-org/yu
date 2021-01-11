@@ -42,6 +42,10 @@ func (h *Header) StateRoot() Hash {
 	return h.stateRoot
 }
 
+func (h *Header) Timestamp() int64 {
+	return h.timestamp
+}
+
 func (h *Header) Extra() interface{} {
 	return h.extra
 }

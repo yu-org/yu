@@ -1,7 +1,7 @@
 package blockchain
 
 import (
-	"log"
+	"github.com/sirupsen/logrus"
 	. "yu/common"
 	"yu/storage/kv"
 )
@@ -16,7 +16,7 @@ type BlockChain struct {
 func NewBlockChain(kvCfg *kv.KVconf) *BlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
-		log.Fatal("cannot load kvdb")
+		logrus.Fatalln("cannot load kvdb")
 	}
 	return &BlockChain{
 		kvdb: kvdb,

@@ -14,6 +14,8 @@ type IBlock interface {
 	Header() IHeader
 	Txns() []*txn.Txn
 	Events() []event.Event
+	Timestamp() int64
+	Extra() interface{}
 }
 
 type IHeader interface {
@@ -21,6 +23,7 @@ type IHeader interface {
 	PrevHash() Hash
 	TxnRoot() Hash
 	StateRoot() Hash
+	Timestamp() int64
 	Extra() interface{}
 }
 
