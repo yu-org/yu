@@ -4,7 +4,7 @@ import (
 	"github.com/pkg/errors"
 	. "yu/common"
 	. "yu/context"
-	. "yu/pods/interfaces"
+	. "yu/pod/interfaces"
 )
 
 type Smelter struct {
