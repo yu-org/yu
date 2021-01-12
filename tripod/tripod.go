@@ -1,7 +1,7 @@
-package interfaces
+package tripod
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -10,41 +10,41 @@ import (
 	. "yu/common"
 )
 
-type Pod interface {
-	PodHeader() *PodHeader
+type Tripod interface {
+	TripodMeta() *TripodMeta
 
-	OnInitialize(block *Block) error
+	OnInitialize() (IBlock, error)
 
-	OnFinalize(block *Block) error
+	OnFinalize(block IBlock) error
 }
 
-type PodHeader struct {
+type TripodMeta struct {
 	name   string
 	exeFns map[string]Execution
 }
 
-func NewPodHeader(name string) *PodHeader {
-	return &PodHeader{
+func NewTripodMeta(name string) *TripodMeta {
+	return &TripodMeta{
 		name:   name,
 		exeFns: make(map[string]Execution),
 	}
 }
 
-func (ph *PodHeader) Name() string {
+func (ph *TripodMeta) Name() string {
 	return ph.name
 }
 
-func (ph *PodHeader) SetExecFns(fns ...Execution) {
+func (ph *TripodMeta) SetExecFns(fns ...Execution) {
 	for _, fn := range fns {
 		ptr := reflect.ValueOf(fn).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
 		nameEnd := filepath.Ext(nameFull)
 		name := strings.TrimPrefix(nameEnd, ".")
 		ph.exeFns[name] = fn
-		fmt.Printf("register CallFn (%s) into PodHeader \n", name)
+		logrus.Infof("register CallFn (%s) into TripodMeta \n", name)
 	}
 }
 
-func (ph *PodHeader) GetExecFn(name string) Execution {
+func (ph *TripodMeta) GetExecFn(name string) Execution {
 	return ph.exeFns[name]
 }

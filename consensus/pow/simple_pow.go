@@ -1,6 +1,5 @@
 package pow
 
-
 import (
 	"bytes"
 	"crypto/sha256"
@@ -12,39 +11,63 @@ import (
 	"yu/common"
 )
 
-const targetBits = 16
+func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {
+	var hashInt big.Int
+	nonce = 0
 
-type SimplePoW struct {
-	block  IBlock
-	target *big.Int
-}
+	logrus.Info("Mining a new Block")
+	for nonce < math.MaxInt64 {
+		var data []byte
+		data, err = prepareData(block, nonce, targetBits)
+		if err != nil {
+			return
+		}
+		hash = sha256.Sum256(data)
+		if math.Remainder(float64(nonce), 100000) == 0 {
+			logrus.Infof("Hash is \r%x", hash.Bytes())
+		}
+		hashInt.SetBytes(hash.Bytes())
 
-func NewSimplePoW(b IBlock) *SimplePoW {
-	target := big.NewInt(1)
-	target.Lsh(target, 256-targetBits)
-	return &SimplePoW{
-		b,
-		target,
+		if hashInt.Cmp(target) == -1 {
+			break
+		} else {
+			nonce++
+		}
 	}
+	return
 }
 
-func (sp *SimplePoW) prepareData(nonce int) ([]byte, error) {
-	hex1, err := IntToHex(sp.block.Timestamp())
+func Validate(block IBlock, target *big.Int, targetBits int64) bool {
+	var hashInt big.Int
+
+	var nonce int64 = block.Extra().(int64)
+	data, err := prepareData(block, nonce, targetBits)
+	if err != nil {
+		return false
+	}
+	hash := sha256.Sum256(data)
+	hashInt.SetBytes(hash[:])
+
+	return hashInt.Cmp(target) == -1
+}
+
+func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
+	hex1, err := intToHex(block.Timestamp())
 	if err != nil {
 		return nil, err
 	}
-	hex2, err := IntToHex(int64(targetBits))
+	hex2, err := intToHex(targetBits)
 	if err != nil {
 		return nil, err
 	}
-	hex3, err := IntToHex(int64(nonce))
+	hex3, err := intToHex(nonce)
 	if err != nil {
 		return nil, err
 	}
 	data := bytes.Join(
 		[][]byte{
-			sp.block.PrevHash().Bytes(),
-			sp.block.Hash().Bytes(),
+			block.PrevHash().Bytes(),
+			block.Hash().Bytes(),
 			hex1,
 			hex2,
 			hex3,
@@ -55,47 +78,7 @@ func (sp *SimplePoW) prepareData(nonce int) ([]byte, error) {
 	return data, nil
 }
 
-func (sp *SimplePoW) Run() (nonce int, hash common.Hash, err error) {
-	var hashInt big.Int
-	nonce = 0
-
-	logrus.Info("Mining a new Block")
-	for nonce < math.MaxInt64 {
-		var data []byte
-		data, err = sp.prepareData(nonce)
-		if err != nil {
-			return
-		}
-		hash = sha256.Sum256(data)
-		if math.Remainder(float64(nonce), 100000) == 0 {
-			logrus.Infof("Hash is \r%x", hash.Bytes())
-		}
-		hashInt.SetBytes(hash.Bytes())
-
-		if hashInt.Cmp(sp.target) == -1 {
-			break
-		} else {
-			nonce++
-		}
-	}
-	return
-}
-
-func (sp *SimplePoW) Validate() bool {
-	var hashInt big.Int
-
-	var nonce int = sp.block.Extra().(int)
-	data, err := sp.prepareData(nonce)
-	if err != nil {
-		return false
-	}
-	hash := sha256.Sum256(data)
-	hashInt.SetBytes(hash[:])
-
-	return hashInt.Cmp(sp.target) == -1
-}
-
-func IntToHex(num int64) ([]byte, error) {
+func intToHex(num int64) ([]byte, error) {
 	buff := new(bytes.Buffer)
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {

@@ -19,9 +19,9 @@ type (
 	Query func(ctx *context.Context, blockNum BlockNum) error
 	// The Call from clients, it is an instance of an 'Execution'.
 	Call struct {
-		PodName  string
-		FuncName string
-		Params   []interface{}
+		TripodName string
+		FuncName   string
+		Params     []interface{}
 	}
 )
 
