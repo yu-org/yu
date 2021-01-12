@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
+	"time"
 	. "yu/common"
 	"yu/event"
 	"yu/trie"
@@ -14,26 +15,20 @@ type Block struct {
 	txns   []*txn.Txn
 }
 
-// todo: txnRoot应在上层计算好之后传进来
-func NewBlock(prevHeader *Header, txns []*txn.Txn, stateRoot Hash, extra interface{}) (*Block, error) {
-	prevHash := prevHeader.txnRoot
-	blocknum := prevHeader.number + 1
-
-	txnsBytes := make([]Hash, 0)
-	for _, tx := range txns {
-		hash, err := tx.Hash()
-		if err != nil {
-			return nil, err
-		}
-		txnsBytes = append(txnsBytes, hash)
+func NewBlock(txns []*txn.Txn, prevHash Hash, height BlockNum) (*Block, error) {
+	txnRoot, err := makeTxnRoot(txns)
+	if err != nil {
+		return nil, err
 	}
-	mTree := trie.NewMerkleTree(txnsBytes)
-	txnRoot := mTree.RootNode.Data
-
-	header := NewHeader(prevHash, blocknum, txnRoot, stateRoot, extra)
+	header := &Header{
+		prevHash:  prevHash,
+		number:    height + 1,
+		txnRoot:   txnRoot,
+		timestamp: time.Now().UnixNano(),
+	}
 	return &Block{
-		header,
-		txns,
+		header: header,
+		txns:   txns,
 	}, nil
 }
 
@@ -57,6 +52,18 @@ func (b *Block) Hash() Hash {
 	return b.header.TxnRoot()
 }
 
+func (b *Block) SetHash(hash Hash) {
+	b.header.txnRoot = hash
+}
+
+func (b *Block) StateRoot() Hash {
+	return b.header.stateRoot
+}
+
+func (b *Block) SetStateRoot(hash Hash) {
+	b.header.stateRoot = hash
+}
+
 func (b *Block) PrevHash() Hash {
 	return b.header.PrevHash()
 }
@@ -67,6 +74,10 @@ func (b *Block) Timestamp() int64 {
 
 func (b *Block) Extra() interface{} {
 	return b.header.Extra()
+}
+
+func (b *Block) SetExtra(extra interface{}) {
+	b.header.extra = extra
 }
 
 func (b *Block) Encode() ([]byte, error) {
@@ -96,4 +107,17 @@ func (b *Block) Events() []event.Event {
 		allEvents = append(allEvents, events...)
 	}
 	return allEvents
+}
+
+func makeTxnRoot(txns []*txn.Txn) (Hash, error) {
+	txnsBytes := make([]Hash, 0)
+	for _, tx := range txns {
+		hash, err := tx.Hash()
+		if err != nil {
+			return NullHash, err
+		}
+		txnsBytes = append(txnsBytes, hash)
+	}
+	mTree := trie.NewMerkleTree(txnsBytes)
+	return mTree.RootNode.Data, nil
 }

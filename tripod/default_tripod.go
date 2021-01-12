@@ -17,8 +17,8 @@ func (dt *DefaultTripod) TripodMeta() *TripodMeta {
 	return dt.meta
 }
 
-func (dt *DefaultTripod) OnInitialize() (blockchain.IBlock, error) {
-	return nil, nil
+func (dt *DefaultTripod) OnInitialize(block blockchain.IBlock) error {
+	return nil
 }
 
 func (dt *DefaultTripod) OnFinalize(block blockchain.IBlock) error {

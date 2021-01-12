@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"time"
 	. "yu/common"
 )
 
@@ -12,18 +11,6 @@ type Header struct {
 	stateRoot Hash
 	extra     interface{}
 	timestamp int64
-}
-
-func NewHeader(prevHash Hash, number BlockNum, txnRoot Hash, stateRoot Hash, extra interface{}) *Header {
-	timestamp := time.Now().UnixNano()
-	return &Header{
-		prevHash,
-		number,
-		txnRoot,
-		stateRoot,
-		extra,
-		timestamp,
-	}
 }
 
 func (h *Header) Num() BlockNum {

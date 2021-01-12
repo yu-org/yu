@@ -13,7 +13,7 @@ import (
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
-	OnInitialize() (IBlock, error)
+	OnInitialize(block IBlock) error
 
 	OnFinalize(block IBlock) error
 }

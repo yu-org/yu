@@ -10,12 +10,16 @@ type IBlock interface {
 	BlockId() BlockId
 	BlockNumber() BlockNum
 	Hash() Hash
+	SetHash(hash Hash)
+	StateRoot() Hash
+	SetStateRoot(hash Hash)
 	PrevHash() Hash
 	Header() IHeader
 	Txns() []*txn.Txn
 	Events() []event.Event
 	Timestamp() int64
 	Extra() interface{}
+	SetExtra(extra interface{})
 }
 
 type IHeader interface {
