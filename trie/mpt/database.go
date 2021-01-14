@@ -1,48 +1,43 @@
 package mpt
 
 import (
-	"github.com/syndtr/goleveldb/leveldb"
 	"sync"
 	. "yu/common"
+	"yu/storage/kv"
 )
 
 type NodeBase struct {
-	handler *leveldb.DB
+	db   kv.KV
 	lock sync.RWMutex
 }
 
-func NewNodeBasefromDB(db *leveldb.DB) (*NodeBase, error) {
-	return &NodeBase{handler: db}, nil
-}
-
-func NewNodeBase(path string) (*NodeBase, error) {
-	db, err := leveldb.OpenFile(path, nil)
+func NewNodeBase(cfg *kv.KVconf) (*NodeBase, error) {
+	db, err := kv.NewKV(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return &NodeBase{handler: db}, nil
+	return &NodeBase{db: db}, nil
 }
 
 func (db *NodeBase) node(hash Hash) node {
-	enc, err := db.handler.Get(hash[:], nil)
+	enc, err := db.db.Get(hash.Bytes())
 	if err != nil || enc == nil {
 		return nil
 	}
 	// fmt.Println("node", hex.EncodeToString(hash[:]) , "->", hex.EncodeToString(enc))
-	return mustDecodeNode(hash[:], enc)
+	return mustDecodeNode(hash.Bytes(), enc)
 }
 
-
 func (db *NodeBase) Get(toGet []byte) ([]byte, error) {
-	return db.handler.Get(toGet, nil)
+	return db.db.Get(toGet)
 }
 
 func (db *NodeBase) Put(key []byte, value []byte) error {
-	return db.handler.Put(key, value, nil)
+	return db.db.Set(key, value)
 }
 
 func (db *NodeBase) Close() error {
-	return db.handler.Close()
+	return nil
 }
 
 func (db *NodeBase) insert(hash Hash, blob []byte) {

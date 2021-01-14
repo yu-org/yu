@@ -83,4 +83,3 @@ type (
 )
 
 var NullHash Hash = [HashLen]byte{}
-

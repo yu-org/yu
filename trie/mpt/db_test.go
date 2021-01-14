@@ -3,10 +3,15 @@ package mpt
 import (
 	"bytes"
 	"testing"
+	"yu/storage/kv"
 )
 
 func TestDataBaseSetPutandGet(t *testing.T) {
-	db, err := NewNodeBase("./testdb")
+	cfg := &kv.KVconf{
+		KVtype: "badger",
+		Path:   "./testdb",
+	}
+	db, err := NewNodeBase(cfg)
 	if err != nil {
 		t.Error(err)
 		return

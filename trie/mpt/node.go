@@ -154,8 +154,6 @@ func DecodeNodeLazy(hash, buf []byte) (node, error) {
 	}
 }
 
-
-
 func decodeShort(hash, elems []byte) (node, error) {
 	// fmt.Println("...........")
 	// fmt.Println(hex.EncodeToString(hash), hex.EncodeToString(elems))

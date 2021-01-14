@@ -65,7 +65,7 @@ func NewTrie(root Hash, db *NodeBase) (*Trie, error) {
 		db: db,
 	}
 	if root != (Hash{}) && root != emptyRoot {
-		rootnode, err := trie.resolveHash(root[:], nil)
+		rootnode, err := trie.resolveHash(root.Bytes(), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +138,6 @@ func (t *Trie) tryGet(origNode node, key []byte, pos int) (value []byte, newnode
 	}
 }
 
-
 func (t *Trie) Prove(key []byte) [][]byte {
 	res, err := t.TryProve(key)
 	if err != nil {
@@ -159,13 +158,13 @@ func (t *Trie) TryProve(key []byte) ([][]byte, error) {
 		return nil, err
 	}
 	var pbt []byte
-	pbt, err = t.db.Get(trieHash[:])
+	pbt, err = t.db.Get(trieHash.Bytes())
 	if err != nil {
 		return nil, err
 	}
 	var tailProof [][]byte
 	tailProof, _, _, err = pureTrie.tryProve(pureTrie.root, key, 0)
-	return append([][]byte{trieHash[:], pbt}, tailProof...), err
+	return append([][]byte{trieHash.Bytes(), pbt}, tailProof...), err
 }
 
 func (t *Trie) tryProve(origNode node, key []byte, pos int) (proof [][]byte, newnode node, didResolve bool, err error) {

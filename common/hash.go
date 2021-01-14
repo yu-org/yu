@@ -14,6 +14,7 @@ import (
 
 	"github.com/HyperService-Consortium/go-hexutil"
 )
+
 type MerkleHash []byte
 
 func Keccak256(data ...[]byte) []byte {

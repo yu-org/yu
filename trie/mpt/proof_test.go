@@ -9,8 +9,8 @@ import (
 	"testing"
 	"unicode/utf8"
 	. "yu/common"
+	"yu/storage/kv"
 )
-
 
 func MustUnmarshal(data []byte, load interface{}) {
 	err := json.Unmarshal(data, &load)
@@ -20,10 +20,9 @@ func MustUnmarshal(data []byte, load interface{}) {
 }
 
 type MPTMerkleProof struct {
-	RootHash []byte `json:"r"`
+	RootHash  []byte   `json:"r"`
 	HashChain [][]byte `json:"h"`
 }
-
 
 func validateMerklePatriciaTrie(
 	Proof []byte,
@@ -36,7 +35,7 @@ func validateMerklePatriciaTrie(
 
 	var hf = Keccak256
 	keybuf := bytes.NewReader(Key)
-	
+
 	var keyrune rune
 	var keybyte byte
 	// var rsize int
@@ -55,7 +54,7 @@ func validateMerklePatriciaTrie(
 		}
 
 		curNode, err = DecodeNode(curHash, hashChain[0])
-				if err != nil {
+		if err != nil {
 			return false
 		}
 		hashChain = hashChain[1:]
@@ -75,7 +74,7 @@ func validateMerklePatriciaTrie(
 					return false
 				}
 				// else:
-				goto CheckKeyValueOK;
+				goto CheckKeyValueOK
 			} else if err != nil {
 				return false
 			}
@@ -91,11 +90,11 @@ func validateMerklePatriciaTrie(
 			for idx := 0; idx < len(n.Key); idx++ {
 				keybyte, err = keybuf.ReadByte()
 				if err == io.EOF {
-					if idx != len(n.Key) - 1 {
+					if idx != len(n.Key)-1 {
 						if Value != nil {
 							return false
 						} else {
-							goto CheckKeyValueOK;
+							goto CheckKeyValueOK
 						}
 					} else {
 						if len(hashChain) != 0 {
@@ -109,7 +108,7 @@ func validateMerklePatriciaTrie(
 							return false
 						}
 						// else:
-						goto CheckKeyValueOK;
+						goto CheckKeyValueOK
 					}
 				} else if err != nil {
 					return false
@@ -125,14 +124,17 @@ func validateMerklePatriciaTrie(
 			curHash = cld[:]
 		}
 	}
-	CheckKeyValueOK:
+CheckKeyValueOK:
 
 	return true
 }
 
 func TestGenerateProof(t *testing.T) {
-
-	db, err := NewNodeBase("./testdb")
+	cfg := &kv.KVconf{
+		KVtype: "badger",
+		Path:   "./testdb",
+	}
+	db, err := NewNodeBase(cfg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -160,14 +162,17 @@ func TestGenerateProof(t *testing.T) {
 	var proof [][]byte
 	fmt.Println("--------------------------------")
 	proof, err = tr.TryProve([]byte("keyy"))
-	for _, bt := range(proof) {
+	for _, bt := range proof {
 		fmt.Println(hex.EncodeToString(bt))
 	}
 }
 
 func TestGenerateLongProof(t *testing.T) {
-
-	db, err := NewNodeBase("./testdb")
+	cfg := &kv.KVconf{
+		KVtype: "badger",
+		Path:   "./testdb",
+	}
+	db, err := NewNodeBase(cfg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -195,12 +200,12 @@ func TestGenerateLongProof(t *testing.T) {
 	var proof [][]byte
 	fmt.Println("--------------------------------")
 	proof, err = tr.TryProve([]byte("keyy"))
-	for _, bt := range(proof) {
+	for _, bt := range proof {
 		fmt.Println(hex.EncodeToString(bt))
 	}
 	fmt.Println("--------------------------------")
 	proof, err = tr.TryProve([]byte("\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x21"))
-	for _, bt := range(proof) {
+	for _, bt := range proof {
 		fmt.Println(hex.EncodeToString(bt))
 	}
 }
