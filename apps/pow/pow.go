@@ -29,6 +29,12 @@ func (p *Pow) TripodMeta() *TripodMeta {
 }
 
 func (p *Pow) OnInitialize(block IBlock) error {
+	txnRoot, err := MakeTxnRoot(block.Txns())
+	if err != nil {
+		return err
+	}
+	block.SetHash(txnRoot)
+
 	nonce, hash, err := spow.Run(block, p.target, p.targetBits)
 	if err != nil {
 		return err

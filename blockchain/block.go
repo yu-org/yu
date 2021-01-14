@@ -15,21 +15,16 @@ type Block struct {
 	txns   []*txn.Txn
 }
 
-func NewBlock(txns []*txn.Txn, prevHash Hash, height BlockNum) (*Block, error) {
-	txnRoot, err := makeTxnRoot(txns)
-	if err != nil {
-		return nil, err
-	}
+func NewBlock(txns []*txn.Txn, prevHash Hash, height BlockNum) *Block {
 	header := &Header{
 		prevHash:  prevHash,
 		number:    height + 1,
-		txnRoot:   txnRoot,
 		timestamp: time.Now().UnixNano(),
 	}
 	return &Block{
 		header: header,
 		txns:   txns,
-	}, nil
+	}
 }
 
 func (b *Block) Header() IHeader {
@@ -109,7 +104,7 @@ func (b *Block) Events() []event.Event {
 	return allEvents
 }
 
-func makeTxnRoot(txns []*txn.Txn) (Hash, error) {
+func MakeTxnRoot(txns []*txn.Txn) (Hash, error) {
 	txnsBytes := make([]Hash, 0)
 	for _, tx := range txns {
 		hash, err := tx.Hash()
