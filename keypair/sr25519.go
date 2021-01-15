@@ -10,7 +10,8 @@ type SrPubkey struct {
 }
 
 func (spb *SrPubkey) Address() Address {
-	return spb.pubkey.Address().Bytes()
+	addressByt := spb.pubkey.Address().Bytes()
+	return BytesToAddress(addressByt)
 }
 
 func (spb *SrPubkey) VerifySignature(msg, sig []byte) bool {

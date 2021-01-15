@@ -5,17 +5,13 @@ import (
 	. "yu/common"
 )
 
-//type Ed25519 struct {
-//	pubKey  ed25519.PubKey
-//	privKey ed25519.PrivKey
-//}
-
 type EdPubkey struct {
 	pubkey ed25519.PubKey
 }
 
 func (epb *EdPubkey) Address() Address {
-	return epb.pubkey.Address().Bytes()
+	addressByt := epb.pubkey.Address().Bytes()
+	return BytesToAddress(addressByt)
 }
 
 func (epb *EdPubkey) VerifySignature(msg, sig []byte) bool {
