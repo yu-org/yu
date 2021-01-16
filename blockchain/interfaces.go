@@ -15,7 +15,7 @@ type IBlock interface {
 	SetStateRoot(hash Hash)
 	PrevHash() Hash
 	Header() IHeader
-	Txns() []*txn.Txn
+	Txns() []txn.Itxn
 	Events() []event.Event
 	Timestamp() int64
 	Extra() interface{}

@@ -17,15 +17,17 @@ type Txn struct {
 	events    []event.Event
 	signature []byte
 	timestamp int64
+	extra interface{}
 }
 
-func NewTxn(caller PubKey, calls []*Call) (*Txn, error) {
+func NewTxn(caller PubKey, calls []*Call, extra interface{}) (*Txn, error) {
 	txn := &Txn{
 		caller:    caller,
 		calls:     calls,
 		events:    make([]event.Event, 0),
 		signature: nil,
 		timestamp: time.Now().UnixNano(),
+		extra: extra,
 	}
 	id, err := txn.Hash()
 	if err != nil {
@@ -92,6 +94,10 @@ func (t *Txn) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func (t *Txn) Extra() interface{} {
+	return t.extra
 }
 
 func Decode(data []byte) (*Txn, error) {

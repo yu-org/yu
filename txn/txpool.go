@@ -12,17 +12,17 @@ type TxPool struct {
 	sync.RWMutex
 
 	poolSize   int
-	SignedTxns []*Txn
+	SignedTxns []Itxn
 }
 
 func NewTxPool(poolSize int) *TxPool {
 	return &TxPool{
 		poolSize:   poolSize,
-		SignedTxns: make([]*Txn, 0),
+		SignedTxns: make([]Itxn, 0),
 	}
 }
 
-func (tp *TxPool) InsertTxn(txn *Txn) (err error) {
+func (tp *TxPool) InsertTxn(txn Itxn) (err error) {
 	err = tp.checkPoolLimit()
 	if err != nil {
 		return
