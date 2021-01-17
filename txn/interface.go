@@ -7,7 +7,7 @@ import (
 )
 
 type Itxn interface {
-	Events() []event.Event
+	Events() []event.IEvent
 	Caller() PubKey
 	Calls() []*Call
 	Timestamp() int64

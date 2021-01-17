@@ -14,20 +14,20 @@ type Txn struct {
 	id        Hash
 	caller    PubKey
 	calls     []*Call
-	events    []event.Event
+	events    []event.IEvent
 	signature []byte
 	timestamp int64
-	extra interface{}
+	extra     interface{}
 }
 
 func NewTxn(caller PubKey, calls []*Call, extra interface{}) (*Txn, error) {
 	txn := &Txn{
 		caller:    caller,
 		calls:     calls,
-		events:    make([]event.Event, 0),
+		events:    make([]event.IEvent, 0),
 		signature: nil,
 		timestamp: time.Now().UnixNano(),
-		extra: extra,
+		extra:     extra,
 	}
 	id, err := txn.Hash()
 	if err != nil {
@@ -37,7 +37,7 @@ func NewTxn(caller PubKey, calls []*Call, extra interface{}) (*Txn, error) {
 	return txn, nil
 }
 
-func (t *Txn) Events() []event.Event {
+func (t *Txn) Events() []event.IEvent {
 	return t.events
 }
 

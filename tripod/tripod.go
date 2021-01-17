@@ -8,14 +8,15 @@ import (
 	"strings"
 	. "yu/blockchain"
 	. "yu/common"
+	"yu/context"
 )
 
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
-	OnInitialize(block IBlock) error
+	OnInitialize(c *context.Context, block IBlock) error
 
-	OnFinalize(block IBlock) error
+	OnFinalize(c *context.Context, block IBlock) error
 }
 
 type TripodMeta struct {

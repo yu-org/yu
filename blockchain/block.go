@@ -95,8 +95,8 @@ func DecodeBlock(data []byte) (*Block, error) {
 	return &block, nil
 }
 
-func (b *Block) Events() []event.Event {
-	allEvents := make([]event.Event, 0)
+func (b *Block) Events() []event.IEvent {
+	allEvents := make([]event.IEvent, 0)
 	for _, tx := range b.txns {
 		events := tx.Events()
 		allEvents = append(allEvents, events...)

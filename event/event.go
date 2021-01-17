@@ -1,4 +1,4 @@
 package event
 
-type Event interface {
+type IEvent interface {
 }

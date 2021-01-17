@@ -1,6 +1,9 @@
 package tripod
 
-import "yu/blockchain"
+import (
+	"yu/blockchain"
+	"yu/context"
+)
 
 type DefaultTripod struct {
 	meta *TripodMeta
@@ -17,10 +20,10 @@ func (dt *DefaultTripod) TripodMeta() *TripodMeta {
 	return dt.meta
 }
 
-func (dt *DefaultTripod) OnInitialize(block blockchain.IBlock) error {
+func (dt *DefaultTripod) OnInitialize(c *context.Context, block blockchain.IBlock) error {
 	return nil
 }
 
-func (dt *DefaultTripod) OnFinalize(block blockchain.IBlock) error {
+func (dt *DefaultTripod) OnFinalize(c *context.Context, block blockchain.IBlock) error {
 	return nil
 }

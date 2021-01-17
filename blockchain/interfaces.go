@@ -16,7 +16,7 @@ type IBlock interface {
 	PrevHash() Hash
 	Header() IHeader
 	Txns() []txn.Itxn
-	Events() []event.Event
+	Events() []event.IEvent
 	Timestamp() int64
 	Extra() interface{}
 	SetExtra(extra interface{})
