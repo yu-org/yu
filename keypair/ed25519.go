@@ -5,6 +5,8 @@ import (
 	. "yu/common"
 )
 
+// ----- Public Key ------
+
 type EdPubkey struct {
 	pubkey ed25519.PubKey
 }
@@ -18,12 +20,46 @@ func (epb *EdPubkey) VerifySignature(msg, sig []byte) bool {
 	return epb.pubkey.VerifySignature(msg, sig)
 }
 
+func (epb *EdPubkey) Type() string {
+	return epb.pubkey.Type()
+}
+
+func (epb *EdPubkey) Equals(key Key) bool {
+	edkey, ok := key.(*EdPubkey)
+	if !ok {
+		return false
+	}
+	return epb.pubkey.Equals(edkey.pubkey)
+}
+
+func (epb *EdPubkey) Bytes() []byte {
+	return epb.pubkey.Bytes()
+}
+
+// ------ Private Key -------
+
 type EdPrivkey struct {
 	privkey ed25519.PrivKey
 }
 
 func (epr *EdPrivkey) SignData(data []byte) ([]byte, error) {
 	return epr.privkey.Sign(data)
+}
+
+func (epr *EdPrivkey) Type() string {
+	return epr.privkey.Type()
+}
+
+func (epr *EdPrivkey) Equals(key Key) bool {
+	edKey, ok := key.(*EdPrivkey)
+	if !ok {
+		return false
+	}
+	return epr.privkey.Equals(edKey.privkey)
+}
+
+func (epr *EdPrivkey) Bytes() []byte {
+	return epr.privkey.Bytes()
 }
 
 func genEd25519() (*EdPubkey, *EdPrivkey) {

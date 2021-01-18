@@ -7,7 +7,6 @@ import (
 
 type Node struct {
 	typ NodeType
-
 }
 
 func NewNode() *Node {

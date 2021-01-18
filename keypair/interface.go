@@ -13,12 +13,19 @@ func GenKeyPair(keyType string) (PubKey, PrivKey) {
 	}
 }
 
-type PubKey interface {
-	Address() common.Address
+type Key interface {
+	Type() string
+	Equals(key Key) bool
+	Bytes() []byte
+}
 
+type PubKey interface {
+	Key
+	Address() common.Address
 	VerifySignature(msg, sig []byte) bool
 }
 
 type PrivKey interface {
+	Key
 	SignData([]byte) ([]byte, error)
 }
