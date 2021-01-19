@@ -16,7 +16,7 @@ type BlockChain struct {
 func NewBlockChain(kvCfg *kv.KVconf) *BlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
-		logrus.Fatalln("cannot load kvdb")
+		logrus.Panicln("cannot load kvdb")
 	}
 	return &BlockChain{
 		kvdb: kvdb,
