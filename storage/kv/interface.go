@@ -2,6 +2,7 @@ package kv
 
 import (
 	"github.com/pkg/errors"
+	. "yu/config"
 )
 
 var NoKvdbType = errors.New("no kvdb type")

@@ -7,28 +7,45 @@ import (
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"yu/config"
+	"yu/storage/kv"
 )
 
+var MasterNodeInfoKey = []byte("master-node-info")
+
 type MasterNode struct {
-	ID peer.ID
+	info *MasterNodeInfo
+	db   kv.KV
 }
 
-func NewMasterNode(cfg *config.Conf) *MasterNode {
-	host, err := makeP2pHost(cfg)
+func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
+	db, err := kv.NewKV(&cfg.MasterNodeDB)
 	if err != nil {
-		logrus.Panicln("start Master-Node error: ", err)
+		return nil, err
 	}
+	p2pHost, err := makeP2pHost(&cfg.NodeConf)
+	if err != nil {
+		return nil, err
+	}
+	data, err := db.Get(MasterNodeInfoKey)
+	if err != nil {
+		return nil, err
+	}
+	info, err := DecodeMasterNodeInfo(data)
+	if err != nil {
+		return nil, err
+	}
+	info.P2pID = p2pHost.ID().String()
+
 	return &MasterNode{
-		ID: host.ID(),
-	}
+		info: info,
+		db:   db,
+	}, nil
 }
 
-func makeP2pHost(cfg *config.Conf) (host.Host, error) {
+func makeP2pHost(cfg *config.NodeConf) (host.Host, error) {
 	r, err := loadNodeKeyReader(cfg)
 	if err != nil {
 		return nil, err
@@ -45,7 +62,7 @@ func makeP2pHost(cfg *config.Conf) (host.Host, error) {
 	)
 }
 
-func loadNodeKeyReader(cfg *config.Conf) (io.Reader, error) {
+func loadNodeKeyReader(cfg *config.NodeConf) (io.Reader, error) {
 	if cfg.NodeKey != "" {
 		return bytes.NewBufferString(cfg.NodeKey), nil
 	}

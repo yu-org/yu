@@ -3,6 +3,7 @@ package mpt
 import (
 	"sync"
 	. "yu/common"
+	"yu/config"
 	"yu/storage/kv"
 )
 
@@ -11,7 +12,7 @@ type NodeBase struct {
 	lock sync.RWMutex
 }
 
-func NewNodeBase(cfg *kv.KVconf) (*NodeBase, error) {
+func NewNodeBase(cfg *config.KVconf) (*NodeBase, error) {
 	db, err := kv.NewKV(cfg)
 	if err != nil {
 		return nil, err
