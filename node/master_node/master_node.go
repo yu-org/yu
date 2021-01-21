@@ -10,18 +10,19 @@ import (
 	"io"
 	"os"
 	"yu/config"
+	. "yu/node"
 	"yu/storage/kv"
 )
 
 var MasterNodeInfoKey = []byte("master-node-info")
 
 type MasterNode struct {
-	info *MasterNodeInfo
-	db   kv.KV
+	info   *MasterNodeInfo
+	metadb kv.KV
 }
 
 func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
-	db, err := kv.NewKV(&cfg.MasterNodeDB)
+	metadb, err := kv.NewKV(&cfg.NodeDB)
 	if err != nil {
 		return nil, err
 	}
@@ -29,19 +30,28 @@ func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := db.Get(MasterNodeInfoKey)
+	data, err := metadb.Get(MasterNodeInfoKey)
 	if err != nil {
 		return nil, err
 	}
-	info, err := DecodeMasterNodeInfo(data)
-	if err != nil {
-		return nil, err
+	var info *MasterNodeInfo
+	if data == nil {
+		info = &MasterNodeInfo{
+			Name:        cfg.NodeConf.NodeName,
+			WorkerNodes: cfg.NodeConf.WorkerNodes,
+		}
+	} else {
+		info, err = DecodeMasterNodeInfo(data)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	info.P2pID = p2pHost.ID().String()
 
 	return &MasterNode{
-		info: info,
-		db:   db,
+		info,
+		metadb,
 	}, nil
 }
 

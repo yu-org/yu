@@ -10,10 +10,10 @@ const (
 )
 
 type MasterNodeInfo struct {
-	P2pID       string   `json:"p2p_id"`
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	MasterNodes []string `json:"master_nodes"`
+	P2pID string `json:"p2p_id"`
+	// ID          int      `json:"id"`
+	Name string `json:"name"`
+	// MasterNodes []string `json:"master_nodes"`
 	WorkerNodes []string `json:"worker_nodes"`
 }
 

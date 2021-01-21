@@ -3,7 +3,7 @@ package config
 type Conf struct {
 	NodeConf NodeConf
 
-	MasterNodeDB KVconf
+	NodeDB KVconf
 }
 
 type KVconf struct {
@@ -18,8 +18,11 @@ type KVconf struct {
 type NodeConf struct {
 	// 0: Master
 	// 1: Worker
-	NodeType uint
-	NodeName string
+	NodeType    uint
+	NodeName    string
+	MasterNodes []string
+	WorkerNodes []string
+	//---------P2P config--------
 	// For listening from blockchain network.
 	P2pAddrs []string
 	// 0: RSA
