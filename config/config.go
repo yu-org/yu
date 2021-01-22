@@ -24,7 +24,11 @@ type NodeConf struct {
 	WorkerNodes []string
 	//---------P2P config--------
 	// For listening from blockchain network.
-	P2pAddrs []string
+	P2pListenAddrs []string
+	// To connect other hosts as a p2p network.
+	ConnectAddrs []string
+
+	ProtocolID string
 	// 0: RSA
 	// 1: Ed25519
 	// 2: Secp256k1

@@ -1,6 +1,8 @@
 package node
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type NodeType = uint
 

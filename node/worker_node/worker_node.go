@@ -28,6 +28,14 @@ func NewWorkerNode(cfg *config.Conf) (*WorkerNode, error) {
 			Name:        cfg.NodeConf.NodeName,
 			MasterNodes: cfg.NodeConf.MasterNodes,
 		}
+		infoByt, err := info.EncodeMasterNodeInfo()
+		if err != nil {
+			return nil, err
+		}
+		err = metadb.Set(WorkerNodeInfoKey, infoByt)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		info, err = DecodeWorkerNodeInfo(data)
 		if err != nil {
