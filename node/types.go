@@ -12,10 +12,8 @@ const (
 )
 
 type MasterNodeInfo struct {
-	P2pID string `json:"p2p_id"`
-	// ID          int      `json:"id"`
-	Name string `json:"name"`
-	// MasterNodes []string `json:"master_nodes"`
+	P2pID       string   `json:"p2p_id"`
+	Name        string   `json:"name"`
 	WorkerNodes []string `json:"worker_nodes"`
 }
 
@@ -33,9 +31,9 @@ func DecodeMasterNodeInfo(data []byte) (*MasterNodeInfo, error) {
 }
 
 type WorkerNodeInfo struct {
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	MasterNodes []string `json:"master_nodes"`
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	MasterNode string `json:"master_node"`
 }
 
 func (wi *WorkerNodeInfo) EncodeMasterNodeInfo() ([]byte, error) {

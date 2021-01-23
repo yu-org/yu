@@ -39,7 +39,7 @@ func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	return DecodeBlock(blockByt)
+	return NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
@@ -56,7 +56,7 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		block, err := DecodeBlock(blockByt)
+		block, err := NewEmptyBlock().Decode(blockByt)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +85,7 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	return DecodeBlock(blockByt)
+	return NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) Leaves() ([]IBlock, error) {
@@ -100,7 +100,7 @@ func (bc *BlockChain) Leaves() ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		block, err := DecodeBlock(blockByt)
+		block, err := NewEmptyBlock().Decode(blockByt)
 		if err != nil {
 			return nil, err
 		}

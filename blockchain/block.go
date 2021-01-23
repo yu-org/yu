@@ -27,6 +27,10 @@ func NewBlock(txns []txn.Itxn, prevHash Hash, height BlockNum) *Block {
 	}
 }
 
+func NewEmptyBlock() *Block {
+	return &Block{}
+}
+
 func (b *Block) Header() IHeader {
 	return b.header
 }
@@ -85,14 +89,10 @@ func (b *Block) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func DecodeBlock(data []byte) (*Block, error) {
-	var block Block
+func (b *Block) Decode(data []byte) (IBlock, error) {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&block)
-	if err != nil {
-		return nil, err
-	}
-	return &block, nil
+	err := decoder.Decode(b)
+	return b, err
 }
 
 func (b *Block) Events() []event.IEvent {

@@ -20,6 +20,9 @@ type IBlock interface {
 	Timestamp() int64
 	Extra() interface{}
 	SetExtra(extra interface{})
+
+	Encode() ([]byte, error)
+	Decode(data []byte) (IBlock, error)
 }
 
 type IHeader interface {

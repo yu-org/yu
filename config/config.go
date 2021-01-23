@@ -9,7 +9,7 @@ type Conf struct {
 type KVconf struct {
 	// "bolt" "badger" "tikv"
 	KVtype string
-	// embedded kvdb, such as boltdb, pebble
+	// dbpath, such as boltdb, pebble
 	Path string
 	// distributed kvdb
 	Hosts []string
@@ -18,10 +18,17 @@ type KVconf struct {
 type NodeConf struct {
 	// 0: Master
 	// 1: Worker
-	NodeType    uint
-	NodeName    string
-	MasterNodes []string
-	WorkerNodes []string
+	NodeType uint
+	NodeName string
+
+	// ------ Only Worker-Node has these params.
+	MasterNode       string
+	WorkerServesPort string
+
+	// ------ Only Master-Node has these params.
+	WorkerNodes      []string
+	MasterServesPort string
+
 	//---------P2P config--------
 	// For listening from blockchain network.
 	P2pListenAddrs []string
