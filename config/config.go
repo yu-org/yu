@@ -4,6 +4,8 @@ type Conf struct {
 	NodeConf NodeConf
 
 	NodeDB KVconf
+
+	NodeKeeperConf NodeKeeperConf
 }
 
 type KVconf struct {
@@ -48,4 +50,10 @@ type NodeConf struct {
 	NodeKeyBits int
 	// When use param 'NodeKey', 'NodeKeyFile' will not work.
 	NodeKeyFile string
+}
+
+type NodeKeeperConf struct {
+	ServesPort string
+	// Direction used to keep executable file
+	BinaryDir string
 }

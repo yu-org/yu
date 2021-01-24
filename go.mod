@@ -7,6 +7,7 @@ require (
 	github.com/HyperService-Consortium/go-rlp v1.0.2 // indirect
 	github.com/cockroachdb/pebble v0.0.0-20201210152317-024096017eda // indirect
 	github.com/dgraph-io/badger v1.6.2 // indirect
+	github.com/gin-gonic/gin v1.6.3 // indirect
 	github.com/libp2p/go-libp2p v0.13.0 // indirect
 	github.com/pingcap/tidb v1.1.0-beta.0.20210108095858-c2ee8d37c22f // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
