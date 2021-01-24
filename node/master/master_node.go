@@ -1,4 +1,4 @@
-package node
+package master
 
 import (
 	"bytes"
@@ -17,16 +17,16 @@ import (
 	"yu/storage/kv"
 )
 
-var MasterNodeInfoKey = []byte("master-node-info")
+var MasterInfoKey = []byte("master-info")
 
-type MasterNode struct {
-	info    *MasterNodeInfo
+type Master struct {
+	info    *MasterInfo
 	p2pHost host.Host
 	metadb  kv.KV
 	ctx     context.Context
 }
 
-func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
+func NewMasterNode(cfg *config.Conf) (*Master, error) {
 	metadb, err := kv.NewKV(&cfg.NodeDB)
 	if err != nil {
 		return nil, err
@@ -36,27 +36,27 @@ func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := metadb.Get(MasterNodeInfoKey)
+	data, err := metadb.Get(MasterInfoKey)
 	if err != nil {
 		return nil, err
 	}
 
-	var info *MasterNodeInfo
+	var info *MasterInfo
 	if data == nil {
-		info = &MasterNodeInfo{
+		info = &MasterInfo{
 			Name:        cfg.NodeConf.NodeName,
 			WorkerNodes: cfg.NodeConf.WorkerNodes,
 		}
-		infoByt, err := info.EncodeMasterNodeInfo()
+		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {
 			return nil, err
 		}
-		err = metadb.Set(MasterNodeInfoKey, infoByt)
+		err = metadb.Set(MasterInfoKey, infoByt)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		info, err = DecodeMasterNodeInfo(data)
+		info, err = DecodeMasterInfo(data)
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +64,7 @@ func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
 
 	info.P2pID = p2pHost.ID().String()
 
-	return &MasterNode{
+	return &Master{
 		info,
 		p2pHost,
 		metadb,
@@ -72,7 +72,7 @@ func NewMasterNode(cfg *config.Conf) (*MasterNode, error) {
 	}, nil
 }
 
-func (m *MasterNode) ConnectP2PNetwork(cfg *config.NodeConf) error {
+func (m *Master) ConnectP2PNetwork(cfg *config.NodeConf) error {
 	m.p2pHost.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
 
 	for _, addrStr := range cfg.ConnectAddrs {

@@ -1,4 +1,4 @@
-package node
+package worker
 
 import (
 	"yu/config"
@@ -6,44 +6,44 @@ import (
 	"yu/storage/kv"
 )
 
-var WorkerNodeInfoKey = []byte("worker-node-info")
+var WorkerInfoKey = []byte("worker-node-info")
 
-type WorkerNode struct {
-	info   *WorkerNodeInfo
+type Worker struct {
+	info   *WorkerInfo
 	metadb kv.KV
 }
 
-func NewWorkerNode(cfg *config.Conf) (*WorkerNode, error) {
+func NewWorker(cfg *config.Conf) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.NodeDB)
 	if err != nil {
 		return nil, err
 	}
-	data, err := metadb.Get(WorkerNodeInfoKey)
+	data, err := metadb.Get(WorkerInfoKey)
 	if err != nil {
 		return nil, err
 	}
-	var info *WorkerNodeInfo
+	var info *WorkerInfo
 	if data == nil {
-		info = &WorkerNodeInfo{
+		info = &WorkerInfo{
 			Name:       cfg.NodeConf.NodeName,
 			MasterNode: cfg.NodeConf.MasterNode,
 		}
-		infoByt, err := info.EncodeMasterNodeInfo()
+		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {
 			return nil, err
 		}
-		err = metadb.Set(WorkerNodeInfoKey, infoByt)
+		err = metadb.Set(WorkerInfoKey, infoByt)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		info, err = DecodeWorkerNodeInfo(data)
+		info, err = DecodeWorkerInfo(data)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return &WorkerNode{
+	return &Worker{
 		info,
 		metadb,
 	}, nil

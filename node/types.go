@@ -4,25 +4,18 @@ import (
 	"encoding/json"
 )
 
-type NodeType = uint
-
-const (
-	Master NodeType = iota
-	Worker
-)
-
-type MasterNodeInfo struct {
+type MasterInfo struct {
 	P2pID       string   `json:"p2p_id"`
 	Name        string   `json:"name"`
 	WorkerNodes []string `json:"worker_nodes"`
 }
 
-func (mi *MasterNodeInfo) EncodeMasterNodeInfo() ([]byte, error) {
+func (mi *MasterInfo) EncodeMasterInfo() ([]byte, error) {
 	return json.Marshal(mi)
 }
 
-func DecodeMasterNodeInfo(data []byte) (*MasterNodeInfo, error) {
-	var info MasterNodeInfo
+func DecodeMasterInfo(data []byte) (*MasterInfo, error) {
+	var info MasterInfo
 	err := json.Unmarshal(data, &info)
 	if err != nil {
 		return nil, err
@@ -30,18 +23,18 @@ func DecodeMasterNodeInfo(data []byte) (*MasterNodeInfo, error) {
 	return &info, nil
 }
 
-type WorkerNodeInfo struct {
+type WorkerInfo struct {
 	ID         int    `json:"id"`
 	Name       string `json:"name"`
 	MasterNode string `json:"master_node"`
 }
 
-func (wi *WorkerNodeInfo) EncodeMasterNodeInfo() ([]byte, error) {
+func (wi *WorkerInfo) EncodeMasterInfo() ([]byte, error) {
 	return json.Marshal(wi)
 }
 
-func DecodeWorkerNodeInfo(data []byte) (*WorkerNodeInfo, error) {
-	var info WorkerNodeInfo
+func DecodeWorkerInfo(data []byte) (*WorkerInfo, error) {
+	var info WorkerInfo
 	err := json.Unmarshal(data, &info)
 	if err != nil {
 		return nil, err
