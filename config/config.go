@@ -54,6 +54,6 @@ type NodeConf struct {
 
 type NodeKeeperConf struct {
 	ServesPort string
-	// Direction used to keep executable file
-	BinaryDir string
+	// Direction used to keep executable file and others.
+	Dir string
 }

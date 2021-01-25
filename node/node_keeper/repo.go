@@ -8,6 +8,10 @@ type Repo struct {
 	Version        int
 }
 
+func NewRepo(files []string) *Repo {
+
+}
+
 func (r *Repo) Start() error {
 	cmd := exec.Command(r.StartCmd, r.BinaryFilename)
 	return cmd.Start()
