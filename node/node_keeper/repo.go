@@ -1,18 +1,38 @@
 package node_keeper
 
-import "os/exec"
+import (
+	"io/ioutil"
+	"os/exec"
+	"path/filepath"
+)
+
+const CmdFileName = "cmd"
 
 type Repo struct {
-	StartCmd       string
-	BinaryFilename string
-	Version        int
+	Name     string
+	StartCmd string
+	Version  int
 }
 
-func NewRepo(files []string) *Repo {
+func NewRepo(name string, files []string, dir string, version int) (*Repo, error) {
+	repo := &Repo{
+		Name:    name,
+		Version: version,
+	}
+	for _, file := range files {
+		if file == filepath.Join(dir, CmdFileName) {
+			byt, err := ioutil.ReadFile(file)
+			if err != nil {
+				return nil, err
+			}
+			repo.StartCmd = string(byt)
+		}
+	}
 
+	return repo, nil
 }
 
 func (r *Repo) Start() error {
-	cmd := exec.Command(r.StartCmd, r.BinaryFilename)
+	cmd := exec.Command(r.StartCmd)
 	return cmd.Start()
 }

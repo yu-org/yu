@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"yu/config"
 	"yu/utils/compress"
 )
 
-const BinaryFileType = ".zip"
+const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
 	repos []*Repo
@@ -38,7 +39,7 @@ func (n *NodeKeeper) handleFromMaster() {
 		}
 
 		fname := file.Filename
-		if !strings.HasSuffix(fname, BinaryFileType) {
+		if !strings.HasSuffix(fname, CompressedFileType) {
 			c.String(
 				http.StatusBadRequest,
 				fmt.Sprintf("the type of file(%s) is wrong", fname),
@@ -54,10 +55,10 @@ func (n *NodeKeeper) handleFromMaster() {
 			)
 			return
 		}
-		err = n.convertToRepo(zipFileName)
+		err = n.convertToRepo(zipFileName, fname)
 		if err != nil {
 			c.String(
-				http.StatusInternalServerError,
+				http.StatusBadRequest,
 				fmt.Sprintf("convert file(%s) to repo error: %s", fname, err.Error()),
 			)
 		}
@@ -68,19 +69,35 @@ func (n *NodeKeeper) handleFromMaster() {
 	r.Run(n.port)
 }
 
-func (n *NodeKeeper) convertToRepo(zipFileName string) error {
-	files, err := compress.UnzipFile(zipFileName, n.dir)
+// zipFileName just like: path/to/yu_3.zip
+// 3 is the version of repo
+func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
+
+	repoDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
+	err := os.MkdirAll(repoDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	repoDir := strings.TrimSuffix(zipFileName, BinaryFileType)
-	err = os.MkdirAll(repoDir, os.ModePerm)
+	files, err := compress.UnzipFile(zipFilePath, repoDir)
 	if err != nil {
 		return err
 	}
 
-	n.repos = append(n.repos, NewRepo(files))
-	return os.Remove(zipFileName)
+	arr := strings.Split(repoDir, "_")
+	repoVersionStr := arr[len(arr)-1]
+	repoVersion, err := strconv.Atoi(repoVersionStr)
+	if err != nil {
+		return err
+	}
+
+	repoName := strings.TrimSuffix(fname, "_"+repoVersionStr+CompressedFileType)
+
+	repo, err := NewRepo(repoName, files, repoDir, repoVersion)
+	if err != nil {
+		return err
+	}
+	n.repos = append(n.repos, repo)
+	return os.Remove(zipFilePath)
 }
 
 func ReposFromDir(dir string) []*Repo {
