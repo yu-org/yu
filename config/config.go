@@ -56,6 +56,7 @@ type NodeKeeperConf struct {
 	ServesPort string
 	// Direction used to keep executable file and others.
 	Dir string
-
-	RepoDbConf KVconf
+	// It MUST be {Dir}/xx.db
+	// When you use {Dir}/path/to/xx.db, it will be trimmed as {Dir}/xx.db
+	RepoDbPath string
 }

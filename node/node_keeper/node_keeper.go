@@ -22,13 +22,18 @@ type NodeKeeper struct {
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
-	repoDB, err := kv.NewKV(&cfg.RepoDbConf)
+	dbpath := cfg.RepoDbPath
+	dir := cfg.Dir
+	if filepath.Dir(dbpath) == dir {
+		dbpath = filepath.Join(dir, filepath.Base(dbpath))
+	}
+	repoDB, err := kv.NewBolt(dbpath)
 	if err != nil {
 		return nil, err
 	}
 	return &NodeKeeper{
 		repoDB: repoDB,
-		dir:    cfg.Dir,
+		dir:    dir,
 		port:   ":" + cfg.ServesPort,
 	}, nil
 }
