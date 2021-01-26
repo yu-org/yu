@@ -9,23 +9,28 @@ import (
 	"strconv"
 	"strings"
 	"yu/config"
+	"yu/storage/kv"
 	"yu/utils/compress"
 )
 
 const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
-	repos []*Repo
-	dir   string
-	port  string
+	repoDB kv.KV
+	dir    string
+	port   string
 }
 
-func NewNodeKeeper(cfg *config.NodeKeeperConf) *NodeKeeper {
-
-	return &NodeKeeper{
-		dir:  cfg.Dir,
-		port: ":" + cfg.ServesPort,
+func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
+	repoDB, err := kv.NewKV(&cfg.RepoDbConf)
+	if err != nil {
+		return nil, err
 	}
+	return &NodeKeeper{
+		repoDB: repoDB,
+		dir:    cfg.Dir,
+		port:   ":" + cfg.ServesPort,
+	}, nil
 }
 
 func (n *NodeKeeper) handleFromMaster() {
@@ -69,37 +74,58 @@ func (n *NodeKeeper) handleFromMaster() {
 	r.Run(n.port)
 }
 
-// zipFileName just like: path/to/yu_3.zip
-// 3 is the version of repo
+// zipFileName just like: path/to/yu-repo_3.zip
+// 3 is the version of repo, 'yu-repo' is the name of repo
 func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 
-	repoDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
-	err := os.MkdirAll(repoDir, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	files, err := compress.UnzipFile(zipFilePath, repoDir)
-	if err != nil {
-		return err
-	}
+	// repoVDir: path/to/yu-repo_3
+	repoVDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
 
-	arr := strings.Split(repoDir, "_")
+	arr := strings.Split(repoVDir, "_")
 	repoVersionStr := arr[len(arr)-1]
 	repoVersion, err := strconv.Atoi(repoVersionStr)
 	if err != nil {
 		return err
 	}
 
+	// repoName: yu-repo
 	repoName := strings.TrimSuffix(fname, "_"+repoVersionStr+CompressedFileType)
+
+	// repoDir: path/to/yu-repo/3
+	repoDir := filepath.Join(n.dir, repoName, repoVersionStr)
+	err = os.MkdirAll(repoDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	files, err := compress.UnzipFile(zipFilePath, repoDir)
+	if err != nil {
+		return err
+	}
 
 	repo, err := NewRepo(repoName, files, repoDir, repoVersion)
 	if err != nil {
 		return err
 	}
-	n.repos = append(n.repos, repo)
+	err = n.setRepo(repoName, repo)
+	if err != nil {
+		return err
+	}
 	return os.Remove(zipFilePath)
 }
 
-func ReposFromDir(dir string) []*Repo {
+func (n *NodeKeeper) getRepo(repoName string) (*Repo, error) {
+	repoByt, err := n.repoDB.Get([]byte(repoName))
+	if err != nil {
+		return nil, err
+	}
+	return decodeRepo(repoByt)
+}
 
+func (n *NodeKeeper) setRepo(repoName string, repo *Repo) error {
+	repoByt, err := repo.encode()
+	if err != nil {
+		return err
+	}
+	return n.repoDB.Set([]byte(repoName), repoByt)
 }

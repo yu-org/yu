@@ -1,6 +1,7 @@
 package node_keeper
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
@@ -9,9 +10,9 @@ import (
 const CmdFileName = "cmd"
 
 type Repo struct {
-	Name     string
-	StartCmd string
-	Version  int
+	Name     string `json:"name"`
+	StartCmd string `json:"start_cmd"`
+	Version  int    `json:"version"`
 }
 
 func NewRepo(name string, files []string, dir string, version int) (*Repo, error) {
@@ -35,4 +36,13 @@ func NewRepo(name string, files []string, dir string, version int) (*Repo, error
 func (r *Repo) Start() error {
 	cmd := exec.Command(r.StartCmd)
 	return cmd.Start()
+}
+
+func (r *Repo) encode() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func decodeRepo(byt []byte) (r *Repo, err error) {
+	err = json.Unmarshal(byt, r)
+	return
 }
