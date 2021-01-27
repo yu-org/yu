@@ -19,6 +19,7 @@ type NodeKeeper struct {
 	repoDB kv.KV
 	dir    string
 	port   string
+	arch   string
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
@@ -35,6 +36,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		repoDB: repoDB,
 		dir:    dir,
 		port:   ":" + cfg.ServesPort,
+		arch:   cfg.RepoArch,
 	}, nil
 }
 
@@ -113,7 +115,7 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 		return err
 	}
 
-	repo, err := NewRepo(repoName, files, repoDir, repoVersion, repoArch)
+	repo, err := NewRepo(repoName, files, repoDir, repoVersion)
 	if err != nil {
 		return err
 	}
