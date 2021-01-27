@@ -13,12 +13,14 @@ type Repo struct {
 	Name     string `json:"name"`
 	StartCmd string `json:"start_cmd"`
 	Version  int    `json:"version"`
+	Arch     string `json:"arch"`
 }
 
-func NewRepo(name string, files []string, dir string, version int) (*Repo, error) {
+func NewRepo(name string, files []string, dir string, version int, arch string) (*Repo, error) {
 	repo := &Repo{
 		Name:    name,
 		Version: version,
+		Arch:    arch,
 	}
 	for _, file := range files {
 		if file == filepath.Join(dir, CmdFileName) {

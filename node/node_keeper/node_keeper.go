@@ -38,7 +38,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	}, nil
 }
 
-func (n *NodeKeeper) handleFromMaster() {
+func (n *NodeKeeper) HandleFromMaster() {
 	r := gin.Default()
 
 	r.POST("/upgrade", func(c *gin.Context) {
@@ -79,11 +79,13 @@ func (n *NodeKeeper) handleFromMaster() {
 	r.Run(n.port)
 }
 
-// zipFileName just like: path/to/yu-repo_3.zip
-// 3 is the version of repo, 'yu-repo' is the name of repo
+// zipFilePath just like: path/to/yuRepo_linux-amd64_3.zip
+// 'yuRepo' is the name of repo
+// 'linux-amd64' is the arch of repo
+// '3' is the version of repo
 func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 
-	// repoVDir: path/to/yu-repo_3
+	// repoVDir: path/to/yuRepo_3
 	repoVDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
 
 	arr := strings.Split(repoVDir, "_")
@@ -93,11 +95,14 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 		return err
 	}
 
-	// repoName: yu-repo
-	repoName := strings.TrimSuffix(fname, "_"+repoVersionStr+CompressedFileType)
+	// repoArch: linux-amd64
+	repoArch := arr[len(arr)-2]
 
-	// repoDir: path/to/yu-repo/3
-	repoDir := filepath.Join(n.dir, repoName, repoVersionStr)
+	// repoName: yuRepo
+	repoName := strings.TrimSuffix(fname, "_"+repoArch+"_"+repoVersionStr+CompressedFileType)
+
+	// repoDir: path/to/yuRepo/3/linux-amd64
+	repoDir := filepath.Join(n.dir, repoName, repoVersionStr, repoArch)
 	err = os.MkdirAll(repoDir, os.ModePerm)
 	if err != nil {
 		return err
@@ -108,7 +113,7 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 		return err
 	}
 
-	repo, err := NewRepo(repoName, files, repoDir, repoVersion)
+	repo, err := NewRepo(repoName, files, repoDir, repoVersion, repoArch)
 	if err != nil {
 		return err
 	}
