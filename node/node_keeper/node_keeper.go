@@ -87,7 +87,7 @@ func (n *NodeKeeper) HandleFromMaster() {
 // '3' is the version of repo
 func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 
-	// repoVDir: path/to/yuRepo_3
+	// repoVDir: path/to/yuRepo_linux-amd64_3
 	repoVDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
 
 	arr := strings.Split(repoVDir, "_")
