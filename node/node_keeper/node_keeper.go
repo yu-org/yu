@@ -65,7 +65,7 @@ func (n *NodeKeeper) WorkerNumToMaster() error {
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster("nodekeeper/worker/number", infoByt)
+	_, err = n.postToMaster("/nodekeeper/worker/number", infoByt)
 	return err
 }
 
@@ -75,7 +75,7 @@ func (n *NodeKeeper) HandleFromMaster() {
 	r.POST("/upgrade", func(c *gin.Context) {
 		n.saveUpgradeRepo(c)
 	})
-	r.POST("/workers", func(c *gin.Context) {
+	r.POST("/worker/number", func(c *gin.Context) {
 		n.watchWorkersNumber(c)
 	})
 
