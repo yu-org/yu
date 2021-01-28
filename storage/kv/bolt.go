@@ -13,6 +13,15 @@ var bucket = []byte("yu")
 
 func NewBolt(fpath string) (*boltKV, error) {
 	db, err := bbolt.Open(fpath, 0666, nil)
+	tx, err := db.Begin(true)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tx.CreateBucketIfNotExists(bucket)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +57,16 @@ func (b *boltKV) Iter(keyPrefix []byte) (Iterator, error) {
 	}, err
 }
 
+func (b *boltKV) NewKvTxn() (KvTxn, error) {
+	tx, err := b.db.Begin(true)
+	if err != nil {
+		return nil, err
+	}
+	return &boltTxn{
+		tx: tx,
+	}, nil
+}
+
 type boltIterator struct {
 	keyPrefix []byte
 	key       []byte
@@ -70,4 +89,24 @@ func (bi *boltIterator) Entry() ([]byte, []byte, error) {
 
 func (bi *boltIterator) Close() {
 
+}
+
+type boltTxn struct {
+	tx *bbolt.Tx
+}
+
+func (bot *boltTxn) Get(key []byte) ([]byte, error) {
+	return bot.tx.Bucket(bucket).Get(key), nil
+}
+
+func (bot *boltTxn) Set(key, value []byte) error {
+	return bot.tx.Bucket(bucket).Put(key, value)
+}
+
+func (bot *boltTxn) Commit() error {
+	return bot.tx.Commit()
+}
+
+func (bot *boltTxn) Rollback() error {
+	return bot.tx.Rollback()
 }

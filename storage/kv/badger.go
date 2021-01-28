@@ -51,6 +51,13 @@ func (bg *badgerKV) Iter(key []byte) (Iterator, error) {
 	}, err
 }
 
+func (bg *badgerKV) NewKvTxn() (KvTxn, error) {
+	tx := bg.db.NewTransaction(true)
+	return &badgerTxn{
+		tx: tx,
+	}, nil
+}
+
 type badgerIterator struct {
 	key  []byte
 	iter *badger.Iterator
@@ -78,4 +85,34 @@ func (bgi *badgerIterator) Entry() ([]byte, []byte, error) {
 
 func (bgi *badgerIterator) Close() {
 	bgi.iter.Close()
+}
+
+type badgerTxn struct {
+	tx *badger.Txn
+}
+
+func (bt *badgerTxn) Get(key []byte) ([]byte, error) {
+	item, err := bt.tx.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	var value []byte
+	err = item.Value(func(val []byte) error {
+		value = append(value, val...)
+		return nil
+	})
+	return value, err
+}
+
+func (bt *badgerTxn) Set(key, value []byte) error {
+	return bt.tx.Set(key, value)
+}
+
+func (bt *badgerTxn) Commit() error {
+	return bt.tx.Commit()
+}
+
+func (bt *badgerTxn) Rollback() error {
+	bt.tx.Discard()
+	return nil
 }

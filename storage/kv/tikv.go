@@ -55,6 +55,14 @@ func (t *tiKV) Iter(key []byte) (Iterator, error) {
 	}, nil
 }
 
+func (t *tiKV) NewKvTxn() (KvTxn, error) {
+	tx, err := t.store.Begin()
+	if err != nil {
+		return nil, err
+	}
+	return &tikvTxn{tx: tx}, nil
+}
+
 type tikvIterator struct {
 	iter kv.Iterator
 }
@@ -73,4 +81,24 @@ func (ti *tikvIterator) Entry() ([]byte, []byte, error) {
 
 func (ti *tikvIterator) Close() {
 	ti.iter.Close()
+}
+
+type tikvTxn struct {
+	tx kv.Transaction
+}
+
+func (tt *tikvTxn) Get(key []byte) ([]byte, error) {
+	return tt.tx.Get(goctx.Background(), key)
+}
+
+func (tt *tikvTxn) Set(key, value []byte) error {
+	return tt.tx.Set(key, value)
+}
+
+func (tt *tikvTxn) Commit() error {
+	return tt.tx.Commit(goctx.Background())
+}
+
+func (tt *tikvTxn) Rollback() error {
+	return tt.tx.Rollback()
 }

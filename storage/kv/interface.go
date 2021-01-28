@@ -11,6 +11,7 @@ type KV interface {
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, value []byte) error
 	Iter(key []byte) (Iterator, error)
+	NewKvTxn() (KvTxn, error)
 }
 
 func NewKV(cfg *KVconf) (KV, error) {
@@ -32,4 +33,11 @@ type Iterator interface {
 	Next() error
 	Entry() ([]byte, []byte, error)
 	Close()
+}
+
+type KvTxn interface {
+	Get([]byte) ([]byte, error)
+	Set(key, value []byte) error
+	Commit() error
+	Rollback() error
 }
