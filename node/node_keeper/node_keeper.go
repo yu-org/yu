@@ -1,8 +1,10 @@
 package node_keeper
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -10,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"yu/config"
+	"yu/node"
 	"yu/storage/kv"
 	"yu/utils/compress"
 )
@@ -17,10 +20,11 @@ import (
 const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
-	repoDB kv.KV
-	dir    string
-	port   string
-	osArch string
+	info       *node.NodeKeeperInfo
+	repoDB     kv.KV
+	dir        string
+	port       string
+	masterAddr string
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
@@ -40,53 +44,101 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		osArch = runtime.GOOS + "-" + runtime.GOARCH
 	}
 
+	info := &node.NodeKeeperInfo{
+		OsArch:      osArch,
+		WorkersInfo: make([]node.WorkerInfo, 0),
+	}
+
 	return &NodeKeeper{
-		repoDB: repoDB,
-		dir:    dir,
-		port:   ":" + cfg.ServesPort,
-		osArch: osArch,
+		info:       info,
+		repoDB:     repoDB,
+		dir:        dir,
+		port:       ":" + cfg.ServesPort,
+		masterAddr: cfg.MasterAddr,
 	}, nil
+}
+
+// Nortify master the changes of workers' number.
+// When workers increase or decrease, should POST to master.
+func (n *NodeKeeper) WorkerNumToMaster() error {
+	infoByt, err := n.info.EncodeNodeKeeperInfo()
+	if err != nil {
+		return err
+	}
+	_, err = n.postToMaster("nodekeeper/worker/number", infoByt)
+	return err
 }
 
 func (n *NodeKeeper) HandleFromMaster() {
 	r := gin.Default()
 
 	r.POST("/upgrade", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.String(http.StatusBadRequest, fmt.Sprintf("upload file error: %s", err.Error()))
-			return
-		}
-
-		fname := file.Filename
-		if !strings.HasSuffix(fname, CompressedFileType) {
-			c.String(
-				http.StatusBadRequest,
-				fmt.Sprintf("the type of file(%s) is wrong", fname),
-			)
-			return
-		}
-		zipFileName := filepath.Join(n.dir, fname)
-		err = c.SaveUploadedFile(file, zipFileName)
-		if err != nil {
-			c.String(
-				http.StatusInternalServerError,
-				fmt.Sprintf("save file(%s) error: %s", fname, err.Error()),
-			)
-			return
-		}
-		err = n.convertToRepo(zipFileName, fname)
-		if err != nil {
-			c.String(
-				http.StatusBadRequest,
-				fmt.Sprintf("convert file(%s) to repo error: %s", fname, err.Error()),
-			)
-		}
-
-		c.String(http.StatusOK, "upload file succeed")
+		n.saveUpgradeRepo(c)
+	})
+	r.POST("/workers", func(c *gin.Context) {
+		n.watchWorkersNumber(c)
 	})
 
 	r.Run(n.port)
+}
+
+// Watch the changes of workers' number.
+// When workers increase or decrease, should call this API.
+func (n *NodeKeeper) watchWorkersNumber(c *gin.Context) {
+	var workerInfo node.WorkerInfo
+	err := c.ShouldBindBodyWith(&workerInfo, binding.JSON)
+	if err != nil {
+		c.String(
+			http.StatusBadRequest,
+			fmt.Sprintf("bad worker-info data struct: %s", err.Error()),
+		)
+		return
+	}
+	n.info.WorkersInfo = append(n.info.WorkersInfo, workerInfo)
+	err = n.WorkerNumToMaster()
+	if err != nil {
+		c.String(
+			http.StatusInternalServerError,
+			fmt.Sprintf("nortify master error: %s", err.Error()),
+		)
+		return
+	}
+	c.String(http.StatusOK, "")
+}
+
+func (n *NodeKeeper) saveUpgradeRepo(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("upload file error: %s", err.Error()))
+		return
+	}
+
+	fname := file.Filename
+	if !strings.HasSuffix(fname, CompressedFileType) {
+		c.String(
+			http.StatusBadRequest,
+			fmt.Sprintf("the type of file(%s) is wrong", fname),
+		)
+		return
+	}
+	zipFileName := filepath.Join(n.dir, fname)
+	err = c.SaveUploadedFile(file, zipFileName)
+	if err != nil {
+		c.String(
+			http.StatusInternalServerError,
+			fmt.Sprintf("save file(%s) error: %s", fname, err.Error()),
+		)
+		return
+	}
+	err = n.convertToRepo(zipFileName, fname)
+	if err != nil {
+		c.String(
+			http.StatusBadRequest,
+			fmt.Sprintf("convert file(%s) to repo error: %s", fname, err.Error()),
+		)
+	}
+
+	c.String(http.StatusOK, "upload file succeed")
 }
 
 // zipFilePath just like: path/to/yuRepo_linux-amd64_3.zip
@@ -132,6 +184,16 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 		return err
 	}
 	return os.Remove(zipFilePath)
+}
+
+func (n *NodeKeeper) postToMaster(path string, body []byte) (*http.Response, error) {
+	url := n.masterAddr + path
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	cli := &http.Client{}
+	return cli.Do(req)
 }
 
 func (n *NodeKeeper) getRepo(repoName string) (*Repo, error) {

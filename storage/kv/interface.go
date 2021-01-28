@@ -15,7 +15,7 @@ type KV interface {
 }
 
 func NewKV(cfg *KVconf) (KV, error) {
-	switch cfg.KVtype {
+	switch cfg.KvType {
 	case "badger":
 		return NewBadger(cfg.Path)
 	case "bolt":

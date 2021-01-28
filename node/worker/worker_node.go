@@ -25,8 +25,8 @@ func NewWorker(cfg *config.Conf) (*Worker, error) {
 	var info *WorkerInfo
 	if data == nil {
 		info = &WorkerInfo{
-			Name:       cfg.NodeConf.NodeName,
-			MasterNode: cfg.NodeConf.MasterNode,
+			Name:           cfg.NodeConf.NodeName,
+			NodeKeeperAddr: cfg.NodeConf.NodeKeeperAddr,
 		}
 		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {

@@ -44,8 +44,8 @@ func NewMasterNode(cfg *config.Conf) (*Master, error) {
 	var info *MasterInfo
 	if data == nil {
 		info = &MasterInfo{
-			Name:        cfg.NodeConf.NodeName,
-			WorkerNodes: cfg.NodeConf.WorkerNodes,
+			Name:         cfg.NodeConf.NodeName,
+			WorkersAddrs: cfg.NodeConf.WorkersAddrs,
 		}
 		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {
