@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"yu/config"
@@ -19,7 +20,7 @@ type NodeKeeper struct {
 	repoDB kv.KV
 	dir    string
 	port   string
-	arch   string
+	osArch string
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
@@ -32,11 +33,18 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// get OS and Arch from local host
+	var osArch string
+	if cfg.OsArch == "" {
+		osArch = runtime.GOOS + "-" + runtime.GOARCH
+	}
+
 	return &NodeKeeper{
 		repoDB: repoDB,
 		dir:    dir,
 		port:   ":" + cfg.ServesPort,
-		arch:   cfg.RepoArch,
+		osArch: osArch,
 	}, nil
 }
 

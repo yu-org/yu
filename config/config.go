@@ -59,7 +59,8 @@ type NodeKeeperConf struct {
 	// It MUST be {Dir}/xx.db
 	// When you use {Dir}/path/to/xx.db, it will be trimmed as {Dir}/xx.db
 	RepoDbPath string
-	// specify the arch of repo
+	// specify the os and arch of repo
+	// Usually you need not define it, it will get os and arch from local host.
 	// such as: linux-amd64, darwin-amd64, windows-amd64, wasm
-	RepoArch string
+	OsArch string
 }
