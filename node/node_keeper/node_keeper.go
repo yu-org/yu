@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 	"yu/config"
-	"yu/node"
+	. "yu/node"
 	"yu/storage/kv"
 	"yu/utils/compress"
 )
@@ -20,11 +21,14 @@ import (
 const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
-	info       *node.NodeKeeperInfo
+	info       *NodeKeeperInfo
 	repoDB     kv.KV
 	dir        string
 	port       string
 	masterAddr string
+
+	ticker  *time.Ticker
+	timeout time.Duration
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
@@ -44,10 +48,13 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		osArch = runtime.GOOS + "-" + runtime.GOARCH
 	}
 
-	info := &node.NodeKeeperInfo{
+	info := &NodeKeeperInfo{
 		OsArch:        osArch,
-		WorkersStatus: make(map[int]node.WorkerStatus),
+		WorkersStatus: make(map[int]WorkerStatus),
 	}
+
+	timeout := time.Duration(cfg.Timeout) * time.Second
+	ticker := time.NewTicker(timeout)
 
 	return &NodeKeeper{
 		info:       info,
@@ -55,6 +62,8 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		dir:        dir,
 		port:       ":" + cfg.ServesPort,
 		masterAddr: cfg.MasterAddr,
+		ticker:     ticker,
+		timeout:    timeout,
 	}, nil
 }
 
@@ -65,28 +74,39 @@ func (n *NodeKeeper) NortifyMaster() error {
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster("/nodekeeper/worker", infoByt)
+	_, err = n.postToMaster(WatchNodeKeepersPath, infoByt)
 	return err
 }
 
-func (n *NodeKeeper) HandleFromMaster() {
+func (n *NodeKeeper) HandleHttp() {
 	r := gin.Default()
 
-	r.POST("/upgrade", func(c *gin.Context) {
-		n.saveUpgradeRepo(c)
+	// Handle from Master. When upgrade onchain, Master will give out
+	// updated executable compressed package to each worker.
+	r.POST(DownloadUpdatedPath, func(c *gin.Context) {
+		n.downloadUpdatedPkg(c)
+		logrus.Info("download updated package succeed")
 	})
-	r.POST("/worker", func(c *gin.Context) {
+
+	// Handle from worker. Used for watch the changes of workers
+	// and report to Master.
+	r.POST(WatchWorkersPath, func(c *gin.Context) {
 		n.watchWorkers(c)
 	})
 
 	r.Run(n.port)
 }
 
+// check the health of Workers
+func (n *NodeKeeper) CheckHealth() {
+
+}
+
 // Watch the changes of workers' number.
 // When workers increase or decrease or keep-alive, should request this API.
 func (n *NodeKeeper) watchWorkers(c *gin.Context) {
-	var workerInfo node.WorkerInfo
-	err := c.ShouldBindBodyWith(&workerInfo, binding.JSON)
+	var workerInfo WorkerInfo
+	err := c.ShouldBindJSON(&workerInfo)
 	if err != nil {
 		c.String(
 			http.StatusBadRequest,
@@ -94,10 +114,12 @@ func (n *NodeKeeper) watchWorkers(c *gin.Context) {
 		)
 		return
 	}
-	n.info.WorkersStatus[workerInfo.ID] = node.WorkerStatus{
+	n.info.WorkersStatus[workerInfo.ID] = WorkerStatus{
 		Info:   workerInfo,
 		Online: true,
 	}
+	logrus.Infof("Accept Worker(%v) hit. ", workerInfo.ID)
+
 	err = n.NortifyMaster()
 	if err != nil {
 		c.String(
@@ -109,7 +131,7 @@ func (n *NodeKeeper) watchWorkers(c *gin.Context) {
 	c.String(http.StatusOK, "")
 }
 
-func (n *NodeKeeper) saveUpgradeRepo(c *gin.Context) {
+func (n *NodeKeeper) downloadUpdatedPkg(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("upload file error: %s", err.Error()))

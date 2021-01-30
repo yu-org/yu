@@ -17,19 +17,23 @@ type KVconf struct {
 	Hosts []string `toml:"hosts"`
 }
 
+// Master or Worker
 type NodeConf struct {
 	// 0: Master
 	// 1: Worker
 	NodeType uint   `toml:"node_type"`
 	NodeName string `toml:"node_name"`
 
-	// ------ Only Worker-Node has these params.
+	// ------ Only Worker has these params.----------
 	NodeKeeperAddr   string `toml:"node_keeper_addr"`
 	WorkerServesPort string `toml:"worker_serves_port"`
+	// the interval of heartbeat from NodeKeeper,
+	// the unit is Second
+	Interval int `json:"interval"`
 
-	// ------ Only Master-Node has these params.
-	WorkersAddrs     []string `toml:"workers_addrs"`
-	MasterServesPort string   `toml:"master_serves_port"`
+	// ------ Only Master has these params.----------
+	MasterServesPort string `toml:"master_serves_port"`
+	Timeout          int    `json:"timeout"`
 
 	//---------P2P config--------
 	// For listening from blockchain network.
@@ -65,4 +69,5 @@ type NodeKeeperConf struct {
 	OsArch string `toml:"os_arch"`
 
 	MasterAddr string `toml:"master_addr"`
+	Timeout    int    `json:"timeout"`
 }

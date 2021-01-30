@@ -1,17 +1,16 @@
 package master
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
-	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-core/crypto"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	maddr "github.com/multiformats/go-multiaddr"
-	"io"
-	"os"
+	"net/http"
+	"sync"
+	"time"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
@@ -20,10 +19,14 @@ import (
 var MasterInfoKey = []byte("master-info")
 
 type Master struct {
+	sync.RWMutex
 	info    *MasterInfo
 	p2pHost host.Host
 	metadb  kv.KV
 	ctx     context.Context
+
+	ticker  *time.Ticker
+	timeout time.Duration
 }
 
 func NewMasterNode(cfg *config.Conf) (*Master, error) {
@@ -44,8 +47,8 @@ func NewMasterNode(cfg *config.Conf) (*Master, error) {
 	var info *MasterInfo
 	if data == nil {
 		info = &MasterInfo{
-			Name:         cfg.NodeConf.NodeName,
-			WorkersAddrs: cfg.NodeConf.WorkersAddrs,
+			Name:            cfg.NodeConf.NodeName,
+			NodeKeepersInfo: make(map[string]NodeKeeperInfo),
 		}
 		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {
@@ -64,11 +67,16 @@ func NewMasterNode(cfg *config.Conf) (*Master, error) {
 
 	info.P2pID = p2pHost.ID().String()
 
+	timeout := time.Duration(cfg.NodeConf.Timeout) * time.Second
+	ticker := time.NewTicker(timeout)
+
 	return &Master{
-		info,
-		p2pHost,
-		metadb,
-		ctx,
+		info:    info,
+		p2pHost: p2pHost,
+		metadb:  metadb,
+		ticker:  ticker,
+		timeout: timeout,
+		ctx:     ctx,
 	}, nil
 }
 
@@ -92,28 +100,43 @@ func (m *Master) ConnectP2PNetwork(cfg *config.NodeConf) error {
 	return nil
 }
 
-func makeP2pHost(ctx context.Context, cfg *config.NodeConf) (host.Host, error) {
-	r, err := loadNodeKeyReader(cfg)
-	if err != nil {
-		return nil, err
-	}
-	priv, _, err := crypto.GenerateKeyPairWithReader(cfg.NodeKeyType, cfg.NodeKeyBits, r)
-	if err != nil {
-		return nil, err
-	}
-	return libp2p.New(
-		ctx,
-		libp2p.Identity(priv),
-		libp2p.ListenAddrStrings(cfg.P2pListenAddrs...),
-	)
+func (m *Master) HandleHttp() {
+	r := gin.Default()
+
+	r.POST(WatchNodeKeepersPath, func(c *gin.Context) {
+		m.watchNodeKeepers(c)
+	})
 }
 
-func loadNodeKeyReader(cfg *config.NodeConf) (io.Reader, error) {
-	if cfg.NodeKey != "" {
-		return bytes.NewBufferString(cfg.NodeKey), nil
+// check the health of NodeKeepers
+func (m *Master) CheckHealth() {
+	for {
+		<-m.ticker.C
+
 	}
-	if cfg.NodeKeyFile != "" {
-		return os.Open(cfg.NodeKeyFile)
+}
+
+func (m *Master) watchNodeKeepers(c *gin.Context) {
+	var nkInfo NodeKeeperInfo
+	err := c.ShouldBindJSON(&nkInfo)
+	if err != nil {
+		c.String(
+			http.StatusBadRequest,
+			fmt.Sprintf("NodeKeeperInfo decode failed: %s", err.Error()),
+		)
+		return
 	}
-	return rand.Reader, nil
+	nkIP := c.ClientIP()
+	m.RLock()
+	oldNkInfo, ok := m.info.NodeKeepersInfo[nkIP]
+	m.RUnlock()
+	if !ok || !nkInfo.Equals(oldNkInfo) {
+		m.Lock()
+		m.info.NodeKeepersInfo[nkIP] = nkInfo
+
+		// workerId := len(m.info.NodeKeepersInfo)
+		m.Unlock()
+		m.ticker.Reset(m.timeout)
+	}
+	c.String(http.StatusOK, "")
 }

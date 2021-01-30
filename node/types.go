@@ -2,12 +2,19 @@ package node
 
 import (
 	"encoding/json"
+	"reflect"
+)
+
+const (
+	DownloadUpdatedPath  = "/master/upgrade"
+	WatchNodeKeepersPath = "/nodekeeper"
+	WatchWorkersPath     = "/worker"
 )
 
 type MasterInfo struct {
-	P2pID        string   `json:"p2p_id"`
-	Name         string   `json:"name"`
-	WorkersAddrs []string `json:"workers_addrs"`
+	P2pID           string                    `json:"p2p_id"`
+	Name            string                    `json:"name"`
+	NodeKeepersInfo map[string]NodeKeeperInfo `json:"node_keepers_info"`
 }
 
 func (mi *MasterInfo) EncodeMasterInfo() ([]byte, error) {
@@ -26,6 +33,7 @@ func DecodeMasterInfo(data []byte) (*MasterInfo, error) {
 type WorkerInfo struct {
 	ID             int    `json:"id"`
 	Name           string `json:"name"`
+	Port           string `json:"port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`
 }
 
@@ -43,9 +51,13 @@ func DecodeWorkerInfo(data []byte) (*WorkerInfo, error) {
 }
 
 type NodeKeeperInfo struct {
-	OsArch      string       `json:"os_arch"`
+	OsArch string `json:"os_arch"`
 	// key: ID
 	WorkersStatus map[int]WorkerStatus `json:"workers_status"`
+}
+
+func (nki NodeKeeperInfo) Equals(other NodeKeeperInfo) bool {
+	return nki.OsArch == other.OsArch && reflect.DeepEqual(nki.WorkersStatus, other.WorkersStatus)
 }
 
 func (nki *NodeKeeperInfo) EncodeNodeKeeperInfo() ([]byte, error) {
@@ -62,8 +74,8 @@ func DecodeNodeKeeperInfo(data []byte) (*NodeKeeperInfo, error) {
 }
 
 type WorkerStatus struct {
-	Info WorkerInfo `json:"info"`
-	Online bool `json:"online"`
+	Info   WorkerInfo `json:"info"`
+	Online bool       `json:"online"`
 }
 
 func (ws *WorkerStatus) EncodeWorkerStatus() ([]byte, error) {
