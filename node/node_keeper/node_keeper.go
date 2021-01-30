@@ -45,8 +45,8 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	}
 
 	info := &node.NodeKeeperInfo{
-		OsArch:      osArch,
-		WorkersInfo: make([]node.WorkerInfo, 0),
+		OsArch:        osArch,
+		WorkersStatus: make(map[int]node.WorkerStatus),
 	}
 
 	return &NodeKeeper{
@@ -58,14 +58,14 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	}, nil
 }
 
-// Nortify master the changes of workers' number.
-// When workers increase or decrease, should POST to master.
-func (n *NodeKeeper) WorkerNumToMaster() error {
+// Nortify master the the existence of Nodekeeper and the changes of workers' number.
+// When workers increase or decrease or keep-alive, should POST to master.
+func (n *NodeKeeper) NortifyMaster() error {
 	infoByt, err := n.info.EncodeNodeKeeperInfo()
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster("/nodekeeper/worker/number", infoByt)
+	_, err = n.postToMaster("/nodekeeper/worker", infoByt)
 	return err
 }
 
@@ -75,16 +75,16 @@ func (n *NodeKeeper) HandleFromMaster() {
 	r.POST("/upgrade", func(c *gin.Context) {
 		n.saveUpgradeRepo(c)
 	})
-	r.POST("/worker/number", func(c *gin.Context) {
-		n.watchWorkersNumber(c)
+	r.POST("/worker", func(c *gin.Context) {
+		n.watchWorkers(c)
 	})
 
 	r.Run(n.port)
 }
 
 // Watch the changes of workers' number.
-// When workers increase or decrease, should call this API.
-func (n *NodeKeeper) watchWorkersNumber(c *gin.Context) {
+// When workers increase or decrease or keep-alive, should request this API.
+func (n *NodeKeeper) watchWorkers(c *gin.Context) {
 	var workerInfo node.WorkerInfo
 	err := c.ShouldBindBodyWith(&workerInfo, binding.JSON)
 	if err != nil {
@@ -94,8 +94,11 @@ func (n *NodeKeeper) watchWorkersNumber(c *gin.Context) {
 		)
 		return
 	}
-	n.info.WorkersInfo = append(n.info.WorkersInfo, workerInfo)
-	err = n.WorkerNumToMaster()
+	n.info.WorkersStatus[workerInfo.ID] = node.WorkerStatus{
+		Info:   workerInfo,
+		Online: true,
+	}
+	err = n.NortifyMaster()
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,

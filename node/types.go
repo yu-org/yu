@@ -44,7 +44,8 @@ func DecodeWorkerInfo(data []byte) (*WorkerInfo, error) {
 
 type NodeKeeperInfo struct {
 	OsArch      string       `json:"os_arch"`
-	WorkersInfo []WorkerInfo `json:"workers_info"`
+	// key: ID
+	WorkersStatus map[int]WorkerStatus `json:"workers_status"`
 }
 
 func (nki *NodeKeeperInfo) EncodeNodeKeeperInfo() ([]byte, error) {
@@ -53,6 +54,24 @@ func (nki *NodeKeeperInfo) EncodeNodeKeeperInfo() ([]byte, error) {
 
 func DecodeNodeKeeperInfo(data []byte) (*NodeKeeperInfo, error) {
 	var info NodeKeeperInfo
+	err := json.Unmarshal(data, &info)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+type WorkerStatus struct {
+	Info WorkerInfo `json:"info"`
+	Online bool `json:"online"`
+}
+
+func (ws *WorkerStatus) EncodeWorkerStatus() ([]byte, error) {
+	return json.Marshal(ws)
+}
+
+func DecodeWorkerStatus(data []byte) (*WorkerStatus, error) {
+	var info WorkerStatus
 	err := json.Unmarshal(data, &info)
 	if err != nil {
 		return nil, err
