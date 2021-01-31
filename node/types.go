@@ -12,8 +12,8 @@ const (
 )
 
 type MasterInfo struct {
-	P2pID           string                    `json:"p2p_id"`
-	Name            string                    `json:"name"`
+	P2pID string `json:"p2p_id"`
+	// key: NodeKeeper's IP
 	NodeKeepersInfo map[string]NodeKeeperInfo `json:"node_keepers_info"`
 }
 
@@ -52,7 +52,7 @@ func DecodeWorkerInfo(data []byte) (*WorkerInfo, error) {
 
 type NodeKeeperInfo struct {
 	OsArch string `json:"os_arch"`
-	// key: ID
+	// key: Worker's ID
 	WorkersStatus map[int]WorkerStatus `json:"workers_status"`
 }
 

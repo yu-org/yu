@@ -13,8 +13,8 @@ type Worker struct {
 	metadb kv.KV
 }
 
-func NewWorker(cfg *config.Conf) (*Worker, error) {
-	metadb, err := kv.NewKV(&cfg.NodeDB)
+func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
+	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -25,9 +25,9 @@ func NewWorker(cfg *config.Conf) (*Worker, error) {
 	var info *WorkerInfo
 	if data == nil {
 		info = &WorkerInfo{
-			Name:           cfg.NodeConf.NodeName,
-			NodeKeeperAddr: cfg.NodeConf.NodeKeeperAddr,
-			Port:           ":" + cfg.NodeConf.WorkerServesPort,
+			Name:           cfg.Name,
+			NodeKeeperAddr: cfg.NodeKeeperAddr,
+			Port:           ":" + cfg.ServesPort,
 		}
 		infoByt, err := info.EncodeMasterInfo()
 		if err != nil {

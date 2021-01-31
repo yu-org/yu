@@ -27,7 +27,8 @@ type NodeKeeper struct {
 	port       string
 	masterAddr string
 
-	ticker  *time.Ticker
+	// key: Worker's ID
+	tickers map[int]*time.Ticker
 	timeout time.Duration
 }
 

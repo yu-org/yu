@@ -1,10 +1,8 @@
 package config
 
 type Conf struct {
-	NodeConf NodeConf `toml:"node_conf"`
-
-	NodeDB KVconf `toml:"node_db"`
-
+	MasterConf     MasterConf     `toml:"master_conf"`
+	WorkerConf     WorkerConf     `toml:"worker_conf"`
 	NodeKeeperConf NodeKeeperConf `toml:"node_keeper_conf"`
 }
 
@@ -17,23 +15,11 @@ type KVconf struct {
 	Hosts []string `toml:"hosts"`
 }
 
-// Master or Worker
-type NodeConf struct {
-	// 0: Master
-	// 1: Worker
-	NodeType uint   `toml:"node_type"`
-	NodeName string `toml:"node_name"`
-
-	// ------ Only Worker has these params.----------
-	NodeKeeperAddr   string `toml:"node_keeper_addr"`
-	WorkerServesPort string `toml:"worker_serves_port"`
-	// the interval of heartbeat from NodeKeeper,
-	// the unit is Second
-	Interval int `json:"interval"`
-
-	// ------ Only Master has these params.----------
-	MasterServesPort string `toml:"master_serves_port"`
-	Timeout          int    `json:"timeout"`
+type MasterConf struct {
+	ServesPort string `toml:"serves_port"`
+	DB         KVconf `toml:"db"`
+	// when beyond 'Timeout', it means this nodekeeper is down.
+	Timeout int `toml:"timeout"`
 
 	//---------P2P config--------
 	// For listening from blockchain network.
@@ -56,6 +42,16 @@ type NodeConf struct {
 	NodeKeyFile string `toml:"node_key_file"`
 }
 
+type WorkerConf struct {
+	Name           string `toml:"name"`
+	DB             KVconf `toml:"db"`
+	NodeKeeperAddr string `toml:"node_keeper_addr"`
+	ServesPort     string `toml:"serves_port"`
+	// the interval of heartbeat to NodeKeeper,
+	// the unit is Second
+	Interval int `toml:"interval"`
+}
+
 type NodeKeeperConf struct {
 	ServesPort string `toml:"serves_port"`
 	// Direction used to keep executable file and others.
@@ -69,5 +65,6 @@ type NodeKeeperConf struct {
 	OsArch string `toml:"os_arch"`
 
 	MasterAddr string `toml:"master_addr"`
-	Timeout    int    `json:"timeout"`
+	// when beyond 'Timeout', it means this worker is down.
+	Timeout int `toml:"timeout"`
 }

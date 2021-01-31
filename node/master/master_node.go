@@ -9,6 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	maddr "github.com/multiformats/go-multiaddr"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 	"yu/config"
@@ -23,19 +24,21 @@ type Master struct {
 	info    *MasterInfo
 	p2pHost host.Host
 	metadb  kv.KV
+	port    string
 	ctx     context.Context
 
-	ticker  *time.Ticker
+	// key: NodeKeeper's IP
+	tickers map[string]*time.Ticker
 	timeout time.Duration
 }
 
-func NewMasterNode(cfg *config.Conf) (*Master, error) {
-	metadb, err := kv.NewKV(&cfg.NodeDB)
+func NewMaster(cfg *config.MasterConf) (*Master, error) {
+	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 	ctx := context.Background()
-	p2pHost, err := makeP2pHost(ctx, &cfg.NodeConf)
+	p2pHost, err := makeP2pHost(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +50,6 @@ func NewMasterNode(cfg *config.Conf) (*Master, error) {
 	var info *MasterInfo
 	if data == nil {
 		info = &MasterInfo{
-			Name:            cfg.NodeConf.NodeName,
 			NodeKeepersInfo: make(map[string]NodeKeeperInfo),
 		}
 		infoByt, err := info.EncodeMasterInfo()
@@ -67,20 +69,20 @@ func NewMasterNode(cfg *config.Conf) (*Master, error) {
 
 	info.P2pID = p2pHost.ID().String()
 
-	timeout := time.Duration(cfg.NodeConf.Timeout) * time.Second
-	ticker := time.NewTicker(timeout)
+	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
 		info:    info,
 		p2pHost: p2pHost,
 		metadb:  metadb,
-		ticker:  ticker,
+		tickers: make(map[string]*time.Ticker),
 		timeout: timeout,
 		ctx:     ctx,
+		port:    ":" + cfg.ServesPort,
 	}, nil
 }
 
-func (m *Master) ConnectP2PNetwork(cfg *config.NodeConf) error {
+func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	m.p2pHost.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
 
 	for _, addrStr := range cfg.ConnectAddrs {
@@ -106,13 +108,20 @@ func (m *Master) HandleHttp() {
 	r.POST(WatchNodeKeepersPath, func(c *gin.Context) {
 		m.watchNodeKeepers(c)
 	})
+
+	r.Run(m.port)
 }
 
 // check the health of NodeKeepers
 func (m *Master) CheckHealth() {
 	for {
-		<-m.ticker.C
-
+		for nk, ticker := range m.tickers {
+			<-ticker.C
+			m.Lock()
+			delete(m.info.NodeKeepersInfo, nk)
+			delete(m.tickers, nk)
+			m.Unlock()
+		}
 	}
 }
 
@@ -133,10 +142,11 @@ func (m *Master) watchNodeKeepers(c *gin.Context) {
 	if !ok || !nkInfo.Equals(oldNkInfo) {
 		m.Lock()
 		m.info.NodeKeepersInfo[nkIP] = nkInfo
-
-		// workerId := len(m.info.NodeKeepersInfo)
+		workerId := len(m.info.NodeKeepersInfo)
+		m.tickers[nkIP].Reset(m.timeout)
 		m.Unlock()
-		m.ticker.Reset(m.timeout)
+		c.String(http.StatusOK, strconv.Itoa(workerId))
+	} else {
+		c.String(http.StatusOK, "")
 	}
-	c.String(http.StatusOK, "")
 }

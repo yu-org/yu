@@ -28,7 +28,7 @@ func WriteToNetwork(rw *bufio.ReadWriter) {
 
 }
 
-func makeP2pHost(ctx context.Context, cfg *config.NodeConf) (host.Host, error) {
+func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
 	r, err := loadNodeKeyReader(cfg)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func makeP2pHost(ctx context.Context, cfg *config.NodeConf) (host.Host, error) {
 	)
 }
 
-func loadNodeKeyReader(cfg *config.NodeConf) (io.Reader, error) {
+func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 	if cfg.NodeKey != "" {
 		return bytes.NewBufferString(cfg.NodeKey), nil
 	}
