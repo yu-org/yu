@@ -27,8 +27,6 @@ type NodeKeeper struct {
 	port       string
 	masterAddr string
 
-	// key: Worker's ID
-	tickers map[int]*time.Ticker
 	timeout time.Duration
 }
 
@@ -55,7 +53,6 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	}
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
-	ticker := time.NewTicker(timeout)
 
 	return &NodeKeeper{
 		info:       info,
@@ -63,7 +60,6 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		dir:        dir,
 		port:       ":" + cfg.ServesPort,
 		masterAddr: cfg.MasterAddr,
-		ticker:     ticker,
 		timeout:    timeout,
 	}, nil
 }
@@ -75,7 +71,7 @@ func (n *NodeKeeper) NortifyMaster() error {
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster(WatchNodeKeepersPath, infoByt)
+	_, err = n.postToMaster(RegisterNodeKeepersPath, infoByt)
 	return err
 }
 
@@ -91,21 +87,26 @@ func (n *NodeKeeper) HandleHttp() {
 
 	// Handle from worker. Used for watch the changes of workers
 	// and report to Master.
-	r.POST(WatchWorkersPath, func(c *gin.Context) {
-		n.watchWorkers(c)
+	r.POST(RegisterWorkersPath, func(c *gin.Context) {
+		n.registerWorkers(c)
 	})
+
+	ReplyHeartbeat(r)
 
 	r.Run(n.port)
 }
 
 // check the health of Workers
 func (n *NodeKeeper) CheckHealth() {
+	for {
 
+		time.Sleep(n.timeout)
+	}
 }
 
 // Watch the changes of workers' number.
-// When workers increase or decrease or keep-alive, should request this API.
-func (n *NodeKeeper) watchWorkers(c *gin.Context) {
+// When workers increase or decrease, should request this API.
+func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 	var workerInfo WorkerInfo
 	err := c.ShouldBindJSON(&workerInfo)
 	if err != nil {
@@ -236,4 +237,8 @@ func (n *NodeKeeper) setRepo(repoName string, repo *Repo) error {
 		return err
 	}
 	return n.repoDB.Set([]byte(repoName), repoByt)
+}
+
+func (n *NodeKeeper) allWorkers() {
+
 }

@@ -41,6 +41,11 @@ func (t *tiKV) Set(key, value []byte) error {
 	return tx.Commit(goctx.Background())
 }
 
+func (t *tiKV) Exist(key []byte) bool {
+	value, _ := t.Get(key)
+	return value != nil
+}
+
 func (t *tiKV) Iter(key []byte) (Iterator, error) {
 	tx, err := t.store.Begin()
 	if err != nil {

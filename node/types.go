@@ -6,29 +6,11 @@ import (
 )
 
 const (
-	DownloadUpdatedPath  = "/master/upgrade"
-	WatchNodeKeepersPath = "/nodekeeper"
-	WatchWorkersPath     = "/worker"
+	DownloadUpdatedPath     = "/master/upgrade"
+	RegisterNodeKeepersPath = "/nodekeeper/register"
+	RegisterWorkersPath     = "/worker/register"
+	HeartbeatToPath         = "/heartbeat"
 )
-
-type MasterInfo struct {
-	P2pID string `json:"p2p_id"`
-	// key: NodeKeeper's IP
-	NodeKeepersInfo map[string]NodeKeeperInfo `json:"node_keepers_info"`
-}
-
-func (mi *MasterInfo) EncodeMasterInfo() ([]byte, error) {
-	return json.Marshal(mi)
-}
-
-func DecodeMasterInfo(data []byte) (*MasterInfo, error) {
-	var info MasterInfo
-	err := json.Unmarshal(data, &info)
-	if err != nil {
-		return nil, err
-	}
-	return &info, nil
-}
 
 type WorkerInfo struct {
 	ID             int    `json:"id"`

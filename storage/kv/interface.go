@@ -10,6 +10,7 @@ var NoKvdbType = errors.New("no kvdb type")
 type KV interface {
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, value []byte) error
+	Exist(key []byte) bool
 	Iter(key []byte) (Iterator, error)
 	NewKvTxn() (KvTxn, error)
 }
@@ -31,7 +32,7 @@ func NewKV(cfg *KVconf) (KV, error) {
 type Iterator interface {
 	Valid() bool
 	Next() error
-	Entry() ([]byte, []byte, error)
+	Entry() (key, value []byte, err error)
 	Close()
 }
 

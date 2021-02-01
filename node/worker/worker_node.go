@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"github.com/gin-gonic/gin"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
@@ -9,7 +10,9 @@ import (
 var WorkerInfoKey = []byte("worker-node-info")
 
 type Worker struct {
-	info   *WorkerInfo
+	info *WorkerInfo
+
+	port   string
 	metadb kv.KV
 }
 
@@ -45,8 +48,17 @@ func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
 	}
 
 	return &Worker{
-		info,
-		metadb,
+		info:   info,
+		port:   ":" + cfg.ServesPort,
+		metadb: metadb,
 	}, nil
 
+}
+
+func (w *Worker) HandleHttp() {
+	r := gin.Default()
+
+	ReplyHeartbeat(r)
+
+	r.Run(w.port)
 }

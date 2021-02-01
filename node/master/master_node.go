@@ -8,6 +8,7 @@ import (
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	maddr "github.com/multiformats/go-multiaddr"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"sync"
@@ -17,23 +18,18 @@ import (
 	"yu/storage/kv"
 )
 
-var MasterInfoKey = []byte("master-info")
-
 type Master struct {
-	sync.RWMutex
-	info    *MasterInfo
+	sync.Mutex
 	p2pHost host.Host
-	metadb  kv.KV
+	// Key: NodeKeeper IP, Value: NodeKeeperInfo
+	nkDB    kv.KV
 	port    string
 	ctx     context.Context
-
-	// key: NodeKeeper's IP
-	tickers map[string]*time.Ticker
 	timeout time.Duration
 }
 
 func NewMaster(cfg *config.MasterConf) (*Master, error) {
-	metadb, err := kv.NewKV(&cfg.DB)
+	nkDB, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -42,44 +38,20 @@ func NewMaster(cfg *config.MasterConf) (*Master, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := metadb.Get(MasterInfoKey)
-	if err != nil {
-		return nil, err
-	}
-
-	var info *MasterInfo
-	if data == nil {
-		info = &MasterInfo{
-			NodeKeepersInfo: make(map[string]NodeKeeperInfo),
-		}
-		infoByt, err := info.EncodeMasterInfo()
-		if err != nil {
-			return nil, err
-		}
-		err = metadb.Set(MasterInfoKey, infoByt)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		info, err = DecodeMasterInfo(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	info.P2pID = p2pHost.ID().String()
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		info:    info,
 		p2pHost: p2pHost,
-		metadb:  metadb,
-		tickers: make(map[string]*time.Ticker),
+		nkDB:    nkDB,
 		timeout: timeout,
 		ctx:     ctx,
 		port:    ":" + cfg.ServesPort,
 	}, nil
+}
+
+func (m *Master) P2pID() string {
+	return m.p2pHost.ID().String()
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
@@ -105,27 +77,28 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 func (m *Master) HandleHttp() {
 	r := gin.Default()
 
-	r.POST(WatchNodeKeepersPath, func(c *gin.Context) {
-		m.watchNodeKeepers(c)
+	r.POST(RegisterNodeKeepersPath, func(c *gin.Context) {
+		m.registerNodeKeepers(c)
 	})
 
 	r.Run(m.port)
 }
 
-// check the health of NodeKeepers
+// check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {
-		for nk, ticker := range m.tickers {
-			<-ticker.C
-			m.Lock()
-			delete(m.info.NodeKeepersInfo, nk)
-			delete(m.tickers, nk)
-			m.Unlock()
+		nkAddrs, err := m.allNodeKeepersIp()
+		if err != nil {
+			logrus.Errorf("get all NodeKeepers error: %s", err.Error())
 		}
+		SendHeartbeats(nkAddrs)
+		time.Sleep(m.timeout)
 	}
 }
 
-func (m *Master) watchNodeKeepers(c *gin.Context) {
+func (m *Master) registerNodeKeepers(c *gin.Context) {
+	m.Lock()
+	defer m.Unlock()
 	var nkInfo NodeKeeperInfo
 	err := c.ShouldBindJSON(&nkInfo)
 	if err != nil {
@@ -136,17 +109,74 @@ func (m *Master) watchNodeKeepers(c *gin.Context) {
 		return
 	}
 	nkIP := c.ClientIP()
-	m.RLock()
-	oldNkInfo, ok := m.info.NodeKeepersInfo[nkIP]
-	m.RUnlock()
-	if !ok || !nkInfo.Equals(oldNkInfo) {
-		m.Lock()
-		m.info.NodeKeepersInfo[nkIP] = nkInfo
-		workerId := len(m.info.NodeKeepersInfo)
-		m.tickers[nkIP].Reset(m.timeout)
-		m.Unlock()
-		c.String(http.StatusOK, strconv.Itoa(workerId))
-	} else {
-		c.String(http.StatusOK, "")
+
+	err = m.SetNodeKeeper(nkIP, nkInfo)
+	if err != nil {
+		c.String(
+			http.StatusInternalServerError,
+			fmt.Sprintf("store NodeKeeper(%s) error: %s", nkIP, err.Error()),
+		)
+		return
 	}
+
+	workerId, err := m.WorkersCount()
+	if err != nil {
+		c.String(
+			http.StatusInternalServerError,
+			fmt.Sprintf("generate workerID error: %s", err.Error()),
+		)
+		return
+	}
+
+	c.String(http.StatusOK, strconv.Itoa(workerId))
+	logrus.Infof("NodeKeeper(%s) register succeed!", nkIP)
+}
+
+func (m *Master) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
+	infoByt, err := info.EncodeNodeKeeperInfo()
+	if err != nil {
+		return err
+	}
+	return m.nkDB.Set([]byte(ip), infoByt)
+}
+
+func (m *Master) allNodeKeepersIp() ([]string, error) {
+	nkIPs := make([]string, 0)
+	err := m.allNodeKeepers(func(ip string, info *NodeKeeperInfo) {
+		nkIPs = append(nkIPs, ip)
+	})
+	return nkIPs, err
+}
+
+func (m *Master) WorkersCount() (int, error) {
+	count := 0
+	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) {
+		count += len(info.WorkersStatus)
+	})
+	return count, err
+}
+
+func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo)) error {
+	iter, err := m.nkDB.Iter(nil)
+	if err != nil {
+		return err
+	}
+	defer iter.Close()
+	for iter.Valid() {
+		ipByt, infoByt, err := iter.Entry()
+		if err != nil {
+			return err
+		}
+		ip := string(ipByt)
+		info, err := DecodeNodeKeeperInfo(infoByt)
+		if err != nil {
+			return err
+		}
+		fn(ip, info)
+		err = iter.Next()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

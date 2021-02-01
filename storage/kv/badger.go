@@ -38,6 +38,11 @@ func (bg *badgerKV) Set(key, value []byte) error {
 	})
 }
 
+func (bg *badgerKV) Exist(key []byte) bool {
+	value, _ := bg.Get(key)
+	return value != nil
+}
+
 func (bg *badgerKV) Iter(key []byte) (Iterator, error) {
 	var iter *badger.Iterator
 	err := bg.db.View(func(txn *badger.Txn) error {

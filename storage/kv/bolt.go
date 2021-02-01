@@ -44,6 +44,11 @@ func (b *boltKV) Set(key []byte, value []byte) error {
 	})
 }
 
+func (b *boltKV) Exist(key []byte) bool {
+	value, _ := b.Get(key)
+	return value != nil
+}
+
 func (b *boltKV) Iter(keyPrefix []byte) (Iterator, error) {
 	var c *bbolt.Cursor
 	err := b.db.View(func(tx *bbolt.Tx) error {
