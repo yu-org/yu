@@ -45,7 +45,7 @@ type MasterConf struct {
 type WorkerConf struct {
 	Name           string `toml:"name"`
 	DB             KVconf `toml:"db"`
-	NodeKeeperAddr string `toml:"node_keeper_addr"`
+	NodeKeeperPort string `toml:"node_keeper_port"`
 	ServesPort     string `toml:"serves_port"`
 	// the interval of heartbeat to NodeKeeper,
 	// the unit is Second
@@ -58,7 +58,8 @@ type NodeKeeperConf struct {
 	Dir string `toml:"dir"`
 	// It MUST be {Dir}/xx.db
 	// When you use {Dir}/path/to/xx.db, it will be trimmed as {Dir}/xx.db
-	RepoDbPath string `toml:"repo_db_path"`
+	RepoDbPath   string `toml:"repo_db_path"`
+	WorkerDbPath string `toml:"worker_db_path"`
 	// specify the os and arch of repo
 	// Usually you need not define it, it will get os and arch from local host.
 	// such as: linux-amd64, darwin-amd64, windows-amd64, wasm

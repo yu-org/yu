@@ -21,12 +21,17 @@ import (
 const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
-	info       *NodeKeeperInfo
-	repoDB     kv.KV
+	// info *NodeKeeperInfo
+
+	// Key: repoName,  Value: Repo
+	repoDB kv.KV
+	// Workers: Key worker_addr, Value workerInfo
+	workerDB   kv.KV
 	dir        string
 	port       string
 	masterAddr string
 
+	osArch  string
 	timeout time.Duration
 }
 
@@ -47,31 +52,31 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		osArch = runtime.GOOS + "-" + runtime.GOARCH
 	}
 
-	info := &NodeKeeperInfo{
-		OsArch:        osArch,
-		WorkersStatus: make(map[int]WorkerStatus),
-	}
-
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &NodeKeeper{
-		info:       info,
+		//info:       info,
 		repoDB:     repoDB,
 		dir:        dir,
 		port:       ":" + cfg.ServesPort,
 		masterAddr: cfg.MasterAddr,
+		osArch:     osArch,
 		timeout:    timeout,
 	}, nil
 }
 
-// Nortify master the the existence of Nodekeeper and the changes of workers' number.
+// Register master the the existence of Nodekeeper and the changes of workers' number.
 // When workers increase or decrease or keep-alive, should POST to master.
-func (n *NodeKeeper) NortifyMaster() error {
-	infoByt, err := n.info.EncodeNodeKeeperInfo()
+func (n *NodeKeeper) Register() error {
+	info, err := n.Info()
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster(RegisterNodeKeepersPath, infoByt)
+	byt, err := info.EncodeNodeKeeperInfo()
+	if err != nil {
+		return err
+	}
+	_, err = n.postToMaster(RegisterNodeKeepersPath, byt)
 	return err
 }
 
@@ -91,7 +96,16 @@ func (n *NodeKeeper) HandleHttp() {
 		n.registerWorkers(c)
 	})
 
-	ReplyHeartbeat(r)
+	r.GET(HeartbeatToPath, func(c *gin.Context) {
+		info, err := n.Info()
+		if err != nil {
+			logrus.Errorf("get NodeKeeper info error: %s", err.Error())
+			c.JSON(http.StatusInternalServerError, nil)
+			return
+		}
+		c.JSON(http.StatusOK, info)
+		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
+	})
 
 	r.Run(n.port)
 }
@@ -116,13 +130,19 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		)
 		return
 	}
-	n.info.WorkersStatus[workerInfo.ID] = WorkerStatus{
-		Info:   workerInfo,
-		Online: true,
+	workerAddr := c.ClientIP() + workerInfo.Port
+	err = n.setWorkerInfo(workerAddr, &workerInfo)
+	if err != nil {
+		c.String(
+			http.StatusInternalServerError,
+			fmt.Sprintf("set new worker(%s) error: %s", workerAddr, err.Error()),
+		)
+		return
 	}
-	logrus.Infof("Accept Worker(%v) hit. ", workerInfo.ID)
 
-	err = n.NortifyMaster()
+	logrus.Infof("Register Worker(%v) into NodeKeeper succeed. ", workerInfo.ID)
+
+	err = n.Register()
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,
@@ -131,6 +151,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusOK, "")
+	logrus.Infof("Register Worker(%v) into Master succeed. ", workerInfo.ID)
 }
 
 func (n *NodeKeeper) downloadUpdatedPkg(c *gin.Context) {
@@ -165,7 +186,7 @@ func (n *NodeKeeper) downloadUpdatedPkg(c *gin.Context) {
 		)
 	}
 
-	c.String(http.StatusOK, "upload file succeed")
+	c.String(http.StatusOK, "download file succeed")
 }
 
 // zipFilePath just like: path/to/yuRepo_linux-amd64_3.zip
@@ -223,6 +244,22 @@ func (n *NodeKeeper) postToMaster(path string, body []byte) (*http.Response, err
 	return cli.Do(req)
 }
 
+func (n *NodeKeeper) getWorkerInfo(addr string) (*WorkerInfo, error) {
+	infoByt, err := n.workerDB.Get([]byte(addr))
+	if err != nil {
+		return nil, err
+	}
+	return DecodeWorkerInfo(infoByt)
+}
+
+func (n *NodeKeeper) setWorkerInfo(addr string, info *WorkerInfo) error {
+	infoByt, err := info.EncodeMasterInfo()
+	if err != nil {
+		return err
+	}
+	return n.workerDB.Set([]byte(addr), infoByt)
+}
+
 func (n *NodeKeeper) getRepo(repoName string) (*Repo, error) {
 	repoByt, err := n.repoDB.Get([]byte(repoName))
 	if err != nil {
@@ -239,6 +276,42 @@ func (n *NodeKeeper) setRepo(repoName string, repo *Repo) error {
 	return n.repoDB.Set([]byte(repoName), repoByt)
 }
 
-func (n *NodeKeeper) allWorkers() {
+func (n *NodeKeeper) Info() (*NodeKeeperInfo, error) {
+	workersInfo := make(map[string]WorkerInfo)
+	err := n.allWorkers(func(addr string, info *WorkerInfo) {
+		workersInfo[addr] = *info
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &NodeKeeperInfo{
+		OsArch:      n.osArch,
+		WorkersInfo: workersInfo,
+		Online:      true,
+	}, nil
+}
 
+func (n *NodeKeeper) allWorkers(fn func(addr string, info *WorkerInfo)) error {
+	iter, err := n.workerDB.Iter(nil)
+	if err != nil {
+		return err
+	}
+	defer iter.Close()
+	for iter.Valid() {
+		addrByt, infoByt, err := iter.Entry()
+		if err != nil {
+			return err
+		}
+		addr := string(addrByt)
+		info, err := DecodeWorkerInfo(infoByt)
+		if err != nil {
+			return err
+		}
+		fn(addr, info)
+		err = iter.Next()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

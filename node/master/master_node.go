@@ -91,7 +91,22 @@ func (m *Master) CheckHealth() {
 		if err != nil {
 			logrus.Errorf("get all NodeKeepers error: %s", err.Error())
 		}
-		SendHeartbeats(nkAddrs)
+		SendHeartbeats(nkAddrs, func(nkAddr string) error {
+			tx, err := m.nkDB.NewKvTxn()
+			if err != nil {
+				return err
+			}
+			info, err := getNkWithTx(tx, nkAddr)
+			if err != nil {
+				return err
+			}
+			info.Online = false
+			err = setNkWithTx(tx, nkAddr, info)
+			if err != nil {
+				return err
+			}
+			return tx.Commit()
+		})
 		time.Sleep(m.timeout)
 	}
 }
@@ -142,7 +157,7 @@ func (m *Master) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
 
 func (m *Master) allNodeKeepersIp() ([]string, error) {
 	nkIPs := make([]string, 0)
-	err := m.allNodeKeepers(func(ip string, info *NodeKeeperInfo) {
+	err := m.allNodeKeepers(func(ip string, _ *NodeKeeperInfo) {
 		nkIPs = append(nkIPs, ip)
 	})
 	return nkIPs, err
@@ -151,7 +166,7 @@ func (m *Master) allNodeKeepersIp() ([]string, error) {
 func (m *Master) WorkersCount() (int, error) {
 	count := 0
 	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) {
-		count += len(info.WorkersStatus)
+		count += len(info.WorkersInfo)
 	})
 	return count, err
 }
@@ -179,4 +194,19 @@ func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo)) error 
 		}
 	}
 	return nil
+}
+func getNkWithTx(txn kv.KvTxn, ip string) (*NodeKeeperInfo, error) {
+	infoByt, err := txn.Get([]byte(ip))
+	if err != nil {
+		return nil, err
+	}
+	return DecodeNodeKeeperInfo(infoByt)
+}
+
+func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
+	infoByt, err := info.EncodeNodeKeeperInfo()
+	if err != nil {
+		return err
+	}
+	return txn.Set([]byte(ip), infoByt)
 }

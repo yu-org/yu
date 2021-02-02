@@ -2,6 +2,8 @@ package worker
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	"net/http"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
@@ -29,7 +31,7 @@ func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
 	if data == nil {
 		info = &WorkerInfo{
 			Name:           cfg.Name,
-			NodeKeeperAddr: cfg.NodeKeeperAddr,
+			NodeKeeperPort: ":" + cfg.NodeKeeperPort,
 			Port:           ":" + cfg.ServesPort,
 		}
 		infoByt, err := info.EncodeMasterInfo()
@@ -58,7 +60,10 @@ func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
 func (w *Worker) HandleHttp() {
 	r := gin.Default()
 
-	ReplyHeartbeat(r)
+	r.GET(HeartbeatToPath, func(c *gin.Context) {
+		c.JSON(http.StatusOK, nil)
+		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
+	})
 
 	r.Run(w.port)
 }
