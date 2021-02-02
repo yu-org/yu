@@ -21,8 +21,6 @@ import (
 const CompressedFileType = ".zip"
 
 type NodeKeeper struct {
-	// info *NodeKeeperInfo
-
 	// Key: repoName,  Value: Repo
 	repoDB kv.KV
 	// Workers: Key worker_addr, Value workerInfo
@@ -36,12 +34,15 @@ type NodeKeeper struct {
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
-	dbpath := cfg.RepoDbPath
 	dir := cfg.Dir
-	if filepath.Dir(dbpath) == dir {
-		dbpath = filepath.Join(dir, filepath.Base(dbpath))
+	repoDbPath := compactPath(dir, cfg.RepoDbPath)
+	workerDbPath := compactPath(dir, cfg.WorkerDbPath)
+
+	repoDB, err := kv.NewBolt(repoDbPath)
+	if err != nil {
+		return nil, err
 	}
-	repoDB, err := kv.NewBolt(dbpath)
+	workerDB, err := kv.NewBolt(workerDbPath)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +56,8 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &NodeKeeper{
-		//info:       info,
 		repoDB:     repoDB,
+		workerDB:   workerDB,
 		dir:        dir,
 		port:       ":" + cfg.ServesPort,
 		masterAddr: cfg.MasterAddr,
@@ -110,10 +111,29 @@ func (n *NodeKeeper) HandleHttp() {
 	r.Run(n.port)
 }
 
-// check the health of Workers
+// Check the health of Workers by SendHeartbeat to them.
 func (n *NodeKeeper) CheckHealth() {
 	for {
-
+		wAddrs, err := n.allWorkersIP()
+		if err != nil {
+			logrus.Errorf("get all Workers error: %s", err.Error())
+		}
+		SendHeartbeats(wAddrs, func(addr string) error {
+			tx, err := n.workerDB.NewKvTxn()
+			if err != nil {
+				return err
+			}
+			workerInfo, err := getWorkerWithTx(tx, addr)
+			if err != nil {
+				return err
+			}
+			workerInfo.Online = false
+			err = setWorkerWithTx(tx, addr, workerInfo)
+			if err != nil {
+				return err
+			}
+			return tx.Commit()
+		})
 		time.Sleep(n.timeout)
 	}
 }
@@ -291,6 +311,14 @@ func (n *NodeKeeper) Info() (*NodeKeeperInfo, error) {
 	}, nil
 }
 
+func (n *NodeKeeper) allWorkersIP() ([]string, error) {
+	workersIP := make([]string, 0)
+	err := n.allWorkers(func(addr string, _ *WorkerInfo) {
+		workersIP = append(workersIP, addr)
+	})
+	return workersIP, err
+}
+
 func (n *NodeKeeper) allWorkers(fn func(addr string, info *WorkerInfo)) error {
 	iter, err := n.workerDB.Iter(nil)
 	if err != nil {
@@ -314,4 +342,27 @@ func (n *NodeKeeper) allWorkers(fn func(addr string, info *WorkerInfo)) error {
 		}
 	}
 	return nil
+}
+
+func getWorkerWithTx(tx kv.KvTxn, ip string) (*WorkerInfo, error) {
+	infoByt, err := tx.Get([]byte(ip))
+	if err != nil {
+		return nil, err
+	}
+	return DecodeWorkerInfo(infoByt)
+}
+
+func setWorkerWithTx(tx kv.KvTxn, ip string, info *WorkerInfo) error {
+	infoByt, err := info.EncodeMasterInfo()
+	if err != nil {
+		return err
+	}
+	return tx.Set([]byte(ip), infoByt)
+}
+
+func compactPath(dir, path string) string {
+	if filepath.Dir(path) == dir {
+		path = filepath.Join(dir, filepath.Base(path))
+	}
+	return path
 }

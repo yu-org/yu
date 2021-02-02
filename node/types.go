@@ -56,21 +56,3 @@ func DecodeNodeKeeperInfo(data []byte) (*NodeKeeperInfo, error) {
 	}
 	return &info, nil
 }
-
-//type WorkerStatus struct {
-//	Info   WorkerInfo `json:"info"`
-//	Online bool       `json:"online"`
-//}
-//
-//func (ws *WorkerStatus) EncodeWorkerStatus() ([]byte, error) {
-//	return json.Marshal(ws)
-//}
-//
-//func DecodeWorkerStatus(data []byte) (*WorkerStatus, error) {
-//	var info WorkerStatus
-//	err := json.Unmarshal(data, &info)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &info, nil
-//}

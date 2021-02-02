@@ -84,7 +84,7 @@ func (m *Master) HandleHttp() {
 	r.Run(m.port)
 }
 
-// check the health of NodeKeepers by SendHeartbeat to them.
+// Check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {
 		nkAddrs, err := m.allNodeKeepersIp()

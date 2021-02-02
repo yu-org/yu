@@ -1,7 +1,6 @@
 package node
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -20,12 +19,4 @@ func SendHeartbeats(addrs []string, handleDead func(addr string) error) {
 		}
 	}
 
-}
-
-func ReplyHeartbeat(e *gin.Engine, replyBody interface{}) {
-	e.GET(HeartbeatToPath, func(c *gin.Context) {
-		c.String(http.StatusOK, "")
-		c.JSON(http.StatusOK, replyBody)
-		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
-	})
 }
