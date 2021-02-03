@@ -14,7 +14,7 @@ const (
 
 type WorkerInfo struct {
 	Name           string `json:"name"`
-	Port           string `json:"port"`
+	ServesPort     string `json:"serves_port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`
 	// Key: Tripod Name
 	// Value: Executions Name
@@ -39,6 +39,7 @@ type NodeKeeperInfo struct {
 	OsArch string `json:"os_arch"`
 	// key: Worker's Addr
 	WorkersInfo map[string]WorkerInfo `json:"workers_info"`
+	ServesPort  string                `json:"serves_port"`
 	Online      bool                  `json:"online"`
 }
 

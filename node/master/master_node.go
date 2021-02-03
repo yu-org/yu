@@ -122,7 +122,7 @@ func (m *Master) registerNodeKeepers(c *gin.Context) {
 		)
 		return
 	}
-	nkIP := c.ClientIP()
+	nkIP := c.ClientIP() + nkInfo.ServesPort
 
 	err = m.SetNodeKeeper(nkIP, nkInfo)
 	if err != nil {

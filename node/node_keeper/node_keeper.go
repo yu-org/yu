@@ -26,7 +26,7 @@ type NodeKeeper struct {
 	// Workers: Key worker_addr, Value workerInfo
 	workerDB   kv.KV
 	dir        string
-	port       string
+	servesPort string
 	masterAddr string
 
 	osArch  string
@@ -59,7 +59,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		repoDB:     repoDB,
 		workerDB:   workerDB,
 		dir:        dir,
-		port:       ":" + cfg.ServesPort,
+		servesPort: ":" + cfg.ServesPort,
 		masterAddr: cfg.MasterAddr,
 		osArch:     osArch,
 		timeout:    timeout,
@@ -108,7 +108,7 @@ func (n *NodeKeeper) HandleHttp() {
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
-	r.Run(n.port)
+	r.Run(n.servesPort)
 }
 
 // Check the health of Workers by SendHeartbeat to them.
@@ -150,7 +150,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		)
 		return
 	}
-	workerAddr := c.ClientIP() + workerInfo.Port
+	workerAddr := c.ClientIP() + workerInfo.ServesPort
 	err = n.setWorkerInfo(workerAddr, &workerInfo)
 	if err != nil {
 		c.String(
@@ -307,6 +307,7 @@ func (n *NodeKeeper) Info() (*NodeKeeperInfo, error) {
 	return &NodeKeeperInfo{
 		OsArch:      n.osArch,
 		WorkersInfo: workersInfo,
+		ServesPort:  n.servesPort,
 		Online:      true,
 	}, nil
 }

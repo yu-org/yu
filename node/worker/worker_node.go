@@ -13,7 +13,7 @@ import (
 
 type Worker struct {
 	Name           string
-	Port           string
+	ServesPort     string
 	NodeKeeperAddr string
 	land           *tripod.Land
 	metadb         kv.KV
@@ -27,7 +27,7 @@ func NewWorker(cfg *config.WorkerConf, land *tripod.Land) (*Worker, error) {
 	nkAddr := "localhost:" + cfg.NodeKeeperPort
 	return &Worker{
 		Name:           cfg.Name,
-		Port:           ":" + cfg.ServesPort,
+		ServesPort:     ":" + cfg.ServesPort,
 		NodeKeeperAddr: nkAddr,
 		land:           land,
 		metadb:         metadb,
@@ -43,7 +43,7 @@ func (w *Worker) HandleHttp() {
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
-	r.Run(w.Port)
+	r.Run(w.ServesPort)
 }
 
 // Register into NodeKeeper
@@ -63,7 +63,7 @@ func (w *Worker) Info() *WorkerInfo {
 	}
 	return &WorkerInfo{
 		Name:           w.Name,
-		Port:           w.Port,
+		ServesPort:     w.ServesPort,
 		NodeKeeperAddr: w.NodeKeeperAddr,
 		TripodsInfo:    tripodsInfo,
 		Online:         true,
