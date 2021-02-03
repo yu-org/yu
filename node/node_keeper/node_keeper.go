@@ -68,7 +68,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 
 // Register master the the existence of Nodekeeper and the changes of workers' number.
 // When workers increase or decrease or keep-alive, should POST to master.
-func (n *NodeKeeper) Register() error {
+func (n *NodeKeeper) RegisterInMaster() error {
 	info, err := n.Info()
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 
 	logrus.Infof("Register Worker(%v) into NodeKeeper succeed. ", workerAddr)
 
-	err = n.Register()
+	err = n.RegisterInMaster()
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,
@@ -256,7 +256,7 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 
 func (n *NodeKeeper) postToMaster(path string, body []byte) (*http.Response, error) {
 	url := n.masterAddr + path
-	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

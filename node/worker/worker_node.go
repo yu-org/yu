@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -42,4 +43,24 @@ func (w *Worker) HandleHttp() {
 	})
 
 	r.Run(w.info.Port)
+}
+
+// Register into NodeKeeper
+func (w *Worker) RegisterInNk() error {
+	infoByt, err := w.info.EncodeMasterInfo()
+	if err != nil {
+		return err
+	}
+	_, err = w.postToNk(RegisterWorkersPath, infoByt)
+	return err
+}
+
+func (w *Worker) postToNk(path string, body []byte) (*http.Response, error) {
+	url := w.info.NodeKeeperAddr + path
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	cli := &http.Client{}
+	return cli.Do(req)
 }
