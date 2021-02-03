@@ -9,12 +9,8 @@ import (
 	"yu/storage/kv"
 )
 
-var WorkerInfoKey = []byte("worker-node-info")
-
 type Worker struct {
-	info *WorkerInfo
-
-	port   string
+	info   *WorkerInfo
 	metadb kv.KV
 }
 
@@ -23,35 +19,15 @@ func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := metadb.Get(WorkerInfoKey)
-	if err != nil {
-		return nil, err
+	nkAddr := "localhost:" + cfg.NodeKeeperPort
+	info := &WorkerInfo{
+		Name:           cfg.Name,
+		Port:           ":" + cfg.ServesPort,
+		NodeKeeperAddr: nkAddr,
+		Online:         true,
 	}
-	var info *WorkerInfo
-	if data == nil {
-		info = &WorkerInfo{
-			Name:           cfg.Name,
-			NodeKeeperPort: ":" + cfg.NodeKeeperPort,
-			Port:           ":" + cfg.ServesPort,
-		}
-		infoByt, err := info.EncodeMasterInfo()
-		if err != nil {
-			return nil, err
-		}
-		err = metadb.Set(WorkerInfoKey, infoByt)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		info, err = DecodeWorkerInfo(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &Worker{
 		info:   info,
-		port:   ":" + cfg.ServesPort,
 		metadb: metadb,
 	}, nil
 
@@ -60,10 +36,10 @@ func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
 func (w *Worker) HandleHttp() {
 	r := gin.Default()
 
-	r.GET(HeartbeatToPath, func(c *gin.Context) {
+	r.GET(HeartbeatPath, func(c *gin.Context) {
 		c.JSON(http.StatusOK, nil)
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
-	r.Run(w.port)
+	r.Run(w.info.Port)
 }

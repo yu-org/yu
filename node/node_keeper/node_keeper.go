@@ -97,7 +97,7 @@ func (n *NodeKeeper) HandleHttp() {
 		n.registerWorkers(c)
 	})
 
-	r.GET(HeartbeatToPath, func(c *gin.Context) {
+	r.GET(HeartbeatPath, func(c *gin.Context) {
 		info, err := n.Info()
 		if err != nil {
 			logrus.Errorf("get NodeKeeper info error: %s", err.Error())
@@ -160,7 +160,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		return
 	}
 
-	logrus.Infof("Register Worker(%v) into NodeKeeper succeed. ", workerInfo.ID)
+	logrus.Infof("Register Worker(%v) into NodeKeeper succeed. ", workerAddr)
 
 	err = n.Register()
 	if err != nil {
@@ -171,7 +171,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusOK, "")
-	logrus.Infof("Register Worker(%v) into Master succeed. ", workerInfo.ID)
+	logrus.Infof("Register Worker(%v) into Master succeed. ", workerAddr)
 }
 
 func (n *NodeKeeper) downloadUpdatedPkg(c *gin.Context) {

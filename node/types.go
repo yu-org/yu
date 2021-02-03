@@ -9,11 +9,10 @@ const (
 	DownloadUpdatedPath     = "/master/upgrade"
 	RegisterNodeKeepersPath = "/nodekeeper/register"
 	RegisterWorkersPath     = "/worker/register"
-	HeartbeatToPath         = "/heartbeat"
+	HeartbeatPath           = "/heartbeat"
 )
 
 type WorkerInfo struct {
-	ID             int    `json:"id"`
 	Name           string `json:"name"`
 	Port           string `json:"port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`

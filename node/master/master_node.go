@@ -10,7 +10,6 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 	"yu/config"
@@ -134,16 +133,7 @@ func (m *Master) registerNodeKeepers(c *gin.Context) {
 		return
 	}
 
-	workerId, err := m.WorkersCount()
-	if err != nil {
-		c.String(
-			http.StatusInternalServerError,
-			fmt.Sprintf("generate workerID error: %s", err.Error()),
-		)
-		return
-	}
-
-	c.String(http.StatusOK, strconv.Itoa(workerId))
+	c.String(http.StatusOK, "")
 	logrus.Infof("NodeKeeper(%s) register succeed!", nkIP)
 }
 

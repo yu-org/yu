@@ -7,7 +7,7 @@ import (
 
 func SendHeartbeats(addrs []string, handleDead func(addr string) error) {
 	for _, addr := range addrs {
-		_, err := http.Get(addr + HeartbeatToPath)
+		_, err := http.Get(addr + HeartbeatPath)
 		if err != nil {
 			logrus.Errorf("send heartbeat to (%s) error: %s", addr, err.Error())
 			err = handleDead(addr)
