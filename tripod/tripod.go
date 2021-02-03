@@ -20,7 +20,8 @@ type Tripod interface {
 }
 
 type TripodMeta struct {
-	name   string
+	name string
+	// Key: Execution Name
 	exeFns map[string]Execution
 }
 
@@ -48,4 +49,12 @@ func (ph *TripodMeta) SetExecFns(fns ...Execution) {
 
 func (ph *TripodMeta) GetExecFn(name string) Execution {
 	return ph.exeFns[name]
+}
+
+func (ph *TripodMeta) AllExeNames() []string {
+	allNames := make([]string, 0)
+	for name, _ := range ph.exeFns {
+		allNames = append(allNames, name)
+	}
+	return allNames
 }

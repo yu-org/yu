@@ -8,28 +8,29 @@ import (
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
+	"yu/tripod"
 )
 
 type Worker struct {
-	info   *WorkerInfo
-	metadb kv.KV
+	Name           string
+	Port           string
+	NodeKeeperAddr string
+	land           *tripod.Land
+	metadb         kv.KV
 }
 
-func NewWorker(cfg *config.WorkerConf) (*Worker, error) {
+func NewWorker(cfg *config.WorkerConf, land *tripod.Land) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 	nkAddr := "localhost:" + cfg.NodeKeeperPort
-	info := &WorkerInfo{
+	return &Worker{
 		Name:           cfg.Name,
 		Port:           ":" + cfg.ServesPort,
 		NodeKeeperAddr: nkAddr,
-		Online:         true,
-	}
-	return &Worker{
-		info:   info,
-		metadb: metadb,
+		land:           land,
+		metadb:         metadb,
 	}, nil
 
 }
@@ -42,12 +43,12 @@ func (w *Worker) HandleHttp() {
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
-	r.Run(w.info.Port)
+	r.Run(w.Port)
 }
 
 // Register into NodeKeeper
 func (w *Worker) RegisterInNk() error {
-	infoByt, err := w.info.EncodeMasterInfo()
+	infoByt, err := w.Info().EncodeMasterInfo()
 	if err != nil {
 		return err
 	}
@@ -55,8 +56,22 @@ func (w *Worker) RegisterInNk() error {
 	return err
 }
 
+func (w *Worker) Info() *WorkerInfo {
+	tripodsInfo := make(map[string][]string)
+	for triName, tri := range w.land.Tripods {
+		tripodsInfo[triName] = tri.TripodMeta().AllExeNames()
+	}
+	return &WorkerInfo{
+		Name:           w.Name,
+		Port:           w.Port,
+		NodeKeeperAddr: w.NodeKeeperAddr,
+		TripodsInfo:    tripodsInfo,
+		Online:         true,
+	}
+}
+
 func (w *Worker) postToNk(path string, body []byte) (*http.Response, error) {
-	url := w.info.NodeKeeperAddr + path
+	url := w.NodeKeeperAddr + path
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 )
 
 type Land struct {
+	// Key: the Name of Tripod
 	Tripods map[string]Tripod
 }
 

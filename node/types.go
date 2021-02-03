@@ -16,7 +16,10 @@ type WorkerInfo struct {
 	Name           string `json:"name"`
 	Port           string `json:"port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`
-	Online         bool   `json:"online"`
+	// Key: Tripod Name
+	// Value: Executions Name
+	TripodsInfo map[string][]string `json:"tripods_info"`
+	Online      bool                `json:"online"`
 }
 
 func (wi *WorkerInfo) EncodeMasterInfo() ([]byte, error) {
