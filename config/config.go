@@ -1,10 +1,6 @@
 package config
 
-type Conf struct {
-	MasterConf     MasterConf     `toml:"master_conf"`
-	WorkerConf     WorkerConf     `toml:"worker_conf"`
-	NodeKeeperConf NodeKeeperConf `toml:"node_keeper_conf"`
-}
+import "github.com/BurntSushi/toml"
 
 type KVconf struct {
 	// "bolt" "badger" "tikv"
@@ -68,4 +64,9 @@ type NodeKeeperConf struct {
 	MasterAddr string `toml:"master_addr"`
 	// when beyond 'Timeout', it means this worker is down.
 	Timeout int `toml:"timeout"`
+}
+
+func LoadConf(fpath string, cfg interface{}) (err error) {
+	_, err = toml.DecodeFile(fpath, cfg)
+	return
 }
