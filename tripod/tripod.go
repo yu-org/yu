@@ -22,38 +22,64 @@ type Tripod interface {
 type TripodMeta struct {
 	name string
 	// Key: Execution Name
-	exeFns map[string]Execution
+	execs map[string]Execution
+	// Key: Query Name
+	queries map[string]Query
 }
 
 func NewTripodMeta(name string) *TripodMeta {
 	return &TripodMeta{
-		name:   name,
-		exeFns: make(map[string]Execution),
+		name:    name,
+		execs:   make(map[string]Execution),
+		queries: make(map[string]Query),
 	}
 }
 
-func (ph *TripodMeta) Name() string {
-	return ph.name
+func (th *TripodMeta) Name() string {
+	return th.name
 }
 
-func (ph *TripodMeta) SetExecFns(fns ...Execution) {
+func (th *TripodMeta) SetExecs(fns ...Execution) {
 	for _, fn := range fns {
 		ptr := reflect.ValueOf(fn).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
 		nameEnd := filepath.Ext(nameFull)
 		name := strings.TrimPrefix(nameEnd, ".")
-		ph.exeFns[name] = fn
-		logrus.Infof("register CallFn (%s) into TripodMeta \n", name)
+		th.execs[name] = fn
+		logrus.Infof("register Execution (%s) into TripodMeta \n", name)
 	}
 }
 
-func (ph *TripodMeta) GetExecFn(name string) Execution {
-	return ph.exeFns[name]
+func (th *TripodMeta) SetQueries(queries ...Query) {
+	for _, q := range queries {
+		ptr := reflect.ValueOf(q).Pointer()
+		nameFull := runtime.FuncForPC(ptr).Name()
+		nameEnd := filepath.Ext(nameFull)
+		name := strings.TrimPrefix(nameEnd, ".")
+		th.queries[name] = q
+		logrus.Infof("register Query (%s) into TripodMeta \n", name)
+	}
 }
 
-func (ph *TripodMeta) AllExeNames() []string {
+func (th *TripodMeta) GetExec(name string) Execution {
+	return th.execs[name]
+}
+
+func (th *TripodMeta) GetQuery(name string) Query {
+	return th.queries[name]
+}
+
+func (th *TripodMeta) AllQueryNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range ph.exeFns {
+	for name, _ := range th.queries {
+		allNames = append(allNames, name)
+	}
+	return allNames
+}
+
+func (th *TripodMeta) AllExecNames() []string {
+	allNames := make([]string, 0)
+	for name, _ := range th.execs {
 		allNames = append(allNames, name)
 	}
 	return allNames

@@ -17,24 +17,39 @@ func NewLand() *Land {
 	}
 }
 
-func (s *Land) SetTripods(Tripods ...Tripod) {
+func (l *Land) SetTripods(Tripods ...Tripod) {
 	for _, Tripod := range Tripods {
 		TripodName := Tripod.TripodMeta().Name()
-		s.Tripods[TripodName] = Tripod
+		l.Tripods[TripodName] = Tripod
 	}
 }
 
-func (s *Land) Execute(c *Call) error {
-	Tripod, ok := s.Tripods[c.TripodName]
+func (l *Land) Execute(c *Ecall) error {
+	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {
 		return errors.Errorf("Tripod (%s) not found", c.TripodName)
 	}
 	ph := Tripod.TripodMeta()
-	fn := ph.GetExecFn(c.FuncName)
+	fn := ph.GetExec(c.ExecName)
 	if fn == nil {
-		return errors.Errorf("Execution (%s) not found", c.FuncName)
+		return errors.Errorf("Execution (%s) not found", c.ExecName)
 	}
 	ctx := NewContext()
 	ctx.SetParams(c.Params)
 	return fn(ctx)
+}
+
+func (l *Land) Query(c *Qcall) error {
+	Tripod, ok := l.Tripods[c.TripodName]
+	if !ok {
+		return errors.Errorf("Tripod (%s) not found", c.TripodName)
+	}
+	ph := Tripod.TripodMeta()
+	qry := ph.GetQuery(c.QueryName)
+	if qry == nil {
+		return errors.Errorf("Query (%s) not found", c.QueryName)
+	}
+	ctx := NewContext()
+	ctx.SetParams(c.Params)
+	return qry(ctx, c.BlockNumber)
 }

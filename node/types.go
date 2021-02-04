@@ -5,21 +5,20 @@ import (
 	"reflect"
 )
 
-const (
-	DownloadUpdatedPath     = "/master/upgrade"
-	RegisterNodeKeepersPath = "/nodekeeper/register"
-	RegisterWorkersPath     = "/worker/register"
-	HeartbeatPath           = "/heartbeat"
-)
-
 type WorkerInfo struct {
 	Name           string `json:"name"`
 	ServesPort     string `json:"serves_port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`
 	// Key: Tripod Name
-	// Value: Executions Name
-	TripodsInfo map[string][]string `json:"tripods_info"`
-	Online      bool                `json:"online"`
+	TripodsInfo map[string]TripodInfo `json:"tripods_info"`
+	Online      bool                  `json:"online"`
+}
+
+type TripodInfo struct {
+	// Executions Names
+	ExecNames []string `json:"exec_names"`
+	// Queries Names
+	QueryNames []string `json:"query_names"`
 }
 
 func (wi *WorkerInfo) EncodeMasterInfo() ([]byte, error) {

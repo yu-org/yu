@@ -43,6 +43,14 @@ func (w *Worker) HandleHttp() {
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
+	r.POST(ExecApiPath, func(c *gin.Context) {
+		tripodName, execName := ResolveApiUrl(c)
+	})
+
+	r.POST(QryApiPath, func(c *gin.Context) {
+		tripodName, qryName := ResolveApiUrl(c)
+	})
+
 	r.Run(w.ServesPort)
 }
 
@@ -57,9 +65,14 @@ func (w *Worker) RegisterInNk() error {
 }
 
 func (w *Worker) Info() *WorkerInfo {
-	tripodsInfo := make(map[string][]string)
+	tripodsInfo := make(map[string]TripodInfo)
 	for triName, tri := range w.land.Tripods {
-		tripodsInfo[triName] = tri.TripodMeta().AllExeNames()
+		execNames := tri.TripodMeta().AllExecNames()
+		queryNames := tri.TripodMeta().AllQueryNames()
+		tripodsInfo[triName] = TripodInfo{
+			ExecNames:  execNames,
+			QueryNames: queryNames,
+		}
 	}
 	return &WorkerInfo{
 		Name:           w.Name,

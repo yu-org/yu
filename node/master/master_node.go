@@ -53,6 +53,14 @@ func (m *Master) HandleHttp() {
 		m.registerNodeKeepers(c)
 	})
 
+	r.POST(ExecApiPath, func(c *gin.Context) {
+		tripodName, execName := ResolveApiUrl(c)
+	})
+
+	r.POST(QryApiPath, func(c *gin.Context) {
+		tripodName, qryName := ResolveApiUrl(c)
+	})
+
 	r.Run(m.port)
 }
 

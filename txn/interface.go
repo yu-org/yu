@@ -9,7 +9,7 @@ import (
 type Itxn interface {
 	Events() []event.IEvent
 	Caller() PubKey
-	Calls() []*Call
+	Ecalls() []*Ecall
 	Timestamp() int64
 	Hash() (Hash, error)
 	Sign(key PrivKey) error

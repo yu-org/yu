@@ -18,10 +18,17 @@ type (
 	// This operation has no consensus reached in the blockchain network.
 	Query func(ctx *context.Context, blockNum BlockNum) error
 	// The Call from clients, it is an instance of an 'Execution'.
-	Call struct {
+	Ecall struct {
 		TripodName string
-		FuncName   string
+		ExecName   string
 		Params     []interface{}
+	}
+	// The Call from clients, it is an instance of an 'Query'.
+	Qcall struct {
+		TripodName  string
+		QueryName   string
+		Params      []interface{}
+		BlockNumber BlockNum
 	}
 )
 

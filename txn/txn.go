@@ -13,17 +13,17 @@ import (
 type Txn struct {
 	id        Hash
 	caller    PubKey
-	calls     []*Call
+	ecalls    []*Ecall
 	events    []event.IEvent
 	signature []byte
 	timestamp int64
 	extra     interface{}
 }
 
-func NewTxn(caller PubKey, calls []*Call, extra interface{}) (*Txn, error) {
+func NewTxn(caller PubKey, ecalls []*Ecall, extra interface{}) (*Txn, error) {
 	txn := &Txn{
 		caller:    caller,
-		calls:     calls,
+		ecalls:    ecalls,
 		events:    make([]event.IEvent, 0),
 		signature: nil,
 		timestamp: time.Now().UnixNano(),
@@ -45,8 +45,8 @@ func (t *Txn) Caller() PubKey {
 	return t.caller
 }
 
-func (t *Txn) Calls() []*Call {
-	return t.calls
+func (t *Txn) Ecalls() []*Ecall {
+	return t.ecalls
 }
 
 func (t *Txn) Timestamp() int64 {
