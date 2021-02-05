@@ -55,24 +55,6 @@ func NewMaster(cfg *config.MasterConf) (*Master, error) {
 	}, nil
 }
 
-func (m *Master) HandleHttp() {
-	r := gin.Default()
-
-	r.POST(RegisterNodeKeepersPath, func(c *gin.Context) {
-		m.registerNodeKeepers(c)
-	})
-
-	r.POST(ExecApiPath, func(c *gin.Context) {
-		m.forwardCall(c, common.ExecCall)
-	})
-
-	r.POST(QryApiPath, func(c *gin.Context) {
-		m.forwardCall(c, common.QryCall)
-	})
-
-	r.Run(m.port)
-}
-
 // Check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {
