@@ -2,6 +2,7 @@ package master
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -9,9 +10,17 @@ import (
 	"net/http"
 	"sync"
 	"time"
+	"yu/common"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
+)
+
+var (
+	TripodNotFound = errors.New("Tripod NOT Found")
+	ExecNotFound   = errors.New("Execution NOT Found")
+	QryNotFound    = errors.New("Query NOT Found")
+	WorkerDead     = errors.New("Worker Dead")
 )
 
 type Master struct {
@@ -54,11 +63,11 @@ func (m *Master) HandleHttp() {
 	})
 
 	r.POST(ExecApiPath, func(c *gin.Context) {
-		tripodName, execName := ResolveApiUrl(c)
+		m.forwardCall(c, common.ExecCall)
 	})
 
 	r.POST(QryApiPath, func(c *gin.Context) {
-		tripodName, qryName := ResolveApiUrl(c)
+		m.forwardCall(c, common.QryCall)
 	})
 
 	r.Run(m.port)
@@ -128,21 +137,64 @@ func (m *Master) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
 
 func (m *Master) allNodeKeepersIp() ([]string, error) {
 	nkIPs := make([]string, 0)
-	err := m.allNodeKeepers(func(ip string, _ *NodeKeeperInfo) {
+	err := m.allNodeKeepers(func(ip string, _ *NodeKeeperInfo) error {
 		nkIPs = append(nkIPs, ip)
+		return nil
 	})
 	return nkIPs, err
 }
 
 func (m *Master) WorkersCount() (int, error) {
 	count := 0
-	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) {
+	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
 		count += len(info.WorkersInfo)
+		return nil
 	})
 	return count, err
 }
 
-func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo)) error {
+// find workerIP by Execution/Query name
+func (m *Master) findWorkerIP(tripodName, eqName string, callType common.CallType) (ip string, err error) {
+	err = m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
+		if !info.Online {
+			return WorkerDead
+		}
+		for workerIp, workerInfo := range info.WorkersInfo {
+			triInfo, ok := workerInfo.TripodsInfo[tripodName]
+			if !ok {
+				return TripodNotFound
+			}
+			var eqArr []string
+			switch callType {
+			case common.ExecCall:
+				eqArr = triInfo.ExecNames
+			case common.QryCall:
+				eqArr = triInfo.QueryNames
+			}
+			for _, eq := range eqArr {
+				if eq == eqName {
+					ip = workerIp
+					return nil
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return
+	}
+	if ip == "" {
+		switch callType {
+		case common.ExecCall:
+			err = ExecNotFound
+		case common.QryCall:
+			err = QryNotFound
+		}
+	}
+	return
+}
+
+func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo) error) error {
 	iter, err := m.nkDB.Iter(nil)
 	if err != nil {
 		return err
@@ -158,7 +210,10 @@ func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo)) error 
 		if err != nil {
 			return err
 		}
-		fn(ip, info)
+		err = fn(ip, info)
+		if err != nil {
+			return err
+		}
 		err = iter.Next()
 		if err != nil {
 			return err

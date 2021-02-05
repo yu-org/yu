@@ -13,10 +13,10 @@ type (
 	BlockId [BlockIdLen]byte
 	// Developers define the 'Execution' in the pod to let clients call.
 	// Just like transactions in ETH, extrinsic in Substrate
-	Execution func(ctx *context.Context) error
+	Execution func(*context.Context) error
 	// Developers define the 'Query' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.
-	Query func(ctx *context.Context, blockNum BlockNum) error
+	Query func(*context.Context, BlockNum) error
 	// The Call from clients, it is an instance of an 'Execution'.
 	Ecall struct {
 		TripodName string
@@ -30,6 +30,16 @@ type (
 		Params      []interface{}
 		BlockNumber BlockNum
 	}
+	// Execution or Query
+	CallType int
+)
+
+const (
+	ExecCall CallType = iota
+	QryCall
+
+	ExecCallType = "execution"
+	QryCallType  = "query"
 )
 
 func (bn BlockNum) len() int {

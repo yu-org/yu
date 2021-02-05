@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"path/filepath"
 	"strings"
+	. "yu/common"
 )
 
 const (
@@ -17,9 +18,6 @@ const (
 	RootApiPath = "/api"
 	// Use to match every api-path of Tripods' Name and their Execution/Query Name
 	WildcardApiPath = "*api"
-
-	ExecCallType = "execution"
-	QryCallType  = "query"
 )
 
 var (
