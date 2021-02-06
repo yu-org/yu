@@ -27,10 +27,11 @@ type Master struct {
 	sync.Mutex
 	p2pHost host.Host
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
-	nkDB    kv.KV
-	port    string
-	ctx     context.Context
-	timeout time.Duration
+	nkDB     kv.KV
+	httpPort string
+	wsPort   string
+	ctx      context.Context
+	timeout  time.Duration
 }
 
 func NewMaster(cfg *config.MasterConf) (*Master, error) {
@@ -47,11 +48,12 @@ func NewMaster(cfg *config.MasterConf) (*Master, error) {
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost: p2pHost,
-		nkDB:    nkDB,
-		timeout: timeout,
-		ctx:     ctx,
-		port:    ":" + cfg.ServesPort,
+		p2pHost:  p2pHost,
+		nkDB:     nkDB,
+		timeout:  timeout,
+		ctx:      ctx,
+		httpPort: ":" + cfg.HttpPort,
+		wsPort:   ":" + cfg.WsPort,
 	}, nil
 }
 

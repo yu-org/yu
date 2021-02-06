@@ -12,8 +12,11 @@ type KVconf struct {
 }
 
 type MasterConf struct {
-	ServesPort string `toml:"serves_port"`
-	DB         KVconf `toml:"db"`
+	// serve http port
+	HttpPort string `toml:"http_port"`
+	// serve websocket port
+	WsPort string `toml:"ws_port"`
+	DB     KVconf `toml:"db"`
 	// when beyond 'Timeout', it means this nodekeeper is down.
 	Timeout int `toml:"timeout"`
 
@@ -42,7 +45,11 @@ type WorkerConf struct {
 	Name           string `toml:"name"`
 	DB             KVconf `toml:"db"`
 	NodeKeeperPort string `toml:"node_keeper_port"`
-	ServesPort     string `toml:"serves_port"`
+
+	// serve http port
+	HttpPort string `toml:"http_port"`
+	// serve websocket port
+	WsPort string `toml:"ws_port"`
 	// the interval of heartbeat to NodeKeeper,
 	// the unit is Second
 	Interval int `toml:"interval"`

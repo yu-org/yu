@@ -11,7 +11,8 @@ import (
 
 type Worker struct {
 	Name           string
-	ServesPort     string
+	HttpPort       string
+	WsPort         string
 	NodeKeeperAddr string
 	land           *tripod.Land
 	metadb         kv.KV
@@ -25,7 +26,8 @@ func NewWorker(cfg *config.WorkerConf, land *tripod.Land) (*Worker, error) {
 	nkAddr := "localhost:" + cfg.NodeKeeperPort
 	return &Worker{
 		Name:           cfg.Name,
-		ServesPort:     ":" + cfg.ServesPort,
+		HttpPort:       ":" + cfg.HttpPort,
+		WsPort:         ":" + cfg.WsPort,
 		NodeKeeperAddr: nkAddr,
 		land:           land,
 		metadb:         metadb,
