@@ -7,7 +7,8 @@ import (
 
 type WorkerInfo struct {
 	Name           string `json:"name"`
-	ServesPort     string `json:"serves_port"`
+	HttpPort       string `json:"http_port"`
+	WsPort         string `json:"ws_port"`
 	NodeKeeperAddr string `json:"node_keeper_addr"`
 	// Key: Tripod Name
 	TripodsInfo map[string]TripodInfo `json:"tripods_info"`

@@ -57,7 +57,8 @@ func (w *Worker) Info() *WorkerInfo {
 	}
 	return &WorkerInfo{
 		Name:           w.Name,
-		ServesPort:     w.ServesPort,
+		HttpPort:       w.HttpPort,
+		WsPort:         w.WsPort,
 		NodeKeeperAddr: w.NodeKeeperAddr,
 		TripodsInfo:    tripodsInfo,
 		Online:         true,
