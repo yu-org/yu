@@ -14,34 +14,34 @@ func (m *Master) HandleHttp() {
 	})
 
 	// GET request
-	r.GET(ExecApiHttpPath, func(c *gin.Context) {
+	r.GET(ExecApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, ExecCall)
 	})
-	r.GET(QryApiHttpPath, func(c *gin.Context) {
+	r.GET(QryApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, QryCall)
 	})
 
 	// POST request
-	r.POST(ExecApiHttpPath, func(c *gin.Context) {
+	r.POST(ExecApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, ExecCall)
 	})
-	r.POST(QryApiHttpPath, func(c *gin.Context) {
+	r.POST(QryApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, QryCall)
 	})
 
 	// PUT request
-	r.PUT(ExecApiHttpPath, func(c *gin.Context) {
+	r.PUT(ExecApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, ExecCall)
 	})
-	r.PUT(QryApiHttpPath, func(c *gin.Context) {
+	r.PUT(QryApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, QryCall)
 	})
 
 	// DELETE request
-	r.DELETE(ExecApiHttpPath, func(c *gin.Context) {
+	r.DELETE(ExecApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, ExecCall)
 	})
-	r.DELETE(QryApiHttpPath, func(c *gin.Context) {
+	r.DELETE(QryApiPath, func(c *gin.Context) {
 		m.forwardHttpCall(c, QryCall)
 	})
 

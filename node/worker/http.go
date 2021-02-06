@@ -16,34 +16,34 @@ func (w *Worker) HandleHttp() {
 	})
 
 	// GET request
-	r.GET(ExecApiHttpPath, func(c *gin.Context) {
+	r.GET(ExecApiPath, func(c *gin.Context) {
 		tripodName, execName := ResolveHttpApiUrl(c)
 	})
-	r.GET(QryApiHttpPath, func(c *gin.Context) {
+	r.GET(QryApiPath, func(c *gin.Context) {
 		tripodName, qryName := ResolveHttpApiUrl(c)
 	})
 
 	// POST request
-	r.POST(ExecApiHttpPath, func(c *gin.Context) {
+	r.POST(ExecApiPath, func(c *gin.Context) {
 		tripodName, execName := ResolveHttpApiUrl(c)
 	})
-	r.POST(QryApiHttpPath, func(c *gin.Context) {
+	r.POST(QryApiPath, func(c *gin.Context) {
 		tripodName, qryName := ResolveHttpApiUrl(c)
 	})
 
 	// PUT request
-	r.PUT(ExecApiHttpPath, func(c *gin.Context) {
+	r.PUT(ExecApiPath, func(c *gin.Context) {
 		tripodName, execName := ResolveHttpApiUrl(c)
 	})
-	r.PUT(QryApiHttpPath, func(c *gin.Context) {
+	r.PUT(QryApiPath, func(c *gin.Context) {
 		tripodName, qryName := ResolveHttpApiUrl(c)
 	})
 
 	// DELETE request
-	r.DELETE(ExecApiHttpPath, func(c *gin.Context) {
+	r.DELETE(ExecApiPath, func(c *gin.Context) {
 		tripodName, execName := ResolveHttpApiUrl(c)
 	})
-	r.DELETE(QryApiHttpPath, func(c *gin.Context) {
+	r.DELETE(QryApiPath, func(c *gin.Context) {
 		tripodName, qryName := ResolveHttpApiUrl(c)
 	})
 

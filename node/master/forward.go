@@ -15,7 +15,7 @@ func (m *Master) forwardHttpCall(c *gin.Context, callType CallType) {
 	if err != nil {
 		c.String(
 			http.StatusBadRequest,
-			fmt.Sprintf("find Tripod(%s) Call(%s) error: %s", tripodName, callName, err.Error()),
+			badReqErrStr(tripodName, callName, err),
 		)
 		return
 	}
@@ -27,10 +27,12 @@ func (m *Master) forwardWsCall(w http.ResponseWriter, req *http.Request, callTyp
 	tripodName, callName := ResolveWsApiUrl(req)
 	ip, err := m.findWorkerIP(tripodName, callName, callType)
 	if err != nil {
-
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(badReqErrStr(tripodName, callName, err)))
+		return
 	}
 	m.forwardToWorker(ip, w, req)
-
+	w.WriteHeader(http.StatusOK)
 }
 
 func (m *Master) forwardToWorker(ip string, rw http.ResponseWriter, req *http.Request) {
@@ -39,4 +41,8 @@ func (m *Master) forwardToWorker(ip string, rw http.ResponseWriter, req *http.Re
 	}
 	proxy := &httputil.ReverseProxy{Director: director}
 	proxy.ServeHTTP(rw, req)
+}
+
+func badReqErrStr(tripodName, callName string, err error) string {
+	return fmt.Sprintf("find Tripod(%s) Call(%s) error: %s", tripodName, callName, err.Error())
 }
