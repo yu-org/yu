@@ -21,14 +21,23 @@ type (
 	Ecall struct {
 		TripodName string
 		ExecName   string
-		Params     []interface{}
+		Params     EcallParams
 	}
+
+	EcallParams struct {
+		Params []interface{} `json:"params"`
+	}
+
 	// The Call from clients, it is an instance of an 'Query'.
 	Qcall struct {
-		TripodName  string
-		QueryName   string
-		Params      []interface{}
-		BlockNumber BlockNum
+		TripodName string
+		QueryName  string
+		Params     QcallParams
+	}
+
+	QcallParams struct {
+		Params      []interface{} `json:"params"`
+		BlockNumber BlockNum      `json:"block_number"`
 	}
 	// Execution or Query
 	CallType int
@@ -100,3 +109,9 @@ type (
 )
 
 var NullHash Hash = [HashLen]byte{}
+
+func StrToHash(s string) Hash {
+	var hash Hash
+	copy(hash[:], s)
+	return hash
+}

@@ -10,7 +10,7 @@ import (
 )
 
 func (m *Master) forwardHttpCall(c *gin.Context, callType CallType) {
-	tripodName, callName := ResolveHttpApiUrl(c)
+	tripodName, callName := GetTripodCallName(c.Request)
 	ip, err := m.findWorkerIP(tripodName, callName, callType)
 	if err != nil {
 		c.String(
@@ -24,7 +24,7 @@ func (m *Master) forwardHttpCall(c *gin.Context, callType CallType) {
 }
 
 func (m *Master) forwardWsCall(w http.ResponseWriter, req *http.Request, callType CallType) {
-	tripodName, callName := ResolveWsApiUrl(req)
+	tripodName, callName := GetTripodCallName(req)
 	ip, err := m.findWorkerIP(tripodName, callName, callType)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

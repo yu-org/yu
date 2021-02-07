@@ -1,7 +1,6 @@
 package node
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
 	. "yu/common"
@@ -19,6 +18,7 @@ const (
 
 	TripodNameKey = "tripod"
 	CallNameKey   = "call"
+	AccountIdKey  = "accountId"
 )
 
 var (
@@ -27,12 +27,12 @@ var (
 )
 
 // return (Tripod Name, Execution/Query Name)
-func ResolveHttpApiUrl(c *gin.Context) (string, string) {
-	return c.Query(TripodNameKey), c.Query(CallNameKey)
-}
-
-// return (Tripod Name, Execution/Query Name)
-func ResolveWsApiUrl(req *http.Request) (string, string) {
+func GetTripodCallName(req *http.Request) (string, string) {
 	query := req.URL.Query()
 	return query.Get(TripodNameKey), query.Get(CallNameKey)
+}
+
+// return the AccountId of Txn-Sender
+func GetAccountId(req *http.Request) Hash {
+	return StrToHash(req.URL.Query().Get(AccountIdKey))
 }
