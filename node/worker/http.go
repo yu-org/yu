@@ -7,6 +7,7 @@ import (
 	"net/http"
 	. "yu/common"
 	. "yu/node"
+	"yu/txn"
 )
 
 func (w *Worker) HandleHttp() {
@@ -19,7 +20,7 @@ func (w *Worker) HandleHttp() {
 
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {
-		w.DoHttpExecCall(c)
+		w.PutHttpInTxpool(c)
 	})
 	r.GET(QryApiPath, func(c *gin.Context) {
 		w.DoHttpQryCall(c)
@@ -27,7 +28,7 @@ func (w *Worker) HandleHttp() {
 
 	// POST request
 	r.POST(ExecApiPath, func(c *gin.Context) {
-		w.DoHttpExecCall(c)
+		w.PutHttpInTxpool(c)
 	})
 	r.POST(QryApiPath, func(c *gin.Context) {
 		w.DoHttpQryCall(c)
@@ -35,7 +36,7 @@ func (w *Worker) HandleHttp() {
 
 	// PUT request
 	r.PUT(ExecApiPath, func(c *gin.Context) {
-		w.DoHttpExecCall(c)
+		w.PutHttpInTxpool(c)
 	})
 	r.PUT(QryApiPath, func(c *gin.Context) {
 		w.DoHttpQryCall(c)
@@ -43,7 +44,7 @@ func (w *Worker) HandleHttp() {
 
 	// DELETE request
 	r.DELETE(ExecApiPath, func(c *gin.Context) {
-		w.DoHttpExecCall(c)
+		w.PutHttpInTxpool(c)
 	})
 	r.DELETE(QryApiPath, func(c *gin.Context) {
 		w.DoHttpQryCall(c)
@@ -52,8 +53,7 @@ func (w *Worker) HandleHttp() {
 	r.Run(w.httpPort)
 }
 
-func (w *Worker) DoHttpExecCall(c *gin.Context) {
-	tripodName, execName := GetTripodCallName(c.Request)
+func (w *Worker) PutHttpInTxpool(c *gin.Context) {
 	var ecallParams EcallParams
 	err := c.ShouldBindJSON(&ecallParams)
 	if err != nil {
@@ -63,16 +63,11 @@ func (w *Worker) DoHttpExecCall(c *gin.Context) {
 		)
 		return
 	}
-	ecall := &Ecall{
-		TripodName: tripodName,
-		ExecName:   execName,
-		Params:     ecallParams,
-	}
-	err = w.land.Execute(ecall)
+	err = w.putTxpool(c.Request, ecallParams)
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,
-			fmt.Sprintf("Execution error: %s", err.Error()),
+			fmt.Sprintf("Put Execution into TxPool error: %s", err.Error()),
 		)
 		return
 	}
@@ -80,7 +75,6 @@ func (w *Worker) DoHttpExecCall(c *gin.Context) {
 }
 
 func (w *Worker) DoHttpQryCall(c *gin.Context) {
-	tripodName, qryName := GetTripodCallName(c.Request)
 	var qcallParams QcallParams
 	err := c.ShouldBindJSON(&qcallParams)
 	if err != nil {
@@ -90,12 +84,7 @@ func (w *Worker) DoHttpQryCall(c *gin.Context) {
 		)
 		return
 	}
-	qcall := &Qcall{
-		TripodName: tripodName,
-		QueryName:  qryName,
-		Params:     qcallParams,
-	}
-	err = w.land.Query(qcall)
+	err = w.doQryCall(c.Request, qcallParams)
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,

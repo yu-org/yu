@@ -18,7 +18,7 @@ const (
 
 	TripodNameKey = "tripod"
 	CallNameKey   = "call"
-	AccountIdKey  = "accountId"
+	AddressKey    = "address"
 )
 
 var (
@@ -32,7 +32,7 @@ func GetTripodCallName(req *http.Request) (string, string) {
 	return query.Get(TripodNameKey), query.Get(CallNameKey)
 }
 
-// return the AccountId of Txn-Sender
-func GetAccountId(req *http.Request) Hash {
-	return StrToHash(req.URL.Query().Get(AccountIdKey))
+// return the Address of Txn-Sender
+func GetAddress(req *http.Request) Address {
+	return StrToAddress(req.URL.Query().Get(AddressKey))
 }

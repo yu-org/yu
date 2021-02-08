@@ -12,22 +12,20 @@ import (
 
 type Txn struct {
 	id        Hash
-	caller    PubKey
-	ecalls    []*Ecall
+	caller    Address
+	ecall     *Ecall
 	events    []event.IEvent
 	signature []byte
 	timestamp int64
-	extra     interface{}
 }
 
-func NewTxn(caller PubKey, ecalls []*Ecall, extra interface{}) (*Txn, error) {
+func NewTxn(caller Address, ecall *Ecall) (*Txn, error) {
 	txn := &Txn{
 		caller:    caller,
-		ecalls:    ecalls,
+		ecall:     ecall,
 		events:    make([]event.IEvent, 0),
 		signature: nil,
 		timestamp: time.Now().UnixNano(),
-		extra:     extra,
 	}
 	id, err := txn.Hash()
 	if err != nil {
@@ -41,12 +39,12 @@ func (t *Txn) Events() []event.IEvent {
 	return t.events
 }
 
-func (t *Txn) Caller() PubKey {
+func (t *Txn) Caller() Address {
 	return t.caller
 }
 
-func (t *Txn) Ecalls() []*Ecall {
-	return t.ecalls
+func (t *Txn) Ecall() *Ecall {
+	return t.ecall
 }
 
 func (t *Txn) Timestamp() int64 {
@@ -94,10 +92,6 @@ func (t *Txn) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
-}
-
-func (t *Txn) Extra() interface{} {
-	return t.extra
 }
 
 func Decode(data []byte) (*Txn, error) {

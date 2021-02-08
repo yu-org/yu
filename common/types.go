@@ -110,8 +110,8 @@ type (
 
 var NullHash Hash = [HashLen]byte{}
 
-func StrToHash(s string) Hash {
-	var hash Hash
-	copy(hash[:], s)
-	return hash
+func StrToAddress(s string) Address {
+	var address Address
+	copy(address[:], s)
+	return address
 }

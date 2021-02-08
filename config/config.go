@@ -53,6 +53,8 @@ type WorkerConf struct {
 	// the interval of heartbeat to NodeKeeper,
 	// the unit is Second
 	Interval int `toml:"interval"`
+
+	TxPoolSize int `toml:"tx_pool_size"`
 }
 
 type NodeKeeperConf struct {
