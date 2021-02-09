@@ -1,6 +1,9 @@
 package context
 
-import "reflect"
+import (
+	"reflect"
+	. "yu/yerror"
+)
 
 func (c *Context) SetParams(params []interface{}) {
 	for _, param := range params {
@@ -19,7 +22,7 @@ func (c *Context) GetString(name string) (string, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.String {
 		return pi.(string), nil
 	}
-	return "", TypeError
+	return "", TypeErr
 }
 
 func (c *Context) GetBoolean(name string) (bool, error) {
@@ -27,7 +30,7 @@ func (c *Context) GetBoolean(name string) (bool, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Bool {
 		return pi.(bool), nil
 	}
-	return false, TypeError
+	return false, TypeErr
 }
 
 func (c *Context) GetInt(name string) (int, error) {
@@ -35,7 +38,7 @@ func (c *Context) GetInt(name string) (int, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Int {
 		return pi.(int), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetUint(name string) (uint, error) {
@@ -43,7 +46,7 @@ func (c *Context) GetUint(name string) (uint, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint {
 		return pi.(uint), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetInt8(name string) (int8, error) {
@@ -51,7 +54,7 @@ func (c *Context) GetInt8(name string) (int8, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Int8 {
 		return pi.(int8), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetUint8(name string) (uint8, error) {
@@ -59,7 +62,7 @@ func (c *Context) GetUint8(name string) (uint8, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint8 {
 		return pi.(uint8), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetInt16(name string) (int16, error) {
@@ -67,7 +70,7 @@ func (c *Context) GetInt16(name string) (int16, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Int16 {
 		return pi.(int16), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetUint16(name string) (uint16, error) {
@@ -75,7 +78,7 @@ func (c *Context) GetUint16(name string) (uint16, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint16 {
 		return pi.(uint16), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetInt32(name string) (int32, error) {
@@ -83,7 +86,7 @@ func (c *Context) GetInt32(name string) (int32, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Int32 {
 		return pi.(int32), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetUint32(name string) (uint32, error) {
@@ -91,7 +94,7 @@ func (c *Context) GetUint32(name string) (uint32, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint32 {
 		return pi.(uint32), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetInt64(name string) (int64, error) {
@@ -99,7 +102,7 @@ func (c *Context) GetInt64(name string) (int64, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Int64 {
 		return pi.(int64), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetUint64(name string) (uint64, error) {
@@ -107,7 +110,7 @@ func (c *Context) GetUint64(name string) (uint64, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Uint64 {
 		return pi.(uint64), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetFloat32(name string) (float32, error) {
@@ -115,7 +118,7 @@ func (c *Context) GetFloat32(name string) (float32, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Float32 {
 		return pi.(float32), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }
 
 func (c *Context) GetFloat64(name string) (float64, error) {
@@ -123,5 +126,5 @@ func (c *Context) GetFloat64(name string) (float64, error) {
 	if reflect.TypeOf(pi).Kind() == reflect.Float64 {
 		return pi.(float64), nil
 	}
-	return 0, TypeError
+	return 0, TypeErr
 }

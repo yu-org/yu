@@ -1,11 +1,9 @@
 package kv
 
 import (
-	"github.com/pkg/errors"
 	. "yu/config"
+	. "yu/yerror"
 )
-
-var NoKvdbType = errors.New("no kvdb type")
 
 type KV interface {
 	Get(key []byte) ([]byte, error)

@@ -1,9 +1,9 @@
 package tripod
 
 import (
-	"github.com/pkg/errors"
 	. "yu/common"
 	. "yu/context"
+	. "yu/yerror"
 )
 
 type Land struct {
@@ -27,12 +27,12 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 func (l *Land) Execute(c *Ecall) error {
 	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {
-		return errors.Errorf("Tripod (%s) not found", c.TripodName)
+		return TripodNotFound
 	}
 	ph := Tripod.TripodMeta()
 	fn := ph.GetExec(c.ExecName)
 	if fn == nil {
-		return errors.Errorf("Execution (%s) not found", c.ExecName)
+		return ExecNotFound
 	}
 	ctx := NewContext()
 	ctx.SetParams(c.Params.Params)
@@ -42,12 +42,12 @@ func (l *Land) Execute(c *Ecall) error {
 func (l *Land) Query(c *Qcall) error {
 	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {
-		return errors.Errorf("Tripod (%s) not found", c.TripodName)
+		return TripodNotFound
 	}
 	ph := Tripod.TripodMeta()
 	qry := ph.GetQuery(c.QueryName)
 	if qry == nil {
-		return errors.Errorf("Query (%s) not found", c.QueryName)
+		return QryNotFound
 	}
 	ctx := NewContext()
 	ctx.SetParams(c.Params.Params)

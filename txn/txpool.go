@@ -1,12 +1,9 @@
 package txn
 
 import (
-	"github.com/pkg/errors"
 	"sync"
+	. "yu/yerror"
 )
-
-var PoolOverflowErr error = errors.New("pool size is full")
-var TxnSignatureErr error = errors.New("the signature of Txn illegal")
 
 type TxPool struct {
 	sync.RWMutex
@@ -41,7 +38,7 @@ func (tp *TxPool) InsertTxn(txn Itxn) (err error) {
 
 func (tp *TxPool) checkPoolLimit() error {
 	if len(tp.SignedTxns) >= tp.poolSize {
-		return PoolOverflowErr
+		return PoolOverflow
 	}
 	return nil
 }

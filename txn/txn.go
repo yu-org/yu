@@ -8,6 +8,7 @@ import (
 	. "yu/common"
 	"yu/event"
 	. "yu/keypair"
+	. "yu/yerror"
 )
 
 type Txn struct {

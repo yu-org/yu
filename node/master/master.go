@@ -2,7 +2,6 @@ package master
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -14,13 +13,7 @@ import (
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
-)
-
-var (
-	TripodNotFound = errors.New("Tripod NOT Found")
-	ExecNotFound   = errors.New("Execution NOT Found")
-	QryNotFound    = errors.New("Query NOT Found")
-	WorkerDead     = errors.New("Worker Dead")
+	. "yu/yerror"
 )
 
 type Master struct {

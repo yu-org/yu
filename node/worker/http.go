@@ -7,7 +7,6 @@ import (
 	"net/http"
 	. "yu/common"
 	. "yu/node"
-	"yu/txn"
 )
 
 func (w *Worker) HandleHttp() {
