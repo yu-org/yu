@@ -3,7 +3,6 @@ package blockchain
 import (
 	. "yu/common"
 	"yu/event"
-	"yu/txn"
 )
 
 type IBlock interface {
@@ -15,7 +14,6 @@ type IBlock interface {
 	SetStateRoot(hash Hash)
 	PrevHash() Hash
 	Header() IHeader
-	Txns() []txn.Itxn
 	Events() []event.IEvent
 	Timestamp() int64
 	Extra() interface{}

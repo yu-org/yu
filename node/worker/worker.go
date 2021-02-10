@@ -87,7 +87,7 @@ func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
 		Params:     params,
 	}
 	caller := GetAddress(req)
-	tx, err := txn.NewTxn(caller, ecall)
+	tx, err := txn.NewUnsignedTxn(caller, ecall)
 	if err != nil {
 		return err
 	}

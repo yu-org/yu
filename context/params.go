@@ -7,6 +7,7 @@ import (
 
 func (c *Context) SetParams(params []interface{}) {
 	for _, param := range params {
+		// todo: fix it. it should be a name of param.
 		typ := reflect.TypeOf(param)
 		name := typ.Name()
 		c.params[name] = param

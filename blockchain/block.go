@@ -11,19 +11,19 @@ import (
 )
 
 type Block struct {
-	header *Header
-	txns   []txn.Itxn
+	header    *Header
+	txnHashes []Hash
 }
 
-func NewBlock(txns []txn.Itxn, prevHash Hash, height BlockNum) *Block {
+func NewBlock(txnHashes []Hash, prevHash Hash, height BlockNum) *Block {
 	header := &Header{
 		prevHash:  prevHash,
 		number:    height + 1,
 		timestamp: time.Now().UnixNano(),
 	}
 	return &Block{
-		header: header,
-		txns:   txns,
+		header:    header,
+		txnHashes: txnHashes,
 	}
 }
 
@@ -41,10 +41,6 @@ func (b *Block) BlockId() BlockId {
 
 func (b *Block) BlockNumber() BlockNum {
 	return b.header.Num()
-}
-
-func (b *Block) Txns() []txn.Itxn {
-	return b.txns
 }
 
 func (b *Block) Hash() Hash {

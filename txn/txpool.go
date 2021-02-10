@@ -42,3 +42,7 @@ func (tp *TxPool) checkPoolLimit() error {
 	}
 	return nil
 }
+
+func (tp *TxPool) Flush() error {
+
+}
