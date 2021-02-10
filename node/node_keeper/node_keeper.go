@@ -150,7 +150,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		)
 		return
 	}
-	workerAddr := c.ClientIP() + workerInfo.ServesPort
+	workerAddr := c.ClientIP() + workerInfo.HttpPort
 	err = n.setWorkerInfo(workerAddr, &workerInfo)
 	if err != nil {
 		c.String(

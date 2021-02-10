@@ -131,25 +131,28 @@ func (m *Master) WorkersCount() (int, error) {
 }
 
 // find workerIP by Execution/Query name
-func (m *Master) findWorkerIP(tripodName, eqName string, callType common.CallType) (ip string, err error) {
-	err = m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
+func (m *Master) findWorkerIP(tripodName, callName string, callType common.CallType) (ip string, err error) {
+	err = m.allNodeKeepers(func(ip string, info *NodeKeeperInfo) error {
 		if !info.Online {
-			return WorkerDead
+			return NodeKeeperDead(ip)
 		}
 		for workerIp, workerInfo := range info.WorkersInfo {
+			if !workerInfo.Online {
+				return WorkerDead(workerInfo.Name)
+			}
 			triInfo, ok := workerInfo.TripodsInfo[tripodName]
 			if !ok {
-				return TripodNotFound
+				return TripodNotFound(tripodName)
 			}
-			var eqArr []string
+			var callArr []string
 			switch callType {
 			case common.ExecCall:
-				eqArr = triInfo.ExecNames
+				callArr = triInfo.ExecNames
 			case common.QryCall:
-				eqArr = triInfo.QueryNames
+				callArr = triInfo.QueryNames
 			}
-			for _, eq := range eqArr {
-				if eq == eqName {
+			for _, call := range callArr {
+				if call == callName {
 					ip = workerIp
 					return nil
 				}
@@ -163,9 +166,9 @@ func (m *Master) findWorkerIP(tripodName, eqName string, callType common.CallTyp
 	if ip == "" {
 		switch callType {
 		case common.ExecCall:
-			err = ExecNotFound
+			err = ExecNotFound(callName)
 		case common.QryCall:
-			err = QryNotFound
+			err = QryNotFound(callName)
 		}
 	}
 	return

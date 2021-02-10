@@ -27,12 +27,12 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 func (l *Land) Execute(c *Ecall) error {
 	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {
-		return TripodNotFound
+		return TripodNotFound(c.TripodName)
 	}
 	ph := Tripod.TripodMeta()
 	fn := ph.GetExec(c.ExecName)
 	if fn == nil {
-		return ExecNotFound
+		return ExecNotFound(c.ExecName)
 	}
 	ctx := NewContext()
 	ctx.SetParams(c.Params.Params)
@@ -42,12 +42,12 @@ func (l *Land) Execute(c *Ecall) error {
 func (l *Land) Query(c *Qcall) error {
 	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {
-		return TripodNotFound
+		return TripodNotFound(c.TripodName)
 	}
 	ph := Tripod.TripodMeta()
 	qry := ph.GetQuery(c.QueryName)
 	if qry == nil {
-		return QryNotFound
+		return QryNotFound(c.QueryName)
 	}
 	ctx := NewContext()
 	ctx.SetParams(c.Params.Params)
