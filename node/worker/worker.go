@@ -9,6 +9,7 @@ import (
 	"yu/storage/kv"
 	"yu/tripod"
 	"yu/txn"
+	. "yu/txpool"
 )
 
 type Worker struct {
@@ -16,12 +17,12 @@ type Worker struct {
 	httpPort       string
 	wsPort         string
 	NodeKeeperAddr string
-	txPool         *txn.TxPool
+	txPool         *TxPool
 	land           *tripod.Land
 	metadb         kv.KV
 }
 
-func NewWorker(cfg *config.WorkerConf, land *tripod.Land) (*Worker, error) {
+func NewWorker(cfg *config.WorkerConf, txPool *TxPool, land *tripod.Land) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -32,7 +33,7 @@ func NewWorker(cfg *config.WorkerConf, land *tripod.Land) (*Worker, error) {
 		httpPort:       ":" + cfg.HttpPort,
 		wsPort:         ":" + cfg.WsPort,
 		NodeKeeperAddr: nkAddr,
-		txPool:         txn.NewTxPool(cfg.TxPoolSize),
+		txPool:         txPool,
 		land:           land,
 		metadb:         metadb,
 	}, nil
@@ -91,7 +92,7 @@ func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
 	if err != nil {
 		return err
 	}
-	return w.txPool.InsertTxn(tx)
+	return w.txPool.Insert(tx)
 }
 
 func (w *Worker) doQryCall(req *http.Request, params QcallParams) error {
