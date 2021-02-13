@@ -5,16 +5,16 @@ import (
 	. "yu/yerror"
 )
 
-type TxnCheck func(txn IunsignedTxn) error
+type BaseCheck func(txn IsignedTxn) error
 
-func (tp *TxPool) defaultCheckFns() *TxPool {
-	tp.CheckFns = []TxnCheck{
+func (tp *TxPool) defaultBaseChecks() *TxPool {
+	tp.CheckFns = []BaseCheck{
 		tp.checkPoolLimit,
 	}
 	return tp
 }
 
-func (tp *TxPool) checkTxn(txn IunsignedTxn) error {
+func (tp *TxPool) baseCheck(txn IsignedTxn) error {
 	for _, fn := range tp.CheckFns {
 		err := fn(txn)
 		if err != nil {
@@ -23,8 +23,8 @@ func (tp *TxPool) checkTxn(txn IunsignedTxn) error {
 	}
 }
 
-func (tp *TxPool) checkPoolLimit(IunsignedTxn) error {
-	if len(tp.Txns) >= tp.poolSize {
+func (tp *TxPool) checkPoolLimit(IsignedTxn) error {
+	if uint64(len(tp.Txns)) >= tp.poolSize {
 		return PoolOverflow
 	}
 	return nil

@@ -2,7 +2,6 @@ package txn
 
 import (
 	. "yu/common"
-	. "yu/keypair"
 )
 
 type IunsignedTxn interface {

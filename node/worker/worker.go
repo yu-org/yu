@@ -3,6 +3,7 @@ package worker
 import (
 	"bytes"
 	"net/http"
+	. "yu/blockchain"
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
@@ -17,12 +18,13 @@ type Worker struct {
 	httpPort       string
 	wsPort         string
 	NodeKeeperAddr string
+	chain          IBlockChain
 	txPool         *TxPool
 	land           *tripod.Land
 	metadb         kv.KV
 }
 
-func NewWorker(cfg *config.WorkerConf, txPool *TxPool, land *tripod.Land) (*Worker, error) {
+func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool *TxPool, land *tripod.Land) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -33,6 +35,7 @@ func NewWorker(cfg *config.WorkerConf, txPool *TxPool, land *tripod.Land) (*Work
 		httpPort:       ":" + cfg.HttpPort,
 		wsPort:         ":" + cfg.WsPort,
 		NodeKeeperAddr: nkAddr,
+		chain:          chain,
 		txPool:         txPool,
 		land:           land,
 		metadb:         metadb,
@@ -92,6 +95,7 @@ func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
 	if err != nil {
 		return err
 	}
+	// todo: unsignedTxn to signedTxn
 	return w.txPool.Insert(tx)
 }
 
