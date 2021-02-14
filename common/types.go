@@ -17,27 +17,22 @@ type (
 	// Developers define the 'Query' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.
 	Query func(*context.Context, BlockNum) error
+
+	JsonString = string
+
 	// The Call from clients, it is an instance of an 'Execution'.
 	Ecall struct {
 		TripodName string
 		ExecName   string
-		Params     EcallParams
-	}
-
-	EcallParams struct {
-		Params []interface{} `json:"params"`
+		Params     JsonString
 	}
 
 	// The Call from clients, it is an instance of an 'Query'.
 	Qcall struct {
-		TripodName string
-		QueryName  string
-		Params     QcallParams
-	}
-
-	QcallParams struct {
-		Params      []interface{} `json:"params"`
-		BlockNumber BlockNum      `json:"block_number"`
+		TripodName  string
+		QueryName   string
+		BlockNumber BlockNum
+		Params      JsonString
 	}
 	// Execution or Query
 	CallType int

@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"io"
+	"io/ioutil"
 	"net/http"
 	. "yu/common"
 	. "yu/node"
 )
+
+const PARAMS_KEY = "params"
 
 func (w *Worker) HandleHttp() {
 	r := gin.Default()
@@ -53,16 +57,20 @@ func (w *Worker) HandleHttp() {
 }
 
 func (w *Worker) PutHttpInTxpool(c *gin.Context) {
-	var ecallParams EcallParams
-	err := c.ShouldBindJSON(&ecallParams)
-	if err != nil {
-		c.String(
-			http.StatusBadRequest,
-			fmt.Sprintf("decode Execution Call error: %s", err.Error()),
-		)
-		return
+	var (
+		params JsonString
+		err    error
+	)
+	if c.Request.Method == http.MethodPost {
+		params, err = readPostBody(c.Request.Body)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		params = c.GetString(PARAMS_KEY)
 	}
-	err = w.putTxpool(c.Request, ecallParams)
+	err = w.putTxpool(c.Request, params)
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,
@@ -74,16 +82,20 @@ func (w *Worker) PutHttpInTxpool(c *gin.Context) {
 }
 
 func (w *Worker) DoHttpQryCall(c *gin.Context) {
-	var qcallParams QcallParams
-	err := c.ShouldBindJSON(&qcallParams)
-	if err != nil {
-		c.String(
-			http.StatusBadRequest,
-			fmt.Sprintf("decode Query Call error: %s", err.Error()),
-		)
-		return
+	var (
+		params JsonString
+		err    error
+	)
+	if c.Request.Method == http.MethodPost {
+		params, err = readPostBody(c.Request.Body)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		params = c.GetString(PARAMS_KEY)
 	}
-	err = w.doQryCall(c.Request, qcallParams)
+	err = w.doQryCall(c.Request, params)
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,
@@ -92,4 +104,9 @@ func (w *Worker) DoHttpQryCall(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusOK, "")
+}
+
+func readPostBody(body io.ReadCloser) (JsonString, error) {
+	byt, err := ioutil.ReadAll(body)
+	return JsonString(byt), err
 }

@@ -49,19 +49,17 @@ func (w *Worker) handleWS(rw http.ResponseWriter, req *http.Request, callType Ca
 }
 
 func (w *Worker) PutWsInTxpool(c *websocket.Conn, req *http.Request) error {
-	var ecallParams EcallParams
-	err := c.ReadJSON(&ecallParams)
+	_, msg, err := c.ReadMessage()
 	if err != nil {
 		return err
 	}
-	return w.putTxpool(req, ecallParams)
+	return w.putTxpool(req, JsonString(msg))
 }
 
 func (w *Worker) DoWsQryCall(c *websocket.Conn, req *http.Request) error {
-	var qcallParams QcallParams
-	err := c.ReadJSON(&qcallParams)
+	_, msg, err := c.ReadMessage()
 	if err != nil {
 		return err
 	}
-	return w.doQryCall(req, qcallParams)
+	return w.doQryCall(req, JsonString(msg))
 }

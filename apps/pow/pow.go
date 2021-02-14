@@ -4,7 +4,9 @@ import (
 	"math/big"
 	. "yu/blockchain"
 	spow "yu/consensus/pow"
+	"yu/context"
 	. "yu/tripod"
+	"yu/txn"
 )
 
 type Pow struct {
@@ -28,7 +30,11 @@ func (p *Pow) TripodMeta() *TripodMeta {
 	return p.meta
 }
 
-func (p *Pow) OnInitialize(block IBlock) error {
+func (p *Pow) CheckTxn(txn.IsignedTxn) error {
+	return nil
+}
+
+func (p *Pow) OnInitialize(_ *context.Context, block IBlock) error {
 	txnRoot, err := MakeTxnRoot(block.Txns())
 	if err != nil {
 		return err
@@ -44,6 +50,6 @@ func (p *Pow) OnInitialize(block IBlock) error {
 	return nil
 }
 
-func (p *Pow) OnFinalize(block IBlock) error {
+func (p *Pow) OnFinalize(*context.Context, IBlock) error {
 	return nil
 }

@@ -33,6 +33,7 @@ func (tp *TxPool) SetBaseChecks(checkFns []BaseCheck) *TxPool {
 	return tp
 }
 
+// insert into txCache for pending
 func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 	err = tp.baseCheck(stxn)
 	if err != nil {
@@ -42,10 +43,12 @@ func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 	return tp.pendingTxns.Push(stxn)
 }
 
+// insert into txPool for tripods
 func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
 
 }
 
+// package some txns to send to tripods
 func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 
 }

@@ -83,7 +83,7 @@ func (w *Worker) postToNk(path string, body []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
+func (w *Worker) putTxpool(req *http.Request, params JsonString) error {
 	tripodName, execName := GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
@@ -102,7 +102,7 @@ func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
 	return w.txPool.Pend(stxn)
 }
 
-func (w *Worker) doQryCall(req *http.Request, params QcallParams) error {
+func (w *Worker) doQryCall(req *http.Request, params JsonString) error {
 	tripodName, qryName := GetTripodCallName(req)
 	qcall := &Qcall{
 		TripodName: tripodName,
@@ -110,4 +110,8 @@ func (w *Worker) doQryCall(req *http.Request, params QcallParams) error {
 		Params:     params,
 	}
 	return w.land.Query(qcall)
+}
+
+func (w *Worker) Run() {
+
 }
