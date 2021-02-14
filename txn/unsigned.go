@@ -29,21 +29,25 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	return UnsignedTxn, nil
 }
 
-func (t *UnsignedTxn) Caller() Address {
-	return t.caller
+func (ut *UnsignedTxn) Caller() Address {
+	return ut.caller
 }
 
-func (t *UnsignedTxn) Ecall() *Ecall {
-	return t.ecall
+func (ut *UnsignedTxn) Ecall() *Ecall {
+	return ut.ecall
 }
 
-func (t *UnsignedTxn) Timestamp() int64 {
-	return t.timestamp
+func (ut *UnsignedTxn) ToSignedTxn() (IsignedTxn, error) {
+
 }
 
-func (t *UnsignedTxn) Hash() (Hash, error) {
+func (ut *UnsignedTxn) Timestamp() int64 {
+	return ut.timestamp
+}
+
+func (ut *UnsignedTxn) Hash() (Hash, error) {
 	var hash Hash
-	byt, err := t.Encode()
+	byt, err := ut.Encode()
 	if err != nil {
 		return NullHash, err
 	}
@@ -51,10 +55,10 @@ func (t *UnsignedTxn) Hash() (Hash, error) {
 	return hash, nil
 }
 
-func (t *UnsignedTxn) Encode() ([]byte, error) {
+func (ut *UnsignedTxn) Encode() ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(t)
+	err := encoder.Encode(ut)
 	if err != nil {
 		return nil, err
 	}

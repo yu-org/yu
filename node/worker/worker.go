@@ -91,12 +91,15 @@ func (w *Worker) putTxpool(req *http.Request, params EcallParams) error {
 		Params:     params,
 	}
 	caller := GetAddress(req)
-	tx, err := txn.NewUnsignedTxn(caller, ecall)
+	utxn, err := txn.NewUnsignedTxn(caller, ecall)
 	if err != nil {
 		return err
 	}
-	// todo: unsignedTxn to signedTxn
-	return w.txPool.Insert(tx)
+	stxn, err := utxn.ToSignedTxn()
+	if err != nil {
+		return err
+	}
+	return w.txPool.Pend(stxn)
 }
 
 func (w *Worker) doQryCall(req *http.Request, params QcallParams) error {

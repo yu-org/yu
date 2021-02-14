@@ -9,14 +9,17 @@ import (
 	. "yu/blockchain"
 	. "yu/common"
 	"yu/context"
+	"yu/txn"
 )
 
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
-	OnInitialize(c *context.Context, block IBlock) error
+	CheckTxn(txn.IsignedTxn) error
 
-	OnFinalize(c *context.Context, block IBlock) error
+	OnInitialize(*context.Context, IBlock) error
+
+	OnFinalize(*context.Context, IBlock) error
 }
 
 type TripodMeta struct {

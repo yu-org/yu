@@ -2,12 +2,28 @@ package txn
 
 import (
 	. "yu/common"
-	"yu/keypair"
+	. "yu/keypair"
 )
 
 type SignedTxn struct {
-	Raw       UnsignedTxn
+	Raw       *UnsignedTxn
 	TxnHash   Hash
-	Pubkey    keypair.PubKey
+	Pubkey    PubKey
 	Signature []byte
+}
+
+func (st *SignedTxn) GetRaw() IunsignedTxn {
+	return st.Raw
+}
+
+func (st *SignedTxn) GetTxnHash() Hash {
+	return st.TxnHash
+}
+
+func (st *SignedTxn) GetPubkey() PubKey {
+	return st.Pubkey
+}
+
+func (st *SignedTxn) GetSignature() []byte {
+	return st.Signature
 }

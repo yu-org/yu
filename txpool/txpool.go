@@ -8,11 +8,11 @@ import (
 type TxPool struct {
 	sync.RWMutex
 
-	poolSize   uint64
-	timeoutGap uint64
-	cache      *TxCache
-	Txns       []IsignedTxn
-	BaseChecks []BaseCheck
+	poolSize    uint64
+	timeoutGap  uint64
+	pendingTxns ItxCache
+	Txns        []IsignedTxn
+	BaseChecks  []BaseCheck
 }
 
 func NewTxPool(poolSize uint64) *TxPool {
@@ -25,28 +25,34 @@ func NewTxPool(poolSize uint64) *TxPool {
 
 func NewWithDefaultChecks(poolSize uint64) *TxPool {
 	tp := NewTxPool(poolSize)
-	return tp.defaultBaseChecks()
+	return tp.setDefaultBaseChecks()
 }
 
-func (tp *TxPool) SetCheckFns(checkFns []BaseCheck) *TxPool {
+func (tp *TxPool) SetBaseChecks(checkFns []BaseCheck) *TxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
 
-func (tp *TxPool) Insert(txn IsignedTxn) (err error) {
-	err = tp.baseCheck(txn)
+func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
+	err = tp.baseCheck(stxn)
 	if err != nil {
 		return
 	}
 
-	tp.Lock()
-	tp.Txns = append(tp.Txns, txn)
-	tp.Unlock()
-	return
+	return tp.pendingTxns.Push(stxn)
+}
+
+func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
+
 }
 
 func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 
+}
+
+// pop pending txns
+func (tp *TxPool) Pop() (IsignedTxn, error) {
+	return tp.pendingTxns.Pop()
 }
 
 func (tp *TxPool) Remove() error {

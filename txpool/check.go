@@ -5,18 +5,18 @@ import (
 	. "yu/yerror"
 )
 
-type BaseCheck func(txn IsignedTxn) error
+type BaseCheck func(IsignedTxn) error
 
-func (tp *TxPool) defaultBaseChecks() *TxPool {
-	tp.CheckFns = []BaseCheck{
+func (tp *TxPool) setDefaultBaseChecks() *TxPool {
+	tp.BaseChecks = []BaseCheck{
 		tp.checkPoolLimit,
 	}
 	return tp
 }
 
-func (tp *TxPool) baseCheck(txn IsignedTxn) error {
-	for _, fn := range tp.CheckFns {
-		err := fn(txn)
+func (tp *TxPool) baseCheck(stxn IsignedTxn) error {
+	for _, fn := range tp.BaseChecks {
+		err := fn(stxn)
 		if err != nil {
 			return err
 		}
