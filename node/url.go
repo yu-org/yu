@@ -17,8 +17,9 @@ const (
 	RootApiPath = "/api"
 
 	TripodNameKey = "tripod"
-	CallNameKey   = "call"
+	CallNameKey   = "call_name"
 	AddressKey    = "address"
+	BlockNumKey   = "block_num"
 )
 
 var (
@@ -35,4 +36,9 @@ func GetTripodCallName(req *http.Request) (string, string) {
 // return the Address of Txn-Sender
 func GetAddress(req *http.Request) Address {
 	return StrToAddress(req.URL.Query().Get(AddressKey))
+}
+
+func GetBlockNumber(req *http.Request) (BlockNum, error) {
+	bnstr := req.URL.Query().Get(BlockNumKey)
+	return StrToBlockNum(bnstr)
 }

@@ -1,25 +1,27 @@
 package context
 
 import (
+	"encoding/json"
 	"reflect"
+	. "yu/common"
 	. "yu/yerror"
 )
 
-func (c *Context) SetParams(params []interface{}) {
-	for _, param := range params {
-		// todo: fix it. it should be a name of param.
-		typ := reflect.TypeOf(param)
-		name := typ.Name()
-		c.params[name] = param
-	}
+func (c *Context) SetParams(params JsonString) error {
+	c.paramsStr = params
+	return json.Unmarshal([]byte(params), &c.paramsMap)
+}
+
+func (c *Context) BindJson(v interface{}) error {
+	return json.Unmarshal([]byte(c.paramsStr), v)
 }
 
 func (c *Context) Get(name string) interface{} {
-	return c.params[name]
+	return c.paramsMap[name]
 }
 
 func (c *Context) GetString(name string) (string, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.String {
 		return pi.(string), nil
 	}
@@ -27,7 +29,7 @@ func (c *Context) GetString(name string) (string, error) {
 }
 
 func (c *Context) GetBoolean(name string) (bool, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Bool {
 		return pi.(bool), nil
 	}
@@ -35,7 +37,7 @@ func (c *Context) GetBoolean(name string) (bool, error) {
 }
 
 func (c *Context) GetInt(name string) (int, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int {
 		return pi.(int), nil
 	}
@@ -43,7 +45,7 @@ func (c *Context) GetInt(name string) (int, error) {
 }
 
 func (c *Context) GetUint(name string) (uint, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint {
 		return pi.(uint), nil
 	}
@@ -51,7 +53,7 @@ func (c *Context) GetUint(name string) (uint, error) {
 }
 
 func (c *Context) GetInt8(name string) (int8, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int8 {
 		return pi.(int8), nil
 	}
@@ -59,7 +61,7 @@ func (c *Context) GetInt8(name string) (int8, error) {
 }
 
 func (c *Context) GetUint8(name string) (uint8, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint8 {
 		return pi.(uint8), nil
 	}
@@ -67,7 +69,7 @@ func (c *Context) GetUint8(name string) (uint8, error) {
 }
 
 func (c *Context) GetInt16(name string) (int16, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int16 {
 		return pi.(int16), nil
 	}
@@ -75,7 +77,7 @@ func (c *Context) GetInt16(name string) (int16, error) {
 }
 
 func (c *Context) GetUint16(name string) (uint16, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint16 {
 		return pi.(uint16), nil
 	}
@@ -83,7 +85,7 @@ func (c *Context) GetUint16(name string) (uint16, error) {
 }
 
 func (c *Context) GetInt32(name string) (int32, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int32 {
 		return pi.(int32), nil
 	}
@@ -91,7 +93,7 @@ func (c *Context) GetInt32(name string) (int32, error) {
 }
 
 func (c *Context) GetUint32(name string) (uint32, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint32 {
 		return pi.(uint32), nil
 	}
@@ -99,7 +101,7 @@ func (c *Context) GetUint32(name string) (uint32, error) {
 }
 
 func (c *Context) GetInt64(name string) (int64, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int64 {
 		return pi.(int64), nil
 	}
@@ -107,7 +109,7 @@ func (c *Context) GetInt64(name string) (int64, error) {
 }
 
 func (c *Context) GetUint64(name string) (uint64, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint64 {
 		return pi.(uint64), nil
 	}
@@ -115,7 +117,7 @@ func (c *Context) GetUint64(name string) (uint64, error) {
 }
 
 func (c *Context) GetFloat32(name string) (float32, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Float32 {
 		return pi.(float32), nil
 	}
@@ -123,7 +125,7 @@ func (c *Context) GetFloat32(name string) (float32, error) {
 }
 
 func (c *Context) GetFloat64(name string) (float64, error) {
-	pi := c.params[name]
+	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Float64 {
 		return pi.(float64), nil
 	}

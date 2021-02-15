@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/binary"
+	"strconv"
 	"unsafe"
 	"yu/context"
 )
@@ -56,9 +57,14 @@ func (bn BlockNum) Bytes() []byte {
 	return byt
 }
 
-func ToBlockNum(byt []byte) BlockNum {
+func BytesToBlockNum(byt []byte) BlockNum {
 	u := binary.BigEndian.Uint64(byt)
 	return BlockNum(u)
+}
+
+func StrToBlockNum(str string) (BlockNum, error) {
+	bn, err := strconv.ParseUint(str, 10, 64)
+	return BlockNum(bn), err
 }
 
 func NewBlockId(bn BlockNum, hash Hash) BlockId {
@@ -84,7 +90,7 @@ func (bi BlockId) Bytes() []byte {
 func (bi BlockId) Separate() (bn BlockNum, hash Hash) {
 	byt := bi.Bytes()
 	bnLen := bn.len()
-	bn = ToBlockNum(byt[:bnLen])
+	bn = BytesToBlockNum(byt[:bnLen])
 	copy(hash[:], byt[bnLen:])
 	return
 }

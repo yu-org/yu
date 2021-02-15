@@ -1,11 +1,15 @@
 package context
 
+import . "yu/common"
+
 type Context struct {
-	params map[string]interface{}
+	paramsMap map[string]interface{}
+	paramsStr JsonString
 }
 
 func NewContext() *Context {
 	return &Context{
-		params: make(map[string]interface{}),
+		paramsMap: make(map[string]interface{}),
+		paramsStr: "",
 	}
 }

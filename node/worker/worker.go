@@ -104,10 +104,15 @@ func (w *Worker) putTxpool(req *http.Request, params JsonString) error {
 
 func (w *Worker) doQryCall(req *http.Request, params JsonString) error {
 	tripodName, qryName := GetTripodCallName(req)
+	blockNum, err := GetBlockNumber(req)
+	if err != nil {
+		return err
+	}
 	qcall := &Qcall{
-		TripodName: tripodName,
-		QueryName:  qryName,
-		Params:     params,
+		TripodName:  tripodName,
+		QueryName:   qryName,
+		Params:      params,
+		BlockNumber: blockNum,
 	}
 	return w.land.Query(qcall)
 }

@@ -35,7 +35,10 @@ func (l *Land) Execute(c *Ecall) error {
 		return ExecNotFound(c.ExecName)
 	}
 	ctx := NewContext()
-	ctx.SetParams(c.Params.Params)
+	err := ctx.SetParams(c.Params)
+	if err != nil {
+		return err
+	}
 	return fn(ctx)
 }
 
@@ -50,6 +53,9 @@ func (l *Land) Query(c *Qcall) error {
 		return QryNotFound(c.QueryName)
 	}
 	ctx := NewContext()
-	ctx.SetParams(c.Params.Params)
-	return qry(ctx, c.Params.BlockNumber)
+	err := ctx.SetParams(c.Params)
+	if err != nil {
+		return err
+	}
+	return qry(ctx, c.BlockNumber)
 }
