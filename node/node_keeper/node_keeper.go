@@ -16,6 +16,7 @@ import (
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/utils/compress"
+	. "yu/utils/ip"
 )
 
 const CompressedFileType = ".zip"
@@ -59,7 +60,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		repoDB:     repoDB,
 		workerDB:   workerDB,
 		dir:        dir,
-		servesPort: ":" + cfg.ServesPort,
+		servesPort: MakePort(cfg.ServesPort),
 		masterAddr: cfg.MasterAddr,
 		osArch:     osArch,
 		timeout:    timeout,

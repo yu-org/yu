@@ -11,6 +11,7 @@ import (
 	"yu/tripod"
 	"yu/txn"
 	. "yu/txpool"
+	. "yu/utils/ip"
 )
 
 type Worker struct {
@@ -19,21 +20,21 @@ type Worker struct {
 	wsPort         string
 	NodeKeeperAddr string
 	chain          IBlockChain
-	txPool         *TxPool
+	txPool         ItxPool
 	land           *tripod.Land
 	metadb         kv.KV
 }
 
-func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool *TxPool, land *tripod.Land) (*Worker, error) {
+func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
-	nkAddr := "localhost:" + cfg.NodeKeeperPort
+	nkAddr := MakeLocalIp(cfg.NodeKeeperPort)
 	return &Worker{
 		Name:           cfg.Name,
-		httpPort:       ":" + cfg.HttpPort,
-		wsPort:         ":" + cfg.WsPort,
+		httpPort:       MakePort(cfg.HttpPort),
+		wsPort:         MakePort(cfg.WsPort),
 		NodeKeeperAddr: nkAddr,
 		chain:          chain,
 		txPool:         txPool,

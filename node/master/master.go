@@ -9,10 +9,13 @@ import (
 	"net/http"
 	"sync"
 	"time"
+	. "yu/blockchain"
 	"yu/common"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
+	. "yu/txpool"
+	. "yu/utils/ip"
 	. "yu/yerror"
 )
 
@@ -25,9 +28,12 @@ type Master struct {
 	wsPort   string
 	ctx      context.Context
 	timeout  time.Duration
+
+	chain  IBlockChain
+	txpool ItxPool
 }
 
-func NewMaster(cfg *config.MasterConf) (*Master, error) {
+func NewMaster(cfg *config.MasterConf, chain IBlockChain, txpool ItxPool) (*Master, error) {
 	nkDB, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -45,8 +51,10 @@ func NewMaster(cfg *config.MasterConf) (*Master, error) {
 		nkDB:     nkDB,
 		timeout:  timeout,
 		ctx:      ctx,
-		httpPort: ":" + cfg.HttpPort,
-		wsPort:   ":" + cfg.WsPort,
+		httpPort: MakePort(cfg.HttpPort),
+		wsPort:   MakePort(cfg.WsPort),
+		chain:    chain,
+		txpool:   txpool,
 	}, nil
 }
 
@@ -89,7 +97,7 @@ func (m *Master) registerNodeKeepers(c *gin.Context) {
 		)
 		return
 	}
-	nkIP := c.ClientIP() + nkInfo.ServesPort
+	nkIP := MakeIp(c.ClientIP(), nkInfo.ServesPort)
 
 	err = m.SetNodeKeeper(nkIP, nkInfo)
 	if err != nil {

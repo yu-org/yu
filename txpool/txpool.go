@@ -2,6 +2,7 @@ package txpool
 
 import (
 	"sync"
+	. "yu/common"
 	. "yu/txn"
 )
 
@@ -44,7 +45,7 @@ func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 }
 
 // insert into txPool for tripods
-func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
+func (tp *TxPool) Insert(num BlockNum, stxn IsignedTxn) (err error) {
 
 }
 
@@ -53,11 +54,22 @@ func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 
 }
 
+// get txn content of txn-hash from p2p network
+func (tp *TxPool) SyncTxns() error {
+
+}
+
+// broadcast txns to p2p network
+func (tp *TxPool) BroadcastTxns() error {
+
+}
+
 // pop pending txns
 func (tp *TxPool) Pop() (IsignedTxn, error) {
 	return tp.pendingTxns.Pop()
 }
 
+// remove txns after execute all tripods
 func (tp *TxPool) Remove() error {
 
 }
