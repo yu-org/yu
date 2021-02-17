@@ -30,8 +30,8 @@ type NodeKeeper struct {
 	servesPort string
 	masterAddr string
 
-	osArch  string
-	timeout time.Duration
+	osArch       string
+	heartbeatGap time.Duration
 }
 
 func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
@@ -54,16 +54,16 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 		osArch = runtime.GOOS + "-" + runtime.GOARCH
 	}
 
-	timeout := time.Duration(cfg.Timeout) * time.Second
+	heartbeatGap := time.Duration(cfg.HeartbeatGap) * time.Second
 
 	return &NodeKeeper{
-		repoDB:     repoDB,
-		workerDB:   workerDB,
-		dir:        dir,
-		servesPort: MakePort(cfg.ServesPort),
-		masterAddr: cfg.MasterAddr,
-		osArch:     osArch,
-		timeout:    timeout,
+		repoDB:       repoDB,
+		workerDB:     workerDB,
+		dir:          dir,
+		servesPort:   MakePort(cfg.ServesPort),
+		masterAddr:   cfg.MasterAddr,
+		osArch:       osArch,
+		heartbeatGap: heartbeatGap,
 	}, nil
 }
 
@@ -118,24 +118,25 @@ func (n *NodeKeeper) CheckHealth() {
 		wAddrs, err := n.allWorkersIP()
 		if err != nil {
 			logrus.Errorf("get all Workers error: %s", err.Error())
+		} else {
+			SendHeartbeats(wAddrs, func(addr string) error {
+				tx, err := n.workerDB.NewKvTxn()
+				if err != nil {
+					return err
+				}
+				workerInfo, err := getWorkerWithTx(tx, addr)
+				if err != nil {
+					return err
+				}
+				workerInfo.Online = false
+				err = setWorkerWithTx(tx, addr, workerInfo)
+				if err != nil {
+					return err
+				}
+				return tx.Commit()
+			})
 		}
-		SendHeartbeats(wAddrs, func(addr string) error {
-			tx, err := n.workerDB.NewKvTxn()
-			if err != nil {
-				return err
-			}
-			workerInfo, err := getWorkerWithTx(tx, addr)
-			if err != nil {
-				return err
-			}
-			workerInfo.Online = false
-			err = setWorkerWithTx(tx, addr, workerInfo)
-			if err != nil {
-				return err
-			}
-			return tx.Commit()
-		})
-		time.Sleep(n.timeout)
+		time.Sleep(n.heartbeatGap)
 	}
 }
 
@@ -151,7 +152,7 @@ func (n *NodeKeeper) registerWorkers(c *gin.Context) {
 		)
 		return
 	}
-	workerAddr := c.ClientIP() + workerInfo.HttpPort
+	workerAddr := MakeIp(c.ClientIP(), workerInfo.HttpPort)
 	err = n.setWorkerInfo(workerAddr, &workerInfo)
 	if err != nil {
 		c.String(

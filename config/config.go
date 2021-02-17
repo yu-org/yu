@@ -70,9 +70,8 @@ type NodeKeeperConf struct {
 	// such as: linux-amd64, darwin-amd64, windows-amd64, wasm
 	OsArch string `toml:"os_arch"`
 
-	MasterAddr string `toml:"master_addr"`
-	// when beyond 'Timeout', it means this worker is down.
-	Timeout int `toml:"timeout"`
+	MasterAddr   string `toml:"master_addr"`
+	HeartbeatGap int    `toml:"heartbeat_gap"`
 }
 
 func LoadConf(fpath string, cfg interface{}) (err error) {
