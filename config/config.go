@@ -74,6 +74,11 @@ type NodeKeeperConf struct {
 	HeartbeatGap int    `toml:"heartbeat_gap"`
 }
 
+type TxpoolConf struct {
+	PoolSize        uint64 `toml:"pool_size"`
+	WaitTxnsTimeout int    `toml:"wait_txns_timeout"`
+}
+
 func LoadConf(fpath string, cfg interface{}) (err error) {
 	_, err = toml.DecodeFile(fpath, cfg)
 	return

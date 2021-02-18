@@ -1,6 +1,9 @@
 package yerror
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	. "yu/common"
+)
 
 var TypeErr = errors.New("the type of params error")
 
@@ -69,4 +72,20 @@ func WorkerDead(name string) ErrWorkerDead {
 
 func (w ErrWorkerDead) Error() string {
 	return errors.Errorf("Worker(%s) is dead", w.Name).Error()
+}
+
+type ErrWaitTxnsTimeout struct {
+	TxnsHash []Hash
+}
+
+func WaitTxnsTimeout(hashesMap map[Hash]bool) ErrWaitTxnsTimeout {
+	hashes := make([]Hash, 0)
+	for hash, _ := range hashesMap {
+		hashes = append(hashes, hash)
+	}
+	return ErrWaitTxnsTimeout{TxnsHash: hashes}
+}
+
+func (wt ErrWaitTxnsTimeout) Error() string {
+	return errors.Errorf("waiting txns-hashes timeout: %v", wt.TxnsHash).Error()
 }

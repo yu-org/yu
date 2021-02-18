@@ -2,30 +2,45 @@ package txpool
 
 import (
 	"sync"
+	"time"
 	. "yu/common"
+	"yu/config"
 	. "yu/txn"
+	. "yu/yerror"
 )
 
 type TxPool struct {
 	sync.RWMutex
 
 	poolSize    uint64
-	timeoutGap  uint64
 	pendingTxns ItxCache
 	Txns        []IsignedTxn
 	BaseChecks  []BaseCheck
+
+	// broadcast txns channel
+	BcTxnsChan chan IsignedTxn
+	// need to sync txns from p2p
+	ToSyncTxnsChan chan Hash
+	// accept the txn-content of txn-hash from p2p
+	WaitSyncTxnsChan chan IsignedTxn
+	WaitTxnsTimeout  time.Duration
 }
 
-func NewTxPool(poolSize uint64) *TxPool {
+func NewTxPool(cfg *config.TxpoolConf) *TxPool {
+	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &TxPool{
-		poolSize:   poolSize,
-		Txns:       make([]IsignedTxn, 0),
-		BaseChecks: make([]BaseCheck, 0),
+		poolSize:         cfg.PoolSize,
+		Txns:             make([]IsignedTxn, 0),
+		BaseChecks:       make([]BaseCheck, 0),
+		BcTxnsChan:       make(chan IsignedTxn, 1024),
+		ToSyncTxnsChan:   make(chan Hash, 1024),
+		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
+		WaitTxnsTimeout:  WaitTxnsTimeout,
 	}
 }
 
-func NewWithDefaultChecks(poolSize uint64) *TxPool {
-	tp := NewTxPool(poolSize)
+func NewWithDefaultChecks(cfg *config.TxpoolConf) *TxPool {
+	tp := NewTxPool(cfg)
 	return tp.setDefaultBaseChecks()
 }
 
@@ -55,8 +70,30 @@ func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *TxPool) SyncTxns() error {
+func (tp *TxPool) SyncTxns(txnHashes []Hash) error {
+	hashes := make(map[Hash]bool)
+	for _, txnHash := range txnHashes {
+		tp.ToSyncTxnsChan <- txnHash
+		hashes[txnHash] = true
+	}
 
+	ticker := time.NewTicker(tp.WaitTxnsTimeout)
+
+	for len(hashes) > 0 {
+		select {
+		case stxn := <-tp.WaitSyncTxnsChan:
+			txnHash := stxn.GetRaw().ID()
+			delete(hashes, txnHash)
+			err := tp.Pend(stxn)
+			if err != nil {
+				return err
+			}
+		case <-ticker.C:
+			return WaitTxnsTimeout(hashes)
+		}
+	}
+
+	return nil
 }
 
 // broadcast txns to p2p network

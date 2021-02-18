@@ -6,6 +6,7 @@ import (
 )
 
 type IunsignedTxn interface {
+	ID() Hash
 	Caller() Address
 	Ecall() *Ecall
 	Timestamp() int64

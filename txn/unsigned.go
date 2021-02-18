@@ -29,6 +29,10 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	return UnsignedTxn, nil
 }
 
+func (ut *UnsignedTxn) ID() Hash {
+	return ut.id
+}
+
 func (ut *UnsignedTxn) Caller() Address {
 	return ut.caller
 }

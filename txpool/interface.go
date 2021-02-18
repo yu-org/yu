@@ -13,7 +13,7 @@ type ItxPool interface {
 	// package some txns to send to tripods
 	Package(numLimit uint64) ([]IsignedTxn, error)
 	// get txn content of txn-hash from p2p network
-	SyncTxns() error
+	SyncTxns([]Hash) error
 	// broadcast txns to p2p network
 	BroadcastTxns() error
 	// pop pending txns
