@@ -15,7 +15,7 @@ type TxPool struct {
 	poolSize    uint64
 	pendingTxns ItxCache
 	Txns        []IsignedTxn
-	BaseChecks  []BaseCheck
+	packagedIdx int
 
 	// broadcast txns channel
 	BcTxnsChan chan IsignedTxn
@@ -23,7 +23,10 @@ type TxPool struct {
 	ToSyncTxnsChan chan Hash
 	// accept the txn-content of txn-hash from p2p
 	WaitSyncTxnsChan chan IsignedTxn
-	WaitTxnsTimeout  time.Duration
+	// wait sync txns timeout
+	WaitTxnsTimeout time.Duration
+
+	BaseChecks []BaseCheck
 }
 
 func NewTxPool(cfg *config.TxpoolConf) *TxPool {
@@ -31,11 +34,12 @@ func NewTxPool(cfg *config.TxpoolConf) *TxPool {
 	return &TxPool{
 		poolSize:         cfg.PoolSize,
 		Txns:             make([]IsignedTxn, 0),
-		BaseChecks:       make([]BaseCheck, 0),
+		packagedIdx:      0,
 		BcTxnsChan:       make(chan IsignedTxn, 1024),
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
+		BaseChecks:       make([]BaseCheck, 0),
 	}
 }
 
@@ -44,7 +48,7 @@ func NewWithDefaultChecks(cfg *config.TxpoolConf) *TxPool {
 	return tp.setDefaultBaseChecks()
 }
 
-func (tp *TxPool) SetBaseChecks(checkFns []BaseCheck) *TxPool {
+func (tp *TxPool) SetBaseChecks(checkFns []BaseCheck) ItxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
@@ -66,7 +70,24 @@ func (tp *TxPool) Insert(num BlockNum, stxn IsignedTxn) (err error) {
 
 // package some txns to send to tripods
 func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
+	return tp.PackageFor(numLimit, func(IsignedTxn) error {
+		return nil
+	})
+}
 
+func (tp *TxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+	tp.Lock()
+	defer tp.Unlock()
+	stxns := make([]IsignedTxn, 0)
+	for i := 0; i < int(numLimit); i++ {
+		err := filter(tp.Txns[i])
+		if err != nil {
+			return nil, err
+		}
+		stxns = append(stxns, tp.Txns[i])
+		tp.packagedIdx++
+	}
+	return stxns, nil
 }
 
 // get txn content of txn-hash from p2p network
@@ -108,5 +129,9 @@ func (tp *TxPool) Pop() (IsignedTxn, error) {
 
 // remove txns after execute all tripods
 func (tp *TxPool) Remove() error {
-
+	tp.Lock()
+	tp.Txns = tp.Txns[tp.packagedIdx:]
+	tp.packagedIdx = 0
+	tp.Unlock()
+	return nil
 }
