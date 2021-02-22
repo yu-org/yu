@@ -76,6 +76,7 @@ type NodeKeeperConf struct {
 
 type TxpoolConf struct {
 	PoolSize        uint64 `toml:"pool_size"`
+	TxnMaxSize      int    `toml:"txn_max_size"`
 	WaitTxnsTimeout int    `toml:"wait_txns_timeout"`
 }
 

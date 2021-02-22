@@ -12,6 +12,7 @@ var NoKvdbType = errors.New("no kvdb type")
 var (
 	PoolOverflow    error = errors.New("pool size is full")
 	TxnSignatureErr error = errors.New("the signature of Txn illegal")
+	TxnTooLarge     error = errors.New("the size of txn is too large")
 )
 
 type ErrTripodNotFound struct {

@@ -1,6 +1,7 @@
 package txn
 
 import (
+	"unsafe"
 	. "yu/common"
 	. "yu/keypair"
 )
@@ -26,4 +27,8 @@ func (st *SignedTxn) GetPubkey() PubKey {
 
 func (st *SignedTxn) GetSignature() []byte {
 	return st.Signature
+}
+
+func (st *SignedTxn) Size() int {
+	return int(unsafe.Sizeof(st))
 }

@@ -6,7 +6,10 @@ import (
 )
 
 type ItxPool interface {
-	SetBaseChecks(checkFns []BaseCheck) ItxPool
+	// return pool size of txpool
+	PoolSize() uint64
+	// txpool with the base check-functions
+	WithBaseChecks(checkFns []BaseCheck) ItxPool
 	// insert into txCache for pending
 	Pend(IsignedTxn) error
 	// insert into txPool for tripods

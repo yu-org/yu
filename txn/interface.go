@@ -20,4 +20,5 @@ type IsignedTxn interface {
 	GetTxnHash() Hash
 	GetPubkey() PubKey
 	GetSignature() []byte
+	Size() int
 }

@@ -7,9 +7,10 @@ import (
 
 type BaseCheck func(IsignedTxn) error
 
-func (tp *TxPool) setDefaultBaseChecks() *TxPool {
+func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	tp.BaseChecks = []BaseCheck{
 		tp.checkPoolLimit,
+		tp.checkTxnSize,
 		tp.checkSignature,
 	}
 	return tp
@@ -37,6 +38,13 @@ func (tp *TxPool) checkSignature(stxn IsignedTxn) error {
 	hash := stxn.GetTxnHash()
 	if !stxn.GetPubkey().VerifySignature(hash.Bytes(), sig) {
 		return TxnSignatureErr
+	}
+	return nil
+}
+
+func (tp *TxPool) checkTxnSize(stxn IsignedTxn) error {
+	if stxn.Size() > tp.TxnMaxSize {
+		return TxnTooLarge
 	}
 	return nil
 }

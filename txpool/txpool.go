@@ -11,8 +11,10 @@ import (
 
 type TxPool struct {
 	sync.RWMutex
-
+	// the last block height
+	height      BlockNum
 	poolSize    uint64
+	TxnMaxSize  int
 	pendingTxns ItxCache
 	Txns        []IsignedTxn
 	packagedIdx int
@@ -29,10 +31,12 @@ type TxPool struct {
 	BaseChecks []BaseCheck
 }
 
-func NewTxPool(cfg *config.TxpoolConf) *TxPool {
+func NewTxPool(cfg *config.TxpoolConf, height BlockNum) *TxPool {
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &TxPool{
+		height:           height,
 		poolSize:         cfg.PoolSize,
+		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
 		packagedIdx:      0,
 		BcTxnsChan:       make(chan IsignedTxn, 1024),
@@ -43,12 +47,16 @@ func NewTxPool(cfg *config.TxpoolConf) *TxPool {
 	}
 }
 
-func NewWithDefaultChecks(cfg *config.TxpoolConf) *TxPool {
-	tp := NewTxPool(cfg)
-	return tp.setDefaultBaseChecks()
+func NewWithDefaultChecks(cfg *config.TxpoolConf, height BlockNum) *TxPool {
+	tp := NewTxPool(cfg, height)
+	return tp.withDefaultBaseChecks()
 }
 
-func (tp *TxPool) SetBaseChecks(checkFns []BaseCheck) ItxPool {
+func (tp *TxPool) PoolSize() uint64 {
+	return tp.poolSize
+}
+
+func (tp *TxPool) WithBaseChecks(checkFns []BaseCheck) ItxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
@@ -64,7 +72,7 @@ func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 }
 
 // insert into txPool for tripods
-func (tp *TxPool) Insert(num BlockNum, stxn IsignedTxn) (err error) {
+func (tp *TxPool) Insert(height BlockNum, stxn IsignedTxn) (err error) {
 
 }
 
@@ -91,26 +99,31 @@ func (tp *TxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *TxPool) SyncTxns(txnHashes []Hash) error {
-	hashes := make(map[Hash]bool)
-	for _, txnHash := range txnHashes {
-		tp.ToSyncTxnsChan <- txnHash
-		hashes[txnHash] = true
+func (tp *TxPool) SyncTxns(hashes []Hash) error {
+
+	hashesMap := make(map[Hash]bool)
+	tp.RLock()
+	for _, txnHash := range hashes {
+		if !existTxn(txnHash, tp.Txns) {
+			tp.ToSyncTxnsChan <- txnHash
+			hashesMap[txnHash] = true
+		}
 	}
+	tp.RUnlock()
 
 	ticker := time.NewTicker(tp.WaitTxnsTimeout)
 
-	for len(hashes) > 0 {
+	for len(hashesMap) > 0 {
 		select {
 		case stxn := <-tp.WaitSyncTxnsChan:
 			txnHash := stxn.GetRaw().ID()
-			delete(hashes, txnHash)
+			delete(hashesMap, txnHash)
 			err := tp.Pend(stxn)
 			if err != nil {
 				return err
 			}
 		case <-ticker.C:
-			return WaitTxnsTimeout(hashes)
+			return WaitTxnsTimeout(hashesMap)
 		}
 	}
 
@@ -134,4 +147,13 @@ func (tp *TxPool) Remove() error {
 	tp.packagedIdx = 0
 	tp.Unlock()
 	return nil
+}
+
+func existTxn(hash Hash, txns []IsignedTxn) bool {
+	for _, txn := range txns {
+		if txn.GetTxnHash() == hash {
+			return true
+		}
+	}
+	return false
 }
