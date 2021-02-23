@@ -5,6 +5,7 @@ import (
 	"time"
 	. "yu/common"
 	"yu/config"
+	. "yu/storage/kv"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -15,9 +16,10 @@ type TxPool struct {
 	height      BlockNum
 	poolSize    uint64
 	TxnMaxSize  int
-	pendingTxns ItxCache
+	pendingTxns []IsignedTxn
 	Txns        []IsignedTxn
 	packagedIdx int
+	db          KV
 
 	// broadcast txns channel
 	BcTxnsChan chan IsignedTxn
@@ -31,7 +33,11 @@ type TxPool struct {
 	BaseChecks []BaseCheck
 }
 
-func NewTxPool(cfg *config.TxpoolConf, height BlockNum) *TxPool {
+func NewTxPool(cfg *config.TxpoolConf, height BlockNum) (*TxPool, error) {
+	db, err := NewKV(&cfg.DB)
+	if err != nil {
+		return nil, err
+	}
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &TxPool{
 		height:           height,
@@ -39,17 +45,21 @@ func NewTxPool(cfg *config.TxpoolConf, height BlockNum) *TxPool {
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
 		packagedIdx:      0,
+		db:               db,
 		BcTxnsChan:       make(chan IsignedTxn, 1024),
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks:       make([]BaseCheck, 0),
-	}
+	}, nil
 }
 
-func NewWithDefaultChecks(cfg *config.TxpoolConf, height BlockNum) *TxPool {
-	tp := NewTxPool(cfg, height)
-	return tp.withDefaultBaseChecks()
+func NewWithDefaultChecks(cfg *config.TxpoolConf, height BlockNum) (*TxPool, error) {
+	tp, err := NewTxPool(cfg, height)
+	if err != nil {
+		return nil, err
+	}
+	return tp.withDefaultBaseChecks(), nil
 }
 
 func (tp *TxPool) PoolSize() uint64 {
@@ -68,12 +78,15 @@ func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 		return
 	}
 
-	return tp.pendingTxns.Push(stxn)
+	tp.pendingTxns = append(tp.pendingTxns, stxn)
+	return
 }
 
 // insert into txPool for tripods
 func (tp *TxPool) Insert(height BlockNum, stxn IsignedTxn) (err error) {
 
+	tp.height = height
+	return
 }
 
 // package some txns to send to tripods
@@ -133,11 +146,6 @@ func (tp *TxPool) SyncTxns(hashes []Hash) error {
 // broadcast txns to p2p network
 func (tp *TxPool) BroadcastTxns() error {
 
-}
-
-// pop pending txns
-func (tp *TxPool) Pop() (IsignedTxn, error) {
-	return tp.pendingTxns.Pop()
 }
 
 // remove txns after execute all tripods

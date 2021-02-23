@@ -22,8 +22,6 @@ type ItxPool interface {
 	SyncTxns([]Hash) error
 	// broadcast txns to p2p network
 	BroadcastTxns() error
-	// pop pending txns
-	Pop() (IsignedTxn, error)
 	// remove txns after execute all tripods
 	Remove() error
 }

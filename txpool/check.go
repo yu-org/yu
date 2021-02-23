@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	. "yu/common"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -11,6 +12,7 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	tp.BaseChecks = []BaseCheck{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
+		tp.checkDuplicate,
 		tp.checkSignature,
 	}
 	return tp
@@ -45,6 +47,13 @@ func (tp *TxPool) checkSignature(stxn IsignedTxn) error {
 func (tp *TxPool) checkTxnSize(stxn IsignedTxn) error {
 	if stxn.Size() > tp.TxnMaxSize {
 		return TxnTooLarge
+	}
+	return nil
+}
+
+func (tp *TxPool) checkDuplicate(stxn IsignedTxn) error {
+	if existTxn(stxn.GetTxnHash(), tp.Txns) {
+		return TxnDuplicate
 	}
 	return nil
 }
