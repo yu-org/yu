@@ -30,7 +30,8 @@ type TxPool struct {
 	// wait sync txns timeout
 	WaitTxnsTimeout time.Duration
 
-	BaseChecks []BaseCheck
+	BaseChecks    []TxnCheck
+	TripodsChecks []TxnCheck
 }
 
 func NewTxPool(cfg *config.TxpoolConf, height BlockNum) (*TxPool, error) {
@@ -50,7 +51,8 @@ func NewTxPool(cfg *config.TxpoolConf, height BlockNum) (*TxPool, error) {
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
-		BaseChecks:       make([]BaseCheck, 0),
+		BaseChecks:       make([]TxnCheck, 0),
+		TripodsChecks:    make([]TxnCheck, 0),
 	}, nil
 }
 
@@ -66,14 +68,22 @@ func (tp *TxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
 
-func (tp *TxPool) WithBaseChecks(checkFns []BaseCheck) ItxPool {
+func (tp *TxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
 
+func (tp *TxPool) AddTripodsCheck(checkFn TxnCheck) {
+	tp.TripodsChecks = append(tp.TripodsChecks, checkFn)
+}
+
 // insert into txCache for pending
 func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
-	err = tp.baseCheck(stxn)
+	err = checkTxn(stxn, tp.BaseChecks)
+	if err != nil {
+		return
+	}
+	err = checkTxn(stxn, tp.TripodsChecks)
 	if err != nil {
 		return
 	}

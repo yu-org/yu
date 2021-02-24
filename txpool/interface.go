@@ -9,7 +9,8 @@ type ItxPool interface {
 	// return pool size of txpool
 	PoolSize() uint64
 	// txpool with the base check-functions
-	WithBaseChecks(checkFns []BaseCheck) ItxPool
+	WithBaseChecks(checkFns []TxnCheck) ItxPool
+	AddTripodsCheck(checkFn TxnCheck)
 	// insert into txCache for pending
 	Pend(IsignedTxn) error
 	// insert into txPool for tripods

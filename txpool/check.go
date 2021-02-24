@@ -6,10 +6,10 @@ import (
 	. "yu/yerror"
 )
 
-type BaseCheck func(IsignedTxn) error
+type TxnCheck func(IsignedTxn) error
 
 func (tp *TxPool) withDefaultBaseChecks() *TxPool {
-	tp.BaseChecks = []BaseCheck{
+	tp.BaseChecks = []TxnCheck{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
 		tp.checkDuplicate,
@@ -18,9 +18,9 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	return tp
 }
 
-func (tp *TxPool) baseCheck(stxn IsignedTxn) error {
-	for _, fn := range tp.BaseChecks {
-		err := fn(stxn)
+func checkTxn(stxn IsignedTxn, checks []TxnCheck) error {
+	for _, check := range checks {
+		err := check(stxn)
 		if err != nil {
 			return err
 		}
