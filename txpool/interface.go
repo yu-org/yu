@@ -12,9 +12,7 @@ type ItxPool interface {
 	WithBaseChecks(checkFns []TxnCheck) ItxPool
 	AddTripodsCheck(checkFn TxnCheck)
 	// insert into txCache for pending
-	Pend(IsignedTxn) error
-	// insert into txPool for tripods
-	Insert(BlockNum, IsignedTxn) error
+	Insert(IsignedTxn) error
 	// package some txns to send to tripods
 	Package(numLimit uint64) ([]IsignedTxn, error)
 	// pacakge txns according to specific conditions
@@ -22,7 +20,7 @@ type ItxPool interface {
 	// get txn content of txn-hash from p2p network
 	SyncTxns([]Hash) error
 	// broadcast txns to p2p network
-	BroadcastTxns() error
+	BroadcastTxn(IsignedTxn)
 	// remove txns after execute all tripods
 	Remove() error
 }

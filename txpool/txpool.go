@@ -12,8 +12,7 @@ import (
 
 type TxPool struct {
 	sync.RWMutex
-	// the last block height
-	height      BlockNum
+
 	poolSize    uint64
 	TxnMaxSize  int
 	pendingTxns []IsignedTxn
@@ -41,7 +40,6 @@ func NewTxPool(cfg *config.TxpoolConf, height BlockNum) (*TxPool, error) {
 	}
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &TxPool{
-		height:           height,
 		poolSize:         cfg.PoolSize,
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
@@ -78,7 +76,7 @@ func (tp *TxPool) AddTripodsCheck(checkFn TxnCheck) {
 }
 
 // insert into txCache for pending
-func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
+func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
 	err = checkTxn(stxn, tp.BaseChecks)
 	if err != nil {
 		return
@@ -89,13 +87,6 @@ func (tp *TxPool) Pend(stxn IsignedTxn) (err error) {
 	}
 
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
-	return
-}
-
-// insert into txPool for tripods
-func (tp *TxPool) Insert(height BlockNum, stxn IsignedTxn) (err error) {
-
-	tp.height = height
 	return
 }
 
@@ -141,7 +132,7 @@ func (tp *TxPool) SyncTxns(hashes []Hash) error {
 		case stxn := <-tp.WaitSyncTxnsChan:
 			txnHash := stxn.GetRaw().ID()
 			delete(hashesMap, txnHash)
-			err := tp.Pend(stxn)
+			err := tp.Insert(stxn)
 			if err != nil {
 				return err
 			}
@@ -153,8 +144,9 @@ func (tp *TxPool) SyncTxns(hashes []Hash) error {
 	return nil
 }
 
-// broadcast txns to p2p network
-func (tp *TxPool) BroadcastTxns() error {
+// broadcast txn to p2p network
+func (tp *TxPool) BroadcastTxn(stxn IsignedTxn) {
+	tp.BcTxnsChan <- stxn
 
 }
 

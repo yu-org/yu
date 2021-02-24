@@ -100,7 +100,12 @@ func (w *Worker) putTxpool(req *http.Request, params JsonString) error {
 	if err != nil {
 		return err
 	}
-	return w.txPool.Pend(stxn)
+	err = w.txPool.Insert(stxn)
+	if err != nil {
+		return err
+	}
+	w.txPool.BroadcastTxn(stxn)
+	return nil
 }
 
 func (w *Worker) doQryCall(req *http.Request, params JsonString) error {
