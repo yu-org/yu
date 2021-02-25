@@ -9,10 +9,10 @@ import (
 
 func (w *Worker) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(rw http.ResponseWriter, req *http.Request) {
-		HandleWsExec(rw, req, w.txPool)
+		PutWsInTxpool(rw, req, w.txPool)
 	})
 	http.HandleFunc(QryApiPath, func(rw http.ResponseWriter, req *http.Request) {
-		HandleWsQry(rw, req, w.land)
+		DoWsQryCall(rw, req, w.land)
 	})
 	logrus.Panic(http.ListenAndServe(w.wsPort, nil))
 }

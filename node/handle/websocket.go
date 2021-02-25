@@ -9,7 +9,7 @@ import (
 	"yu/txpool"
 )
 
-func HandleWsExec(rw http.ResponseWriter, req *http.Request, txPool txpool.ItxPool) {
+func PutWsInTxpool(rw http.ResponseWriter, req *http.Request, txPool txpool.ItxPool) {
 	upgrader := websocket.Upgrader{}
 	c, err := upgrader.Upgrade(rw, req, nil)
 	if err != nil {
@@ -33,7 +33,7 @@ func HandleWsExec(rw http.ResponseWriter, req *http.Request, txPool txpool.ItxPo
 	}
 }
 
-func HandleWsQry(rw http.ResponseWriter, req *http.Request, land *tripod.Land) {
+func DoWsQryCall(rw http.ResponseWriter, req *http.Request, land *tripod.Land) {
 	upgrader := websocket.Upgrader{}
 	c, err := upgrader.Upgrade(rw, req, nil)
 	if err != nil {
