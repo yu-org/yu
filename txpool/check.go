@@ -1,7 +1,6 @@
 package txpool
 
 import (
-	. "yu/common"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -10,6 +9,7 @@ type TxnCheck func(IsignedTxn) error
 
 func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	tp.BaseChecks = []TxnCheck{
+		tp.checkExecExist,
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
 		tp.checkDuplicate,
@@ -18,14 +18,32 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	return tp
 }
 
-func checkTxn(stxn IsignedTxn, checks []TxnCheck) error {
-	for _, check := range checks {
+func (tp *TxPool) BaseCheck(stxn IsignedTxn) error {
+	for _, check := range tp.BaseChecks {
 		err := check(stxn)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (tp *TxPool) TripodsCheck(stxn IsignedTxn) error {
+	for _, tri := range tp.land.Tripods {
+		err := tri.CheckTxn(stxn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// check if tripod and execution exists
+func (tp *TxPool) checkExecExist(stxn IsignedTxn) error {
+	ecall := stxn.GetRaw().Ecall()
+	tripodName := ecall.TripodName
+	execName := ecall.ExecName
+	return tp.land.ExistExec(tripodName, execName)
 }
 
 func (tp *TxPool) checkPoolLimit(IsignedTxn) error {

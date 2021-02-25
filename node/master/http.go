@@ -23,40 +23,6 @@ func (m *Master) HandleHttp() {
 	r.Run(m.httpPort)
 }
 
-func (m *Master) handleByMasterWorker(r *gin.Engine) {
-	// GET request
-	r.GET(ExecApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, ExecCall)
-	})
-	r.GET(QryApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, QryCall)
-	})
-
-	// POST request
-	r.POST(ExecApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, ExecCall)
-	})
-	r.POST(QryApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, QryCall)
-	})
-
-	// PUT request
-	r.PUT(ExecApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, ExecCall)
-	})
-	r.PUT(QryApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, QryCall)
-	})
-
-	// DELETE request
-	r.DELETE(ExecApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, ExecCall)
-	})
-	r.DELETE(QryApiPath, func(c *gin.Context) {
-		m.forwardHttpCall(c, QryCall)
-	})
-}
-
 func (m *Master) handleByLocal(r *gin.Engine) {
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {
@@ -88,5 +54,39 @@ func (m *Master) handleByLocal(r *gin.Engine) {
 	})
 	r.DELETE(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, m.land)
+	})
+}
+
+func (m *Master) handleByMasterWorker(r *gin.Engine) {
+	// GET request
+	r.GET(ExecApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, ExecCall)
+	})
+	r.GET(QryApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, QryCall)
+	})
+
+	// POST request
+	r.POST(ExecApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, ExecCall)
+	})
+	r.POST(QryApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, QryCall)
+	})
+
+	// PUT request
+	r.PUT(ExecApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, ExecCall)
+	})
+	r.PUT(QryApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, QryCall)
+	})
+
+	// DELETE request
+	r.DELETE(ExecApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, ExecCall)
+	})
+	r.DELETE(QryApiPath, func(c *gin.Context) {
+		m.forwardHttpCall(c, QryCall)
 	})
 }

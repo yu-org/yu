@@ -24,6 +24,18 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 	}
 }
 
+func (l *Land) ExistExec(tripodName, execName string) error {
+	t, ok := l.Tripods[tripodName]
+	if !ok {
+		return TripodNotFound(tripodName)
+	}
+	ok = t.TripodMeta().ExistExec(execName)
+	if !ok {
+		return ExecNotFound(execName)
+	}
+	return nil
+}
+
 func (l *Land) Execute(c *Ecall) error {
 	Tripod, ok := l.Tripods[c.TripodName]
 	if !ok {

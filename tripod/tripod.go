@@ -64,6 +64,11 @@ func (th *TripodMeta) SetQueries(queries ...Query) {
 	}
 }
 
+func (th *TripodMeta) ExistExec(execName string) bool {
+	_, ok := th.execs[execName]
+	return ok
+}
+
 func (th *TripodMeta) GetExec(name string) Execution {
 	return th.execs[name]
 }

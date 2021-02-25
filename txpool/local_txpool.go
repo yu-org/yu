@@ -6,6 +6,7 @@ import (
 	. "yu/common"
 	"yu/config"
 	. "yu/storage/kv"
+	"yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -29,11 +30,11 @@ type TxPool struct {
 	// wait sync txns timeout
 	WaitTxnsTimeout time.Duration
 
-	BaseChecks    []TxnCheck
-	TripodsChecks []TxnCheck
+	BaseChecks []TxnCheck
+	land       *tripod.Land
 }
 
-func NewTxPool(cfg *config.TxpoolConf) (*TxPool, error) {
+func NewTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*TxPool, error) {
 	db, err := NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -50,12 +51,12 @@ func NewTxPool(cfg *config.TxpoolConf) (*TxPool, error) {
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks:       make([]TxnCheck, 0),
-		TripodsChecks:    make([]TxnCheck, 0),
+		land:             land,
 	}, nil
 }
 
-func NewWithDefaultChecks(cfg *config.TxpoolConf) (*TxPool, error) {
-	tp, err := NewTxPool(cfg)
+func NewWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*TxPool, error) {
+	tp, err := NewTxPool(cfg, land)
 	if err != nil {
 		return nil, err
 	}
@@ -71,17 +72,13 @@ func (tp *TxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) AddTripodsCheck(checkFn TxnCheck) {
-	tp.TripodsChecks = append(tp.TripodsChecks, checkFn)
-}
-
 // insert into txCache for pending
 func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
-	err = checkTxn(stxn, tp.BaseChecks)
+	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return
 	}
-	err = checkTxn(stxn, tp.TripodsChecks)
+	err = tp.TripodsCheck(stxn)
 	if err != nil {
 		return
 	}
