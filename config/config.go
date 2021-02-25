@@ -1,17 +1,14 @@
 package config
 
-import "github.com/BurntSushi/toml"
-
-type KVconf struct {
-	// "bolt" "badger" "tikv"
-	KvType string `toml:"kv_type"`
-	// dbpath, such as boltdb, pebble
-	Path string `toml:"path"`
-	// distributed kvdb
-	Hosts []string `toml:"hosts"`
-}
+import (
+	"github.com/BurntSushi/toml"
+	. "yu/common"
+)
 
 type MasterConf struct {
+	// 0: local-node
+	// 1: master-worker
+	RunMode RunMode `toml:"run_mode"`
 	// serve http port
 	HttpPort string `toml:"http_port"`
 	// serve websocket port
@@ -79,6 +76,15 @@ type TxpoolConf struct {
 	TxnMaxSize      int    `toml:"txn_max_size"`
 	WaitTxnsTimeout int    `toml:"wait_txns_timeout"`
 	DB              KVconf `toml:"db"`
+}
+
+type KVconf struct {
+	// "bolt" "badger" "tikv"
+	KvType string `toml:"kv_type"`
+	// dbpath, such as boltdb, pebble
+	Path string `toml:"path"`
+	// distributed kvdb
+	Hosts []string `toml:"hosts"`
 }
 
 func LoadConf(fpath string, cfg interface{}) (err error) {

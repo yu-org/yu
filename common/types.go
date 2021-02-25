@@ -7,6 +7,13 @@ import (
 	"yu/context"
 )
 
+type RunMode int
+
+const (
+	LocalNode RunMode = iota
+	MasterWorker
+)
+
 type (
 	BlockNum uint64
 	// Use to be a Key to store into KVDB.

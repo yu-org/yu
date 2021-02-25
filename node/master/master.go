@@ -10,10 +10,11 @@ import (
 	"sync"
 	"time"
 	. "yu/blockchain"
-	"yu/common"
-	"yu/config"
+	. "yu/common"
+	. "yu/config"
 	. "yu/node"
 	"yu/storage/kv"
+	"yu/tripod"
 	. "yu/txpool"
 	. "yu/utils/ip"
 	. "yu/yerror"
@@ -22,6 +23,7 @@ import (
 type Master struct {
 	sync.Mutex
 	p2pHost host.Host
+	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
 	nkDB     kv.KV
 	httpPort string
@@ -30,10 +32,11 @@ type Master struct {
 	timeout  time.Duration
 
 	chain  IBlockChain
-	txpool ItxPool
+	txPool ItxPool
+	land   *tripod.Land
 }
 
-func NewMaster(cfg *config.MasterConf, chain IBlockChain, txpool ItxPool) (*Master, error) {
+func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {
 	nkDB, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -48,13 +51,15 @@ func NewMaster(cfg *config.MasterConf, chain IBlockChain, txpool ItxPool) (*Mast
 
 	return &Master{
 		p2pHost:  p2pHost,
+		RunMode:  cfg.RunMode,
 		nkDB:     nkDB,
 		timeout:  timeout,
 		ctx:      ctx,
 		httpPort: MakePort(cfg.HttpPort),
 		wsPort:   MakePort(cfg.WsPort),
 		chain:    chain,
-		txpool:   txpool,
+		txPool:   txPool,
+		land:     land,
 	}, nil
 }
 
@@ -139,7 +144,7 @@ func (m *Master) WorkersCount() (int, error) {
 }
 
 // find workerIP by Execution/Query name
-func (m *Master) findWorkerIP(tripodName, callName string, callType common.CallType) (ip string, err error) {
+func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (ip string, err error) {
 	err = m.allNodeKeepers(func(ip string, info *NodeKeeperInfo) error {
 		if !info.Online {
 			return NodeKeeperDead(ip)
@@ -154,9 +159,9 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType common.CallT
 			}
 			var callArr []string
 			switch callType {
-			case common.ExecCall:
+			case ExecCall:
 				callArr = triInfo.ExecNames
-			case common.QryCall:
+			case QryCall:
 				callArr = triInfo.QueryNames
 			}
 			for _, call := range callArr {
@@ -173,9 +178,9 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType common.CallT
 	}
 	if ip == "" {
 		switch callType {
-		case common.ExecCall:
+		case ExecCall:
 			err = ExecNotFound(callName)
-		case common.QryCall:
+		case QryCall:
 			err = QryNotFound(callName)
 		}
 	}
