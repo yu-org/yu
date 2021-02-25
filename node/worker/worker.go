@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"net/http"
 	. "yu/blockchain"
-	. "yu/common"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/tripod"
-	"yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
 )
@@ -82,45 +80,6 @@ func (w *Worker) postToNk(path string, body []byte) (*http.Response, error) {
 	}
 	cli := &http.Client{}
 	return cli.Do(req)
-}
-
-func (w *Worker) putTxpool(req *http.Request, params JsonString) error {
-	tripodName, execName := GetTripodCallName(req)
-	ecall := &Ecall{
-		TripodName: tripodName,
-		ExecName:   execName,
-		Params:     params,
-	}
-	caller := GetAddress(req)
-	utxn, err := txn.NewUnsignedTxn(caller, ecall)
-	if err != nil {
-		return err
-	}
-	stxn, err := utxn.ToSignedTxn()
-	if err != nil {
-		return err
-	}
-	err = w.txPool.Insert(stxn)
-	if err != nil {
-		return err
-	}
-	w.txPool.BroadcastTxn(stxn)
-	return nil
-}
-
-func (w *Worker) doQryCall(req *http.Request, params JsonString) error {
-	tripodName, qryName := GetTripodCallName(req)
-	blockNum, err := GetBlockNumber(req)
-	if err != nil {
-		return err
-	}
-	qcall := &Qcall{
-		TripodName:  tripodName,
-		QueryName:   qryName,
-		Params:      params,
-		BlockNumber: blockNum,
-	}
-	return w.land.Query(qcall)
 }
 
 func (w *Worker) Run() {
