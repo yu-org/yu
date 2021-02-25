@@ -54,14 +54,15 @@ func (w *Worker) RegisterInNk() error {
 
 func (w *Worker) Info() *WorkerInfo {
 	tripodsInfo := make(map[string]TripodInfo)
-	for triName, tri := range w.land.Tripods {
+	_ = w.land.RangeMap(func(triName string, tri tripod.Tripod) error {
 		execNames := tri.TripodMeta().AllExecNames()
 		queryNames := tri.TripodMeta().AllQueryNames()
 		tripodsInfo[triName] = TripodInfo{
 			ExecNames:  execNames,
 			QueryNames: queryNames,
 		}
-	}
+		return nil
+	})
 	return &WorkerInfo{
 		Name:           w.Name,
 		HttpPort:       w.httpPort,

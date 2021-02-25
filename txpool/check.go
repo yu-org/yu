@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -29,13 +30,9 @@ func (tp *TxPool) BaseCheck(stxn IsignedTxn) error {
 }
 
 func (tp *TxPool) TripodsCheck(stxn IsignedTxn) error {
-	for _, tri := range tp.land.Tripods {
-		err := tri.CheckTxn(stxn)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return tp.land.RangeList(func(tri tripod.Tripod) error {
+		return tri.CheckTxn(stxn)
+	})
 }
 
 // check if tripod and execution exists

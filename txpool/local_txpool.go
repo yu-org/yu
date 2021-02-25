@@ -144,7 +144,6 @@ func (tp *TxPool) SyncTxns(hashes []Hash) error {
 // broadcast txn to p2p network
 func (tp *TxPool) BroadcastTxn(stxn IsignedTxn) {
 	tp.BcTxnsChan <- stxn
-
 }
 
 // remove txns after execute all tripods

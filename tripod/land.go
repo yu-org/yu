@@ -7,25 +7,29 @@ import (
 )
 
 type Land struct {
+	orderedTripods []Tripod
 	// Key: the Name of Tripod
-	Tripods map[string]Tripod
+	tripodsMap map[string]Tripod
 }
 
 func NewLand() *Land {
 	return &Land{
-		Tripods: make(map[string]Tripod),
+		tripodsMap:     make(map[string]Tripod),
+		orderedTripods: make([]Tripod, 0),
 	}
 }
 
 func (l *Land) SetTripods(Tripods ...Tripod) {
 	for _, Tripod := range Tripods {
 		TripodName := Tripod.TripodMeta().Name()
-		l.Tripods[TripodName] = Tripod
+		l.tripodsMap[TripodName] = Tripod
+
+		l.orderedTripods = append(l.orderedTripods, Tripod)
 	}
 }
 
 func (l *Land) ExistExec(tripodName, execName string) error {
-	t, ok := l.Tripods[tripodName]
+	t, ok := l.tripodsMap[tripodName]
 	if !ok {
 		return TripodNotFound(tripodName)
 	}
@@ -37,7 +41,7 @@ func (l *Land) ExistExec(tripodName, execName string) error {
 }
 
 func (l *Land) Execute(c *Ecall) error {
-	Tripod, ok := l.Tripods[c.TripodName]
+	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
 	}
@@ -55,7 +59,7 @@ func (l *Land) Execute(c *Ecall) error {
 }
 
 func (l *Land) Query(c *Qcall) error {
-	Tripod, ok := l.Tripods[c.TripodName]
+	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
 	}
@@ -70,4 +74,24 @@ func (l *Land) Query(c *Qcall) error {
 		return err
 	}
 	return qry(ctx, c.BlockNumber)
+}
+
+func (l *Land) RangeMap(fn func(string, Tripod) error) error {
+	for name, tri := range l.tripodsMap {
+		err := fn(name, tri)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l *Land) RangeList(fn func(Tripod) error) error {
+	for _, tri := range l.orderedTripods {
+		err := fn(tri)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
