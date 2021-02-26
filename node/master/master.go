@@ -63,6 +63,10 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 	}, nil
 }
 
+func (m *Master) P2pID() string {
+	return m.p2pHost.ID().String()
+}
+
 // Check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {

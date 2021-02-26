@@ -16,6 +16,7 @@ import (
 	"io"
 	"os"
 	"yu/config"
+	. "yu/node"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -42,10 +43,6 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 		return os.Open(cfg.NodeKeyFile)
 	}
 	return rand.Reader, nil
-}
-
-func (m *Master) P2pID() string {
-	return m.p2pHost.ID().String()
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
@@ -80,6 +77,11 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 		byt, err := rw.ReadBytes('\n')
 		if err != nil {
 			logrus.Errorf("Read data from P2P-network error: %s", err.Error())
+			continue
+		}
+		tbody, err := DecodeTb(byt)
+		if err != nil {
+			logrus.Errorf("get transfer-body error : %s", err.Error())
 			continue
 		}
 

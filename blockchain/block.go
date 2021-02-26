@@ -15,7 +15,7 @@ type Block struct {
 	txnHashes []Hash
 }
 
-func NewBlock(txnHashes []Hash, prevHash Hash, height BlockNum) *Block {
+func NewBlock(txnHashes []Hash, prevHash Hash, height BlockNum) IBlock {
 	header := &Header{
 		prevHash:  prevHash,
 		number:    height + 1,

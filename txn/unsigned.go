@@ -69,12 +69,11 @@ func (ut *UnsignedTxn) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func Decode(data []byte) (*UnsignedTxn, error) {
-	var UnsignedTxn UnsignedTxn
+func (ut *UnsignedTxn) Decode(data []byte) error {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&UnsignedTxn)
+	err := decoder.Decode(ut)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &UnsignedTxn, nil
+	return nil
 }
