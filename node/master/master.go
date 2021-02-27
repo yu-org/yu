@@ -34,6 +34,9 @@ type Master struct {
 	chain  IBlockChain
 	txPool ItxPool
 	land   *tripod.Land
+
+	blocksBcChan chan TransferBody
+	txnsBcChan   chan TransferBody
 }
 
 func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {
@@ -50,16 +53,18 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost:  p2pHost,
-		RunMode:  cfg.RunMode,
-		nkDB:     nkDB,
-		timeout:  timeout,
-		ctx:      ctx,
-		httpPort: MakePort(cfg.HttpPort),
-		wsPort:   MakePort(cfg.WsPort),
-		chain:    chain,
-		txPool:   txPool,
-		land:     land,
+		p2pHost:      p2pHost,
+		RunMode:      cfg.RunMode,
+		nkDB:         nkDB,
+		timeout:      timeout,
+		ctx:          ctx,
+		httpPort:     MakePort(cfg.HttpPort),
+		wsPort:       MakePort(cfg.WsPort),
+		chain:        chain,
+		txPool:       txPool,
+		land:         land,
+		blocksBcChan: make(chan TransferBody, 1024),
+		txnsBcChan:   make(chan TransferBody, 1024),
 	}, nil
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	. "yu/common"
 	"yu/config"
 	. "yu/node"
 )
@@ -84,12 +85,46 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 			logrus.Errorf("get transfer-body error : %s", err.Error())
 			continue
 		}
-
+		m.handleTransferBody(tbody)
 	}
 }
 
 // Write and broadcast the data to P2P network.
 func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
+	for {
+		select {
+		case blocksBody := <-m.blocksBcChan:
+			byt, err := blocksBody.Encode()
+			if err != nil {
+				logrus.Errorf("encode block-body error: %s", err.Error())
+				continue
+			}
+			_, err = rw.Write(byt)
+			if err != nil {
+				logrus.Errorf("write block-body to P2P network error: %s", err.Error())
+				continue
+			}
+			rw.Flush()
+		case txnsBody := <-m.txnsBcChan:
+			byt, err := txnsBody.Encode()
+			if err != nil {
+				logrus.Errorf("encode txns-body error: %s", err.Error())
+				continue
+			}
+			_, err = rw.Write(byt)
+			if err != nil {
+				logrus.Errorf("write txns-body error: %s", err.Error())
+				continue
+			}
+			rw.Flush()
+		}
+	}
+}
 
-	rw.Flush()
+func (m *Master) handleTransferBody(tbody *TransferBody) {
+	if m.RunMode == MasterWorker {
+		// todo: forwards to worker
+		return
+	}
+
 }
