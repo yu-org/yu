@@ -35,8 +35,12 @@ type Master struct {
 	txPool ItxPool
 	land   *tripod.Land
 
+	// blocks to broadcast into P2P network
 	blocksBcChan chan TransferBody
-	txnsBcChan   chan TransferBody
+	// txns to broadcast into P2P network
+	txnsBcChan chan TransferBody
+	// blocks from P2P network
+	blocksFromNetChan chan IBlock
 }
 
 func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {
@@ -53,18 +57,19 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost:      p2pHost,
-		RunMode:      cfg.RunMode,
-		nkDB:         nkDB,
-		timeout:      timeout,
-		ctx:          ctx,
-		httpPort:     MakePort(cfg.HttpPort),
-		wsPort:       MakePort(cfg.WsPort),
-		chain:        chain,
-		txPool:       txPool,
-		land:         land,
-		blocksBcChan: make(chan TransferBody),
-		txnsBcChan:   make(chan TransferBody),
+		p2pHost:           p2pHost,
+		RunMode:           cfg.RunMode,
+		nkDB:              nkDB,
+		timeout:           timeout,
+		ctx:               ctx,
+		httpPort:          MakePort(cfg.HttpPort),
+		wsPort:            MakePort(cfg.WsPort),
+		chain:             chain,
+		txPool:            txPool,
+		land:              land,
+		blocksBcChan:      make(chan TransferBody),
+		txnsBcChan:        make(chan TransferBody),
+		blocksFromNetChan: make(chan IBlock),
 	}, nil
 }
 

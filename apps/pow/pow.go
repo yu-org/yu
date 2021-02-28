@@ -30,12 +30,16 @@ func (p *Pow) TripodMeta() *TripodMeta {
 	return p.meta
 }
 
-func (p *Pow) CheckTxn(txn.IsignedTxn) error {
+func (*Pow) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (p *Pow) OnInitialize(_ *context.Context, block IBlock) error {
-	txnRoot, err := MakeTxnRoot(block.Txns())
+func (*Pow) StartBlock(*context.Context, IBlock) error {
+	return nil
+}
+
+func (p *Pow) ExecuteTxns(_ *context.Context, block IBlock, txns []txn.IsignedTxn) error {
+	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
 		return err
 	}
@@ -50,6 +54,10 @@ func (p *Pow) OnInitialize(_ *context.Context, block IBlock) error {
 	return nil
 }
 
-func (p *Pow) OnFinalize(*context.Context, IBlock) error {
+func (*Pow) EndBlock(*context.Context, IBlock) error {
+	return nil
+}
+
+func (*Pow) FinalizeBlock(*context.Context, IBlock) error {
 	return nil
 }

@@ -100,13 +100,10 @@ func (b *Block) Events() []event.IEvent {
 	return allEvents
 }
 
-func MakeTxnRoot(txns []txn.Itxn) (Hash, error) {
+func MakeTxnRoot(txns []txn.IsignedTxn) (Hash, error) {
 	txnsBytes := make([]Hash, 0)
 	for _, tx := range txns {
-		hash, err := tx.Hash()
-		if err != nil {
-			return NullHash, err
-		}
+		hash := tx.GetTxnHash()
 		txnsBytes = append(txnsBytes, hash)
 	}
 	mTree := trie.NewMerkleTree(txnsBytes)

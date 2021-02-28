@@ -17,9 +17,13 @@ type Tripod interface {
 
 	CheckTxn(txn.IsignedTxn) error
 
-	OnInitialize(*context.Context, IBlock) error
+	StartBlock(*context.Context, IBlock) error
 
-	OnFinalize(*context.Context, IBlock) error
+	ExecuteTxns(*context.Context, IBlock, []txn.IsignedTxn) error
+
+	EndBlock(*context.Context, IBlock) error
+
+	FinalizeBlock(*context.Context, IBlock) error
 }
 
 type TripodMeta struct {

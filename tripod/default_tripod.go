@@ -1,7 +1,7 @@
 package tripod
 
 import (
-	"yu/blockchain"
+	. "yu/blockchain"
 	"yu/context"
 	"yu/txn"
 )
@@ -25,10 +25,18 @@ func (*DefaultTripod) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) OnInitialize(c *context.Context, block blockchain.IBlock) error {
+func (*DefaultTripod) StartBlock(*context.Context, IBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) OnFinalize(c *context.Context, block blockchain.IBlock) error {
+func (*DefaultTripod) ExecuteTxns(*context.Context, IBlock, []txn.IsignedTxn) error {
+	return nil
+}
+
+func (*DefaultTripod) EndBlock(*context.Context, IBlock) error {
+	return nil
+}
+
+func (*DefaultTripod) FinalizeBlock(*context.Context, IBlock) error {
 	return nil
 }
