@@ -15,9 +15,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	. "yu/blockchain"
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
+	. "yu/txn"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -82,10 +84,13 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 		}
 		tbody, err := DecodeTb(byt)
 		if err != nil {
-			logrus.Errorf("get transfer-body error : %s", err.Error())
+			logrus.Errorf("get transfer-body error: %s", err.Error())
 			continue
 		}
-		m.handleTransferBody(tbody)
+		err = m.handleTransferBody(tbody)
+		if err != nil {
+			logrus.Errorf("handle transfer-body error：%s", err.Error())
+		}
 	}
 }
 
@@ -121,10 +126,31 @@ func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 	}
 }
 
-func (m *Master) handleTransferBody(tbody *TransferBody) {
+func (m *Master) handleTransferBody(tbody *TransferBody) error {
 	if m.RunMode == MasterWorker {
 		// todo: forwards to worker
-		return
+		return nil
 	}
+	switch tbody.Type {
+	case BlockTransfer:
+		var block IBlock
+		err := tbody.DecodeBody(block)
+		if err != nil {
+			return err
+		}
 
+	case TxnsTransfer:
+		var txns SignedTxns
+		err := tbody.DecodeBody(&txns)
+		if err != nil {
+			return err
+		}
+		for _, txn := range txns {
+			err = m.txPool.Insert(txn)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

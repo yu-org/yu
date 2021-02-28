@@ -50,3 +50,8 @@ func DecodeTb(data []byte) (*TransferBody, error) {
 	err := json.Unmarshal(data, &tb)
 	return &tb, err
 }
+
+func (tb *TransferBody) DecodeBody(v interface{}) error {
+	byt := []byte(tb.Body)
+	return json.Unmarshal(byt, v)
+}

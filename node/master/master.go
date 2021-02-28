@@ -63,8 +63,8 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 		chain:        chain,
 		txPool:       txPool,
 		land:         land,
-		blocksBcChan: make(chan TransferBody, 1024),
-		txnsBcChan:   make(chan TransferBody, 1024),
+		blocksBcChan: make(chan TransferBody),
+		txnsBcChan:   make(chan TransferBody),
 	}, nil
 }
 
