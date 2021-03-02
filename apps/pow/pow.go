@@ -80,6 +80,6 @@ func (*Pow) EndBlock(IBlock) error {
 	return nil
 }
 
-func (*Pow) FinalizeBlock(IBlock) error {
+func (*Pow) FinalizeBlock(IBlockChain, IBlock) error {
 	return nil
 }
