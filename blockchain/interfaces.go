@@ -8,6 +8,8 @@ import (
 type IBlock interface {
 	BlockId() BlockId
 	BlockNumber() BlockNum
+	TxnsHashes() []Hash
+	SetTxnsHashes(hashes []Hash)
 	Hash() Hash
 	SetHash(hash Hash)
 	StateRoot() Hash

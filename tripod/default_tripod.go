@@ -2,8 +2,8 @@ package tripod
 
 import (
 	. "yu/blockchain"
-	"yu/context"
 	"yu/txn"
+	"yu/txpool"
 )
 
 type DefaultTripod struct {
@@ -25,18 +25,18 @@ func (*DefaultTripod) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(*context.Context, IBlock) error {
+func (*DefaultTripod) StartBlock(IBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) ExecuteTxns(*context.Context, IBlock, []txn.IsignedTxn) error {
+func (*DefaultTripod) HandleTxns(IBlock, txpool.ItxPool) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(*context.Context, IBlock) error {
+func (*DefaultTripod) EndBlock(IBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(*context.Context, IBlock) error {
+func (*DefaultTripod) FinalizeBlock(IBlock) error {
 	return nil
 }

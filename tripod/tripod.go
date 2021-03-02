@@ -8,8 +8,8 @@ import (
 	"strings"
 	. "yu/blockchain"
 	. "yu/common"
-	"yu/context"
 	"yu/txn"
+	"yu/txpool"
 )
 
 type Tripod interface {
@@ -17,13 +17,13 @@ type Tripod interface {
 
 	CheckTxn(txn.IsignedTxn) error
 
-	StartBlock(*context.Context, IBlock) error
+	StartBlock(IBlock) error
 
-	ExecuteTxns(*context.Context, IBlock, []txn.IsignedTxn) error
+	HandleTxns(IBlock, txpool.ItxPool) error
 
-	EndBlock(*context.Context, IBlock) error
+	EndBlock(IBlock) error
 
-	FinalizeBlock(*context.Context, IBlock) error
+	FinalizeBlock(IBlock) error
 }
 
 type TripodMeta struct {

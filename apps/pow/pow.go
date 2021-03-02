@@ -3,10 +3,11 @@ package pow
 import (
 	"math/big"
 	. "yu/blockchain"
+	. "yu/common"
 	spow "yu/consensus/pow"
-	"yu/context"
 	. "yu/tripod"
 	"yu/txn"
+	"yu/txpool"
 )
 
 type Pow struct {
@@ -34,11 +35,21 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*Pow) StartBlock(*context.Context, IBlock) error {
+func (*Pow) StartBlock(IBlock) error {
 	return nil
 }
 
-func (p *Pow) ExecuteTxns(_ *context.Context, block IBlock, txns []txn.IsignedTxn) error {
+func (p *Pow) HandleTxns(block IBlock, pool txpool.ItxPool) error {
+	txns, err := pool.Package(1024)
+	if err != nil {
+		return err
+	}
+	txnsHashes := make([]Hash, 0)
+	for _, hash := range txnsHashes {
+		txnsHashes = append(txnsHashes, hash)
+	}
+	block.SetTxnsHashes(txnsHashes)
+
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
 		return err
@@ -54,10 +65,10 @@ func (p *Pow) ExecuteTxns(_ *context.Context, block IBlock, txns []txn.IsignedTx
 	return nil
 }
 
-func (*Pow) EndBlock(*context.Context, IBlock) error {
+func (*Pow) EndBlock(IBlock) error {
 	return nil
 }
 
-func (*Pow) FinalizeBlock(*context.Context, IBlock) error {
+func (*Pow) FinalizeBlock(IBlock) error {
 	return nil
 }

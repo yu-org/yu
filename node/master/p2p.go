@@ -139,7 +139,6 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 			return err
 		}
 		m.blocksFromNetChan <- block
-		return err
 	case TxnsTransfer:
 		var txns SignedTxns
 		err := tbody.DecodeBody(&txns)
