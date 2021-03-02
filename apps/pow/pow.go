@@ -35,7 +35,18 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*Pow) StartBlock(IBlock) error {
+func (*Pow) StartBlock(chain IBlockChain, block IBlock) error {
+	preBlock, err := chain.LastFinalized()
+	if err != nil {
+		return err
+	}
+
+	height := preBlock.Header().BlockNumber()
+	preHash := preBlock.Header().PrevHash()
+
+	block.SetPreHash(preHash)
+	block.SetBlockNumber(height + 1)
+
 	return nil
 }
 
@@ -54,14 +65,14 @@ func (p *Pow) HandleTxns(block IBlock, pool txpool.ItxPool) error {
 	if err != nil {
 		return err
 	}
-	block.SetHash(txnRoot)
+	block.SetStateRoot(txnRoot)
 
 	nonce, hash, err := spow.Run(block, p.target, p.targetBits)
 	if err != nil {
 		return err
 	}
 	block.SetExtra(nonce)
-	block.SetHash(hash)
+	block.SetStateRoot(hash)
 	return nil
 }
 

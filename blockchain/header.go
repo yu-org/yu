@@ -13,7 +13,7 @@ type Header struct {
 	timestamp int64
 }
 
-func (h *Header) Num() BlockNum {
+func (h *Header) BlockNumber() BlockNum {
 	return h.number
 }
 

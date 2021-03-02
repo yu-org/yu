@@ -7,20 +7,11 @@ import (
 )
 
 func Run(chain IBlockChain, land *Land, pool txpool.ItxPool) error {
-	// todo: Do parent block must be last finalized block ?
-	block, err := chain.LastFinalized()
-	if err != nil {
-		return err
-	}
-
-	height := block.BlockNumber()
-	preHash := block.PrevHash()
-
-	newBlock := NewBlock(preHash, height)
+	newBlock := NewDefaultBlock()
 
 	// start a new block
-	err = land.RangeList(func(tri Tripod) error {
-		return tri.StartBlock(newBlock)
+	err := land.RangeList(func(tri Tripod) error {
+		return tri.StartBlock(chain, newBlock)
 	})
 
 	// execute these txns
@@ -32,14 +23,13 @@ func Run(chain IBlockChain, land *Land, pool txpool.ItxPool) error {
 	err = land.RangeList(func(tri Tripod) error {
 		return tri.EndBlock(newBlock)
 	})
-	err = chain.AppendBlock(block)
+	err = chain.AppendBlock(newBlock)
 	if err != nil {
 		return err
 	}
 
 	// finalize this block
-	err = land.RangeList(func(tri Tripod) error {
-		return tri.FinalizeBlock(newBlock)
+	return land.RangeList(func(tri Tripod) error {
+		return tri.FinalizeBlock(chain, newBlock)
 	})
-	return chain.Finalize(newBlock.BlockId())
 }

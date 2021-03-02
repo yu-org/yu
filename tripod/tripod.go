@@ -17,13 +17,13 @@ type Tripod interface {
 
 	CheckTxn(txn.IsignedTxn) error
 
-	StartBlock(IBlock) error
+	StartBlock(IBlockChain, IBlock) error
 
 	HandleTxns(IBlock, txpool.ItxPool) error
 
 	EndBlock(IBlock) error
 
-	FinalizeBlock(IBlock) error
+	FinalizeBlock(IBlockChain, IBlock) error
 }
 
 type TripodMeta struct {

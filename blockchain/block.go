@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"time"
 	. "yu/common"
-	"yu/event"
 	"yu/trie"
 	"yu/txn"
 )
@@ -15,10 +14,8 @@ type Block struct {
 	txnsHashes []Hash
 }
 
-func NewBlock(prevHash Hash, height BlockNum) IBlock {
+func NewDefaultBlock() IBlock {
 	header := &Header{
-		prevHash:  prevHash,
-		number:    height + 1,
 		timestamp: time.Now().UnixNano(),
 	}
 	return &Block{
@@ -42,36 +39,20 @@ func (b *Block) SetTxnsHashes(hashes []Hash) {
 	b.txnsHashes = hashes
 }
 
+func (b *Block) SetPreHash(preHash Hash) {
+	b.header.prevHash = preHash
+}
+
+func (b *Block) SetBlockNumber(num BlockNum) {
+	b.header.number = num
+}
+
 func (b *Block) BlockId() BlockId {
-	return NewBlockId(b.BlockNumber(), b.Hash())
-}
-
-func (b *Block) BlockNumber() BlockNum {
-	return b.header.Num()
-}
-
-func (b *Block) Hash() Hash {
-	return b.header.TxnRoot()
-}
-
-func (b *Block) SetHash(hash Hash) {
-	b.header.txnRoot = hash
-}
-
-func (b *Block) StateRoot() Hash {
-	return b.header.stateRoot
+	return NewBlockId(b.header.BlockNumber(), b.header.TxnRoot())
 }
 
 func (b *Block) SetStateRoot(hash Hash) {
 	b.header.stateRoot = hash
-}
-
-func (b *Block) PrevHash() Hash {
-	return b.header.PrevHash()
-}
-
-func (b *Block) Timestamp() int64 {
-	return b.header.Timestamp()
 }
 
 func (b *Block) Extra() interface{} {
@@ -96,15 +77,6 @@ func (b *Block) Decode(data []byte) (IBlock, error) {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(b)
 	return b, err
-}
-
-func (b *Block) Events() []event.IEvent {
-	allEvents := make([]event.IEvent, 0)
-	for _, tx := range b.txns {
-		events := tx.Events()
-		allEvents = append(allEvents, events...)
-	}
-	return allEvents
 }
 
 func MakeTxnRoot(txns []txn.IsignedTxn) (Hash, error) {

@@ -52,7 +52,7 @@ func Validate(block IBlock, target *big.Int, targetBits int64) bool {
 }
 
 func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
-	hex1, err := intToHex(block.Timestamp())
+	hex1, err := intToHex(block.Header().Timestamp())
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
 	}
 	data := bytes.Join(
 		[][]byte{
-			block.PrevHash().Bytes(),
-			block.Hash().Bytes(),
+			block.Header().PrevHash().Bytes(),
+			block.Header().StateRoot().Bytes(),
 			hex1,
 			hex2,
 			hex3,

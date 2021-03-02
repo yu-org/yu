@@ -2,22 +2,18 @@ package blockchain
 
 import (
 	. "yu/common"
-	"yu/event"
 )
 
 type IBlock interface {
 	BlockId() BlockId
-	BlockNumber() BlockNum
 	TxnsHashes() []Hash
 	SetTxnsHashes(hashes []Hash)
-	Hash() Hash
-	SetHash(hash Hash)
-	StateRoot() Hash
+
+	SetPreHash(hash Hash)
 	SetStateRoot(hash Hash)
-	PrevHash() Hash
+	SetBlockNumber(BlockNum)
+
 	Header() IHeader
-	Events() []event.IEvent
-	Timestamp() int64
 	Extra() interface{}
 	SetExtra(extra interface{})
 
@@ -26,7 +22,7 @@ type IBlock interface {
 }
 
 type IHeader interface {
-	Num() BlockNum
+	BlockNumber() BlockNum
 	PrevHash() Hash
 	TxnRoot() Hash
 	StateRoot() Hash
