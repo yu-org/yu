@@ -6,6 +6,7 @@ import (
 
 type Header struct {
 	prevHash  Hash
+	hash      Hash
 	number    BlockNum
 	txnRoot   Hash
 	stateRoot Hash
@@ -15,6 +16,10 @@ type Header struct {
 
 func (h *Header) BlockNumber() BlockNum {
 	return h.number
+}
+
+func (h *Header) Hash() Hash {
+	return h.hash
 }
 
 func (h *Header) PrevHash() Hash {

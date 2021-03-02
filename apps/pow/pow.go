@@ -14,16 +14,20 @@ type Pow struct {
 	meta       *TripodMeta
 	target     *big.Int
 	targetBits int64
+
+	pkgTxnsLimit uint64
 }
 
-func NewPow() *Pow {
+func NewPow(pkgTxnsLimit uint64) *Pow {
 	meta := NewTripodMeta("pow")
 	var targetBits int64 = 16
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
 	return &Pow{
-		meta:       meta,
-		targetBits: targetBits,
+		meta:         meta,
+		target:       target,
+		targetBits:   targetBits,
+		pkgTxnsLimit: pkgTxnsLimit,
 	}
 }
 
@@ -35,7 +39,7 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*Pow) StartBlock(chain IBlockChain, block IBlock) error {
+func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
 	preBlock, err := chain.LastFinalized()
 	if err != nil {
 		return err
@@ -47,11 +51,7 @@ func (*Pow) StartBlock(chain IBlockChain, block IBlock) error {
 	block.SetPreHash(preHash)
 	block.SetBlockNumber(height + 1)
 
-	return nil
-}
-
-func (p *Pow) HandleTxns(block IBlock, pool txpool.ItxPool) error {
-	txns, err := pool.Package(1024)
+	txns, err := pool.Package(p.pkgTxnsLimit)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,8 @@ func (p *Pow) HandleTxns(block IBlock, pool txpool.ItxPool) error {
 		return err
 	}
 	block.SetExtra(nonce)
-	block.SetStateRoot(hash)
+	block.SetHash(hash)
+
 	return nil
 }
 

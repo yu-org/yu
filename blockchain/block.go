@@ -39,6 +39,10 @@ func (b *Block) SetTxnsHashes(hashes []Hash) {
 	b.txnsHashes = hashes
 }
 
+func (b *Block) SetHash(hash Hash) {
+	b.header.hash = hash
+}
+
 func (b *Block) SetPreHash(preHash Hash) {
 	b.header.prevHash = preHash
 }

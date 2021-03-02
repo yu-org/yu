@@ -9,6 +9,7 @@ type IBlock interface {
 	TxnsHashes() []Hash
 	SetTxnsHashes(hashes []Hash)
 
+	SetHash(hash Hash)
 	SetPreHash(hash Hash)
 	SetStateRoot(hash Hash)
 	SetBlockNumber(BlockNum)
@@ -23,6 +24,7 @@ type IBlock interface {
 
 type IHeader interface {
 	BlockNumber() BlockNum
+	Hash() Hash
 	PrevHash() Hash
 	TxnRoot() Hash
 	StateRoot() Hash

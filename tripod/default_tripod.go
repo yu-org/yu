@@ -25,11 +25,7 @@ func (*DefaultTripod) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlockChain, IBlock) error {
-	return nil
-}
-
-func (*DefaultTripod) HandleTxns(IBlock, txpool.ItxPool) error {
+func (*DefaultTripod) StartBlock(IBlockChain, IBlock, txpool.ItxPool) error {
 	return nil
 }
 
