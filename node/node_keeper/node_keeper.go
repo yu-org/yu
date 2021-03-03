@@ -1,7 +1,6 @@
 package node_keeper
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -78,7 +77,7 @@ func (n *NodeKeeper) RegisterInMaster() error {
 	if err != nil {
 		return err
 	}
-	_, err = n.postToMaster(RegisterNodeKeepersPath, byt)
+	_, err = PostRequest(n.masterAddr+RegisterNodeKeepersPath, byt)
 	return err
 }
 
@@ -254,16 +253,6 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 		return err
 	}
 	return os.Remove(zipFilePath)
-}
-
-func (n *NodeKeeper) postToMaster(path string, body []byte) (*http.Response, error) {
-	url := n.masterAddr + path
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-	cli := &http.Client{}
-	return cli.Do(req)
 }
 
 func (n *NodeKeeper) getWorkerInfo(addr string) (*WorkerInfo, error) {

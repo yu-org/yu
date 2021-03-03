@@ -12,6 +12,14 @@ const (
 	RegisterWorkersPath     = "/worker/register"
 	HeartbeatPath           = "/heartbeat"
 
+	// Worker accept block from p2p network.
+	// Master forwards this request to Worker.
+	BlockFromP2P = "/p2p/block"
+
+	// Worker accept txns from p2p network.
+	// Master forwards this request to Worker.
+	TxnsFromP2P = "/p2p/txns"
+
 	// For developers, every customized Execution and Query of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"

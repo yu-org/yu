@@ -1,6 +1,7 @@
 package node
 
 import (
+	"bytes"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -19,4 +20,13 @@ func SendHeartbeats(addrs []string, handleDead func(addr string) error) {
 		}
 	}
 
+}
+
+func PostRequest(url string, body []byte) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	cli := &http.Client{}
+	return cli.Do(req)
 }

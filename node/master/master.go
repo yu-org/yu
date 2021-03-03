@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/sirupsen/logrus"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -181,6 +182,26 @@ func (m *Master) WorkersCount() (int, error) {
 		return nil
 	})
 	return count, err
+}
+
+func (m *Master) randomGetWorkerIP() (string, error) {
+	ips, err := m.allWorkersIP()
+	if err != nil {
+		return "", err
+	}
+	randIdx := rand.Intn(len(ips))
+	return ips[randIdx], nil
+}
+
+func (m *Master) allWorkersIP() ([]string, error) {
+	var workersIP []string
+	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
+		for ip, _ := range info.WorkersInfo {
+			workersIP = append(workersIP, ip)
+		}
+		return nil
+	})
+	return workersIP, err
 }
 
 // find workerIP by Execution/Query name
