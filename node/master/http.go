@@ -26,7 +26,7 @@ func (m *Master) HandleHttp() {
 func (m *Master) handleByLocal(r *gin.Engine) {
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {
-		PutHttpInTxpool(c, m.txPool)
+		PutHttpInTxpool(c, m.txPool, m.readyBcTxnsChan)
 	})
 	r.GET(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, m.land)
@@ -34,7 +34,7 @@ func (m *Master) handleByLocal(r *gin.Engine) {
 
 	// POST request
 	r.POST(ExecApiPath, func(c *gin.Context) {
-		PutHttpInTxpool(c, m.txPool)
+		PutHttpInTxpool(c, m.txPool, m.readyBcTxnsChan)
 	})
 	r.POST(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, m.land)
@@ -42,7 +42,7 @@ func (m *Master) handleByLocal(r *gin.Engine) {
 
 	// PUT request
 	r.PUT(ExecApiPath, func(c *gin.Context) {
-		PutHttpInTxpool(c, m.txPool)
+		PutHttpInTxpool(c, m.txPool, m.readyBcTxnsChan)
 	})
 	r.PUT(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, m.land)
@@ -50,7 +50,7 @@ func (m *Master) handleByLocal(r *gin.Engine) {
 
 	// DELETE request
 	r.DELETE(ExecApiPath, func(c *gin.Context) {
-		PutHttpInTxpool(c, m.txPool)
+		PutHttpInTxpool(c, m.txPool, m.readyBcTxnsChan)
 	})
 	r.DELETE(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, m.land)

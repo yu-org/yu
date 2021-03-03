@@ -8,15 +8,9 @@ import (
 
 func Run(chain IBlockChain, land *Land, pool txpool.ItxPool) error {
 	newBlock := NewDefaultBlock()
-
 	// start a new block
 	err := land.RangeList(func(tri Tripod) error {
-		return tri.StartBlock(chain, newBlock)
-	})
-
-	// execute these txns
-	err = land.RangeList(func(tri Tripod) error {
-		return tri.HandleTxns(newBlock, pool)
+		return tri.StartBlock(chain, newBlock, pool)
 	})
 
 	// end block and append to chain

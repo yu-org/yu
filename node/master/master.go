@@ -15,6 +15,7 @@ import (
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/tripod"
+	. "yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
 	. "yu/yerror"
@@ -36,7 +37,12 @@ type Master struct {
 	land   *tripod.Land
 
 	// blocks to broadcast into P2P network
-	blocksBcChan chan TransferBody
+	blockBcChan chan TransferBody
+
+	// ready to package a batch of txns to broadcast
+	readyBcTxnsChan chan IsignedTxn
+	// number of broadcast txns every time
+	NumOfBcTxns int
 	// txns to broadcast into P2P network
 	txnsBcChan chan TransferBody
 	// blocks from P2P network
@@ -67,8 +73,9 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 		chain:             chain,
 		txPool:            txPool,
 		land:              land,
-		blocksBcChan:      make(chan TransferBody),
+		blockBcChan:       make(chan TransferBody),
 		txnsBcChan:        make(chan TransferBody),
+		NumOfBcTxns:       cfg.NumOfBcTxns,
 		blocksFromNetChan: make(chan IBlock),
 	}, nil
 }
@@ -101,6 +108,25 @@ func (m *Master) CheckHealth() {
 			return tx.Commit()
 		})
 		time.Sleep(m.timeout)
+	}
+}
+
+func (m *Master) BroadcastTxns() {
+	var txns SignedTxns
+	for {
+		select {
+		case txn := <-m.readyBcTxnsChan:
+			txns = append(txns, txn)
+			if len(txns) == m.NumOfBcTxns {
+				body, err := NewTxnsTransferBody(txns)
+				if err != nil {
+					logrus.Errorf("new TxnTransferBody error: %s", err.Error())
+					continue
+				}
+				m.txnsBcChan <- body
+				txns = nil
+			}
+		}
 	}
 }
 

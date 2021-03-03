@@ -9,7 +9,7 @@ import (
 	. "yu/txpool"
 )
 
-func putTxpool(req *http.Request, params JsonString, txpool ItxPool) error {
+func putTxpool(req *http.Request, params JsonString, txpool ItxPool, broadcastChan chan<- txn.IsignedTxn) error {
 	tripodName, execName := GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
@@ -29,7 +29,8 @@ func putTxpool(req *http.Request, params JsonString, txpool ItxPool) error {
 	if err != nil {
 		return err
 	}
-	txpool.BroadcastTxn(stxn)
+
+	broadcastChan <- stxn
 	return nil
 }
 

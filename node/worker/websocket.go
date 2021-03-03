@@ -9,7 +9,7 @@ import (
 
 func (w *Worker) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(rw http.ResponseWriter, req *http.Request) {
-		PutWsInTxpool(rw, req, w.txPool)
+		PutWsInTxpool(rw, req, w.txPool, w.readyBcTxnsChan)
 	})
 	http.HandleFunc(QryApiPath, func(rw http.ResponseWriter, req *http.Request) {
 		DoWsQryCall(rw, req, w.land)

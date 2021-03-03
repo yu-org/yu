@@ -8,12 +8,13 @@ import (
 	"net/http"
 	. "yu/common"
 	"yu/tripod"
+	"yu/txn"
 	"yu/txpool"
 )
 
 const PARAMS_KEY = "params"
 
-func PutHttpInTxpool(c *gin.Context, txPool txpool.ItxPool) {
+func PutHttpInTxpool(c *gin.Context, txPool txpool.ItxPool, broadcastChan chan<- txn.IsignedTxn) {
 	var (
 		params JsonString
 		err    error
@@ -27,7 +28,7 @@ func PutHttpInTxpool(c *gin.Context, txPool txpool.ItxPool) {
 	} else {
 		params = c.GetString(PARAMS_KEY)
 	}
-	err = putTxpool(c.Request, params, txPool)
+	err = putTxpool(c.Request, params, txPool, broadcastChan)
 	if err != nil {
 		c.String(
 			http.StatusInternalServerError,

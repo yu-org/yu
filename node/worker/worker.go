@@ -8,6 +8,7 @@ import (
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/tripod"
+	"yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
 )
@@ -21,6 +22,11 @@ type Worker struct {
 	txPool         ItxPool
 	land           *tripod.Land
 	metadb         kv.KV
+
+	// ready to package a batch of txns to broadcast
+	readyBcTxnsChan chan txn.IsignedTxn
+	// number of broadcast txns every time
+	NumOfBcTxns int
 }
 
 func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Worker, error) {
@@ -30,14 +36,16 @@ func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool ItxPool, land *
 	}
 	nkAddr := MakeLocalIp(cfg.NodeKeeperPort)
 	return &Worker{
-		Name:           cfg.Name,
-		httpPort:       MakePort(cfg.HttpPort),
-		wsPort:         MakePort(cfg.WsPort),
-		NodeKeeperAddr: nkAddr,
-		chain:          chain,
-		txPool:         txPool,
-		land:           land,
-		metadb:         metadb,
+		Name:            cfg.Name,
+		httpPort:        MakePort(cfg.HttpPort),
+		wsPort:          MakePort(cfg.WsPort),
+		NodeKeeperAddr:  nkAddr,
+		chain:           chain,
+		txPool:          txPool,
+		land:            land,
+		metadb:          metadb,
+		readyBcTxnsChan: make(chan txn.IsignedTxn),
+		NumOfBcTxns:     cfg.NumOfBcTxns,
 	}, nil
 
 }

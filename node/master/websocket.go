@@ -12,7 +12,7 @@ func (m *Master) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(w http.ResponseWriter, req *http.Request) {
 		switch m.RunMode {
 		case LocalNode:
-			PutWsInTxpool(w, req, m.txPool)
+			PutWsInTxpool(w, req, m.txPool, m.readyBcTxnsChan)
 		case MasterWorker:
 			m.forwardWsCall(w, req, ExecCall)
 		}

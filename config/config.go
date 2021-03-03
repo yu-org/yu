@@ -16,6 +16,8 @@ type MasterConf struct {
 	DB     KVconf `toml:"db"`
 	// when beyond 'Timeout', it means this nodekeeper is down.
 	Timeout int `toml:"timeout"`
+	// number of broadcast txns every time
+	NumOfBcTxns int `toml:"num_of_bc_txns"`
 
 	//---------P2P config--------
 	// For listening from blockchain network.
@@ -42,6 +44,9 @@ type WorkerConf struct {
 	Name           string `toml:"name"`
 	DB             KVconf `toml:"db"`
 	NodeKeeperPort string `toml:"node_keeper_port"`
+
+	// number of broadcast txns every time
+	NumOfBcTxns int `toml:"num_of_bc_txns"`
 
 	// serve http port
 	HttpPort string `toml:"http_port"`
