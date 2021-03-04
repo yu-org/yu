@@ -11,7 +11,7 @@ import (
 	. "yu/yerror"
 )
 
-type TxPool struct {
+type LocalTxPool struct {
 	sync.RWMutex
 
 	poolSize    uint64
@@ -34,13 +34,13 @@ type TxPool struct {
 	land       *tripod.Land
 }
 
-func NewTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*TxPool, error) {
+func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
 	db, err := NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
-	return &TxPool{
+	return &LocalTxPool{
 		poolSize:         cfg.PoolSize,
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
@@ -55,25 +55,36 @@ func NewTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*TxPool, error) {
 	}, nil
 }
 
-func NewWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*TxPool, error) {
-	tp, err := NewTxPool(cfg, land)
+func NewWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
+	tp, err := NewLocalTxPool(cfg, land)
 	if err != nil {
 		return nil, err
 	}
 	return tp.withDefaultBaseChecks(), nil
 }
 
-func (tp *TxPool) PoolSize() uint64 {
+func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
+	tp.BaseChecks = []TxnCheck{
+		tp.checkExecExist,
+		tp.checkPoolLimit,
+		tp.checkTxnSize,
+		tp.checkDuplicate,
+		tp.checkSignature,
+	}
+	return tp
+}
+
+func (tp *LocalTxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
 
-func (tp *TxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
+func (tp *LocalTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
 
 // insert into txCache for pending
-func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
+func (tp *LocalTxPool) Insert(stxn IsignedTxn) (err error) {
 	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return
@@ -88,13 +99,13 @@ func (tp *TxPool) Insert(stxn IsignedTxn) (err error) {
 }
 
 // package some txns to send to tripods
-func (tp *TxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
+func (tp *LocalTxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 	return tp.PackageFor(numLimit, func(IsignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *TxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *LocalTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]IsignedTxn, 0)
@@ -110,7 +121,7 @@ func (tp *TxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *TxPool) SyncTxns(hashes []Hash) error {
+func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -142,12 +153,12 @@ func (tp *TxPool) SyncTxns(hashes []Hash) error {
 }
 
 // broadcast txn to p2p network
-func (tp *TxPool) BroadcastTxn(stxn IsignedTxn) {
+func (tp *LocalTxPool) BroadcastTxn(stxn IsignedTxn) {
 	tp.BcTxnsChan <- stxn
 }
 
 // remove txns after execute all tripods
-func (tp *TxPool) Remove() error {
+func (tp *LocalTxPool) Remove() error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0
@@ -162,4 +173,38 @@ func existTxn(hash Hash, txns []IsignedTxn) bool {
 		}
 	}
 	return false
+}
+
+// --------- check txn ------
+
+func (tp *LocalTxPool) BaseCheck(stxn IsignedTxn) error {
+	return BaseCheck(tp.BaseChecks, stxn)
+}
+
+func (tp *LocalTxPool) TripodsCheck(stxn IsignedTxn) error {
+	return TripodsCheck(tp.land, stxn)
+}
+
+// check if tripod and execution exists
+func (tp *LocalTxPool) checkExecExist(stxn IsignedTxn) error {
+	return checkExecExist(tp.land, stxn)
+}
+
+func (tp *LocalTxPool) checkPoolLimit(IsignedTxn) error {
+	return checkPoolLimit(tp.Txns, tp.poolSize)
+}
+
+func (tp *LocalTxPool) checkSignature(stxn IsignedTxn) error {
+	return checkSignature(stxn)
+}
+
+func (tp *LocalTxPool) checkTxnSize(stxn IsignedTxn) error {
+	if stxn.Size() > tp.TxnMaxSize {
+		return TxnTooLarge
+	}
+	return checkTxnSize(tp.TxnMaxSize, stxn)
+}
+
+func (tp *LocalTxPool) checkDuplicate(stxn IsignedTxn) error {
+	return checkDuplicate(tp.Txns, stxn)
 }

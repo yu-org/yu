@@ -1,26 +1,15 @@
 package txpool
 
 import (
-	"yu/tripod"
+	. "yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
 
 type TxnCheck func(IsignedTxn) error
 
-func (tp *TxPool) withDefaultBaseChecks() *TxPool {
-	tp.BaseChecks = []TxnCheck{
-		tp.checkExecExist,
-		tp.checkPoolLimit,
-		tp.checkTxnSize,
-		tp.checkDuplicate,
-		tp.checkSignature,
-	}
-	return tp
-}
-
-func (tp *TxPool) BaseCheck(stxn IsignedTxn) error {
-	for _, check := range tp.BaseChecks {
+func BaseCheck(checks []TxnCheck, stxn IsignedTxn) error {
+	for _, check := range checks {
 		err := check(stxn)
 		if err != nil {
 			return err
@@ -29,28 +18,28 @@ func (tp *TxPool) BaseCheck(stxn IsignedTxn) error {
 	return nil
 }
 
-func (tp *TxPool) TripodsCheck(stxn IsignedTxn) error {
-	return tp.land.RangeList(func(tri tripod.Tripod) error {
+func TripodsCheck(land *Land, stxn IsignedTxn) error {
+	return land.RangeList(func(tri Tripod) error {
 		return tri.CheckTxn(stxn)
 	})
 }
 
 // check if tripod and execution exists
-func (tp *TxPool) checkExecExist(stxn IsignedTxn) error {
+func checkExecExist(land *Land, stxn IsignedTxn) error {
 	ecall := stxn.GetRaw().Ecall()
 	tripodName := ecall.TripodName
 	execName := ecall.ExecName
-	return tp.land.ExistExec(tripodName, execName)
+	return land.ExistExec(tripodName, execName)
 }
 
-func (tp *TxPool) checkPoolLimit(IsignedTxn) error {
-	if uint64(len(tp.Txns)) >= tp.poolSize {
+func checkPoolLimit(txnsInPool []IsignedTxn, poolsize uint64) error {
+	if uint64(len(txnsInPool)) >= poolsize {
 		return PoolOverflow
 	}
 	return nil
 }
 
-func (tp *TxPool) checkSignature(stxn IsignedTxn) error {
+func checkSignature(stxn IsignedTxn) error {
 	sig := stxn.GetSignature()
 	hash := stxn.GetTxnHash()
 	if !stxn.GetPubkey().VerifySignature(hash.Bytes(), sig) {
@@ -59,15 +48,15 @@ func (tp *TxPool) checkSignature(stxn IsignedTxn) error {
 	return nil
 }
 
-func (tp *TxPool) checkTxnSize(stxn IsignedTxn) error {
-	if stxn.Size() > tp.TxnMaxSize {
+func checkTxnSize(txnMaxSize int, stxn IsignedTxn) error {
+	if stxn.Size() > txnMaxSize {
 		return TxnTooLarge
 	}
 	return nil
 }
 
-func (tp *TxPool) checkDuplicate(stxn IsignedTxn) error {
-	if existTxn(stxn.GetTxnHash(), tp.Txns) {
+func checkDuplicate(txnsInPool []IsignedTxn, stxn IsignedTxn) error {
+	if existTxn(stxn.GetTxnHash(), txnsInPool) {
 		return TxnDuplicate
 	}
 	return nil
