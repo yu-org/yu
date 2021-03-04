@@ -2,10 +2,12 @@ package kv
 
 import (
 	. "yu/config"
+	"yu/storage"
 	. "yu/yerror"
 )
 
 type KV interface {
+	storage.StorageType
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, value []byte) error
 	Exist(key []byte) bool

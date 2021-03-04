@@ -1,6 +1,9 @@
 package kv
 
-import "github.com/dgraph-io/badger"
+import (
+	"github.com/dgraph-io/badger"
+	"yu/storage"
+)
 
 type badgerKV struct {
 	db *badger.DB
@@ -14,6 +17,14 @@ func NewBadger(path string) (*badgerKV, error) {
 	return &badgerKV{
 		db: db,
 	}, nil
+}
+
+func (*badgerKV) Type() storage.StoreType {
+	return storage.Embedded
+}
+
+func (*badgerKV) Kind() storage.StoreKind {
+	return storage.KV
 }
 
 func (bg *badgerKV) Get(key []byte) ([]byte, error) {

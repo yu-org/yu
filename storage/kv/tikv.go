@@ -4,6 +4,7 @@ import (
 	"github.com/pingcap/tidb/kv"
 	"github.com/pingcap/tidb/store/tikv"
 	goctx "golang.org/x/net/context"
+	"yu/storage"
 )
 
 type tiKV struct {
@@ -19,6 +20,14 @@ func NewTiKV(path string) (*tiKV, error) {
 	return &tiKV{
 		store: store,
 	}, nil
+}
+
+func (*tiKV) Type() storage.StoreType {
+	return storage.Server
+}
+
+func (*tiKV) Kind() storage.StoreKind {
+	return storage.KV
 }
 
 func (t *tiKV) Get(key []byte) ([]byte, error) {

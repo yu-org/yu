@@ -3,6 +3,7 @@ package kv
 import (
 	"bytes"
 	"go.etcd.io/bbolt"
+	"yu/storage"
 )
 
 type boltKV struct {
@@ -26,6 +27,14 @@ func NewBolt(fpath string) (*boltKV, error) {
 		return nil, err
 	}
 	return &boltKV{db: db}, nil
+}
+
+func (*boltKV) Type() storage.StoreType {
+	return storage.Embedded
+}
+
+func (*boltKV) Kind() storage.StoreKind {
+	return storage.KV
 }
 
 func (b *boltKV) Get(key []byte) ([]byte, error) {
