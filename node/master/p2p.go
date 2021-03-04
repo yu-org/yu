@@ -129,6 +129,7 @@ func (m *Master) handleTransferBody(byt []byte) error {
 	if m.RunMode == MasterWorker {
 		switch tbody.Type {
 		case BlockTransfer:
+			// todo: directly store into database
 			//workerIP, err := m.randomGetWorkerIP()
 			//if err != nil {
 			//	return err
@@ -137,7 +138,7 @@ func (m *Master) handleTransferBody(byt []byte) error {
 			//return err
 		case TxnsTransfer:
 			// todo: 1. forwards to workers to check txns
-			// todo: 2. receive the result of workers' checking and insert txpool
+			// todo: 2. receive the result of workers' checking and insert the database of txpool
 		}
 		return nil
 	}

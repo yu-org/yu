@@ -5,12 +5,13 @@ import (
 	"time"
 	. "yu/common"
 	"yu/config"
+	. "yu/storage/kv"
 	"yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
 
-type LocalTxPool struct {
+type ServerTxPool struct {
 	sync.RWMutex
 
 	poolSize    uint64
@@ -18,6 +19,7 @@ type LocalTxPool struct {
 	pendingTxns []IsignedTxn
 	Txns        []IsignedTxn
 	packagedIdx int
+	db          KV
 
 	// broadcast txns channel
 	BcTxnsChan chan IsignedTxn
@@ -32,13 +34,18 @@ type LocalTxPool struct {
 	land       *tripod.Land
 }
 
-func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
+func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*ServerTxPool, error) {
+	db, err := NewKV(&cfg.DB)
+	if err != nil {
+		return nil, err
+	}
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
-	return &LocalTxPool{
+	return &ServerTxPool{
 		poolSize:         cfg.PoolSize,
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
 		packagedIdx:      0,
+		db:               db,
 		BcTxnsChan:       make(chan IsignedTxn, 1024),
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
@@ -48,15 +55,15 @@ func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, er
 	}, nil
 }
 
-func LocalWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
-	tp, err := NewLocalTxPool(cfg, land)
+func ServerWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*ServerTxPool, error) {
+	tp, err := NewServerTxPool(cfg, land)
 	if err != nil {
 		return nil, err
 	}
 	return tp.withDefaultBaseChecks(), nil
 }
 
-func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
+func (tp *ServerTxPool) withDefaultBaseChecks() *ServerTxPool {
 	tp.BaseChecks = []TxnCheck{
 		tp.checkExecExist,
 		tp.checkPoolLimit,
@@ -67,38 +74,29 @@ func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
 	return tp
 }
 
-func (tp *LocalTxPool) PoolSize() uint64 {
+func (tp *ServerTxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
 
-func (tp *LocalTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
+func (tp *ServerTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	tp.BaseChecks = checkFns
 	return tp
 }
 
 // insert into txCache for pending
-func (tp *LocalTxPool) Insert(stxn IsignedTxn) (err error) {
-	err = tp.BaseCheck(stxn)
-	if err != nil {
-		return
-	}
-	err = tp.TripodsCheck(stxn)
-	if err != nil {
-		return
-	}
-
+func (tp *ServerTxPool) Insert(stxn IsignedTxn) (err error) {
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
 	return
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
+func (tp *ServerTxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
 	return tp.PackageFor(numLimit, func(IsignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *ServerTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]IsignedTxn, 0)
@@ -114,7 +112,7 @@ func (tp *LocalTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
+func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -146,12 +144,12 @@ func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 }
 
 // broadcast txn to p2p network
-func (tp *LocalTxPool) BroadcastTxn(stxn IsignedTxn) {
+func (tp *ServerTxPool) BroadcastTxn(stxn IsignedTxn) {
 	tp.BcTxnsChan <- stxn
 }
 
 // remove txns after execute all tripods
-func (tp *LocalTxPool) Remove() error {
+func (tp *ServerTxPool) Remove() error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0
@@ -159,45 +157,36 @@ func (tp *LocalTxPool) Remove() error {
 	return nil
 }
 
-func existTxn(hash Hash, txns []IsignedTxn) bool {
-	for _, txn := range txns {
-		if txn.GetTxnHash() == hash {
-			return true
-		}
-	}
-	return false
-}
-
 // --------- check txn ------
 
-func (tp *LocalTxPool) BaseCheck(stxn IsignedTxn) error {
+func (tp *ServerTxPool) BaseCheck(stxn IsignedTxn) error {
 	return BaseCheck(tp.BaseChecks, stxn)
 }
 
-func (tp *LocalTxPool) TripodsCheck(stxn IsignedTxn) error {
+func (tp *ServerTxPool) TripodsCheck(stxn IsignedTxn) error {
 	return TripodsCheck(tp.land, stxn)
 }
 
 // check if tripod and execution exists
-func (tp *LocalTxPool) checkExecExist(stxn IsignedTxn) error {
+func (tp *ServerTxPool) checkExecExist(stxn IsignedTxn) error {
 	return checkExecExist(tp.land, stxn)
 }
 
-func (tp *LocalTxPool) checkPoolLimit(IsignedTxn) error {
+func (tp *ServerTxPool) checkPoolLimit(IsignedTxn) error {
 	return checkPoolLimit(tp.Txns, tp.poolSize)
 }
 
-func (tp *LocalTxPool) checkSignature(stxn IsignedTxn) error {
+func (tp *ServerTxPool) checkSignature(stxn IsignedTxn) error {
 	return checkSignature(stxn)
 }
 
-func (tp *LocalTxPool) checkTxnSize(stxn IsignedTxn) error {
+func (tp *ServerTxPool) checkTxnSize(stxn IsignedTxn) error {
 	if stxn.Size() > tp.TxnMaxSize {
 		return TxnTooLarge
 	}
 	return checkTxnSize(tp.TxnMaxSize, stxn)
 }
 
-func (tp *LocalTxPool) checkDuplicate(stxn IsignedTxn) error {
+func (tp *ServerTxPool) checkDuplicate(stxn IsignedTxn) error {
 	return checkDuplicate(tp.Txns, stxn)
 }
