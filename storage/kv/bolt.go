@@ -53,6 +53,12 @@ func (b *boltKV) Set(key []byte, value []byte) error {
 	})
 }
 
+func (b *boltKV) Delete(key []byte) error {
+	return b.db.Update(func(tx *bbolt.Tx) error {
+		return tx.Bucket(bucket).Delete(key)
+	})
+}
+
 func (b *boltKV) Exist(key []byte) bool {
 	value, _ := b.Get(key)
 	return value != nil
@@ -115,6 +121,10 @@ func (bot *boltTxn) Get(key []byte) ([]byte, error) {
 
 func (bot *boltTxn) Set(key, value []byte) error {
 	return bot.tx.Bucket(bucket).Put(key, value)
+}
+
+func (bot *boltTxn) Delete(key []byte) error {
+	return bot.tx.Bucket(bucket).Delete(key)
 }
 
 func (bot *boltTxn) Commit() error {

@@ -49,6 +49,12 @@ func (bg *badgerKV) Set(key, value []byte) error {
 	})
 }
 
+func (bg *badgerKV) Delete(key []byte) error {
+	return bg.db.Update(func(txn *badger.Txn) error {
+		return txn.Delete(key)
+	})
+}
+
 func (bg *badgerKV) Exist(key []byte) bool {
 	value, _ := bg.Get(key)
 	return value != nil
@@ -122,6 +128,10 @@ func (bt *badgerTxn) Get(key []byte) ([]byte, error) {
 
 func (bt *badgerTxn) Set(key, value []byte) error {
 	return bt.tx.Set(key, value)
+}
+
+func (bt *badgerTxn) Delete(key []byte) error {
+	return bt.tx.Delete(key)
 }
 
 func (bt *badgerTxn) Commit() error {

@@ -50,6 +50,18 @@ func (t *tiKV) Set(key, value []byte) error {
 	return tx.Commit(goctx.Background())
 }
 
+func (t *tiKV) Delete(key []byte) error {
+	tx, err := t.store.Begin()
+	if err != nil {
+		return err
+	}
+	err = tx.Delete(key)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(goctx.Background())
+}
+
 func (t *tiKV) Exist(key []byte) bool {
 	value, _ := t.Get(key)
 	return value != nil
@@ -107,6 +119,10 @@ func (tt *tikvTxn) Get(key []byte) ([]byte, error) {
 
 func (tt *tikvTxn) Set(key, value []byte) error {
 	return tt.tx.Set(key, value)
+}
+
+func (tt *tikvTxn) Delete(key []byte) error {
+	return tt.tx.Delete(key)
 }
 
 func (tt *tikvTxn) Commit() error {

@@ -80,7 +80,14 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 			logrus.Errorf("Read data from P2P-network error: %s", err.Error())
 			continue
 		}
-		err = m.handleTransferBody(byt)
+
+		tbody, err := DecodeTb(byt)
+		if err != nil {
+			logrus.Errorf("decode data from P2P-network error: %s", err.Error())
+			continue
+		}
+
+		err = m.handleTransferBody(tbody)
 		if err != nil {
 			logrus.Errorf("handle transfer-body error：%s", err.Error())
 		}
@@ -119,11 +126,7 @@ func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 	}
 }
 
-func (m *Master) handleTransferBody(byt []byte) error {
-	tbody, err := DecodeTb(byt)
-	if err != nil {
-		return err
-	}
+func (m *Master) handleTransferBody(tbody *TransferBody) error {
 	if m.RunMode == MasterWorker {
 		switch tbody.Type {
 		case BlockTransfer:
@@ -135,11 +138,12 @@ func (m *Master) handleTransferBody(byt []byte) error {
 			//_, err = PostRequest(workerIP+BlockFromP2P, byt)
 			//return err
 		case TxnsTransfer:
-			err = m.forwardP2PTxns(tbody)
+			err := m.forwardP2PTxns(tbody)
 			if err != nil {
 				return err
 			}
 			// todo: 2. receive the result of workers' checking and insert the database of txpool
+
 		}
 		return nil
 	}

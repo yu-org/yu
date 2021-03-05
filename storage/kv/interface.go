@@ -10,6 +10,7 @@ type KV interface {
 	storage.StorageType
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, value []byte) error
+	Delete(key []byte) error
 	Exist(key []byte) bool
 	Iter(key []byte) (Iterator, error)
 	NewKvTxn() (KvTxn, error)
@@ -39,6 +40,7 @@ type Iterator interface {
 type KvTxn interface {
 	Get([]byte) ([]byte, error)
 	Set(key, value []byte) error
+	Delete(key []byte) error
 	Commit() error
 	Rollback() error
 }
