@@ -16,6 +16,8 @@ func (w *Worker) HandleHttp() {
 		logrus.Debugf("accept heartbeat from %s", c.ClientIP())
 	})
 
+	//------------- requests from client ----------------
+
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {
 		PutHttpInTxpool(c, w.txPool, w.readyBcTxnsChan)
@@ -46,6 +48,18 @@ func (w *Worker) HandleHttp() {
 	})
 	r.DELETE(QryApiPath, func(c *gin.Context) {
 		DoHttpQryCall(c, w.land)
+	})
+
+	//------------- requests from P2P network ---------------
+
+	// block from P2P
+	r.POST(BlockFromP2P, func(c *gin.Context) {
+
+	})
+
+	// txns from P2P
+	r.POST(TxnsFromP2P, func(c *gin.Context) {
+		w.CheckTxnsFromP2P(c)
 	})
 
 	r.Run(w.httpPort)

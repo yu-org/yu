@@ -2,13 +2,15 @@ package worker
 
 import (
 	"bytes"
+	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"net/http"
 	. "yu/blockchain"
 	"yu/config"
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/tripod"
-	"yu/txn"
+	. "yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
 )
@@ -21,10 +23,12 @@ type Worker struct {
 	chain          IBlockChain
 	txPool         ItxPool
 	land           *tripod.Land
-	metadb         kv.KV
 
+	metadb kv.KV
+
+	// FIXME: it should be a db server.
 	// ready to package a batch of txns to broadcast
-	readyBcTxnsChan chan txn.IsignedTxn
+	readyBcTxnsChan chan IsignedTxn
 	// number of broadcast txns every time
 	NumOfBcTxns int
 }
@@ -44,7 +48,7 @@ func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool ItxPool, land *
 		txPool:          txPool,
 		land:            land,
 		metadb:          metadb,
-		readyBcTxnsChan: make(chan txn.IsignedTxn),
+		readyBcTxnsChan: make(chan IsignedTxn),
 		NumOfBcTxns:     cfg.NumOfBcTxns,
 	}, nil
 
@@ -91,6 +95,33 @@ func (w *Worker) postToNk(path string, body []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func (w *Worker) Run() {
-
+func (w *Worker) CheckTxnsFromP2P(c *gin.Context) {
+	byt, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	tbody, err := DecodeTb(byt)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	var txns SignedTxns
+	err = tbody.DecodeBody(&txns)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	for _, txn := range txns {
+		err = w.txPool.BaseCheck(txn)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		err = w.txPool.TripodsCheck(txn)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+	}
 }
