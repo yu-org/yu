@@ -15,11 +15,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	. "yu/blockchain"
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
-	. "yu/txn"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -137,22 +135,23 @@ func (m *Master) handleTransferBody(byt []byte) error {
 			//_, err = PostRequest(workerIP+BlockFromP2P, byt)
 			//return err
 		case TxnsTransfer:
-			// todo: 1. forwards to workers to check txns
+			err = m.forwardP2PTxns(tbody)
+			if err != nil {
+				return err
+			}
 			// todo: 2. receive the result of workers' checking and insert the database of txpool
 		}
 		return nil
 	}
 	switch tbody.Type {
 	case BlockTransfer:
-		var block IBlock
-		err := tbody.DecodeBody(block)
+		block, err := tbody.DecodeBlockBody()
 		if err != nil {
 			return err
 		}
 		m.blocksFromNetChan <- block
 	case TxnsTransfer:
-		var txns SignedTxns
-		err := tbody.DecodeBody(&txns)
+		txns, err := tbody.DecodeTxnsBody()
 		if err != nil {
 			return err
 		}

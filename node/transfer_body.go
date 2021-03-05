@@ -55,3 +55,15 @@ func (tb *TransferBody) DecodeBody(v interface{}) error {
 	byt := []byte(tb.Body)
 	return json.Unmarshal(byt, v)
 }
+
+func (tb *TransferBody) DecodeBlockBody() (IBlock, error) {
+	var block IBlock
+	err := tb.DecodeBody(block)
+	return block, err
+}
+
+func (tb *TransferBody) DecodeTxnsBody() (SignedTxns, error) {
+	var txns SignedTxns
+	err := tb.DecodeBody(&txns)
+	return txns, err
+}

@@ -106,8 +106,7 @@ func (w *Worker) CheckTxnsFromP2P(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	var txns SignedTxns
-	err = tbody.DecodeBody(&txns)
+	txns, err := tbody.DecodeTxnsBody()
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

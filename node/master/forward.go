@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	. "yu/common"
 	. "yu/node"
+	. "yu/txn"
 )
 
 func (m *Master) forwardHttpCall(c *gin.Context, callType CallType) {
@@ -41,6 +42,43 @@ func (m *Master) forwardToWorker(ip string, rw http.ResponseWriter, req *http.Re
 	}
 	proxy := &httputil.ReverseProxy{Director: director}
 	proxy.ServeHTTP(rw, req)
+}
+
+func (m *Master) forwardP2PTxns(tbody *TransferBody) error {
+	txns, err := tbody.DecodeTxnsBody()
+	if err != nil {
+		return err
+	}
+	// key: workerIP
+	forwardMap := make(map[string]SignedTxns)
+	for _, txn := range txns {
+		ecall := txn.GetRaw().Ecall()
+		tripodName := ecall.TripodName
+		execName := ecall.ExecName
+		workerIP, err := m.findWorkerIP(tripodName, execName, ExecCall)
+		if err != nil {
+			return err
+		}
+		oldTxns := forwardMap[workerIP]
+		forwardMap[workerIP] = append(oldTxns, txn)
+	}
+
+	for workerIP, txns := range forwardMap {
+		newTbody, err := NewTxnsTransferBody(txns)
+		if err != nil {
+			return err
+		}
+		byt, err := newTbody.Encode()
+		if err != nil {
+			return err
+		}
+		_, err = PostRequest(workerIP+TxnsFromP2P, byt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func badReqErrStr(tripodName, callName string, err error) string {
