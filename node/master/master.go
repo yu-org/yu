@@ -39,15 +39,16 @@ type Master struct {
 
 	// blocks to broadcast into P2P network
 	blockBcChan chan TransferBody
+	// blocks from P2P network
+	blocksFromNetChan chan IBlock
 
 	// ready to package a batch of txns to broadcast
+	// readyBcTxnsChan -> txnsBcChan -> P2P network
 	readyBcTxnsChan chan IsignedTxn
 	// number of broadcast txns every time
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
 	txnsBcChan chan TransferBody
-	// blocks from P2P network
-	blocksFromNetChan chan IBlock
 }
 
 func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {

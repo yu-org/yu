@@ -71,9 +71,5 @@ func (ut *UnsignedTxn) Encode() ([]byte, error) {
 
 func (ut *UnsignedTxn) Decode(data []byte) error {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(ut)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Decode(ut)
 }

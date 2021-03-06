@@ -44,3 +44,9 @@ func (st *SignedTxn) Encode() ([]byte, error) {
 func (st *SignedTxn) Size() int {
 	return int(unsafe.Sizeof(st))
 }
+
+func DecodeSignedTxn(data []byte) (st IsignedTxn, err error) {
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err = decoder.Decode(st)
+	return
+}
