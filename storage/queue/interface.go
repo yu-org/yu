@@ -1,9 +1,27 @@
 package queue
 
-import "yu/storage"
+import (
+	"yu/config"
+	"yu/storage"
+	. "yu/yerror"
+)
 
 type Queue interface {
 	storage.StorageType
-	Push([]byte) error
-	Pop() ([]byte, error)
+	Push(topic string, msg interface{}) error
+	Pop(topic string) (interface{}, error)
+
+	// The type of msgChan must be chan!
+	PushAsync(topic string, msgChan interface{}) error
+	PopAsync(topic string, msgChan interface{}) error
+}
+
+func NewQueue(cfg *config.QueueConf) (Queue, error) {
+	switch cfg.QueueType {
+	case "nats":
+		return NewNatsQueue(cfg.Url, cfg.Encoder)
+
+	default:
+		return nil, NoQueueType
+	}
 }

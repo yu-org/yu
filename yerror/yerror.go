@@ -8,6 +8,7 @@ import (
 var TypeErr = errors.New("the type of params error")
 
 var NoKvdbType = errors.New("no kvdb type")
+var NoQueueType = errors.New("no queue type")
 
 var (
 	PoolOverflow    error = errors.New("pool size is full")

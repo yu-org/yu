@@ -13,6 +13,10 @@ func NewMemBlockChan(cap int) BlockChannel {
 	return &MemBlockChan{c: make(chan IBlock, cap)}
 }
 
+func (mbc *MemBlockChan) Channel() chan IBlock {
+	return mbc.c
+}
+
 func (mbc *MemBlockChan) Push(block IBlock) error {
 	mbc.c <- block
 	return nil
@@ -31,6 +35,10 @@ func NewDiskBlockChan(q Queue) BlockChannel {
 	return &DiskBlockChan{
 		q: q,
 	}
+}
+
+func (dbc *DiskBlockChan) Channel() chan IBlock {
+
 }
 
 func (dbc *DiskBlockChan) Push(block IBlock) error {

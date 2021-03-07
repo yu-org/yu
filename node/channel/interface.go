@@ -7,6 +7,7 @@ import (
 )
 
 type BlockChannel interface {
+	Channel() chan IBlock
 	Push(IBlock) error
 	Pop() (IBlock, error)
 }

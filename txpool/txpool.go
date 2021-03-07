@@ -22,8 +22,6 @@ type ItxPool interface {
 	PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error)
 	// get txn content of txn-hash from p2p network
 	SyncTxns([]Hash) error
-	// broadcast txns to p2p network
-	BroadcastTxn(IsignedTxn)
 	// remove txns after execute all tripods
 	Remove() error
 }

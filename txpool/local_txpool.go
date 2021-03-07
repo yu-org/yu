@@ -19,8 +19,6 @@ type LocalTxPool struct {
 	Txns        []IsignedTxn
 	packagedIdx int
 
-	// broadcast txns channel
-	BcTxnsChan chan IsignedTxn
 	// need to sync txns from p2p
 	ToSyncTxnsChan chan Hash
 	// accept the txn-content of txn-hash from p2p
@@ -39,7 +37,6 @@ func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, er
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
 		packagedIdx:      0,
-		BcTxnsChan:       make(chan IsignedTxn, 1024),
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
@@ -143,11 +140,6 @@ func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 	}
 
 	return nil
-}
-
-// broadcast txn to p2p network
-func (tp *LocalTxPool) BroadcastTxn(stxn IsignedTxn) {
-	tp.BcTxnsChan <- stxn
 }
 
 // remove txns after execute all tripods

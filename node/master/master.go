@@ -14,6 +14,7 @@ import (
 	. "yu/common"
 	. "yu/config"
 	. "yu/node"
+	. "yu/node/channel"
 	"yu/storage/kv"
 	"yu/tripod"
 	. "yu/txn"
@@ -38,17 +39,17 @@ type Master struct {
 	land   *tripod.Land
 
 	// blocks to broadcast into P2P network
-	blockBcChan chan TransferBody
+	blockBcChan TransferBodyChannel
 	// blocks from P2P network
-	blocksFromNetChan chan IBlock
+	blocksFromNetChan BlockChannel
 
 	// ready to package a batch of txns to broadcast
 	// readyBcTxnsChan -> txnsBcChan -> P2P network
-	readyBcTxnsChan chan IsignedTxn
+	readyBcTxnsChan TxnsChannel
 	// number of broadcast txns every time
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
-	txnsBcChan chan TransferBody
+	txnsBcChan TransferBodyChannel
 }
 
 func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {
@@ -65,20 +66,20 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost:           p2pHost,
-		RunMode:           cfg.RunMode,
-		nkDB:              nkDB,
-		timeout:           timeout,
-		ctx:               ctx,
-		httpPort:          MakePort(cfg.HttpPort),
-		wsPort:            MakePort(cfg.WsPort),
-		chain:             chain,
-		txPool:            txPool,
-		land:              land,
-		blockBcChan:       make(chan TransferBody),
-		txnsBcChan:        make(chan TransferBody),
-		NumOfBcTxns:       cfg.NumOfBcTxns,
-		blocksFromNetChan: make(chan IBlock),
+		p2pHost:  p2pHost,
+		RunMode:  cfg.RunMode,
+		nkDB:     nkDB,
+		timeout:  timeout,
+		ctx:      ctx,
+		httpPort: MakePort(cfg.HttpPort),
+		wsPort:   MakePort(cfg.WsPort),
+		chain:    chain,
+		txPool:   txPool,
+		land:     land,
+		//blockBcChan:       make(chan TransferBody),
+		//txnsBcChan:        make(chan TransferBody),
+		NumOfBcTxns: cfg.NumOfBcTxns,
+		//blocksFromNetChan: make(chan IBlock),
 	}, nil
 }
 

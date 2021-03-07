@@ -83,15 +83,6 @@ type TxpoolConf struct {
 	DB              KVconf `toml:"db"`
 }
 
-type KVconf struct {
-	// "bolt" "badger" "tikv"
-	KvType string `toml:"kv_type"`
-	// dbpath, such as boltdb, pebble
-	Path string `toml:"path"`
-	// distributed kvdb
-	Hosts []string `toml:"hosts"`
-}
-
 func LoadConf(fpath string, cfg interface{}) (err error) {
 	_, err = toml.DecodeFile(fpath, cfg)
 	return
