@@ -7,17 +7,22 @@ import (
 )
 
 type BlockChannel interface {
-	Channel() chan IBlock
-	Push(IBlock) error
-	Pop() (IBlock, error)
+	SendChan() chan<- IBlock
+	RecvChan() <-chan IBlock
 }
 
 type TxnsChannel interface {
-	Push(IsignedTxn) error
-	Pop(num int) (SignedTxns, error)
+	SendChan() chan<- IsignedTxn
+	RecvChan() <-chan IsignedTxn
 }
 
 type TransferBodyChannel interface {
-	Push(*TransferBody) error
-	Pop() (*TransferBody, error)
+	SendChan() chan<- *TransferBody
+	RecvChan() <-chan *TransferBody
 }
+
+const (
+	BlockTopic        = "block"
+	TxnsTopic         = "txns"
+	TransferBodyTopic = "transfer-body"
+)

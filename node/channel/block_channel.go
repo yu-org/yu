@@ -1,8 +1,10 @@
 package channel
 
 import (
+	"github.com/sirupsen/logrus"
 	. "yu/blockchain"
 	. "yu/storage/queue"
+	. "yu/utils/error_handle"
 )
 
 type MemBlockChan struct {
@@ -13,47 +15,37 @@ func NewMemBlockChan(cap int) BlockChannel {
 	return &MemBlockChan{c: make(chan IBlock, cap)}
 }
 
-func (mbc *MemBlockChan) Channel() chan IBlock {
+func (mbc *MemBlockChan) SendChan() chan<- IBlock {
 	return mbc.c
 }
 
-func (mbc *MemBlockChan) Push(block IBlock) error {
-	mbc.c <- block
-	return nil
-}
-
-func (mbc *MemBlockChan) Pop() (IBlock, error) {
-	block := <-mbc.c
-	return block, nil
+func (mbc *MemBlockChan) RecvChan() <-chan IBlock {
+	return mbc.c
 }
 
 type DiskBlockChan struct {
-	q Queue
+	snd  chan IBlock
+	recv chan IBlock
+	q    Queue
 }
 
-func NewDiskBlockChan(q Queue) BlockChannel {
+func NewDiskBlockChan(cap int, q Queue) BlockChannel {
+	snd := make(chan IBlock, cap)
+	recv := make(chan IBlock, cap)
+	go LogfIfErr(q.PushAsync(BlockTopic, snd), "push block into queue error: ")
+	go LogfIfErr(q.PopAsync(BlockTopic, recv), "pop block from queue error: ")
+
 	return &DiskBlockChan{
-		q: q,
+		snd:  snd,
+		recv: recv,
+		q:    q,
 	}
 }
 
-func (dbc *DiskBlockChan) Channel() chan IBlock {
-
+func (dbc *DiskBlockChan) SendChan() chan<- IBlock {
+	return dbc.snd
 }
 
-func (dbc *DiskBlockChan) Push(block IBlock) error {
-	byt, err := block.Encode()
-	if err != nil {
-		return err
-	}
-	return dbc.q.Push(byt)
-}
-
-func (dbc *DiskBlockChan) Pop() (IBlock, error) {
-	block := NewEmptyBlock()
-	byt, err := dbc.q.Pop()
-	if err != nil {
-		return nil, err
-	}
-	return block.Decode(byt)
+func (dbc *DiskBlockChan) RecvChan() <-chan IBlock {
+	return dbc.recv
 }

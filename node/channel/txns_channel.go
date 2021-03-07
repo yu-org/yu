@@ -3,6 +3,7 @@ package channel
 import (
 	. "yu/storage/queue"
 	. "yu/txn"
+	. "yu/utils/error_handle"
 )
 
 type MemTxnsChan struct {
@@ -10,53 +11,40 @@ type MemTxnsChan struct {
 }
 
 func NewMemTxnsChan(cap int) TxnsChannel {
-	return &MemTxnsChan{c: make(chan SignedTxns, cap)}
+	return &MemTxnsChan{c: make(chan IsignedTxn, cap)}
 }
 
-func (mtc *MemTxnsChan) Push(txn IsignedTxn) error {
-	mtc.c <- txn
-	return nil
+func (mtc *MemTxnsChan) SendChan() chan<- IsignedTxn {
+	return mtc.c
 }
 
-func (mtc *MemTxnsChan) Pop(num int) (SignedTxns, error) {
-	var txns SignedTxns
-	for i := 0; i < num; i++ {
-		txn := <-mtc.c
-		txns = append(txns, txn)
-	}
-	return txns, nil
+func (mtc *MemTxnsChan) RecvChan() <-chan IsignedTxn {
+	return mtc.c
 }
 
 type DiskTxnsChan struct {
-	q Queue
+	snd  chan IsignedTxn
+	recv chan IsignedTxn
+	q    Queue
 }
 
-func NewDiskTxnsChan(q Queue) TxnsChannel {
+func NewDiskTxnsChan(cap int, q Queue) TxnsChannel {
+	snd := make(chan IsignedTxn, cap)
+	recv := make(chan IsignedTxn, cap)
+	go LogfIfErr(q.PushAsync(TxnsTopic, snd), "push txns into queue error: ")
+	go LogfIfErr(q.PopAsync(TxnsTopic, recv), "pop txns from queue error: ")
+
 	return &DiskTxnsChan{
-		q: q,
+		snd:  snd,
+		recv: recv,
+		q:    q,
 	}
 }
 
-func (dtc *DiskTxnsChan) Push(txn IsignedTxn) error {
-	byt, err := txn.Encode()
-	if err != nil {
-		return err
-	}
-	return dtc.q.Push(byt)
+func (dtc *DiskTxnsChan) SendChan() chan<- IsignedTxn {
+	return dtc.snd
 }
 
-func (dtc *DiskTxnsChan) Pop(num int) (SignedTxns, error) {
-	var txns SignedTxns
-	for i := 0; i < num; i++ {
-		byt, err := dtc.q.Pop()
-		if err != nil {
-			return nil, err
-		}
-		txn, err := DecodeSignedTxn(byt)
-		if err != nil {
-			return nil, err
-		}
-		txns = append(txns, txn)
-	}
-	return txns, nil
+func (dtc *DiskTxnsChan) RecvChan() <-chan IsignedTxn {
+	return dtc.recv
 }

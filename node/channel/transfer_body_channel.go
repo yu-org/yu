@@ -3,6 +3,7 @@ package channel
 import (
 	. "yu/node"
 	. "yu/storage/queue"
+	. "yu/utils/error_handle"
 )
 
 type MemTbChan struct {
@@ -13,38 +14,37 @@ func NewMemTbChan(cap int) TransferBodyChannel {
 	return &MemTbChan{c: make(chan *TransferBody, cap)}
 }
 
-func (mtc *MemTbChan) Push(tb *TransferBody) error {
-	mtc.c <- tb
-	return nil
+func (mtc *MemTbChan) SendChan() chan<- *TransferBody {
+	return mtc.c
 }
 
-func (mtc *MemTbChan) Pop() (*TransferBody, error) {
-	tb := <-mtc.c
-	return tb, nil
+func (mtc *MemTbChan) RecvChan() <-chan *TransferBody {
+	return mtc.c
 }
 
 type DiskTbChan struct {
-	q Queue
+	snd  chan *TransferBody
+	recv chan *TransferBody
+	q    Queue
 }
 
-func NewDiskTbChan(q Queue) TransferBodyChannel {
+func NewDiskTbChan(cap int, q Queue) TransferBodyChannel {
+	snd := make(chan *TransferBody, cap)
+	recv := make(chan *TransferBody, cap)
+	go LogfIfErr(q.PushAsync(TransferBodyTopic, snd), "push TransferBody into queue error: ")
+	go LogfIfErr(q.PopAsync(TransferBodyTopic, recv), "pop TransferBody from queue error: ")
+
 	return &DiskTbChan{
-		q: q,
+		snd:  snd,
+		recv: recv,
+		q:    q,
 	}
 }
 
-func (dtc *DiskTbChan) Push(tb *TransferBody) error {
-	byt, err := tb.Encode()
-	if err != nil {
-		return err
-	}
-	return dtc.q.Push(byt)
+func (dtc *DiskTbChan) SendChan() chan<- *TransferBody {
+	return dtc.snd
 }
 
-func (dtc *DiskTbChan) Pop() (*TransferBody, error) {
-	byt, err := dtc.q.Pop()
-	if err != nil {
-		return nil, err
-	}
-	return DecodeTb(byt)
+func (dtc *DiskTbChan) RecvChan() <-chan *TransferBody {
+	return dtc.recv
 }
