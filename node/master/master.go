@@ -49,7 +49,7 @@ type Master struct {
 	// number of broadcast txns every time
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
-	txnsBcChan TransferBodyChannel
+	txnsBcChan chan *TransferBody
 }
 
 func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {

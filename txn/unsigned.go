@@ -15,7 +15,7 @@ type UnsignedTxn struct {
 	timestamp int64
 }
 
-func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
+func NewUnsignedTxn(caller Address, ecall *Ecall) (IunsignedTxn, error) {
 	UnsignedTxn := &UnsignedTxn{
 		caller:    caller,
 		ecall:     ecall,

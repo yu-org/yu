@@ -2,14 +2,35 @@ package keypair
 
 import (
 	"yu/common"
+	. "yu/yerror"
 )
 
-func GenKeyPair(keyType string) (PubKey, PrivKey) {
+const (
+	Sr25519 = "sr25519"
+	Ed25519 = "ed25519"
+)
+
+func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	switch keyType {
-	case "sr25519":
-		return genSr25519()
+	case Sr25519:
+		pub, priv := genSr25519()
+		return pub, priv, nil
+	case Ed25519:
+		pub, priv := genEd25519()
+		return pub, priv, nil
 	default:
-		return genEd25519()
+		return nil, nil, NoKeyType
+	}
+}
+
+func PubKeyFromBytes(keyType string, data []byte) (PubKey, error) {
+	switch keyType {
+	case Sr25519:
+		return srPubKeyFromBytes(data), nil
+	case Ed25519:
+		return edPubKeyFromBytes(data), nil
+	default:
+		return nil, NoKeyType
 	}
 }
 

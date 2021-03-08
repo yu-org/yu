@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 	. "yu/common"
+	"yu/keypair"
 )
 
 const (
@@ -28,6 +29,9 @@ const (
 	CallNameKey   = "call_name"
 	AddressKey    = "address"
 	BlockNumKey   = "block_num"
+	KeyTypeKey    = "key_type"
+	PubkeyKey     = "pubkey"
+	SignatureKey  = "signature"
 )
 
 var (
@@ -49,4 +53,15 @@ func GetAddress(req *http.Request) Address {
 func GetBlockNumber(req *http.Request) (BlockNum, error) {
 	bnstr := req.URL.Query().Get(BlockNumKey)
 	return StrToBlockNum(bnstr)
+}
+
+func GetPubkeyAndSignature(req *http.Request) (keypair.PubKey, []byte, error) {
+	keyType := req.URL.Query().Get(KeyTypeKey)
+	pubkeyStr := req.URL.Query().Get(PubkeyKey)
+	pubkey, err := keypair.PubKeyFromBytes(keyType, []byte(pubkeyStr))
+	if err != nil {
+		return nil, nil, err
+	}
+	signatureStr := req.URL.Query().Get(SignatureKey)
+	return pubkey, []byte(signatureStr), nil
 }

@@ -11,6 +11,10 @@ type EdPubkey struct {
 	pubkey ed25519.PubKey
 }
 
+func edPubKeyFromBytes(data []byte) *EdPubkey {
+	return &EdPubkey{pubkey: data}
+}
+
 func (epb *EdPubkey) Address() Address {
 	addressByt := epb.pubkey.Address().Bytes()
 	return BytesToAddress(addressByt)

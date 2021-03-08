@@ -7,6 +7,7 @@ import (
 
 var TypeErr = errors.New("the type of params error")
 
+var NoKeyType = errors.New("no key type")
 var NoKvdbType = errors.New("no kvdb type")
 var NoQueueType = errors.New("no queue type")
 

@@ -19,23 +19,23 @@ type TransferBody struct {
 	Body JsonString `json:"body"`
 }
 
-func NewBlockTransferBody(block IBlock) (TransferBody, error) {
+func NewBlockTransferBody(block IBlock) (*TransferBody, error) {
 	byt, err := block.Encode()
 	if err != nil {
-		return TransferBody{}, err
+		return nil, err
 	}
-	return TransferBody{
+	return &TransferBody{
 		Type: BlockTransfer,
 		Body: JsonString(byt),
 	}, nil
 }
 
-func NewTxnsTransferBody(txns SignedTxns) (TransferBody, error) {
+func NewTxnsTransferBody(txns SignedTxns) (*TransferBody, error) {
 	byt, err := txns.Encode()
 	if err != nil {
-		return TransferBody{}, err
+		return nil, err
 	}
-	return TransferBody{
+	return &TransferBody{
 		Type: TxnsTransfer,
 		Body: JsonString(byt),
 	}, nil

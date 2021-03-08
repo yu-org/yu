@@ -11,6 +11,10 @@ type SrPubkey struct {
 	pubkey sr25519.PubKey
 }
 
+func srPubKeyFromBytes(data []byte) *SrPubkey {
+	return &SrPubkey{pubkey: data}
+}
+
 func (spb *SrPubkey) Address() Address {
 	addressByt := spb.pubkey.Address().Bytes()
 	return BytesToAddress(addressByt)

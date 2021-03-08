@@ -17,11 +17,11 @@ func putTxpool(req *http.Request, params JsonString, txpool ItxPool, broadcastCh
 		Params:     params,
 	}
 	caller := GetAddress(req)
-	utxn, err := txn.NewUnsignedTxn(caller, ecall)
+	pubkey, sig, err := GetPubkeyAndSignature(req)
 	if err != nil {
 		return err
 	}
-	stxn, err := utxn.ToSignedTxn()
+	stxn, err := txn.NewSignedTxn(caller, ecall, pubkey, sig)
 	if err != nil {
 		return err
 	}
@@ -29,8 +29,10 @@ func putTxpool(req *http.Request, params JsonString, txpool ItxPool, broadcastCh
 	if err != nil {
 		return err
 	}
+	if broadcastChan != nil {
+		broadcastChan <- stxn
+	}
 
-	broadcastChan <- stxn
 	return nil
 }
 

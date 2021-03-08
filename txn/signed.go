@@ -9,10 +9,27 @@ import (
 )
 
 type SignedTxn struct {
-	Raw       *UnsignedTxn
+	Raw       IunsignedTxn
 	TxnHash   Hash
 	Pubkey    PubKey
 	Signature []byte
+}
+
+func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (IsignedTxn, error) {
+	raw, err := NewUnsignedTxn(caller, ecall)
+	if err != nil {
+		return nil, err
+	}
+	hash, err := raw.Hash()
+	if err != nil {
+		return nil, err
+	}
+	return &SignedTxn{
+		Raw:       raw,
+		TxnHash:   hash,
+		Pubkey:    pubkey,
+		Signature: sig,
+	}, nil
 }
 
 func (st *SignedTxn) GetRaw() IunsignedTxn {
