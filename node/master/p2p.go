@@ -98,7 +98,7 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 	for {
 		select {
-		case blocksBody := <-m.blockBcChan:
+		case blocksBody := <-m.blockBcChan.RecvChan():
 			byt, err := blocksBody.Encode()
 			if err != nil {
 				logrus.Errorf("encode block-body error: %s", err.Error())
@@ -127,34 +127,23 @@ func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 }
 
 func (m *Master) handleTransferBody(tbody *TransferBody) error {
-	if m.RunMode == MasterWorker {
-		switch tbody.Type {
-		case BlockTransfer:
-			// todo: directly store into database
-			//workerIP, err := m.randomGetWorkerIP()
-			//if err != nil {
-			//	return err
-			//}
-			//_, err = PostRequest(workerIP+BlockFromP2P, byt)
-			//return err
-		case TxnsTransfer:
-			err := m.forwardP2PTxns(tbody)
+	switch tbody.Type {
+	case BlockTransfer:
+		// todo: directly store into database
+		//workerIP, err := m.randomGetWorkerIP()
+		//if err != nil {
+		//	return err
+		//}
+		//_, err = PostRequest(workerIP+BlockFromP2P, byt)
+		//return err
+	case TxnsTransfer:
+		if m.RunMode == MasterWorker {
+			err := m.forwardTxns(tbody, CheckTxnsPath)
 			if err != nil {
 				return err
 			}
-			// todo: 2. receive the result of workers' checking and insert the database of txpool
+		}
 
-		}
-		return nil
-	}
-	switch tbody.Type {
-	case BlockTransfer:
-		block, err := tbody.DecodeBlockBody()
-		if err != nil {
-			return err
-		}
-		m.blocksFromNetChan <- block
-	case TxnsTransfer:
 		txns, err := tbody.DecodeTxnsBody()
 		if err != nil {
 			return err
@@ -167,4 +156,12 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		}
 	}
 	return nil
+
+	//switch tbody.Type {
+	//case BlockTransfer:
+	//	block, err := tbody.DecodeBlockBody()
+	//	if err != nil {
+	//		return err
+	//	}
+	//	m.blocksFromNetChan <- block
 }

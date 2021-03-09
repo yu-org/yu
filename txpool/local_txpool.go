@@ -128,7 +128,7 @@ func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 	for len(hashesMap) > 0 {
 		select {
 		case stxn := <-tp.WaitSyncTxnsChan:
-			txnHash := stxn.GetRaw().ID()
+			txnHash := stxn.GetTxnHash()
 			delete(hashesMap, txnHash)
 			err := tp.Insert(stxn)
 			if err != nil {

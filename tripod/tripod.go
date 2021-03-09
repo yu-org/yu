@@ -19,8 +19,6 @@ type Tripod interface {
 
 	StartBlock(IBlockChain, IBlock, txpool.ItxPool) error
 
-	// DO Tripod Execution
-
 	EndBlock(IBlock) error
 
 	FinalizeBlock(IBlockChain, IBlock) error

@@ -21,6 +21,9 @@ const (
 	// Master forwards this request to Worker.
 	TxnsFromP2P = "/p2p/txns"
 
+	CheckTxnsPath   = "/txns/check"
+	ExecuteTxnsPath = "/txns/execute"
+
 	// For developers, every customized Execution and Query of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"

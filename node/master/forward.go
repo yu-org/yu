@@ -44,7 +44,7 @@ func (m *Master) forwardToWorker(ip string, rw http.ResponseWriter, req *http.Re
 	proxy.ServeHTTP(rw, req)
 }
 
-func (m *Master) forwardP2PTxns(tbody *TransferBody) error {
+func (m *Master) forwardTxns(tbody *TransferBody, urlPath string) error {
 	txns, err := tbody.DecodeTxnsBody()
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (m *Master) forwardP2PTxns(tbody *TransferBody) error {
 		if err != nil {
 			return err
 		}
-		_, err = PostRequest(workerIP+TxnsFromP2P, byt)
+		_, err = PostRequest(workerIP+urlPath, byt)
 		if err != nil {
 			return err
 		}
