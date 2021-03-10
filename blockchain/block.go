@@ -52,7 +52,7 @@ func (b *Block) SetBlockNumber(num BlockNum) {
 }
 
 func (b *Block) BlockId() BlockId {
-	return NewBlockId(b.header.BlockNumber(), b.header.TxnRoot())
+	return NewBlockId(b.header.BlockNumber(), b.header.Hash())
 }
 
 func (b *Block) SetStateRoot(hash Hash) {

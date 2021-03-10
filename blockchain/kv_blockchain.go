@@ -60,7 +60,7 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		if block.PrevHash() == prevHash {
+		if block.Header().PrevHash() == prevHash {
 			blocks = append(blocks, block)
 		}
 

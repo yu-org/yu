@@ -16,7 +16,7 @@ import (
 	. "yu/node"
 	. "yu/node/channel"
 	"yu/storage/kv"
-	"yu/tripod"
+	. "yu/tripod"
 	. "yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
@@ -36,7 +36,7 @@ type Master struct {
 
 	chain  IBlockChain
 	txPool ItxPool
-	land   *tripod.Land
+	land   *Land
 
 	// blocks to broadcast into P2P network
 	blockBcChan TransferBodyChannel
@@ -52,7 +52,7 @@ type Master struct {
 	txnsBcChan chan *TransferBody
 }
 
-func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Master, error) {
+func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *Land) (*Master, error) {
 	nkDB, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err

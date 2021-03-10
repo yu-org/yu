@@ -15,11 +15,17 @@ const (
 
 	// Worker accept block from p2p network.
 	// Master forwards this request to Worker.
+	// Deprecated
 	BlockFromP2P = "/p2p/block"
 
 	// Worker accept txns from p2p network.
 	// Master forwards this request to Worker.
+	// Deprecated
 	TxnsFromP2P = "/p2p/txns"
+
+	StartBlockPath    = "/block/start"
+	EndBlockPath      = "/block/end"
+	FinalizeBlockPath = "/block/finalize"
 
 	CheckTxnsPath   = "/txns/check"
 	ExecuteTxnsPath = "/txns/execute"
