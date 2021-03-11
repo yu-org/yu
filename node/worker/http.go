@@ -50,6 +50,23 @@ func (w *Worker) HandleHttp() {
 		DoHttpQryCall(c, w.land)
 	})
 
+	// ------------ Process Block ---------------
+	r.GET(StartBlockPath, func(c *gin.Context) {
+
+	})
+
+	r.GET(EndBlockPath, func(c *gin.Context) {
+
+	})
+
+	r.GET(ExecuteTxnsPath, func(c *gin.Context) {
+
+	})
+
+	r.GET(FinalizeBlockPath, func(c *gin.Context) {
+
+	})
+
 	//------------- requests from P2P network ---------------
 
 	// block from P2P

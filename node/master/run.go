@@ -36,6 +36,8 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
+	// todo: execute txns
+
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
 		return tri.FinalizeBlock(m.chain, newBlock)
@@ -48,20 +50,25 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = nortifyWorkerForBlock(workersIps, StartBlockPath)
+	err = nortifyWorker(workersIps, StartBlockPath)
 	if err != nil {
 		return err
 	}
 
-	err = nortifyWorkerForBlock(workersIps, EndBlockPath)
+	err = nortifyWorker(workersIps, EndBlockPath)
 	if err != nil {
 		return err
 	}
 
-	return nortifyWorkerForBlock(workersIps, FinalizeBlockPath)
+	err = nortifyWorker(workersIps, ExecuteTxnsPath)
+	if err != nil {
+		return err
+	}
+
+	return nortifyWorker(workersIps, FinalizeBlockPath)
 }
 
-func nortifyWorkerForBlock(workersIps []string, path string) error {
+func nortifyWorker(workersIps []string, path string) error {
 	for _, ip := range workersIps {
 		_, err := http.Get(ip + path)
 		if err != nil {

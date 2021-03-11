@@ -44,7 +44,7 @@ func (m *Master) forwardToWorker(ip string, rw http.ResponseWriter, req *http.Re
 	proxy.ServeHTTP(rw, req)
 }
 
-func (m *Master) forwardTxns(tbody *TransferBody, urlPath string) error {
+func (m *Master) forwardTxnsForCheck(tbody *TransferBody) error {
 	txns, err := tbody.DecodeTxnsBody()
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (m *Master) forwardTxns(tbody *TransferBody, urlPath string) error {
 		if err != nil {
 			return err
 		}
-		_, err = PostRequest(workerIP+urlPath, byt)
+		_, err = PostRequest(workerIP+CheckTxnsPath, byt)
 		if err != nil {
 			return err
 		}

@@ -98,7 +98,7 @@ func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
 func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 	for {
 		select {
-		case blocksBody := <-m.blockBcChan.RecvChan():
+		case blocksBody := <-m.blockBcChan:
 			byt, err := blocksBody.Encode()
 			if err != nil {
 				logrus.Errorf("encode block-body error: %s", err.Error())
@@ -138,7 +138,7 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		//return err
 	case TxnsTransfer:
 		if m.RunMode == MasterWorker {
-			err := m.forwardTxns(tbody, CheckTxnsPath)
+			err := m.forwardTxnsForCheck(tbody)
 			if err != nil {
 				return err
 			}

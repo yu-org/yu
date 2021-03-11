@@ -39,13 +39,13 @@ type Master struct {
 	land   *Land
 
 	// blocks to broadcast into P2P network
-	blockBcChan TransferBodyChannel
+	blockBcChan chan *TransferBody
 	// blocks from P2P network
-	blocksFromNetChan BlockChannel
+	// blocksFromNetChan BlockChannel
 
 	// ready to package a batch of txns to broadcast
 	// readyBcTxnsChan -> txnsBcChan -> P2P network
-	readyBcTxnsChan TxnsChannel
+	readyBcTxnsChan chan IsignedTxn
 	// number of broadcast txns every time
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
@@ -66,20 +66,21 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *Land) (
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost:  p2pHost,
-		RunMode:  cfg.RunMode,
-		nkDB:     nkDB,
-		timeout:  timeout,
-		ctx:      ctx,
-		httpPort: MakePort(cfg.HttpPort),
-		wsPort:   MakePort(cfg.WsPort),
-		chain:    chain,
-		txPool:   txPool,
-		land:     land,
-		//blockBcChan:       make(chan TransferBody),
-		//txnsBcChan:        make(chan TransferBody),
-		NumOfBcTxns: cfg.NumOfBcTxns,
+		p2pHost:     p2pHost,
+		RunMode:     cfg.RunMode,
+		nkDB:        nkDB,
+		timeout:     timeout,
+		ctx:         ctx,
+		httpPort:    MakePort(cfg.HttpPort),
+		wsPort:      MakePort(cfg.WsPort),
+		chain:       chain,
+		txPool:      txPool,
+		land:        land,
+		blockBcChan: make(chan TransferBody),
 		//blocksFromNetChan: make(chan IBlock),
+		readyBcTxnsChan: make(chan IsignedTxn),
+		txnsBcChan:      make(chan *TransferBody),
+		NumOfBcTxns:     cfg.NumOfBcTxns,
 	}, nil
 }
 
