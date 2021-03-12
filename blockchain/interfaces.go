@@ -33,6 +33,11 @@ type IHeader interface {
 }
 
 type IBlockChain interface {
+	// pending a block for validating
+	PendBlock(b IBlock) error
+	// pop a pending block
+	PopBlock() (IBlock, error)
+
 	AppendBlock(b IBlock) error
 	GetBlock(id BlockId) (IBlock, error)
 	Children(id BlockId) ([]IBlock, error)

@@ -3,25 +3,45 @@ package blockchain
 import (
 	"github.com/sirupsen/logrus"
 	. "yu/common"
-	"yu/config"
+	. "yu/config"
 	"yu/storage/kv"
+	"yu/storage/queue"
 )
 
 // the Key Name of last finalized blockID
 var LastFinalizedKey = []byte("Last-Finalized-BlockID")
+var PendingBlocksTopic = "pending-blocks"
 
 type BlockChain struct {
-	kvdb kv.KV
+	chain         kv.KV
+	pendingBlocks queue.Queue
 }
 
-func NewBlockChain(kvCfg *config.KVconf) *BlockChain {
+func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
-		logrus.Panicln("cannot load kvdb")
+		logrus.Panicln("cannot load chain")
+	}
+	q, err := queue.NewQueue(queueCfg)
+	if err != nil {
+		logrus.Panicln("cannot load pending-blocks")
 	}
 	return &BlockChain{
-		kvdb: kvdb,
+		chain:         kvdb,
+		pendingBlocks: q,
 	}
+}
+
+func (bc *BlockChain) PendBlock(ib IBlock) error {
+	return bc.pendingBlocks.Push(PendingBlocksTopic, ib)
+}
+
+func (bc *BlockChain) PopBlock() (IBlock, error) {
+	blockByt, err := bc.pendingBlocks.Pop(PendingBlocksTopic)
+	if err != nil {
+		return nil, err
+	}
+	return NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) AppendBlock(ib IBlock) error {
@@ -31,11 +51,11 @@ func (bc *BlockChain) AppendBlock(ib IBlock) error {
 	if err != nil {
 		return err
 	}
-	return bc.kvdb.Set(blockId, blockByt)
+	return bc.chain.Set(blockId, blockByt)
 }
 
 func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
-	blockByt, err := bc.kvdb.Get(id.Bytes())
+	blockByt, err := bc.chain.Get(id.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +65,7 @@ func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
 func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 	prevBlockNum, prevHash := prevId.Separate()
 	blockNum := prevBlockNum + 1
-	iter, err := bc.kvdb.Iter(blockNum.Bytes())
+	iter, err := bc.chain.Iter(blockNum.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -73,15 +93,15 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 }
 
 func (bc *BlockChain) Finalize(id BlockId) error {
-	return bc.kvdb.Set(LastFinalizedKey, id.Bytes())
+	return bc.chain.Set(LastFinalizedKey, id.Bytes())
 }
 
 func (bc *BlockChain) LastFinalized() (IBlock, error) {
-	lfBlockIdByt, err := bc.kvdb.Get(LastFinalizedKey)
+	lfBlockIdByt, err := bc.chain.Get(LastFinalizedKey)
 	if err != nil {
 		return nil, err
 	}
-	blockByt, err := bc.kvdb.Get(lfBlockIdByt)
+	blockByt, err := bc.chain.Get(lfBlockIdByt)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +109,7 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 }
 
 func (bc *BlockChain) Leaves() ([]IBlock, error) {
-	iter, err := bc.kvdb.Iter(BlockNum(0).Bytes())
+	iter, err := bc.chain.Iter(BlockNum(0).Bytes())
 	if err != nil {
 		return nil, err
 	}

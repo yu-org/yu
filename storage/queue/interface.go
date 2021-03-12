@@ -8,8 +8,8 @@ import (
 
 type Queue interface {
 	storage.StorageType
-	Push(topic string, msg interface{}) error
-	Pop(topic string) (interface{}, error)
+	Push(topic string, msg []byte) error
+	Pop(topic string) ([]byte, error)
 
 	// The type of msgChan must be chan!
 	PushAsync(topic string, msgChan interface{}) error
