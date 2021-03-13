@@ -6,6 +6,7 @@ import (
 	. "yu/common"
 	. "yu/node"
 	. "yu/node/handle"
+	. "yu/utils/error_handle"
 )
 
 func (m *Master) HandleWS() {
@@ -14,7 +15,7 @@ func (m *Master) HandleWS() {
 		case LocalNode:
 			PutWsInTxpool(w, req, m.txPool, m.readyBcTxnsChan)
 		case MasterWorker:
-			m.forwardWsCall(w, req, ExecCall)
+			m.handleWsCall(w, req, ExecCall)
 		}
 	})
 
@@ -23,9 +24,23 @@ func (m *Master) HandleWS() {
 		case LocalNode:
 			DoWsQryCall(w, req, m.land)
 		case MasterWorker:
-			m.forwardWsCall(w, req, QryCall)
+			m.handleWsCall(w, req, QryCall)
 		}
 	})
 
 	logrus.Panic(http.ListenAndServe(m.wsPort, nil))
+}
+
+func (m *Master) handleWsCall(w http.ResponseWriter, req *http.Request, callType CallType) {
+	tripodName, callName := GetTripodCallName(req)
+	ip, err := m.findWorkerIP(tripodName, callName, callType)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(BadReqErrStr(tripodName, callName, err)))
+		return
+	}
+	if callType == ExecCall {
+		PutWsInTxpool(w, req, m.txPool, m.readyBcTxnsChan)
+	}
+	w.WriteHeader(http.StatusOK)
 }

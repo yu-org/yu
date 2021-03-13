@@ -1,7 +1,6 @@
 package channel
 
 import (
-	"github.com/sirupsen/logrus"
 	. "yu/blockchain"
 	. "yu/storage/queue"
 	. "yu/utils/error_handle"

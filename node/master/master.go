@@ -14,7 +14,6 @@ import (
 	. "yu/common"
 	. "yu/config"
 	. "yu/node"
-	. "yu/node/channel"
 	"yu/storage/kv"
 	. "yu/tripod"
 	. "yu/txn"
@@ -40,8 +39,6 @@ type Master struct {
 
 	// blocks to broadcast into P2P network
 	blockBcChan chan *TransferBody
-	// blocks from P2P network
-	// blocksFromNetChan BlockChannel
 
 	// ready to package a batch of txns to broadcast
 	// readyBcTxnsChan -> txnsBcChan -> P2P network
@@ -66,18 +63,17 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *Land) (
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	return &Master{
-		p2pHost:     p2pHost,
-		RunMode:     cfg.RunMode,
-		nkDB:        nkDB,
-		timeout:     timeout,
-		ctx:         ctx,
-		httpPort:    MakePort(cfg.HttpPort),
-		wsPort:      MakePort(cfg.WsPort),
-		chain:       chain,
-		txPool:      txPool,
-		land:        land,
-		blockBcChan: make(chan TransferBody),
-		//blocksFromNetChan: make(chan IBlock),
+		p2pHost:         p2pHost,
+		RunMode:         cfg.RunMode,
+		nkDB:            nkDB,
+		timeout:         timeout,
+		ctx:             ctx,
+		httpPort:        MakePort(cfg.HttpPort),
+		wsPort:          MakePort(cfg.WsPort),
+		chain:           chain,
+		txPool:          txPool,
+		land:            land,
+		blockBcChan:     make(chan *TransferBody),
 		readyBcTxnsChan: make(chan IsignedTxn),
 		txnsBcChan:      make(chan *TransferBody),
 		NumOfBcTxns:     cfg.NumOfBcTxns,

@@ -33,7 +33,11 @@ func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
 }
 
 func (bc *BlockChain) PendBlock(ib IBlock) error {
-	return bc.pendingBlocks.Push(PendingBlocksTopic, ib)
+	blockByt, err := ib.Encode()
+	if err != nil {
+		return err
+	}
+	return bc.pendingBlocks.Push(PendingBlocksTopic, blockByt)
 }
 
 func (bc *BlockChain) PopBlock() (IBlock, error) {

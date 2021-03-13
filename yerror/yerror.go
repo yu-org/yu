@@ -11,6 +11,7 @@ var NoRunMode = errors.New("no run mode")
 var NoKeyType = errors.New("no key type")
 var NoKvdbType = errors.New("no kvdb type")
 var NoQueueType = errors.New("no queue type")
+var NoTransferBodyType = errors.New("no transfer-body type")
 
 var (
 	PoolOverflow    error = errors.New("pool size is full")

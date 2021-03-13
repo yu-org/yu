@@ -18,6 +18,8 @@ import (
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
+	. "yu/txn"
+	"yu/yerror"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -129,13 +131,11 @@ func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
 func (m *Master) handleTransferBody(tbody *TransferBody) error {
 	switch tbody.Type {
 	case BlockTransfer:
-		// todo: directly store into database
-		//workerIP, err := m.randomGetWorkerIP()
-		//if err != nil {
-		//	return err
-		//}
-		//_, err = PostRequest(workerIP+BlockFromP2P, byt)
-		//return err
+		block, err := tbody.DecodeBlockBody()
+		if err != nil {
+			return err
+		}
+		return m.chain.PendBlock(block)
 	case TxnsTransfer:
 		if m.RunMode == MasterWorker {
 			err := m.forwardTxnsForCheck(tbody)
@@ -154,14 +154,45 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 				return err
 			}
 		}
+		return nil
+	default:
+		return yerror.NoTransferBodyType
 	}
-	return nil
+}
 
-	//switch tbody.Type {
-	//case BlockTransfer:
-	//	block, err := tbody.DecodeBlockBody()
-	//	if err != nil {
-	//		return err
-	//	}
-	//	m.blocksFromNetChan <- block
+func (m *Master) forwardTxnsForCheck(tbody *TransferBody) error {
+	txns, err := tbody.DecodeTxnsBody()
+	if err != nil {
+		return err
+	}
+	// key: workerIP
+	forwardMap := make(map[string]SignedTxns)
+	for _, txn := range txns {
+		ecall := txn.GetRaw().Ecall()
+		tripodName := ecall.TripodName
+		execName := ecall.ExecName
+		workerIP, err := m.findWorkerIP(tripodName, execName, ExecCall)
+		if err != nil {
+			return err
+		}
+		oldTxns := forwardMap[workerIP]
+		forwardMap[workerIP] = append(oldTxns, txn)
+	}
+
+	for workerIP, txns := range forwardMap {
+		newTbody, err := NewTxnsTransferBody(txns)
+		if err != nil {
+			return err
+		}
+		byt, err := newTbody.Encode()
+		if err != nil {
+			return err
+		}
+		_, err = PostRequest(workerIP+CheckTxnsPath, byt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
