@@ -74,7 +74,7 @@ func (tp *LocalTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txCache for pending
-func (tp *LocalTxPool) Insert(stxn IsignedTxn) (err error) {
+func (tp *LocalTxPool) Insert(_ string, stxn IsignedTxn) (err error) {
 	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return
@@ -130,7 +130,7 @@ func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 		case stxn := <-tp.WaitSyncTxnsChan:
 			txnHash := stxn.GetTxnHash()
 			delete(hashesMap, txnHash)
-			err := tp.Insert(stxn)
+			err := tp.Insert("", stxn)
 			if err != nil {
 				return err
 			}

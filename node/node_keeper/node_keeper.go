@@ -118,22 +118,15 @@ func (n *NodeKeeper) CheckHealth() {
 		if err != nil {
 			logrus.Errorf("get all Workers error: %s", err.Error())
 		} else {
-			SendHeartbeats(wAddrs, func(addr string) error {
-				tx, err := n.workerDB.NewKvTxn()
-				if err != nil {
-					return err
-				}
-				workerInfo, err := getWorkerWithTx(tx, addr)
-				if err != nil {
-					return err
-				}
-				workerInfo.Online = false
-				err = setWorkerWithTx(tx, addr, workerInfo)
-				if err != nil {
-					return err
-				}
-				return tx.Commit()
-			})
+			SendHeartbeats(
+				wAddrs,
+				func(ip string) error {
+					return n.setWorkerIfOnline(ip, true)
+				},
+				func(ip string) error {
+					return n.setWorkerIfOnline(ip, false)
+				},
+			)
 		}
 		time.Sleep(n.heartbeatGap)
 	}
@@ -334,6 +327,25 @@ func (n *NodeKeeper) allWorkers(fn func(addr string, info *WorkerInfo)) error {
 		}
 	}
 	return nil
+}
+
+func (n *NodeKeeper) setWorkerIfOnline(ip string, isOnline bool) error {
+	tx, err := n.workerDB.NewKvTxn()
+	if err != nil {
+		return err
+	}
+	workerInfo, err := getWorkerWithTx(tx, ip)
+	if err != nil {
+		return err
+	}
+	if workerInfo.Online != isOnline {
+		workerInfo.Online = isOnline
+		err = setWorkerWithTx(tx, ip, workerInfo)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func getWorkerWithTx(tx kv.KvTxn, ip string) (*WorkerInfo, error) {

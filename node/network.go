@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func SendHeartbeats(addrs []string, handleDead func(addr string) error) {
+func SendHeartbeats(addrs []string, handleAlive func(addr string) error, handleDead func(addr string) error) {
 	for _, addr := range addrs {
 		_, err := http.Get(addr + HeartbeatPath)
 		if err != nil {
@@ -17,6 +17,10 @@ func SendHeartbeats(addrs []string, handleDead func(addr string) error) {
 			}
 		} else {
 			logrus.Debugf("send heartbeat to (%s) succeed!", addr)
+			err = handleAlive(addr)
+			if err != nil {
+				logrus.Errorf("handle alive node (%s) error: %s", addr, err.Error())
+			}
 		}
 	}
 

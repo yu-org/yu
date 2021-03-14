@@ -81,7 +81,7 @@ func (tp *ServerTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txCache for pending
-func (tp *ServerTxPool) Insert(stxn IsignedTxn) (err error) {
+func (tp *ServerTxPool) Insert(workerIP string, stxn IsignedTxn) (err error) {
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
 	return
 }

@@ -91,22 +91,14 @@ func (m *Master) CheckHealth() {
 		if err != nil {
 			logrus.Errorf("get all NodeKeepers error: %s", err.Error())
 		}
-		SendHeartbeats(nkAddrs, func(nkAddr string) error {
-			tx, err := m.nkDB.NewKvTxn()
-			if err != nil {
-				return err
-			}
-			info, err := getNkWithTx(tx, nkAddr)
-			if err != nil {
-				return err
-			}
-			info.Online = false
-			err = setNkWithTx(tx, nkAddr, info)
-			if err != nil {
-				return err
-			}
-			return tx.Commit()
-		})
+		SendHeartbeats(
+			nkAddrs,
+			func(ip string) error {
+				return m.setNkIfOnline(ip, true)
+			},
+			func(ip string) error {
+				return m.setNkIfOnline(ip, false)
+			})
 		time.Sleep(m.timeout)
 	}
 }
@@ -274,6 +266,26 @@ func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo) error) 
 	}
 	return nil
 }
+
+func (m *Master) setNkIfOnline(ip string, isOnline bool) error {
+	tx, err := m.nkDB.NewKvTxn()
+	if err != nil {
+		return err
+	}
+	info, err := getNkWithTx(tx, ip)
+	if err != nil {
+		return err
+	}
+	if info.Online != isOnline {
+		info.Online = isOnline
+		err = setNkWithTx(tx, ip, info)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func getNkWithTx(txn kv.KvTxn, ip string) (*NodeKeeperInfo, error) {
 	infoByt, err := txn.Get([]byte(ip))
 	if err != nil {

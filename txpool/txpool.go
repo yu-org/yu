@@ -15,7 +15,7 @@ type ItxPool interface {
 	// tripods check the txn
 	TripodsCheck(IsignedTxn) error
 	// insert into txCache for pending
-	Insert(IsignedTxn) error
+	Insert(workerIP string, stxn IsignedTxn) error
 	// package some txns to send to tripods
 	Package(numLimit uint64) ([]IsignedTxn, error)
 	// pacakge txns according to specific conditions
