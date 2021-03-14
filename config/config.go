@@ -81,6 +81,8 @@ type TxpoolConf struct {
 	TxnMaxSize      int    `toml:"txn_max_size"`
 	WaitTxnsTimeout int    `toml:"wait_txns_timeout"`
 	DB              KVconf `toml:"db"`
+	// In local-node mode, this will be null.
+	WorkerIP string `toml:"worker_ip"`
 }
 
 func LoadConf(fpath string, cfg interface{}) (err error) {

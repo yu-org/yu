@@ -10,6 +10,7 @@ import (
 	. "yu/yerror"
 )
 
+// This implementation only use for Local-Node mode.
 type LocalTxPool struct {
 	sync.RWMutex
 
@@ -100,13 +101,13 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) error {
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
-	return tp.PackageFor(numLimit, func(IsignedTxn) error {
+func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]IsignedTxn, error) {
+	return tp.PackageFor("", numLimit, func(IsignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]IsignedTxn, 0)
@@ -122,7 +123,7 @@ func (tp *LocalTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
+func (tp *LocalTxPool) SyncTxns(_ string, hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -154,7 +155,7 @@ func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 }
 
 // remove txns after execute all tripods
-func (tp *LocalTxPool) Remove() error {
+func (tp *LocalTxPool) Remove(_ string) error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0

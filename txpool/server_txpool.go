@@ -11,6 +11,7 @@ import (
 	. "yu/yerror"
 )
 
+// This implementation only use for Master-Worker mode.
 type ServerTxPool struct {
 	sync.RWMutex
 
@@ -98,13 +99,13 @@ func (tp *ServerTxPool) BatchInsert(workerIP string, txns SignedTxns) error {
 }
 
 // package some txns to send to tripods
-func (tp *ServerTxPool) Package(numLimit uint64) ([]IsignedTxn, error) {
-	return tp.PackageFor(numLimit, func(IsignedTxn) error {
+func (tp *ServerTxPool) Package(workerIP string, numLimit uint64) ([]IsignedTxn, error) {
+	return tp.PackageFor(workerIP, numLimit, func(IsignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *ServerTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *ServerTxPool) PackageFor(workerIP string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]IsignedTxn, 0)
@@ -120,7 +121,7 @@ func (tp *ServerTxPool) PackageFor(numLimit uint64, filter func(IsignedTxn) erro
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
+func (tp *ServerTxPool) SyncTxns(workerIP string, hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -139,7 +140,7 @@ func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
 		case stxn := <-tp.WaitSyncTxnsChan:
 			txnHash := stxn.GetRaw().ID()
 			delete(hashesMap, txnHash)
-			err := tp.Insert(stxn)
+			err := tp.Insert(workerIP, stxn)
 			if err != nil {
 				return err
 			}
@@ -152,7 +153,7 @@ func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
 }
 
 // remove txns after execute all tripods
-func (tp *ServerTxPool) Remove() error {
+func (tp *ServerTxPool) Remove(workerIP string) error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0

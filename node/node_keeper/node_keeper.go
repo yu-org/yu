@@ -66,7 +66,7 @@ func NewNodeKeeper(cfg *config.NodeKeeperConf) (*NodeKeeper, error) {
 	}, nil
 }
 
-// Register master the the existence of Nodekeeper and the changes of workers' number.
+// Register master the the existence of Nodekeeper and the changes of workers.
 // When workers increase or decrease or keep-alive, should POST to master.
 func (n *NodeKeeper) RegisterInMaster() error {
 	info, err := n.Info()

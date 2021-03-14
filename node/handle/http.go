@@ -12,7 +12,7 @@ import (
 	"yu/txpool"
 )
 
-const PARAMS_KEY = "params"
+// const PARAMS_KEY = "params"
 
 func PutHttpInTxpool(c *gin.Context, txPool txpool.ItxPool, broadcastChan chan<- txn.IsignedTxn) {
 	var (
