@@ -73,7 +73,7 @@ func (tp *LocalTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	return tp
 }
 
-// insert into txCache for pending
+// insert into txpool
 func (tp *LocalTxPool) Insert(_ string, stxn IsignedTxn) (err error) {
 	err = tp.BaseCheck(stxn)
 	if err != nil {
@@ -86,6 +86,17 @@ func (tp *LocalTxPool) Insert(_ string, stxn IsignedTxn) (err error) {
 
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
 	return
+}
+
+// batch insert into txpool
+func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) error {
+	for _, txn := range txns {
+		err := tp.Insert("", txn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // package some txns to send to tripods

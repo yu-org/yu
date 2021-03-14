@@ -80,10 +80,21 @@ func (tp *ServerTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 	return tp
 }
 
-// insert into txCache for pending
+// insert into txpool
 func (tp *ServerTxPool) Insert(workerIP string, stxn IsignedTxn) (err error) {
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
 	return
+}
+
+// batch insert into txpool
+func (tp *ServerTxPool) BatchInsert(workerIP string, txns SignedTxns) error {
+	for _, txn := range txns {
+		err := tp.Insert(workerIP, txn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // package some txns to send to tripods
