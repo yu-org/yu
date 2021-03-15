@@ -79,11 +79,13 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		}
 	}
 
+	// FIXME: insert txn with workerName
 	err = m.txPool.Insert(ip, stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	// todo: if MasterWorker: forwardTxnsForCheck
 	m.readyBcTxnsChan <- stxn
 }
 

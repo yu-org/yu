@@ -59,11 +59,13 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		}
 	}
 
+	// FIXME: insert txn with workerName
 	err = m.txPool.Insert(ip, stxn)
 	if err != nil {
 		ServerErrorHttpResp(w, err.Error())
 		return
 	}
+	// todo: if MasterWorker: forwardTxnsForCheck
 	m.readyBcTxnsChan <- stxn
 }
 

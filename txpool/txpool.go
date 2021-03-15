@@ -15,15 +15,15 @@ type ItxPool interface {
 	// tripods check the txn
 	TripodsCheck(IsignedTxn) error
 	// insert into txpool
-	Insert(workerIP string, txn IsignedTxn) error
+	Insert(workerName string, txn IsignedTxn) error
 	// batch insert into txpool
-	BatchInsert(workerIP string, txns SignedTxns) error
+	BatchInsert(workerName string, txns SignedTxns) error
 	// package some txns to send to tripods
-	Package(workerIP string, numLimit uint64) ([]IsignedTxn, error)
+	Package(workerName string, numLimit uint64) ([]IsignedTxn, error)
 	// pacakge txns according to specific conditions
-	PackageFor(workerIP string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error)
+	PackageFor(workerName string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error)
 	// get txn content of txn-hash from p2p network
-	SyncTxns(workerIP string, hashes []Hash) error
+	SyncTxns(workerName string, hashes []Hash) error
 	// remove txns after execute all tripods
-	Remove(workerIP string) error
+	Remove(workerName string) error
 }

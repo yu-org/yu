@@ -201,6 +201,16 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (w
 	return
 }
 
+func (m *Master) findWorkerIpAndName(tripodName, callName string, callType CallType) (wip, name string, err error) {
+	var info *WorkerInfo
+	wip, info, err = m.findWorker(tripodName, callName, callType)
+	if err != nil {
+		return
+	}
+	name = info.Name
+	return
+}
+
 func (m *Master) findWorker(tripodName, callName string, callType CallType) (wip string, wInfo *WorkerInfo, err error) {
 	err = m.allNodeKeepers(func(nkIP string, info *NodeKeeperInfo) error {
 		if !info.Online {

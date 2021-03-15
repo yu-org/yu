@@ -82,15 +82,15 @@ func (tp *ServerTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txpool
-func (tp *ServerTxPool) Insert(workerIP string, stxn IsignedTxn) (err error) {
+func (tp *ServerTxPool) Insert(workerName string, stxn IsignedTxn) (err error) {
 	tp.pendingTxns = append(tp.pendingTxns, stxn)
 	return
 }
 
 // batch insert into txpool
-func (tp *ServerTxPool) BatchInsert(workerIP string, txns SignedTxns) error {
+func (tp *ServerTxPool) BatchInsert(workerName string, txns SignedTxns) error {
 	for _, txn := range txns {
-		err := tp.Insert(workerIP, txn)
+		err := tp.Insert(workerName, txn)
 		if err != nil {
 			return err
 		}
@@ -99,13 +99,13 @@ func (tp *ServerTxPool) BatchInsert(workerIP string, txns SignedTxns) error {
 }
 
 // package some txns to send to tripods
-func (tp *ServerTxPool) Package(workerIP string, numLimit uint64) ([]IsignedTxn, error) {
-	return tp.PackageFor(workerIP, numLimit, func(IsignedTxn) error {
+func (tp *ServerTxPool) Package(workerName string, numLimit uint64) ([]IsignedTxn, error) {
+	return tp.PackageFor(workerName, numLimit, func(IsignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *ServerTxPool) PackageFor(workerIP string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *ServerTxPool) PackageFor(workerName string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]IsignedTxn, 0)
@@ -121,7 +121,7 @@ func (tp *ServerTxPool) PackageFor(workerIP string, numLimit uint64, filter func
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *ServerTxPool) SyncTxns(workerIP string, hashes []Hash) error {
+func (tp *ServerTxPool) SyncTxns(workerName string, hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -140,7 +140,7 @@ func (tp *ServerTxPool) SyncTxns(workerIP string, hashes []Hash) error {
 		case stxn := <-tp.WaitSyncTxnsChan:
 			txnHash := stxn.GetRaw().ID()
 			delete(hashesMap, txnHash)
-			err := tp.Insert(workerIP, stxn)
+			err := tp.Insert(workerName, stxn)
 			if err != nil {
 				return err
 			}
@@ -153,7 +153,7 @@ func (tp *ServerTxPool) SyncTxns(workerIP string, hashes []Hash) error {
 }
 
 // remove txns after execute all tripods
-func (tp *ServerTxPool) Remove(workerIP string) error {
+func (tp *ServerTxPool) Remove(workerName string) error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0
