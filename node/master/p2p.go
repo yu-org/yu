@@ -143,17 +143,20 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		}
 
 		// key: workerIP
-		forwardMap := make(map[string]SignedTxns)
+		forwardMap := make(map[string]*TxnsAndWorkerName)
 		for _, txn := range txns {
 			ecall := txn.GetRaw().Ecall()
 			tripodName := ecall.TripodName
 			execName := ecall.ExecName
-			workerIP, err := m.findWorkerIP(tripodName, execName, ExecCall)
+			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
 			if err != nil {
 				return err
 			}
-			oldTxns := forwardMap[workerIP]
-			forwardMap[workerIP] = append(oldTxns, txn)
+			oldTxns := forwardMap[workerIP].Txns
+			forwardMap[workerIP] = &TxnsAndWorkerName{
+				Txns:       append(oldTxns, txn),
+				WorkerName: workerName,
+			}
 		}
 
 		if m.RunMode == MasterWorker {
@@ -163,8 +166,8 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 			}
 		}
 
-		for ip, txns := range forwardMap {
-			err = m.txPool.BatchInsert(ip, txns)
+		for _, twn := range forwardMap {
+			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
 			if err != nil {
 				return err
 			}
@@ -175,9 +178,9 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 	}
 }
 
-func (m *Master) forwardTxnsForCheck(forwardMap map[string]SignedTxns) error {
+func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) error {
 	for workerIP, txns := range forwardMap {
-		newTbody, err := NewTxnsTransferBody(txns)
+		newTbody, err := NewTxnsTransferBody(txns.Txns)
 		if err != nil {
 			return err
 		}
@@ -192,4 +195,9 @@ func (m *Master) forwardTxnsForCheck(forwardMap map[string]SignedTxns) error {
 	}
 
 	return nil
+}
+
+type TxnsAndWorkerName struct {
+	Txns       SignedTxns
+	WorkerName string
 }
