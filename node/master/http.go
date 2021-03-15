@@ -85,7 +85,6 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		return
 	}
 	m.readyBcTxnsChan <- stxn
-	c.String(http.StatusOK, "")
 }
 
 func (m *Master) handleHttpQry(c *gin.Context) {
@@ -100,21 +99,28 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		return
 	}
 
-	var qerr error
 	if m.RunMode == MasterWorker {
 		var ip string
-		ip, qerr = m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
+		ip, err = m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
+		if err != nil {
+			c.String(
+				http.StatusBadRequest,
+				BadReqErrStr(qcall.TripodName, qcall.QueryName, err),
+			)
+			return
+		}
 		forwardQueryToWorker(ip, c.Writer, c.Request)
 	} else {
-		qerr = m.land.Query(qcall)
+		err = m.land.Query(qcall)
+		if err != nil {
+			c.String(
+				http.StatusBadRequest,
+				BadReqErrStr(qcall.TripodName, qcall.QueryName, err),
+			)
+			return
+		}
 	}
-	if qerr != nil {
-		c.String(
-			http.StatusBadRequest,
-			BadReqErrStr(qcall.TripodName, qcall.QueryName, qerr),
-		)
-		return
-	}
+
 }
 
 func readPostBody(body io.ReadCloser) (JsonString, error) {
