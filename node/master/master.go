@@ -196,10 +196,15 @@ func (m *Master) allWorkersIP() ([]string, error) {
 }
 
 // find workerIP by Execution/Query name
-func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (ip string, err error) {
-	err = m.allNodeKeepers(func(ip string, info *NodeKeeperInfo) error {
+func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (wip string, err error) {
+	wip, _, err = m.findWorker(tripodName, callName, callType)
+	return
+}
+
+func (m *Master) findWorker(tripodName, callName string, callType CallType) (wip string, wInfo *WorkerInfo, err error) {
+	err = m.allNodeKeepers(func(nkIP string, info *NodeKeeperInfo) error {
 		if !info.Online {
-			return NodeKeeperDead(ip)
+			return NodeKeeperDead(nkIP)
 		}
 		for workerIp, workerInfo := range info.WorkersInfo {
 			if !workerInfo.Online {
@@ -218,7 +223,8 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (i
 			}
 			for _, call := range callArr {
 				if call == callName {
-					ip = workerIp
+					wip = workerIp
+					wInfo = &workerInfo
 					return nil
 				}
 			}
@@ -228,7 +234,7 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (i
 	if err != nil {
 		return
 	}
-	if ip == "" {
+	if wip == "" || wInfo == nil {
 		switch callType {
 		case ExecCall:
 			err = ExecNotFound(callName)
@@ -239,7 +245,7 @@ func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (i
 	return
 }
 
-func (m *Master) allNodeKeepers(fn func(ip string, info *NodeKeeperInfo) error) error {
+func (m *Master) allNodeKeepers(fn func(nkIP string, info *NodeKeeperInfo) error) error {
 	iter, err := m.nkDB.Iter(nil)
 	if err != nil {
 		return err
