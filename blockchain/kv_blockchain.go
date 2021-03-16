@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"github.com/sirupsen/logrus"
+	"time"
 	. "yu/common"
 	. "yu/config"
 	"yu/storage/kv"
@@ -32,6 +33,19 @@ func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
 	}
 }
 
+func (bc *BlockChain) NewDefaultBlock() IBlock {
+	header := &Header{
+		timestamp: time.Now().UnixNano(),
+	}
+	return &Block{
+		header: header,
+	}
+}
+
+func (bc *BlockChain) NewEmptyBlock() IBlock {
+	return &Block{}
+}
+
 func (bc *BlockChain) PendBlock(ib IBlock) error {
 	blockByt, err := ib.Encode()
 	if err != nil {
@@ -45,7 +59,7 @@ func (bc *BlockChain) PopBlock() (IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewEmptyBlock().Decode(blockByt)
+	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) AppendBlock(ib IBlock) error {
@@ -63,7 +77,7 @@ func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewEmptyBlock().Decode(blockByt)
+	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
@@ -80,7 +94,7 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		block, err := NewEmptyBlock().Decode(blockByt)
+		block, err := bc.NewEmptyBlock().Decode(blockByt)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +123,7 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewEmptyBlock().Decode(blockByt)
+	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
 func (bc *BlockChain) Leaves() ([]IBlock, error) {
@@ -124,7 +138,7 @@ func (bc *BlockChain) Leaves() ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		block, err := NewEmptyBlock().Decode(blockByt)
+		block, err := bc.NewEmptyBlock().Decode(blockByt)
 		if err != nil {
 			return nil, err
 		}

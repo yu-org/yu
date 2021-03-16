@@ -33,6 +33,9 @@ type IHeader interface {
 }
 
 type IBlockChain interface {
+	NewEmptyBlock() IBlock
+	// just generate a block with timestamp
+	NewDefaultBlock() IBlock
 	// pending a block for validating
 	PendBlock(b IBlock) error
 	// pop a pending block

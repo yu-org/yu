@@ -21,7 +21,7 @@ func (m *Master) Run() error {
 }
 
 func (m *Master) LocalRun() error {
-	newBlock := NewDefaultBlock()
+	newBlock := m.chain.NewDefaultBlock()
 	// start a new block
 	err := m.land.RangeList(func(tri Tripod) error {
 		return tri.StartBlock(m.chain, newBlock, m.txPool)

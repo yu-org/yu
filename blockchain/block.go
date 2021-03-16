@@ -3,7 +3,6 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
-	"time"
 	. "yu/common"
 	"yu/trie"
 	"yu/txn"
@@ -12,19 +11,6 @@ import (
 type Block struct {
 	header     *Header
 	txnsHashes []Hash
-}
-
-func NewDefaultBlock() IBlock {
-	header := &Header{
-		timestamp: time.Now().UnixNano(),
-	}
-	return &Block{
-		header: header,
-	}
-}
-
-func NewEmptyBlock() IBlock {
-	return &Block{}
 }
 
 func (b *Block) Header() IHeader {
