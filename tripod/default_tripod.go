@@ -29,7 +29,7 @@ func (*DefaultTripod) StartBlock(IBlockChain, IBlock, txpool.ItxPool) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(IBlock) error {
+func (*DefaultTripod) EndBlock(IBlockChain, IBlock) error {
 	return nil
 }
 

@@ -2,7 +2,6 @@ package master
 
 import (
 	"net/http"
-	. "yu/blockchain"
 	. "yu/common"
 	. "yu/node"
 	. "yu/tripod"
@@ -26,17 +25,19 @@ func (m *Master) LocalRun() error {
 	err := m.land.RangeList(func(tri Tripod) error {
 		return tri.StartBlock(m.chain, newBlock, m.txPool)
 	})
-
-	// end block and append to chain
-	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.EndBlock(newBlock)
-	})
-	err = m.chain.AppendBlock(newBlock)
 	if err != nil {
 		return err
 	}
 
 	// todo: execute txns
+
+	// end block and append to chain
+	err = m.land.RangeList(func(tri Tripod) error {
+		return tri.EndBlock(m.chain, newBlock)
+	})
+	if err != nil {
+		return err
+	}
 
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
@@ -55,12 +56,12 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, EndBlockPath)
+	err = nortifyWorker(workersIps, ExecuteTxnsPath)
 	if err != nil {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, ExecuteTxnsPath)
+	err = nortifyWorker(workersIps, EndBlockPath)
 	if err != nil {
 		return err
 	}

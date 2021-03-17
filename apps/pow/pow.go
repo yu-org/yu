@@ -51,7 +51,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 	block.SetPreHash(preHash)
 	block.SetBlockNumber(height + 1)
 
-	txns, err := pool.Package(p.pkgTxnsLimit)
+	txns, err := pool.Package("", p.pkgTxnsLimit)
 	if err != nil {
 		return err
 	}
@@ -77,8 +77,8 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 	return nil
 }
 
-func (*Pow) EndBlock(IBlock) error {
-	return nil
+func (*Pow) EndBlock(chain IBlockChain, block IBlock) error {
+	return chain.AppendBlock(block)
 }
 
 func (*Pow) FinalizeBlock(IBlockChain, IBlock) error {
