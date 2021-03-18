@@ -46,7 +46,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 		return err
 	}
 
-	height := preBlock.Header().BlockNumber()
+	height := preBlock.Header().Height()
 	preHash := preBlock.Header().PrevHash()
 
 	block.SetPreHash(preHash)

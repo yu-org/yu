@@ -23,7 +23,7 @@ type IBlock interface {
 }
 
 type IHeader interface {
-	BlockNumber() BlockNum
+	Height() BlockNum
 	Hash() Hash
 	PrevHash() Hash
 	TxnRoot() Hash

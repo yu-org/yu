@@ -7,15 +7,15 @@ import (
 type Header struct {
 	prevHash  Hash
 	hash      Hash
-	number    BlockNum
+	height    BlockNum
 	txnRoot   Hash
 	stateRoot Hash
 	extra     interface{}
 	timestamp int64
 }
 
-func (h *Header) BlockNumber() BlockNum {
-	return h.number
+func (h *Header) Height() BlockNum {
+	return h.height
 }
 
 func (h *Header) Hash() Hash {
