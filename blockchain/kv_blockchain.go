@@ -146,3 +146,27 @@ func (bc *BlockChain) Leaves() ([]IBlock, error) {
 	}
 	return blocks, nil
 }
+
+func (bc *BlockChain) Longest(prevId BlockId) (*ChainStruct, error) {
+	prevBlock, err := bc.GetBlock(prevId)
+	if err != nil {
+		return nil, err
+	}
+	blocks, err := bc.Children(prevId)
+	if err != nil {
+		return nil, err
+	}
+	return MakeLongestChain(prevBlock, blocks), nil
+}
+
+func (bc *BlockChain) Heaviest(prevId BlockId) (*ChainStruct, error) {
+	prevBlock, err := bc.GetBlock(prevId)
+	if err != nil {
+		return nil, err
+	}
+	blocks, err := bc.Children(prevId)
+	if err != nil {
+		return nil, err
+	}
+	return MakeHeaviestChain(prevBlock, blocks), nil
+}
