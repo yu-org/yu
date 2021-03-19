@@ -41,12 +41,7 @@ func MakeLongestChain(blocks []IBlock) []*ChainStruct {
 		for chain.root.Current.Header().PrevHash() != NullHash {
 			block, ok := allBlocks[chain.root.Current.Header().PrevHash()]
 			if ok {
-				chain.root.Prev = &ChainNode{
-					Prev:    nil,
-					Current: block,
-					Next:    chain.root,
-				}
-				chain.root = chain.root.Prev
+				chain.InsertPrev(block)
 			}
 		}
 
@@ -56,14 +51,9 @@ func MakeLongestChain(blocks []IBlock) []*ChainStruct {
 	return longestChains
 }
 
+// todo
 func MakeHeaviestChain(blocks []IBlock) []*ChainStruct {
 	return nil
-}
-
-func (c *ChainStruct) Tidy() {
-	for c.root.Prev != nil {
-		c.root = c.root.Prev
-	}
 }
 
 func (c *ChainStruct) Append(block IBlock) {
@@ -79,15 +69,12 @@ func (c *ChainStruct) Append(block IBlock) {
 }
 
 func (c *ChainStruct) InsertPrev(block IBlock) {
-	cursor := c.root
-	for cursor.Prev != nil {
-		cursor = cursor.Prev
-	}
-	cursor.Prev = &ChainNode{
+	c.root.Prev = &ChainNode{
 		Prev:    nil,
 		Current: block,
-		Next:    cursor,
+		Next:    c.root,
 	}
+	c.root = c.root.Prev
 }
 
 func (c *ChainStruct) First() IBlock {
