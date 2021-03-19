@@ -1,5 +1,7 @@
 package blockchain
 
+import . "yu/common"
+
 type ChainStruct struct {
 	root *ChainNode
 }
@@ -7,32 +9,84 @@ type ChainStruct struct {
 func NewEmptyChain(root IBlock) *ChainStruct {
 	return &ChainStruct{
 		root: &ChainNode{
+			Prev:    nil,
 			Current: root,
 			Next:    nil,
 		},
 	}
 }
 
-func MakeLongestChain(root IBlock, blocks []IBlock) *ChainStruct {
-	cs := NewEmptyChain(root)
-	cursor := cs.root.Current
-	chains := make([]*ChainStruct, 0)
-	for _, block := range blocks {
-		bh := block.Header()
-		ch := cursor.Header()
-		if bh.PrevHash() == ch.Hash() {
+func MakeLongestChain(blocks []IBlock) []*ChainStruct {
+	longestChains := make([]*ChainStruct, 0)
+	allBlocks := make(map[Hash]IBlock)
 
+	highestBlocks := make([]IBlock, 0)
+	var longestHeight BlockNum = 0
+	for _, block := range blocks {
+		bh := block.Header().Height()
+		if bh > longestHeight {
+			longestHeight = bh
+			highestBlocks = nil
 		}
+
+		if bh == longestHeight {
+			highestBlocks = append(highestBlocks, block)
+		}
+
+		allBlocks[block.Header().Hash()] = block
 	}
 
-	return cs
+	for _, hblock := range highestBlocks {
+		chain := NewEmptyChain(hblock)
+		for chain.root.Current.Header().PrevHash() != NullHash {
+			block, ok := allBlocks[chain.root.Current.Header().PrevHash()]
+			if ok {
+				chain.root.Prev = &ChainNode{
+					Prev:    nil,
+					Current: block,
+					Next:    chain.root,
+				}
+				chain.root = chain.root.Prev
+			}
+		}
+
+		longestChains = append(longestChains, chain)
+	}
+
+	return longestChains
 }
 
-func MakeHeaviestChain(root IBlock, blocks []IBlock) *ChainStruct {
-	cs := NewEmptyChain(root)
-	height := root.Header().Height() + 1
-	for _, block := range blocks {
+func MakeHeaviestChain(blocks []IBlock) []*ChainStruct {
+	return nil
+}
 
+func (c *ChainStruct) Tidy() {
+	for c.root.Prev != nil {
+		c.root = c.root.Prev
+	}
+}
+
+func (c *ChainStruct) Append(block IBlock) {
+	cursor := c.root
+	for cursor.Next != nil {
+		cursor = cursor.Next
+	}
+	cursor.Next = &ChainNode{
+		Prev:    cursor,
+		Current: block,
+		Next:    nil,
+	}
+}
+
+func (c *ChainStruct) InsertPrev(block IBlock) {
+	cursor := c.root
+	for cursor.Prev != nil {
+		cursor = cursor.Prev
+	}
+	cursor.Prev = &ChainNode{
+		Prev:    nil,
+		Current: block,
+		Next:    cursor,
 	}
 }
 
@@ -49,6 +103,7 @@ func (c *ChainStruct) Last() IBlock {
 }
 
 type ChainNode struct {
+	Prev    *ChainNode
 	Current IBlock
 	Next    *ChainNode
 }

@@ -40,11 +40,12 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 }
 
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
-	// FIXME: Usually, pow has no finalized block, it prefers the Longest Chain.
-	preBlock, err := chain.LastFinalized()
+	chains, err := chain.Longest()
 	if err != nil {
 		return err
 	}
+
+	preBlock := chains[0].Last()
 
 	height := preBlock.Header().Height()
 	preHash := preBlock.Header().PrevHash()

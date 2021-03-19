@@ -48,8 +48,8 @@ type IBlockChain interface {
 	LastFinalized() (IBlock, error)
 	Leaves() ([]IBlock, error)
 
-	// return the longest children chain of given blockID
-	Longest(prevId BlockId) (*ChainStruct, error)
-	// return the heaviest children chain of given blockID
-	Heaviest(prevId BlockId) (*ChainStruct, error)
+	// return the longest children chains
+	Longest() ([]*ChainStruct, error)
+	// return the heaviest children chains
+	Heaviest() ([]*ChainStruct, error)
 }
