@@ -2,6 +2,8 @@ package blockchain
 
 import (
 	. "yu/common"
+	"yu/event"
+	"yu/txn"
 )
 
 type IBlock interface {
@@ -52,4 +54,12 @@ type IBlockChain interface {
 	Longest() ([]*ChainStruct, error)
 	// return the heaviest children chains
 	Heaviest() ([]*ChainStruct, error)
+}
+
+type IBlockBase interface {
+	GetTxns(blockHash Hash) ([]txn.IsignedTxn, error)
+	SetTxns(blockHash Hash, txns txn.SignedTxns) error
+
+	GetEvents(blockHash Hash) ([]event.IEvent, error)
+	SetEvents(blockHash Hash, events event.Events) error
 }

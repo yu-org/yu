@@ -90,6 +90,7 @@ func (tkv *TripodKV) stashOldDfState(key []byte) error {
 		Key:   key,
 		Value: value,
 	}
+	return nil
 }
 
 func (tkv *TripodKV) stashOldState(tag string, key []byte) error {
@@ -101,6 +102,7 @@ func (tkv *TripodKV) stashOldState(tag string, key []byte) error {
 		Key:   key,
 		Value: value,
 	}
+	return nil
 }
 
 func (tkv *TripodKV) Commit() {

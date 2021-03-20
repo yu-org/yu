@@ -67,3 +67,35 @@ func DecodeSignedTxn(data []byte) (st IsignedTxn, err error) {
 	err = decoder.Decode(st)
 	return
 }
+
+type SignedTxns []IsignedTxn
+
+func FromArray(txns []IsignedTxn) SignedTxns {
+	var stxns SignedTxns
+	stxns = append(stxns, txns...)
+	return stxns
+}
+
+func (sts SignedTxns) ToArray() []IsignedTxn {
+	return sts[:]
+}
+
+func (sts SignedTxns) Encode() ([]byte, error) {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(sts)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func DecodeSignedTxns(data []byte) (SignedTxns, error) {
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	var sts SignedTxns
+	err := decoder.Decode(&sts)
+	if err != nil {
+		return nil, err
+	}
+	return sts, nil
+}
