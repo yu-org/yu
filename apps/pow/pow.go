@@ -51,7 +51,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 	preHash := preBlock.Header().PrevHash()
 
 	block.SetPreHash(preHash)
-	block.SetBlockNumber(height + 1)
+	block.SetHeight(height + 1)
 
 	txns, err := pool.Package("", p.pkgTxnsLimit)
 	if err != nil {

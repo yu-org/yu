@@ -38,6 +38,7 @@ type Key interface {
 	Type() string
 	Equals(key Key) bool
 	Bytes() []byte
+	String() string
 }
 
 type PubKey interface {

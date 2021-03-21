@@ -33,12 +33,12 @@ func (b *Block) SetPreHash(preHash Hash) {
 	b.header.prevHash = preHash
 }
 
-func (b *Block) SetBlockNumber(num BlockNum) {
-	b.header.number = num
+func (b *Block) SetHeight(height BlockNum) {
+	b.header.height = height
 }
 
 func (b *Block) BlockId() BlockId {
-	return NewBlockId(b.header.BlockNumber(), b.header.Hash())
+	return NewBlockId(b.header.Height(), b.header.Hash())
 }
 
 func (b *Block) SetStateRoot(hash Hash) {

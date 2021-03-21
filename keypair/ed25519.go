@@ -1,6 +1,7 @@
 package keypair
 
 import (
+	"github.com/HyperService-Consortium/go-hexutil"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	. "yu/common"
 )
@@ -40,6 +41,10 @@ func (epb *EdPubkey) Bytes() []byte {
 	return epb.pubkey.Bytes()
 }
 
+func (epb *EdPubkey) String() string {
+	return hexutil.Encode(epb.Bytes())
+}
+
 // ------ Private Key -------
 
 type EdPrivkey struct {
@@ -64,6 +69,10 @@ func (epr *EdPrivkey) Equals(key Key) bool {
 
 func (epr *EdPrivkey) Bytes() []byte {
 	return epr.privkey.Bytes()
+}
+
+func (epr *EdPrivkey) String() string {
+	return hexutil.Encode(epr.Bytes())
 }
 
 func genEd25519() (*EdPubkey, *EdPrivkey) {

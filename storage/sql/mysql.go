@@ -18,6 +18,10 @@ func NewMysql(dsn string) (*Mysql, error) {
 	return &Mysql{db}, nil
 }
 
+func (m *Mysql) Db() *gorm.DB {
+	return m.DB
+}
+
 func (*Mysql) Type() storage.StoreType {
 	return storage.Server
 }

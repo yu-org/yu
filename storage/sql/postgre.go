@@ -18,6 +18,10 @@ func NewPostgreSql(dsn string) (*PostgreSql, error) {
 	return &PostgreSql{db}, nil
 }
 
+func (p *PostgreSql) Db() *gorm.DB {
+	return p.DB
+}
+
 func (*PostgreSql) Type() storage.StoreType {
 	return storage.Server
 }

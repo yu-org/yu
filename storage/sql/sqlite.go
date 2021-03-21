@@ -18,6 +18,10 @@ func NewSqlite(dsn string) (*Sqlite, error) {
 	return &Sqlite{db}, nil
 }
 
+func (s *Sqlite) Db() *gorm.DB {
+	return s.DB
+}
+
 func (*Sqlite) Type() storage.StoreType {
 	return storage.Embedded
 }
