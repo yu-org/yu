@@ -12,6 +12,11 @@ type KVconf struct {
 type QueueConf struct {
 	QueueType string `toml:"queue_type"`
 	Url       string `toml:"url"`
-	// json, gob, default
+	// toml, gob, default
 	Encoder string `toml:"encoder"`
+}
+
+type SqlDbConf struct {
+	SqlDbType string `toml:"sql_db_type"`
+	Dsn       string `toml:"dsn"`
 }

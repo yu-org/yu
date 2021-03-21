@@ -9,9 +9,12 @@ var TypeErr = errors.New("the type of params error")
 
 var NoRunMode = errors.New("no run mode")
 var NoKeyType = errors.New("no key type")
+
+var NoTransferBodyType = errors.New("no transfer-body type")
+
 var NoKvdbType = errors.New("no kvdb type")
 var NoQueueType = errors.New("no queue type")
-var NoTransferBodyType = errors.New("no transfer-body type")
+var NoSqlDbType = errors.New("no sqlDB type")
 
 var NoTripodKV = errors.New("no tripod kvdb")
 

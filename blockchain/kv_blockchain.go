@@ -21,11 +21,11 @@ type BlockChain struct {
 func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
-		logrus.Panicln("cannot load chain")
+		logrus.Panicf("load chain error: %s", err.Error())
 	}
 	q, err := queue.NewQueue(queueCfg)
 	if err != nil {
-		logrus.Panicln("cannot load pending-blocks")
+		logrus.Panicf("load pending-blocks error: %s", err.Error())
 	}
 	return &BlockChain{
 		chain:         kvdb,
