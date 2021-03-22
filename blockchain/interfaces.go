@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	. "yu/common"
-	"yu/event"
+	. "yu/result"
 	"yu/txn"
 )
 
@@ -57,9 +57,12 @@ type IBlockChain interface {
 }
 
 type IBlockBase interface {
+	GetTxn(txnHash Hash) (txn.IsignedTxn, error)
+	SetTxn(stxn txn.IsignedTxn) error
+
 	GetTxns(blockHash Hash) ([]txn.IsignedTxn, error)
 	SetTxns(blockHash Hash, txns []txn.IsignedTxn) error
 
-	GetEvents(blockHash Hash) ([]event.IEvent, error)
-	SetEvents(blockHash Hash, events event.Events) error
+	GetEvents(blockHash Hash) ([]IEvent, error)
+	SetEvents(blockHash Hash, events []Event) error
 }

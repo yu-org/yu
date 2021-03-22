@@ -14,6 +14,12 @@ const (
 	MasterWorker
 )
 
+const (
+	StartBlockStage    = "Start"
+	EndBlockStage      = "End"
+	FinalizeBlockStage = "Finalize"
+)
+
 type (
 	BlockNum uint64
 	// Use to be a Key to store into KVDB.

@@ -1,9 +1,8 @@
 package blockchain
 
 import (
-	"github.com/HyperService-Consortium/go-hexutil"
 	. "yu/common"
-	"yu/event"
+	. "yu/result"
 	ysql "yu/storage/sql"
 	"yu/txn"
 )
@@ -20,23 +19,24 @@ func NewBlockBase(db ysql.SqlDB) *BlockBase {
 }
 
 func (bb *BlockBase) GetTxn(txnHash Hash) (txn.IsignedTxn, error) {
-	txnHashStr := string(txnHash.Bytes())
-
+	var stxn txn.IsignedTxn
+	bb.db.Db().Where(&TxnContent{TxnHash: txnHash.String()}).First(&stxn)
+	return stxn, nil
 }
 
-func (bb *BlockBase) SetTxn(txnHash Hash, stxn txn.IsignedTxn) error {
-	txnHashStr := string(txnHash.Bytes())
-	rawTxn := stxn.GetRaw()
-	rawTxnByt, err := rawTxn.Encode()
+func (bb *BlockBase) SetTxn(stxn txn.IsignedTxn) error {
+	txnCt, err := toTxnContent(stxn)
 	if err != nil {
 		return err
 	}
-	rawTxnStr := string(rawTxnByt)
-
+	bb.db.Db().Create(&txnCt)
+	return nil
 }
 
 func (bb *BlockBase) GetTxns(blockHash Hash) ([]txn.IsignedTxn, error) {
-	bb.db.Db().Model(&TxnContent{BlockHash: blockHash.String()}).Find()
+	var txns []txn.IsignedTxn
+	bb.db.Db().Where(&TxnContent{BlockHash: blockHash.String()}).Find(&txns)
+	return txns, nil
 }
 
 func (bb *BlockBase) SetTxns(blockHash Hash, txns []txn.IsignedTxn) error {
@@ -52,16 +52,16 @@ func (bb *BlockBase) SetTxns(blockHash Hash, txns []txn.IsignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetEvents(blockHash Hash) ([]event.IEvent, error) {
+func (bb *BlockBase) GetEvents(blockHash Hash) ([]IEvent, error) {
 
 }
 
-func (bb *BlockBase) SetEvents(blockHash Hash, events event.Events) error {
+func (bb *BlockBase) SetEvents(blockHash Hash, events []Event) error {
 
 }
 
 type TxnContent struct {
-	TxnHash   string `gorm:"txn_hash"`
+	TxnHash   string `gorm:"txn_hash;primaryKey"`
 	Pubkey    string `gorm:"pubkey"`
 	Signature string `gorm:"signature"`
 	RawTxn    string `gorm:"raw_txn"`
@@ -83,12 +83,11 @@ func toTxnContent(stxn txn.IsignedTxn) (TxnContent, error) {
 	if err != nil {
 		return TxnContent{}, err
 	}
-	rawTxn := hexutil.Encode(rawTxnByt)
 	return TxnContent{
 		TxnHash:   stxn.GetTxnHash().String(),
 		Pubkey:    stxn.GetPubkey().String(),
-		Signature: hexutil.Encode(stxn.GetSignature()),
-		RawTxn:    rawTxn,
+		Signature: ToHex(stxn.GetSignature()),
+		RawTxn:    ToHex(rawTxnByt),
 		BlockHash: "",
 	}, nil
 }
