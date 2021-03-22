@@ -1,7 +1,6 @@
 package keypair
 
 import (
-	"github.com/HyperService-Consortium/go-hexutil"
 	"github.com/tendermint/tendermint/crypto/sr25519"
 	. "yu/common"
 )
@@ -42,7 +41,7 @@ func (spb *SrPubkey) Bytes() []byte {
 }
 
 func (spb *SrPubkey) String() string {
-	return hexutil.Encode(spb.Bytes())
+	return ToHex(spb.Bytes())
 }
 
 // ----- Private Key ------
@@ -72,7 +71,7 @@ func (spr *SrPrivkey) Bytes() []byte {
 }
 
 func (spr *SrPrivkey) String() string {
-	return hexutil.Encode(spr.Bytes())
+	return ToHex(spr.Bytes())
 }
 
 func genSr25519() (*SrPubkey, *SrPrivkey) {

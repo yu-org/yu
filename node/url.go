@@ -67,10 +67,10 @@ func GetBlockNumber(req *http.Request) (BlockNum, error) {
 func GetPubkeyAndSignature(req *http.Request) (keypair.PubKey, []byte, error) {
 	keyType := req.URL.Query().Get(KeyTypeKey)
 	pubkeyStr := req.URL.Query().Get(PubkeyKey)
-	pubkey, err := keypair.PubKeyFromBytes(keyType, []byte(pubkeyStr))
+	pubkey, err := keypair.PubKeyFromBytes(keyType, FromHex(pubkeyStr))
 	if err != nil {
 		return nil, nil, err
 	}
 	signatureStr := req.URL.Query().Get(SignatureKey)
-	return pubkey, []byte(signatureStr), nil
+	return pubkey, FromHex(signatureStr), nil
 }
