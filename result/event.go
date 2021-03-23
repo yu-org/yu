@@ -6,56 +6,58 @@ import (
 	. "yu/utils/codec"
 )
 
-type Event interface {
-	String() string
-	Encode() ([]byte, error)
-}
-
-type TxnEvent struct {
+type Event struct {
 	Caller     Address
-	BlockHash  Hash
-	Height     BlockNum
-	TripodName string
-	ExecName   string
-	Value      interface{}
-}
-
-func (e *TxnEvent) Encode() ([]byte, error) {
-	return GobEncode(e)
-}
-
-func (e *TxnEvent) String() string {
-	return fmt.Sprintf(
-		"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %v",
-		e.Caller.String(),
-		e.TripodName,
-		e.ExecName,
-		e.BlockHash,
-		e.Height,
-		e.Value,
-	)
-}
-
-type BlockEvent struct {
 	BlockStage string
 	BlockHash  Hash
 	Height     BlockNum
 	TripodName string
-	Value      interface{}
+	ExecName   string
+	Value      Encoder
 }
 
-func (e *BlockEvent) Encode() ([]byte, error) {
+type Encoder interface {
+	Encode() ([]byte, error)
+}
+
+func (e *Event) Encode() ([]byte, error) {
 	return GobEncode(e)
 }
 
-func (e *BlockEvent) String() string {
-	return fmt.Sprintf("[Event] %s Block(%s) on Height(%d) in Tripod(%s): %v",
-		e.BlockStage,
-		e.BlockHash,
-		e.Height,
-		e.TripodName,
-		e.Value,
-	)
+func (e *Event) ValueStr() (string, error) {
+	byt, err := e.Value.Encode()
+	if err != nil {
+		return "", err
+	}
+	return ToHex(byt), nil
+}
+
+func (e *Event) ValueBytes() ([]byte, error) {
+	return e.Value.Encode()
+}
+
+func (e *Event) Sprint() (str string) {
+	if e.BlockStage == ExecuteTxnsStage {
+		str = fmt.Sprintf(
+			"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %v",
+			e.Caller.String(),
+			e.TripodName,
+			e.ExecName,
+			e.BlockHash,
+			e.Height,
+			e.Value,
+		)
+	} else {
+		str = fmt.Sprintf(
+			"[Event] %s Block(%s) on Height(%d) in Tripod(%s): %v",
+			e.BlockStage,
+			e.BlockHash,
+			e.Height,
+			e.TripodName,
+			e.Value,
+		)
+	}
+	return
 }
 
 type Events []Event

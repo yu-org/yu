@@ -1,8 +1,6 @@
 package txn
 
 import (
-	"bytes"
-	"encoding/gob"
 	. "yu/common"
 	. "yu/keypair"
 )
@@ -15,7 +13,6 @@ type IunsignedTxn interface {
 	Hash() (Hash, error)
 	ToSignedTxn() (IsignedTxn, error)
 	Encode() ([]byte, error)
-	Decode(data []byte) error
 }
 
 type IsignedTxn interface {

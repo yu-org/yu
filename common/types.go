@@ -15,9 +15,10 @@ const (
 )
 
 const (
-	StartBlockStage    = "Start"
-	EndBlockStage      = "End"
-	FinalizeBlockStage = "Finalize"
+	StartBlockStage    = "Start Block"
+	ExecuteTxnsStage   = "Execute Txns"
+	EndBlockStage      = "End Block"
+	FinalizeBlockStage = "Finalize Block"
 )
 
 type (

@@ -1,11 +1,10 @@
 package txn
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/gob"
 	"time"
 	. "yu/common"
+	. "yu/utils/codec"
 )
 
 type UnsignedTxn struct {
@@ -60,16 +59,5 @@ func (ut *UnsignedTxn) Hash() (Hash, error) {
 }
 
 func (ut *UnsignedTxn) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(ut)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func (ut *UnsignedTxn) Decode(data []byte) error {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	return decoder.Decode(ut)
+	return GobEncode(ut)
 }

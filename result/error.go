@@ -6,56 +6,41 @@ import (
 	. "yu/utils/codec"
 )
 
-type Error interface {
-	Error() string
-	Encode() ([]byte, error)
-}
-
-type TxnError struct {
+type Error struct {
 	Caller     Address
-	BlockHash  Hash
-	Height     BlockNum
-	TripodName string
-	ExecName   string
-	err        error
-}
-
-func (e *TxnError) Error() string {
-	return fmt.Sprintf(
-		"[Error] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
-		e.Caller.String(),
-		e.TripodName,
-		e.ExecName,
-		e.BlockHash,
-		e.Height,
-		e.err.Error(),
-	)
-}
-
-func (e *TxnError) Encode() ([]byte, error) {
-	return GobEncode(e)
-}
-
-type BlockError struct {
 	BlockStage string
 	BlockHash  Hash
 	Height     BlockNum
 	TripodName string
-	err        error
+	ExecName   string
+	Err        error
 }
 
-func (e *BlockError) Error() string {
-	return fmt.Sprintf(
-		"[Error] %s Block(%s) on Height(%d) in Tripod(%s): %s",
-		e.BlockStage,
-		e.BlockHash,
-		e.Height,
-		e.TripodName,
-		e.err.Error(),
-	)
+func (e *Error) Error() (str string) {
+	if e.BlockStage == ExecuteTxnsStage {
+		str = fmt.Sprintf(
+			"[Error] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
+			e.Caller.String(),
+			e.TripodName,
+			e.ExecName,
+			e.BlockHash,
+			e.Height,
+			e.Err.Error(),
+		)
+	} else {
+		str = fmt.Sprintf(
+			"[Error] %s Block(%s) on Height(%d) in Tripod(%s): %s",
+			e.BlockStage,
+			e.BlockHash,
+			e.Height,
+			e.TripodName,
+			e.Err.Error(),
+		)
+	}
+	return
 }
 
-func (e *BlockError) Encode() ([]byte, error) {
+func (e *Error) Encode() ([]byte, error) {
 	return GobEncode(e)
 }
 

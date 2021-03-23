@@ -6,6 +6,7 @@ import (
 	"unsafe"
 	. "yu/common"
 	. "yu/keypair"
+	. "yu/utils/codec"
 )
 
 type SignedTxn struct {
@@ -49,13 +50,7 @@ func (st *SignedTxn) GetSignature() []byte {
 }
 
 func (st *SignedTxn) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(st)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return GobEncode(st)
 }
 
 func (st *SignedTxn) Size() int {
@@ -81,13 +76,7 @@ func (sts SignedTxns) ToArray() []IsignedTxn {
 }
 
 func (sts SignedTxns) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(sts)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return GobEncode(sts)
 }
 
 func DecodeSignedTxns(data []byte) (SignedTxns, error) {
