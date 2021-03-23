@@ -52,7 +52,7 @@ func (bb *BlockBase) SetTxns(blockHash Hash, txns []txn.IsignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetEvents(blockHash Hash) ([]IEvent, error) {
+func (bb *BlockBase) GetEvents(blockHash Hash) ([]Event, error) {
 
 }
 

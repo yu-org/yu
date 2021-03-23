@@ -63,6 +63,6 @@ type IBlockBase interface {
 	GetTxns(blockHash Hash) ([]txn.IsignedTxn, error)
 	SetTxns(blockHash Hash, txns []txn.IsignedTxn) error
 
-	GetEvents(blockHash Hash) ([]IEvent, error)
+	GetEvents(blockHash Hash) ([]Event, error)
 	SetEvents(blockHash Hash, events []Event) error
 }

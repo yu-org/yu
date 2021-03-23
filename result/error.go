@@ -1,60 +1,76 @@
 package result
 
 import (
-	"bytes"
-	"encoding/gob"
+	"fmt"
+	. "yu/common"
+	. "yu/utils/codec"
 )
 
-type IError interface {
+type Error interface {
 	Error() string
 	Encode() ([]byte, error)
 }
 
-type Error struct {
+type TxnError struct {
+	Caller     Address
+	BlockHash  Hash
+	Height     BlockNum
+	TripodName string
+	ExecName   string
+	err        error
 }
 
-func (e *Error) Error() string {
-
+func (e *TxnError) Error() string {
+	return fmt.Sprintf(
+		"[Error] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
+		e.Caller.String(),
+		e.TripodName,
+		e.ExecName,
+		e.BlockHash,
+		e.Height,
+		e.err.Error(),
+	)
 }
 
-func (e *Error) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(e)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+func (e *TxnError) Encode() ([]byte, error) {
+	return GobEncode(e)
 }
 
-type Errors []IError
+type BlockError struct {
+	BlockStage string
+	BlockHash  Hash
+	Height     BlockNum
+	TripodName string
+	err        error
+}
 
-func ToErrors(errors []IError) Errors {
+func (e *BlockError) Error() string {
+	return fmt.Sprintf(
+		"[Error] %s Block(%s) on Height(%d) in Tripod(%s): %s",
+		e.BlockStage,
+		e.BlockHash,
+		e.Height,
+		e.TripodName,
+		e.err.Error(),
+	)
+}
+
+func (e *BlockError) Encode() ([]byte, error) {
+	return GobEncode(e)
+}
+
+type Errors []Error
+
+func ToErrors(errors []Error) Errors {
 	var es Errors
 	es = append(es, errors...)
 	return es
 }
 
-func (es Errors) ToArray() []IError {
+func (es Errors) ToArray() []Error {
 	return es[:]
 }
 
 func (es Errors) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(es)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func DecodeErrors(data []byte) (Errors, error) {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	var es Errors
-	err := decoder.Decode(&es)
-	if err != nil {
-		return nil, err
-	}
-	return es, nil
+	return GobEncode(es)
 }
