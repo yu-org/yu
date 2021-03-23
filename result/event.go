@@ -13,27 +13,23 @@ type Event struct {
 	Height     BlockNum
 	TripodName string
 	ExecName   string
-	Value      Encoder
+	Value      Display
 }
 
-type Encoder interface {
-	Encode() ([]byte, error)
+type Display interface {
+	String() string
 }
 
 func (e *Event) Encode() ([]byte, error) {
 	return GobEncode(e)
 }
 
-func (e *Event) ValueStr() (string, error) {
-	byt, err := e.Value.Encode()
-	if err != nil {
-		return "", err
-	}
-	return ToHex(byt), nil
+func (e *Event) ValueStr() string {
+	return e.Value.String()
 }
 
-func (e *Event) ValueBytes() ([]byte, error) {
-	return e.Value.Encode()
+func (e *Event) ValueBytes() []byte {
+	return []byte(e.Value.String())
 }
 
 func (e *Event) Sprint() (str string) {

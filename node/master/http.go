@@ -7,6 +7,7 @@ import (
 	"net/http"
 	. "yu/common"
 	. "yu/node"
+	"yu/txn"
 	. "yu/utils/error_handle"
 )
 
@@ -67,9 +68,12 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	var ip string
+	var (
+		ip   string
+		name string
+	)
 	if m.RunMode == MasterWorker {
-		ip, err = m.findWorkerIP(tripodName, callName, ExecCall)
+		ip, name, err = m.findWorkerIpAndName(tripodName, callName, ExecCall)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
@@ -79,13 +83,23 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		}
 	}
 
-	// FIXME: insert txn with workerName
-	err = m.txPool.Insert(ip, stxn)
+	err = m.txPool.Insert(name, stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	// todo: if MasterWorker: forwardTxnsForCheck
+
+	fmap := make(map[string]*TxnsAndWorkerName)
+	fmap[ip] = &TxnsAndWorkerName{
+		Txns:       []txn.IsignedTxn{stxn},
+		WorkerName: name,
+	}
+	err = m.forwardTxnsForCheck(fmap)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	m.readyBcTxnsChan <- stxn
 }
 

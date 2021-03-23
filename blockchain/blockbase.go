@@ -91,12 +91,12 @@ func (bb *BlockBase) SetErrors(errs []*Error) error {
 }
 
 type TxnScheme struct {
-	TxnHash   string `gorm:"txn_hash;primaryKey"`
-	Pubkey    string `gorm:"pubkey"`
-	Signature string `gorm:"signature"`
-	RawTxn    string `gorm:"raw_txn"`
+	TxnHash   string
+	Pubkey    string
+	Signature string
+	RawTxn    string
 
-	BlockHash string `gorm:"block_hash"`
+	BlockHash string
 }
 
 func newTxnScheme(blockHash Hash, stxn txn.IsignedTxn) (TxnScheme, error) {
@@ -133,10 +133,6 @@ type EventScheme struct {
 }
 
 func toEventScheme(event *Event) (EventScheme, error) {
-	valueStr, err := event.ValueStr()
-	if err != nil {
-		return EventScheme{}, err
-	}
 	return EventScheme{
 		Caller:     event.Caller.String(),
 		BlockStage: event.BlockStage,
@@ -144,7 +140,7 @@ func toEventScheme(event *Event) (EventScheme, error) {
 		Height:     event.Height,
 		TripodName: event.TripodName,
 		ExecName:   event.ExecName,
-		Value:      valueStr,
+		Value:      event.ValueStr(),
 	}, nil
 }
 
