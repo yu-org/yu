@@ -51,9 +51,16 @@ type IBlockChain interface {
 	Leaves() ([]IBlock, error)
 
 	// return the longest children chains
-	Longest() ([]*ChainStruct, error)
+	Longest() ([]IChainStruct, error)
 	// return the heaviest children chains
-	Heaviest() ([]*ChainStruct, error)
+	Heaviest() ([]IChainStruct, error)
+}
+
+type IChainStruct interface {
+	Append(block IBlock)
+	InsertPrev(block IBlock)
+	First() IBlock
+	Last() IBlock
 }
 
 type IBlockBase interface {

@@ -16,8 +16,8 @@ func NewEmptyChain(root IBlock) *ChainStruct {
 	}
 }
 
-func MakeLongestChain(blocks []IBlock) []*ChainStruct {
-	longestChains := make([]*ChainStruct, 0)
+func MakeLongestChain(blocks []IBlock) []IChainStruct {
+	longestChains := make([]IChainStruct, 0)
 	allBlocks := make(map[Hash]IBlock)
 
 	highestBlocks := make([]IBlock, 0)
@@ -52,7 +52,7 @@ func MakeLongestChain(blocks []IBlock) []*ChainStruct {
 }
 
 // todo
-func MakeHeaviestChain(blocks []IBlock) []*ChainStruct {
+func MakeHeaviestChain(blocks []IBlock) []IChainStruct {
 	return nil
 }
 

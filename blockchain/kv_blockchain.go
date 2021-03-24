@@ -147,7 +147,7 @@ func (bc *BlockChain) Leaves() ([]IBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) Longest() ([]*ChainStruct, error) {
+func (bc *BlockChain) Longest() ([]IChainStruct, error) {
 	blocks, err := bc.Leaves()
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (bc *BlockChain) Longest() ([]*ChainStruct, error) {
 	return MakeLongestChain(blocks), nil
 }
 
-func (bc *BlockChain) Heaviest() ([]*ChainStruct, error) {
+func (bc *BlockChain) Heaviest() ([]IChainStruct, error) {
 	blocks, err := bc.Leaves()
 	if err != nil {
 		return nil, err
