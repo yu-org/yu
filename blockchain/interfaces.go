@@ -44,9 +44,9 @@ type IBlockChain interface {
 	PopBlock() (IBlock, error)
 
 	AppendBlock(b IBlock) error
-	GetBlock(id BlockId) (IBlock, error)
-	Children(id BlockId) ([]IBlock, error)
-	Finalize(id BlockId) error
+	GetBlock(blockHash Hash) (IBlock, error)
+	Children(prevBlockHash Hash) ([]IBlock, error)
+	Finalize(blockHash Hash) error
 	LastFinalized() (IBlock, error)
 	Leaves() ([]IBlock, error)
 

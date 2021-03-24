@@ -62,9 +62,8 @@ func (bc *BlockChain) PopBlock() (IBlock, error) {
 	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
-func (bc *BlockChain) AppendBlock(ib IBlock) error {
-	var b *Block = ib.(*Block)
-	blockId := b.BlockId().Bytes()
+func (bc *BlockChain) AppendBlock(b IBlock) error {
+	blockId := b.Header().Hash().Bytes()
 	blockByt, err := b.Encode()
 	if err != nil {
 		return err
@@ -72,18 +71,21 @@ func (bc *BlockChain) AppendBlock(ib IBlock) error {
 	return bc.chain.Set(blockId, blockByt)
 }
 
-func (bc *BlockChain) GetBlock(id BlockId) (IBlock, error) {
-	blockByt, err := bc.chain.Get(id.Bytes())
+func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
+	blockByt, err := bc.chain.Get(blockHash.Bytes())
 	if err != nil {
 		return nil, err
 	}
 	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
-func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
-	prevBlockNum, prevHash := prevId.Separate()
-	blockNum := prevBlockNum + 1
-	iter, err := bc.chain.Iter(blockNum.Bytes())
+func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
+	prevBlock, err := bc.GetBlock(prevBlockHash)
+	if err != nil {
+		return nil, err
+	}
+	height := prevBlock.Header().Height() + 1
+	iter, err := bc.chain.Iter(height.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +100,7 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		if block.Header().PrevHash() == prevHash {
+		if block.Header().PrevHash() == prevBlockHash {
 			blocks = append(blocks, block)
 		}
 
@@ -110,8 +112,8 @@ func (bc *BlockChain) Children(prevId BlockId) ([]IBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) Finalize(id BlockId) error {
-	return bc.chain.Set(LastFinalizedKey, id.Bytes())
+func (bc *BlockChain) Finalize(blockHash Hash) error {
+	return bc.chain.Set(LastFinalizedKey, blockHash.Bytes())
 }
 
 func (bc *BlockChain) LastFinalized() (IBlock, error) {
