@@ -40,7 +40,7 @@ func (l *Land) ExistExec(tripodName, execName string) error {
 	return nil
 }
 
-func (l *Land) Execute(c *Ecall) error {
+func (l *Land) Execute(c *Ecall, ctx *Context) error {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
@@ -50,7 +50,6 @@ func (l *Land) Execute(c *Ecall) error {
 	if fn == nil {
 		return ExecNotFound(c.ExecName)
 	}
-	ctx := NewContext()
 	err := ctx.SetParams(c.Params)
 	if err != nil {
 		return err
