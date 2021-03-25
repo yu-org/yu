@@ -46,6 +46,7 @@ func (bc *BlockChain) NewEmptyBlock() IBlock {
 	return &Block{}
 }
 
+// pending a block from other blockchain-node for validating
 func (bc *BlockChain) PendBlock(ib IBlock) error {
 	blockByt, err := ib.Encode()
 	if err != nil {

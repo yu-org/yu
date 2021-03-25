@@ -34,6 +34,7 @@ type Master struct {
 	timeout  time.Duration
 
 	chain  IBlockChain
+	base   IBlockBase
 	txPool ItxPool
 	land   *Land
 
@@ -49,7 +50,13 @@ type Master struct {
 	txnsBcChan chan *TransferBody
 }
 
-func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *Land) (*Master, error) {
+func NewMaster(
+	cfg *MasterConf,
+	chain IBlockChain,
+	base IBlockBase,
+	txPool ItxPool,
+	land *Land,
+) (*Master, error) {
 	nkDB, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
@@ -71,6 +78,7 @@ func NewMaster(cfg *MasterConf, chain IBlockChain, txPool ItxPool, land *Land) (
 		httpPort:        MakePort(cfg.HttpPort),
 		wsPort:          MakePort(cfg.WsPort),
 		chain:           chain,
+		base:            base,
 		txPool:          txPool,
 		land:            land,
 		blockBcChan:     make(chan *TransferBody),

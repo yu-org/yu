@@ -38,7 +38,7 @@ type IBlockChain interface {
 	NewEmptyBlock() IBlock
 	// just generate a block with timestamp
 	NewDefaultBlock() IBlock
-	// pending a block for validating
+	// pending a block from other blockchain-node for validating
 	PendBlock(b IBlock) error
 	// pop a pending block
 	PopBlock() (IBlock, error)

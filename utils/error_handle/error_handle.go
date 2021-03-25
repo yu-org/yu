@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-func LogfIfErr(err error, format string) {
+func LogfIfErr(err error, format string, args ...interface{}) {
 	if err != nil {
-		logrus.Errorf(format, err)
+		logrus.Errorf(format, err.Error(), args)
 	}
 }
 

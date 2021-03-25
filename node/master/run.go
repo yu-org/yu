@@ -1,6 +1,7 @@
 package master
 
 import (
+	"github.com/sirupsen/logrus"
 	"net/http"
 	. "yu/common"
 	. "yu/node"
@@ -29,8 +30,6 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
-	// todo: execute txns
-
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
 		return tri.EndBlock(m.chain, newBlock)
@@ -38,6 +37,17 @@ func (m *Master) LocalRun() error {
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		err := ExecuteTxns(newBlock, m.base, m.land)
+		if err != nil {
+			logrus.Errorf(
+				"execute txns error at block(%s) : %s",
+				newBlock.Header().Hash().String(),
+				err.Error(),
+			)
+		}
+	}()
 
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
@@ -56,15 +66,17 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, ExecuteTxnsPath)
-	if err != nil {
-		return err
-	}
-
 	err = nortifyWorker(workersIps, EndBlockPath)
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		err := nortifyWorker(workersIps, ExecuteTxnsPath)
+		if err != nil {
+			logrus.Errorf("nortify worker executing txns error: %s", err.Error())
+		}
+	}()
 
 	return nortifyWorker(workersIps, FinalizeBlockPath)
 }
