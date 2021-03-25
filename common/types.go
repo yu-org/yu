@@ -44,10 +44,10 @@ type (
 
 	// The Call from clients, it is an instance of an 'Query'.
 	Qcall struct {
-		TripodName  string
-		QueryName   string
-		BlockNumber BlockNum
-		Params      JsonString
+		TripodName string
+		QueryName  string
+		Height     BlockNum
+		Params     JsonString
 	}
 	// Execution or Query
 	CallType int

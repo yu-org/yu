@@ -3,14 +3,8 @@ package context
 import (
 	"encoding/json"
 	"reflect"
-	. "yu/common"
 	. "yu/yerror"
 )
-
-func (c *Context) SetParams(params JsonString) error {
-	c.paramsStr = params
-	return json.Unmarshal([]byte(params), &c.paramsMap)
-}
 
 func (c *Context) BindJson(v interface{}) error {
 	return json.Unmarshal([]byte(c.paramsStr), v)

@@ -1,6 +1,7 @@
 package context
 
 import (
+	"encoding/json"
 	. "yu/common"
 	. "yu/result"
 )
@@ -12,13 +13,18 @@ type Context struct {
 	Errors    []*Error
 }
 
-func NewContext() *Context {
+func NewContext(paramsStr JsonString) (*Context, error) {
+	pMap := make(map[string]interface{})
+	err := json.Unmarshal([]byte(paramsStr), &pMap)
+	if err != nil {
+		return nil, err
+	}
 	return &Context{
-		paramsMap: make(map[string]interface{}),
-		paramsStr: "",
+		paramsMap: pMap,
+		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),
 		Errors:    make([]*Error, 0),
-	}
+	}, nil
 }
 
 func (c *Context) EmitEvent(value Display) {

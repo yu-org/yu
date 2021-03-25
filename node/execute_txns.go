@@ -15,8 +15,11 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 	}
 	for _, stxn := range stxns {
 		ecall := stxn.GetRaw().Ecall()
-		ctx := context.NewContext()
-		err := land.Execute(ecall, ctx)
+		ctx, err := context.NewContext(ecall.Params)
+		if err != nil {
+			return err
+		}
+		err = land.Execute(ecall, ctx)
 		if err != nil {
 			return err
 		}
@@ -38,6 +41,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 			e.BlockHash = blockHash
 			e.Height = block.Header().Height()
 		}
+
 		err = base.SetEvents(ctx.Events)
 		if err != nil {
 			return err

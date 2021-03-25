@@ -50,10 +50,6 @@ func (l *Land) Execute(c *Ecall, ctx *Context) error {
 	if fn == nil {
 		return ExecNotFound(c.ExecName)
 	}
-	err := ctx.SetParams(c.Params)
-	if err != nil {
-		return err
-	}
 	return fn(ctx)
 }
 
@@ -67,12 +63,11 @@ func (l *Land) Query(c *Qcall) error {
 	if qry == nil {
 		return QryNotFound(c.QueryName)
 	}
-	ctx := NewContext()
-	err := ctx.SetParams(c.Params)
+	ctx, err := NewContext(c.Params)
 	if err != nil {
 		return err
 	}
-	return qry(ctx, c.BlockNumber)
+	return qry(ctx, c.Height)
 }
 
 func (l *Land) RangeMap(fn func(string, Tripod) error) error {

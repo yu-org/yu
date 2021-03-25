@@ -59,7 +59,7 @@ func GetAddress(req *http.Request) Address {
 	return StrToAddress(req.URL.Query().Get(AddressKey))
 }
 
-func GetBlockNumber(req *http.Request) (BlockNum, error) {
+func GetHeight(req *http.Request) (BlockNum, error) {
 	bnstr := req.URL.Query().Get(BlockNumKey)
 	return StrToBlockNum(bnstr)
 }
