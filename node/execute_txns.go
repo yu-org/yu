@@ -42,6 +42,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 			e.Height = block.Header().Height()
 		}
 
+		// todo: send event and error to client
 		err = base.SetEvents(ctx.Events)
 		if err != nil {
 			return err

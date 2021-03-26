@@ -11,15 +11,12 @@ import (
 
 func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err error) {
 	tripodName, qryName := GetTripodCallName(req)
-	height, err := GetHeight(req)
-	if err != nil {
-		return
-	}
+	blockHash := GetBlockHash(req)
 	qcall = &Qcall{
 		TripodName: tripodName,
 		QueryName:  qryName,
 		Params:     params,
-		Height:     height,
+		BlockHash:  blockHash,
 	}
 	return
 }

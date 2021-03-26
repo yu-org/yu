@@ -67,7 +67,7 @@ func (l *Land) Query(c *Qcall) error {
 	if err != nil {
 		return err
 	}
-	return qry(ctx, c.Height)
+	return qry(ctx, c.BlockHash)
 }
 
 func (l *Land) RangeMap(fn func(string, Tripod) error) error {

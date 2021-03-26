@@ -136,6 +136,7 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 			return err
 		}
 		return m.chain.PendBlock(block)
+		// todo: validate and operate block (including sync txns)
 	case TxnsTransfer:
 		txns, err := tbody.DecodeTxnsBody()
 		if err != nil {

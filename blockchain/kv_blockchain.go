@@ -13,12 +13,12 @@ import (
 var LastFinalizedKey = []byte("Last-Finalized-BlockID")
 var PendingBlocksTopic = "pending-blocks"
 
-type BlockChain struct {
+type KvBlockChain struct {
 	chain         kv.KV
 	pendingBlocks queue.Queue
 }
 
-func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
+func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *KvBlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
 		logrus.Panicf("load chain error: %s", err.Error())
@@ -27,13 +27,13 @@ func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *BlockChain {
 	if err != nil {
 		logrus.Panicf("load pending-blocks error: %s", err.Error())
 	}
-	return &BlockChain{
+	return &KvBlockChain{
 		chain:         kvdb,
 		pendingBlocks: q,
 	}
 }
 
-func (bc *BlockChain) NewDefaultBlock() IBlock {
+func (bc *KvBlockChain) NewDefaultBlock() IBlock {
 	header := &Header{
 		timestamp: time.Now().UnixNano(),
 	}
@@ -42,12 +42,12 @@ func (bc *BlockChain) NewDefaultBlock() IBlock {
 	}
 }
 
-func (bc *BlockChain) NewEmptyBlock() IBlock {
+func (bc *KvBlockChain) NewEmptyBlock() IBlock {
 	return &Block{}
 }
 
-// pending a block from other blockchain-node for validating
-func (bc *BlockChain) PendBlock(ib IBlock) error {
+// pending a block from other KvBlockChain-node for validating
+func (bc *KvBlockChain) PendBlock(ib IBlock) error {
 	blockByt, err := ib.Encode()
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (bc *BlockChain) PendBlock(ib IBlock) error {
 	return bc.pendingBlocks.Push(PendingBlocksTopic, blockByt)
 }
 
-func (bc *BlockChain) PopBlock() (IBlock, error) {
+func (bc *KvBlockChain) PopBlock() (IBlock, error) {
 	blockByt, err := bc.pendingBlocks.Pop(PendingBlocksTopic)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (bc *BlockChain) PopBlock() (IBlock, error) {
 	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
-func (bc *BlockChain) AppendBlock(b IBlock) error {
+func (bc *KvBlockChain) AppendBlock(b IBlock) error {
 	blockId := b.Header().Hash().Bytes()
 	blockByt, err := b.Encode()
 	if err != nil {
@@ -72,7 +72,7 @@ func (bc *BlockChain) AppendBlock(b IBlock) error {
 	return bc.chain.Set(blockId, blockByt)
 }
 
-func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
+func (bc *KvBlockChain) GetBlock(blockHash Hash) (IBlock, error) {
 	blockByt, err := bc.chain.Get(blockHash.Bytes())
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
 	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
-func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
+func (bc *KvBlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 	prevBlock, err := bc.GetBlock(prevBlockHash)
 	if err != nil {
 		return nil, err
@@ -113,11 +113,11 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) Finalize(blockHash Hash) error {
+func (bc *KvBlockChain) Finalize(blockHash Hash) error {
 	return bc.chain.Set(LastFinalizedKey, blockHash.Bytes())
 }
 
-func (bc *BlockChain) LastFinalized() (IBlock, error) {
+func (bc *KvBlockChain) LastFinalized() (IBlock, error) {
 	lfBlockIdByt, err := bc.chain.Get(LastFinalizedKey)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 	return bc.NewEmptyBlock().Decode(blockByt)
 }
 
-func (bc *BlockChain) Leaves() ([]IBlock, error) {
+func (bc *KvBlockChain) Leaves() ([]IBlock, error) {
 	iter, err := bc.chain.Iter(BlockNum(0).Bytes())
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (bc *BlockChain) Leaves() ([]IBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) Longest() ([]IChainStruct, error) {
+func (bc *KvBlockChain) Longest() ([]IChainStruct, error) {
 	blocks, err := bc.Leaves()
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (bc *BlockChain) Longest() ([]IChainStruct, error) {
 	return MakeLongestChain(blocks), nil
 }
 
-func (bc *BlockChain) Heaviest() ([]IChainStruct, error) {
+func (bc *KvBlockChain) Heaviest() ([]IChainStruct, error) {
 	blocks, err := bc.Leaves()
 	if err != nil {
 		return nil, err

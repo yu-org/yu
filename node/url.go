@@ -37,7 +37,7 @@ const (
 	TripodNameKey = "tripod"
 	CallNameKey   = "call_name"
 	AddressKey    = "address"
-	BlockNumKey   = "block_num"
+	BlockHashKey  = "block_hash"
 	KeyTypeKey    = "key_type"
 	PubkeyKey     = "pubkey"
 	SignatureKey  = "signature"
@@ -56,12 +56,11 @@ func GetTripodCallName(req *http.Request) (string, string) {
 
 // return the Address of Txn-Sender
 func GetAddress(req *http.Request) Address {
-	return StrToAddress(req.URL.Query().Get(AddressKey))
+	return HexToAddress(req.URL.Query().Get(AddressKey))
 }
 
-func GetHeight(req *http.Request) (BlockNum, error) {
-	bnstr := req.URL.Query().Get(BlockNumKey)
-	return StrToBlockNum(bnstr)
+func GetBlockHash(req *http.Request) Hash {
+	return HexToHash(req.URL.Query().Get(BlockHashKey))
 }
 
 func GetPubkeyAndSignature(req *http.Request) (keypair.PubKey, []byte, error) {

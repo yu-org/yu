@@ -31,7 +31,7 @@ type (
 	Execution func(*context.Context) error
 	// Developers define the 'Query' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.
-	Query func(*context.Context, BlockNum) error
+	Query func(*context.Context, Hash) error
 
 	JsonString = string
 
@@ -46,7 +46,7 @@ type (
 	Qcall struct {
 		TripodName string
 		QueryName  string
-		Height     BlockNum
+		BlockHash  Hash
 		Params     JsonString
 	}
 	// Execution or Query
@@ -124,9 +124,3 @@ type (
 )
 
 var NullHash Hash = [HashLen]byte{}
-
-func StrToAddress(s string) Address {
-	var address Address
-	copy(address[:], s)
-	return address
-}
