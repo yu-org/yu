@@ -10,7 +10,6 @@ import (
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/tripod"
-	. "yu/txn"
 	. "yu/txpool"
 	. "yu/utils/ip"
 )
@@ -21,35 +20,43 @@ type Worker struct {
 	wsPort         string
 	NodeKeeperAddr string
 	chain          IBlockChain
+	base           IBlockBase
 	txPool         ItxPool
 	land           *tripod.Land
 
 	metadb kv.KV
 
-	// FIXME: it should be a db server.
-	// ready to package a batch of txns to broadcast
-	readyBcTxnsChan chan IsignedTxn
-	// number of broadcast txns every time
-	NumOfBcTxns int
+	//// FIXME: it should be a db server.
+	//// ready to package a batch of txns to broadcast
+	//readyBcTxnsChan chan IsignedTxn
+	//// number of broadcast txns every time
+	//NumOfBcTxns int
 }
 
-func NewWorker(cfg *config.WorkerConf, chain IBlockChain, txPool ItxPool, land *tripod.Land) (*Worker, error) {
+func NewWorker(
+	cfg *config.WorkerConf,
+	chain IBlockChain,
+	base IBlockBase,
+	txPool ItxPool,
+	land *tripod.Land,
+) (*Worker, error) {
 	metadb, err := kv.NewKV(&cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 	nkAddr := MakeLocalIp(cfg.NodeKeeperPort)
 	return &Worker{
-		Name:            cfg.Name,
-		httpPort:        MakePort(cfg.HttpPort),
-		wsPort:          MakePort(cfg.WsPort),
-		NodeKeeperAddr:  nkAddr,
-		chain:           chain,
-		txPool:          txPool,
-		land:            land,
-		metadb:          metadb,
-		readyBcTxnsChan: make(chan IsignedTxn),
-		NumOfBcTxns:     cfg.NumOfBcTxns,
+		Name:           cfg.Name,
+		httpPort:       MakePort(cfg.HttpPort),
+		wsPort:         MakePort(cfg.WsPort),
+		NodeKeeperAddr: nkAddr,
+		chain:          chain,
+		base:           base,
+		txPool:         txPool,
+		land:           land,
+		metadb:         metadb,
+		//readyBcTxnsChan: make(chan IsignedTxn),
+		//NumOfBcTxns:     cfg.NumOfBcTxns,
 	}, nil
 
 }

@@ -3,9 +3,12 @@ package worker
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
+	. "yu/blockchain"
 	. "yu/node"
 	. "yu/node/handle"
+	"yu/tripod"
 )
 
 func (w *Worker) HandleHttp() {
@@ -51,33 +54,67 @@ func (w *Worker) HandleHttp() {
 	})
 
 	// ------------ Process Block ---------------
-	r.GET(StartBlockPath, func(c *gin.Context) {
-
+	r.POST(StartBlockPath, func(c *gin.Context) {
+		block, err := w.resolveBlock(c)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		err = w.land.RangeList(func(tri tripod.Tripod) error {
+			return tri.StartBlock(w.chain, block, w.txPool)
+		})
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	})
 
-	r.GET(EndBlockPath, func(c *gin.Context) {
-
+	r.POST(EndBlockPath, func(c *gin.Context) {
+		block, err := w.resolveBlock(c)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		err = w.land.RangeList(func(tri tripod.Tripod) error {
+			return tri.EndBlock(w.chain, block)
+		})
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	})
 
-	r.GET(ExecuteTxnsPath, func(c *gin.Context) {
-
+	r.POST(ExecuteTxnsPath, func(c *gin.Context) {
+		block, err := w.resolveBlock(c)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		err = ExecuteTxns(block, w.base, w.land)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	})
 
-	r.GET(FinalizeBlockPath, func(c *gin.Context) {
-
-	})
-
-	//------------- requests from P2P network ---------------
-
-	// block from P2P
-	r.POST(BlockFromP2P, func(c *gin.Context) {
-
-	})
-
-	// txns from P2P
-	r.POST(TxnsFromP2P, func(c *gin.Context) {
-		w.CheckTxnsFromP2P(c)
+	r.POST(FinalizeBlockPath, func(c *gin.Context) {
+		block, err := w.resolveBlock(c)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		err = w.land.RangeList(func(tri tripod.Tripod) error {
+			return tri.FinalizeBlock(w.chain, block)
+		})
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	})
 
 	r.Run(w.httpPort)
+}
+
+func (w *Worker) resolveBlock(c *gin.Context) (IBlock, error) {
+	byt, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	return w.chain.NewEmptyBlock().Decode(byt)
 }

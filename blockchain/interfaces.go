@@ -38,10 +38,12 @@ type IBlockChain interface {
 	NewEmptyBlock() IBlock
 	// just generate a block with timestamp
 	NewDefaultBlock() IBlock
-	// pending a block from other blockchain-node for validating
-	PendBlock(b IBlock) error
-	// pop a pending block
-	PopBlock() (IBlock, error)
+	// pending a block from other blockchain-node for validating and operating
+	InsertBlockFromP2P(ib IBlock) error
+	// get a pending block
+	GetBlockFromP2P() (IBlock, error)
+	// remove a block when finished validating and operate the block
+	RemoveBlockFromP2P() error
 
 	AppendBlock(b IBlock) error
 	GetBlock(blockHash Hash) (IBlock, error)

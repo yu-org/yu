@@ -11,11 +11,11 @@ import (
 
 // the Key Name of last finalized blockID
 var LastFinalizedKey = []byte("Last-Finalized-BlockID")
-var PendingBlocksTopic = "pending-blocks"
+var blocksFromP2pTopic = "blocks-from-p2p"
 
 type KvBlockChain struct {
 	chain         kv.KV
-	pendingBlocks queue.Queue
+	blocksFromP2p queue.Queue
 }
 
 func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *KvBlockChain {
@@ -25,11 +25,11 @@ func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *KvBlockChain {
 	}
 	q, err := queue.NewQueue(queueCfg)
 	if err != nil {
-		logrus.Panicf("load pending-blocks error: %s", err.Error())
+		logrus.Panicf("load blocks-from-p2p error: %s", err.Error())
 	}
 	return &KvBlockChain{
 		chain:         kvdb,
-		pendingBlocks: q,
+		blocksFromP2p: q,
 	}
 }
 
@@ -47,20 +47,24 @@ func (bc *KvBlockChain) NewEmptyBlock() IBlock {
 }
 
 // pending a block from other KvBlockChain-node for validating
-func (bc *KvBlockChain) PendBlock(ib IBlock) error {
+func (bc *KvBlockChain) InsertBlockFromP2P(ib IBlock) error {
 	blockByt, err := ib.Encode()
 	if err != nil {
 		return err
 	}
-	return bc.pendingBlocks.Push(PendingBlocksTopic, blockByt)
+	return bc.blocksFromP2p.Push(blocksFromP2pTopic, blockByt)
 }
 
-func (bc *KvBlockChain) PopBlock() (IBlock, error) {
-	blockByt, err := bc.pendingBlocks.Pop(PendingBlocksTopic)
+func (bc *KvBlockChain) GetBlockFromP2P() (IBlock, error) {
+	blockByt, err := bc.blocksFromP2p.Pop(blocksFromP2pTopic)
 	if err != nil {
 		return nil, err
 	}
 	return bc.NewEmptyBlock().Decode(blockByt)
+}
+
+func (bc *KvBlockChain) RemoveBlockFromP2P() error {
+
 }
 
 func (bc *KvBlockChain) AppendBlock(b IBlock) error {

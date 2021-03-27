@@ -3,6 +3,7 @@ package master
 import (
 	"github.com/sirupsen/logrus"
 	"net/http"
+	. "yu/blockchain"
 	. "yu/common"
 	. "yu/node"
 	. "yu/tripod"
@@ -61,32 +62,39 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, StartBlockPath)
+	newBlock := m.chain.NewDefaultBlock()
+
+	err = nortifyWorker(workersIps, StartBlockPath, newBlock)
 	if err != nil {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, EndBlockPath)
+	err = nortifyWorker(workersIps, EndBlockPath, newBlock)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		err := nortifyWorker(workersIps, ExecuteTxnsPath)
+		err := nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
 		if err != nil {
 			logrus.Errorf("nortify worker executing txns error: %s", err.Error())
 		}
 	}()
 
-	return nortifyWorker(workersIps, FinalizeBlockPath)
+	return nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
 }
 
-func nortifyWorker(workersIps []string, path string) error {
+func nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
+	blockByt, err := newBlock.Encode()
+	if err != nil {
+		return err
+	}
+
 	for _, ip := range workersIps {
-		_, err := http.Get(ip + path)
+		_, err = PostRequest(ip+path, blockByt)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+	return
 }
