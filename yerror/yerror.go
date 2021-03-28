@@ -25,6 +25,18 @@ var (
 	TxnDuplicate    error = errors.New("txn is duplicate")
 )
 
+type ErrBlockIllegal struct {
+	BlockHash string
+}
+
+func BlockIllegal(blockHash Hash) ErrBlockIllegal {
+	return ErrBlockIllegal{BlockHash: blockHash.String()}
+}
+
+func (b ErrBlockIllegal) Error() string {
+	return errors.Errorf("block(%s) illegal", b.BlockHash).Error()
+}
+
 type ErrTripodNotFound struct {
 	TripodName string
 }

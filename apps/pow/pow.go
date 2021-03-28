@@ -1,6 +1,7 @@
 package pow
 
 import (
+	"github.com/sirupsen/logrus"
 	"math/big"
 	. "yu/blockchain"
 	. "yu/common"
@@ -39,9 +40,11 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
-func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
-	// todo: get blocks from p2p and judge, if it already had legal block, block = blockFromP2P
+func (p *Pow) ValidateBlock(b IBlock) bool {
+	return spow.Validate(b, p.target, p.targetBits)
+}
 
+func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
 	chains, err := chain.Longest()
 	if err != nil {
 		return err
@@ -49,11 +52,21 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 
 	preBlock := chains[0].Last()
 
-	height := preBlock.Header().Height()
+	preHeight := preBlock.Header().Height()
 	preHash := preBlock.Header().PrevHash()
 
+	height := preHeight + 1
+
+	p2pBlocks, err := chain.GetBlocksFromP2P(height)
+	if err != nil {
+		logrus.Errorf("get p2p-blocks error: %s", err.Error())
+	}
+	if p2pBlocks != nil {
+		block = p2pBlocks[0]
+	}
+
 	block.SetPreHash(preHash)
-	block.SetHeight(height + 1)
+	block.SetHeight(height)
 
 	txns, err := pool.Package("", p.pkgTxnsLimit)
 	if err != nil {

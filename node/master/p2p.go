@@ -18,8 +18,9 @@ import (
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
+	"yu/tripod"
 	. "yu/txn"
-	"yu/yerror"
+	. "yu/yerror"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -135,8 +136,16 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		if err != nil {
 			return err
 		}
+		err = m.land.RangeList(func(tri tripod.Tripod) error {
+			if tri.ValidateBlock(block) {
+				return nil
+			}
+			return BlockIllegal(block.Header().Hash())
+		})
+		if err != nil {
+			return err
+		}
 		return m.chain.InsertBlockFromP2P(block)
-		// todo: validate and operate block (including sync txns)
 	case TxnsTransfer:
 		txns, err := tbody.DecodeTxnsBody()
 		if err != nil {
@@ -175,7 +184,7 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		}
 		return nil
 	default:
-		return yerror.NoTransferBodyType
+		return NoTransferBodyType
 	}
 }
 

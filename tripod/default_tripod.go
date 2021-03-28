@@ -25,6 +25,10 @@ func (*DefaultTripod) CheckTxn(txn.IsignedTxn) error {
 	return nil
 }
 
+func (*DefaultTripod) ValidateBlock(IBlock) bool {
+	return nil
+}
+
 func (*DefaultTripod) StartBlock(IBlockChain, IBlock, txpool.ItxPool) error {
 	return nil
 }

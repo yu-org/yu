@@ -11,7 +11,7 @@ type Tripod interface {
 
 	CheckTxn(txn.IsignedTxn) error
 
-	// ValidateBlock(IBlock) error
+	ValidateBlock(IBlock) bool
 
 	StartBlock(IBlockChain, IBlock, txpool.ItxPool) error
 
