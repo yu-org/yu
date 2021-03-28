@@ -1,8 +1,10 @@
 package blockchain
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	. "yu/common"
+	"yu/keypair"
 	. "yu/result"
 	ysql "yu/storage/sql"
 	"yu/txn"
@@ -19,9 +21,9 @@ func NewBlockBase(db ysql.SqlDB) *BlockBase {
 }
 
 func (bb *BlockBase) GetTxn(txnHash Hash) (txn.IsignedTxn, error) {
-	var stxn txn.IsignedTxn
-	bb.db.Db().Where(&TxnScheme{TxnHash: txnHash.String()}).First(&stxn)
-	return stxn, nil
+	var ts TxnScheme
+	bb.db.Db().Where(&TxnScheme{TxnHash: txnHash.String()}).First(&ts)
+	return ts.toTxn()
 }
 
 func (bb *BlockBase) SetTxn(stxn txn.IsignedTxn) error {
@@ -34,11 +36,15 @@ func (bb *BlockBase) SetTxn(stxn txn.IsignedTxn) error {
 }
 
 func (bb *BlockBase) GetTxns(blockHash Hash) ([]txn.IsignedTxn, error) {
-	var txns []txn.SignedTxn
-	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&txns)
-	var itxns []txn.IsignedTxn
-	for _, signedTxn := range txns {
-		txns = append(txns, signedTxn)
+	var tss []TxnScheme
+	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
+	itxns := make([]txn.IsignedTxn, 0)
+	for _, ts := range tss {
+		stxn, err := ts.toTxn()
+		if err != nil {
+			return nil, err
+		}
+		itxns = append(itxns, stxn)
 	}
 	return itxns, nil
 }
@@ -57,8 +63,16 @@ func (bb *BlockBase) SetTxns(blockHash Hash, txns []txn.IsignedTxn) error {
 }
 
 func (bb *BlockBase) GetEvents(blockHash Hash) ([]*Event, error) {
-	var events []*Event
-	bb.db.Db().Where(&EventScheme{BlockHash: blockHash.String()}).Find(&events)
+	var ess []EventScheme
+	bb.db.Db().Where(&EventScheme{BlockHash: blockHash.String()}).Find(&ess)
+	events := make([]*Event, 0)
+	for _, es := range ess {
+		e, err := es.toEvent()
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
 	return events, nil
 }
 
@@ -76,8 +90,12 @@ func (bb *BlockBase) SetEvents(events []*Event) error {
 }
 
 func (bb *BlockBase) GetErrors(blockHash Hash) ([]*Error, error) {
-	var errs []*Error
-	bb.db.Db().Where(&ErrorScheme{BlockHash: blockHash.String()}).Find(&errs)
+	var ess []ErrorScheme
+	bb.db.Db().Where(&ErrorScheme{BlockHash: blockHash.String()}).Find(&ess)
+	errs := make([]*Error, 0)
+	for _, es := range ess {
+		errs = append(errs, es.toError())
+	}
 	return errs, nil
 }
 
@@ -93,6 +111,7 @@ func (bb *BlockBase) SetErrors(errs []*Error) error {
 type TxnScheme struct {
 	TxnHash   string `gorm:"primaryKey"`
 	Pubkey    string
+	KeyType   string
 	Signature string
 	RawTxn    string
 
@@ -120,6 +139,7 @@ func toTxnScheme(stxn txn.IsignedTxn) (TxnScheme, error) {
 	return TxnScheme{
 		TxnHash:   stxn.GetTxnHash().String(),
 		Pubkey:    stxn.GetPubkey().String(),
+		KeyType:   stxn.GetPubkey().Type(),
 		Signature: ToHex(stxn.GetSignature()),
 		RawTxn:    ToHex(rawTxnByt),
 		BlockHash: "",
@@ -132,10 +152,14 @@ func (t TxnScheme) toTxn() (txn.IsignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
+	pubkey, err := keypair.PubKeyFromBytes(t.KeyType, FromHex(t.Pubkey))
+	if err != nil {
+		return nil, err
+	}
 	return &txn.SignedTxn{
 		Raw:       rawTxn,
 		TxnHash:   HexToHash(t.TxnHash),
-		Pubkey:    nil,
+		Pubkey:    pubkey,
 		Signature: FromHex(t.Signature),
 	}, nil
 }
@@ -173,6 +197,7 @@ func toEventScheme(event *Event) (EventScheme, error) {
 
 func (e EventScheme) toEvent() (*Event, error) {
 
+	// todo: decode value
 	return &Event{
 		Caller:     HexToAddress(e.Caller),
 		BlockStage: e.BlockStage,
@@ -182,6 +207,7 @@ func (e EventScheme) toEvent() (*Event, error) {
 		ExecName:   e.ExecName,
 		Value:      nil,
 	}, nil
+
 }
 
 type ErrorScheme struct {
@@ -208,5 +234,17 @@ func toErrorScheme(err *Error) ErrorScheme {
 		TripodName: err.TripodName,
 		ExecName:   err.ExecName,
 		Error:      err.Err.Error(),
+	}
+}
+
+func (e ErrorScheme) toError() *Error {
+	return &Error{
+		Caller:     HexToAddress(e.Caller),
+		BlockStage: e.BlockStage,
+		BlockHash:  HexToHash(e.BlockHash),
+		Height:     e.Height,
+		TripodName: e.TripodName,
+		ExecName:   e.ExecName,
+		Err:        errors.New(e.Error),
 	}
 }
