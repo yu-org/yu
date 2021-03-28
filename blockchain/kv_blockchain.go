@@ -6,7 +6,7 @@ import (
 	. "yu/common"
 	. "yu/config"
 	"yu/storage/kv"
-	"yu/storage/queue"
+	ysql "yu/storage/sql"
 )
 
 // the Key Name of last finalized blockID
@@ -15,21 +15,21 @@ var blocksFromP2pTopic = "blocks-from-p2p"
 
 type KvBlockChain struct {
 	chain         kv.KV
-	blocksFromP2p queue.Queue
+	blocksFromP2p ysql.SqlDB
 }
 
-func NewKvBlockChain(kvCfg *KVconf, queueCfg *QueueConf) *KvBlockChain {
+func NewKvBlockChain(kvCfg *KVconf, sqlCfg *SqlDbConf) *KvBlockChain {
 	kvdb, err := kv.NewKV(kvCfg)
 	if err != nil {
 		logrus.Panicf("load chain error: %s", err.Error())
 	}
-	q, err := queue.NewQueue(queueCfg)
+	db, err := ysql.NewSqlDB(sqlCfg)
 	if err != nil {
 		logrus.Panicf("load blocks-from-p2p error: %s", err.Error())
 	}
 	return &KvBlockChain{
 		chain:         kvdb,
-		blocksFromP2p: q,
+		blocksFromP2p: db,
 	}
 }
 
@@ -47,24 +47,36 @@ func (bc *KvBlockChain) NewEmptyBlock() IBlock {
 }
 
 // pending a block from other KvBlockChain-node for validating
-func (bc *KvBlockChain) InsertBlockFromP2P(ib IBlock) error {
-	blockByt, err := ib.Encode()
+func (bc *KvBlockChain) InsertBlockFromP2P(b IBlock) error {
+	bs, err := toBlocksFromP2pScheme(b)
 	if err != nil {
 		return err
 	}
-	return bc.blocksFromP2p.Push(blocksFromP2pTopic, blockByt)
+	bc.blocksFromP2p.Db().Create(&bs)
+	return nil
 }
 
-func (bc *KvBlockChain) GetBlockFromP2P() (IBlock, error) {
-	blockByt, err := bc.blocksFromP2p.Pop(blocksFromP2pTopic)
-	if err != nil {
-		return nil, err
+func (bc *KvBlockChain) GetBlocksFromP2P(height BlockNum) ([]IBlock, error) {
+	var bss []BlocksFromP2pScheme
+	bc.blocksFromP2p.Db().Where(&BlocksFromP2pScheme{
+		Height: height,
+	}).Find(&bss)
+	blocks := make([]IBlock, 0)
+	for _, bs := range bss {
+		b, err := bs.toBlock(&Block{})
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, b)
 	}
-	return bc.NewEmptyBlock().Decode(blockByt)
+	return blocks, nil
 }
 
-func (bc *KvBlockChain) RemoveBlockFromP2P() error {
-
+func (bc *KvBlockChain) FlushBlocksFromP2P(height BlockNum) error {
+	bc.blocksFromP2p.Db().Where(&BlocksFromP2pScheme{
+		Height: height,
+	}).Delete(BlocksFromP2pScheme{})
+	return nil
 }
 
 func (bc *KvBlockChain) AppendBlock(b IBlock) error {
@@ -168,4 +180,31 @@ func (bc *KvBlockChain) Heaviest() ([]IChainStruct, error) {
 		return nil, err
 	}
 	return MakeHeaviestChain(blocks), nil
+}
+
+type BlocksFromP2pScheme struct {
+	BlockHash    string `gorm:"primaryKey"`
+	Height       BlockNum
+	BlockContent string
+}
+
+func (BlocksFromP2pScheme) TableName() string {
+	return "blocks_from_p2p"
+}
+
+func toBlocksFromP2pScheme(b IBlock) (BlocksFromP2pScheme, error) {
+	byt, err := b.Encode()
+	if err != nil {
+		return BlocksFromP2pScheme{}, err
+	}
+	return BlocksFromP2pScheme{
+		BlockHash:    b.Header().Hash().String(),
+		Height:       b.Header().Height(),
+		BlockContent: ToHex(byt),
+	}, nil
+}
+
+func (bs BlocksFromP2pScheme) toBlock(b IBlock) (IBlock, error) {
+	byt := FromHex(bs.BlockContent)
+	return b.Decode(byt)
 }

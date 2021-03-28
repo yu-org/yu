@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"gorm.io/gorm"
 	. "yu/common"
 	. "yu/result"
 	ysql "yu/storage/sql"
@@ -12,7 +13,6 @@ type BlockBase struct {
 }
 
 func NewBlockBase(db ysql.SqlDB) *BlockBase {
-	db.Db().Create(&TxnScheme{})
 	return &BlockBase{
 		db: db,
 	}
@@ -91,12 +91,16 @@ func (bb *BlockBase) SetErrors(errs []*Error) error {
 }
 
 type TxnScheme struct {
-	TxnHash   string
+	TxnHash   string `gorm:"primaryKey"`
 	Pubkey    string
 	Signature string
 	RawTxn    string
 
 	BlockHash string
+}
+
+func (TxnScheme) TableName() string {
+	return "txns"
 }
 
 func newTxnScheme(blockHash Hash, stxn txn.IsignedTxn) (TxnScheme, error) {
@@ -122,7 +126,22 @@ func toTxnScheme(stxn txn.IsignedTxn) (TxnScheme, error) {
 	}, nil
 }
 
+func (t TxnScheme) toTxn() (txn.IsignedTxn, error) {
+	ut := &txn.UnsignedTxn{}
+	rawTxn, err := ut.Decode(FromHex(t.RawTxn))
+	if err != nil {
+		return nil, err
+	}
+	return &txn.SignedTxn{
+		Raw:       rawTxn,
+		TxnHash:   HexToHash(t.TxnHash),
+		Pubkey:    nil,
+		Signature: FromHex(t.Signature),
+	}, nil
+}
+
 type EventScheme struct {
+	gorm.Model
 	Caller     string
 	BlockStage string
 	BlockHash  string
@@ -132,7 +151,15 @@ type EventScheme struct {
 	Value      string
 }
 
+func (EventScheme) TableName() string {
+	return "events"
+}
+
 func toEventScheme(event *Event) (EventScheme, error) {
+	value, err := event.ValueStr()
+	if err != nil {
+		return EventScheme{}, err
+	}
 	return EventScheme{
 		Caller:     event.Caller.String(),
 		BlockStage: event.BlockStage,
@@ -140,11 +167,25 @@ func toEventScheme(event *Event) (EventScheme, error) {
 		Height:     event.Height,
 		TripodName: event.TripodName,
 		ExecName:   event.ExecName,
-		Value:      event.ValueStr(),
+		Value:      value,
+	}, nil
+}
+
+func (e EventScheme) toEvent() (*Event, error) {
+
+	return &Event{
+		Caller:     HexToAddress(e.Caller),
+		BlockStage: e.BlockStage,
+		BlockHash:  HexToHash(e.BlockHash),
+		Height:     e.Height,
+		TripodName: e.TripodName,
+		ExecName:   e.ExecName,
+		Value:      nil,
 	}, nil
 }
 
 type ErrorScheme struct {
+	gorm.Model
 	Caller     string
 	BlockStage string
 	BlockHash  string
@@ -152,6 +193,10 @@ type ErrorScheme struct {
 	TripodName string
 	ExecName   string
 	Error      string
+}
+
+func (ErrorScheme) TableName() string {
+	return "errors"
 }
 
 func toErrorScheme(err *Error) ErrorScheme {

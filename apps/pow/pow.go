@@ -40,6 +40,8 @@ func (*Pow) CheckTxn(txn.IsignedTxn) error {
 }
 
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
+	// todo: get blocks from p2p and judge, if it already had legal block, block = blockFromP2P
+
 	chains, err := chain.Longest()
 	if err != nil {
 		return err

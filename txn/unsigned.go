@@ -61,3 +61,8 @@ func (ut *UnsignedTxn) Hash() (Hash, error) {
 func (ut *UnsignedTxn) Encode() ([]byte, error) {
 	return GobEncode(ut)
 }
+
+func (ut *UnsignedTxn) Decode(data []byte) (IunsignedTxn, error) {
+	err := GobDecode(data, ut)
+	return ut, err
+}

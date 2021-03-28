@@ -2,7 +2,6 @@ package master
 
 import (
 	"github.com/sirupsen/logrus"
-	"net/http"
 	. "yu/blockchain"
 	. "yu/common"
 	. "yu/node"
@@ -30,6 +29,8 @@ func (m *Master) LocalRun() error {
 	if err != nil {
 		return err
 	}
+
+	// todo: broadcast block into p2p
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
@@ -69,6 +70,8 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
+	// todo: broadcast block into p2p
+
 	err = nortifyWorker(workersIps, EndBlockPath, newBlock)
 	if err != nil {
 		return err
@@ -96,5 +99,5 @@ func nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
 			return err
 		}
 	}
-	return
+	return nil
 }

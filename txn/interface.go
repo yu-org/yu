@@ -13,6 +13,7 @@ type IunsignedTxn interface {
 	Hash() (Hash, error)
 	ToSignedTxn() (IsignedTxn, error)
 	Encode() ([]byte, error)
+	Decode(data []byte) (IunsignedTxn, error)
 }
 
 type IsignedTxn interface {
