@@ -30,7 +30,17 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
-	// todo: broadcast block into p2p
+	go m.readyBroadcastBlock(newBlock)
+	// todo: sync txns
+
+	err = m.txPool.Flush()
+	if err != nil {
+		return err
+	}
+	err = m.chain.FlushBlocksFromP2P(newBlock.Header().Height())
+	if err != nil {
+		return err
+	}
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
@@ -70,7 +80,18 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	// todo: broadcast block into p2p
+	go m.readyBroadcastBlock(newBlock)
+	// todo: sync txns
+
+	err = m.txPool.Flush()
+	if err != nil {
+		return err
+	}
+
+	err = m.chain.FlushBlocksFromP2P(newBlock.Header().Height())
+	if err != nil {
+		return err
+	}
 
 	err = nortifyWorker(workersIps, EndBlockPath, newBlock)
 	if err != nil {
@@ -100,4 +121,12 @@ func nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
 		}
 	}
 	return nil
+}
+
+func (m *Master) readyBroadcastBlock(b IBlock) {
+	tbody, err := NewBlockTransferBody(b)
+	if err != nil {
+		logrus.Errorf("ready broadcast block(%s) error: %s", b.Header().Hash().String(), err.Error())
+	}
+	m.blockBcChan <- tbody
 }

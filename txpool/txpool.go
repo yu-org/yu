@@ -23,7 +23,7 @@ type ItxPool interface {
 	// pacakge txns according to specific conditions
 	PackageFor(workerName string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error)
 	// get txn content of txn-hash from p2p network
-	SyncTxns(workerName string, hashes []Hash) error
+	SyncTxns(hashes []Hash) error
 	// remove txns after execute all tripods
-	Remove(workerName string) error
+	Flush() error
 }

@@ -121,7 +121,7 @@ func (tp *ServerTxPool) PackageFor(workerName string, numLimit uint64, filter fu
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *ServerTxPool) SyncTxns(workerName string, hashes []Hash) error {
+func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
 	tp.RLock()
@@ -153,7 +153,7 @@ func (tp *ServerTxPool) SyncTxns(workerName string, hashes []Hash) error {
 }
 
 // remove txns after execute all tripods
-func (tp *ServerTxPool) Remove(workerName string) error {
+func (tp *ServerTxPool) Flush() error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0
