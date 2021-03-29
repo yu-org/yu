@@ -75,7 +75,7 @@ func (m *Master) MasterWokrerRun() error {
 
 	newBlock := m.chain.NewDefaultBlock()
 
-	err = nortifyWorker(workersIps, StartBlockPath, newBlock)
+	err = m.nortifyWorker(workersIps, StartBlockPath, newBlock)
 	if err != nil {
 		return err
 	}
@@ -93,32 +93,37 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = nortifyWorker(workersIps, EndBlockPath, newBlock)
+	err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		err := nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
+		err := m.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
 		if err != nil {
 			logrus.Errorf("nortify worker executing txns error: %s", err.Error())
 		}
 	}()
 
-	return nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
+	return m.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
 }
 
-func nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
+func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
 	blockByt, err := newBlock.Encode()
 	if err != nil {
 		return err
 	}
 
 	for _, ip := range workersIps {
-		_, err = PostRequest(ip+path, blockByt)
+		resp, err := PostRequest(ip+path, blockByt)
 		if err != nil {
 			return err
 		}
+		respBlock, err := DecodeBlockFromHttp(resp.Body, m.chain)
+		if err != nil {
+			return err
+		}
+		newBlock = respBlock
 	}
 	return nil
 }

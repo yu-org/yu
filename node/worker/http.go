@@ -55,7 +55,7 @@ func (w *Worker) HandleHttp() {
 
 	// ------------ Process Block ---------------
 	r.POST(StartBlockPath, func(c *gin.Context) {
-		block, err := w.resolveBlock(c)
+		block, err := DecodeBlockFromHttp(c.Request.Body, w.chain)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
@@ -65,11 +65,14 @@ func (w *Worker) HandleHttp() {
 		})
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+
+		encodeBlockBackHttp(c, block)
 	})
 
 	r.POST(EndBlockPath, func(c *gin.Context) {
-		block, err := w.resolveBlock(c)
+		block, err := DecodeBlockFromHttp(c.Request.Body, w.chain)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
@@ -79,11 +82,14 @@ func (w *Worker) HandleHttp() {
 		})
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+
+		encodeBlockBackHttp(c, block)
 	})
 
 	r.POST(ExecuteTxnsPath, func(c *gin.Context) {
-		block, err := w.resolveBlock(c)
+		block, err := DecodeBlockFromHttp(c.Request.Body, w.chain)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
@@ -91,11 +97,14 @@ func (w *Worker) HandleHttp() {
 		err = ExecuteTxns(block, w.base, w.land)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+
+		encodeBlockBackHttp(c, block)
 	})
 
 	r.POST(FinalizeBlockPath, func(c *gin.Context) {
-		block, err := w.resolveBlock(c)
+		block, err := DecodeBlockFromHttp(c.Request.Body, w.chain)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
@@ -105,16 +114,23 @@ func (w *Worker) HandleHttp() {
 		})
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
+			return
 		}
+
+		encodeBlockBackHttp(c, block)
 	})
 
 	r.Run(w.httpPort)
 }
 
-func (w *Worker) resolveBlock(c *gin.Context) (IBlock, error) {
-	byt, err := ioutil.ReadAll(c.Request.Body)
+func encodeBlockBackHttp(c *gin.Context, b IBlock) {
+	byt, err := b.Encode()
 	if err != nil {
-		return nil, err
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
-	return w.chain.NewEmptyBlock().Decode(byt)
+	_, err = c.Writer.Write(byt)
+	if err != nil {
+		logrus.Errorf("write block(%s) back to http error: %s", b.Header().Hash().String(), err.Error())
+	}
 }

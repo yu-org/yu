@@ -2,8 +2,12 @@ package node
 
 import (
 	"bytes"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"io"
+	"io/ioutil"
 	"net/http"
+	. "yu/blockchain"
 )
 
 func SendHeartbeats(addrs []string, handleAlive func(addr string) error, handleDead func(addr string) error) {
@@ -33,4 +37,12 @@ func PostRequest(url string, body []byte) (*http.Response, error) {
 	}
 	cli := &http.Client{}
 	return cli.Do(req)
+}
+
+func DecodeBlockFromHttp(body io.ReadCloser, chain IBlockChain) (IBlock, error) {
+	byt, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	return chain.NewEmptyBlock().Decode(byt)
 }
