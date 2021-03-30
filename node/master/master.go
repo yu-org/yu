@@ -130,6 +130,26 @@ func (m *Master) BroadcastTxns() {
 	}
 }
 
+// sync P2P-network's txns
+func (m *Master) SyncTxns(block IBlock) error {
+	txnsHashes := block.TxnsHashes()
+	blockHash := block.Header().Hash()
+	txns, err := m.base.GetTxns(blockHash)
+	if err != nil {
+		return err
+	}
+	needFetch := make([]Hash, 0)
+	for _, txnHash := range txnsHashes {
+		if !existTxnHash(txnHash, txns) {
+			needFetch = append(needFetch, txnHash)
+		}
+	}
+	// todo: fetch txns from p2p-network and check them
+	// todo: insert txns into blockbase
+
+	return nil
+}
+
 func (m *Master) registerNodeKeepers(c *gin.Context) {
 	m.Lock()
 	defer m.Unlock()
@@ -324,4 +344,13 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 		return err
 	}
 	return txn.Set([]byte(ip), infoByt)
+}
+
+func existTxnHash(txnHash Hash, txns []IsignedTxn) bool {
+	for _, stxn := range txns {
+		if stxn.GetTxnHash() == txnHash {
+			return true
+		}
+	}
+	return false
 }

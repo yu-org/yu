@@ -31,7 +31,11 @@ func (m *Master) LocalRun() error {
 	}
 
 	go m.readyBroadcastBlock(newBlock)
-	// todo: sync txns
+
+	err = m.SyncTxns(newBlock)
+	if err != nil {
+		return err
+	}
 
 	err = m.txPool.Flush()
 	if err != nil {
@@ -81,7 +85,11 @@ func (m *Master) MasterWokrerRun() error {
 	}
 
 	go m.readyBroadcastBlock(newBlock)
-	// todo: sync txns
+
+	err = m.SyncTxns(newBlock)
+	if err != nil {
+		return err
+	}
 
 	err = m.txPool.Flush()
 	if err != nil {

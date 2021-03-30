@@ -21,7 +21,7 @@ type LocalTxPool struct {
 	packagedIdx int
 
 	// need to sync txns from p2p
-	ToSyncTxnsChan chan Hash
+	ToSyncTxnsChan chan []Hash
 	// accept the txn-content of txn-hash from p2p
 	WaitSyncTxnsChan chan IsignedTxn
 	// wait sync txns timeout
@@ -38,7 +38,7 @@ func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, er
 		TxnMaxSize:       cfg.TxnMaxSize,
 		Txns:             make([]IsignedTxn, 0),
 		packagedIdx:      0,
-		ToSyncTxnsChan:   make(chan Hash, 1024),
+		ToSyncTxnsChan:   make(chan []Hash),
 		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks:       make([]TxnCheck, 0),
@@ -126,14 +126,18 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(Isigned
 func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
 
 	hashesMap := make(map[Hash]bool)
+	toSyncHashes := make([]Hash, 0)
+
 	tp.RLock()
 	for _, txnHash := range hashes {
 		if !existTxn(txnHash, tp.Txns) {
-			tp.ToSyncTxnsChan <- txnHash
+			toSyncHashes = append(toSyncHashes, txnHash)
 			hashesMap[txnHash] = true
 		}
 	}
 	tp.RUnlock()
+
+	tp.ToSyncTxnsChan <- toSyncHashes
 
 	ticker := time.NewTicker(tp.WaitTxnsTimeout)
 
