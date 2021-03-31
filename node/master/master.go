@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
 	"math/rand"
 	"net/http"
@@ -24,14 +25,17 @@ import (
 
 type Master struct {
 	sync.Mutex
-	p2pHost host.Host
+	// p2pHost host.Host
+	// ps      *pubsub.PubSub
+	p2pInfo *P2pInfo
+
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
 	nkDB     kv.KV
 	httpPort string
 	wsPort   string
-	ctx      context.Context
-	timeout  time.Duration
+	// ctx      context.Context
+	timeout time.Duration
 
 	chain  IBlockChain
 	base   IBlockBase
@@ -67,14 +71,24 @@ func NewMaster(
 		return nil, err
 	}
 
+	ps, err := pubsub.NewGossipSub(ctx, p2pHost)
+	if err != nil {
+		return nil, err
+	}
+
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
+	p2pInfo := &P2pInfo{
+		host: p2pHost,
+		ps:   ps,
+		ctx:  ctx,
+	}
+
 	return &Master{
-		p2pHost:         p2pHost,
+		p2pInfo:         p2pInfo,
 		RunMode:         cfg.RunMode,
 		nkDB:            nkDB,
 		timeout:         timeout,
-		ctx:             ctx,
 		httpPort:        MakePort(cfg.HttpPort),
 		wsPort:          MakePort(cfg.WsPort),
 		chain:           chain,
@@ -89,7 +103,7 @@ func NewMaster(
 }
 
 func (m *Master) P2pID() string {
-	return m.p2pHost.ID().String()
+	return m.p2pInfo.host.ID().String()
 }
 
 // Check the health of NodeKeepers by SendHeartbeat to them.

@@ -11,6 +11,7 @@ require (
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/libp2p/go-libp2p v0.13.0 // indirect
+	github.com/libp2p/go-libp2p-pubsub v0.4.1 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/nats-io/nats.go v1.10.0 // indirect
 	github.com/pingcap/tidb v1.1.0-beta.0.20210108095858-c2ee8d37c22f // indirect

@@ -11,6 +11,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -22,6 +23,12 @@ import (
 	. "yu/txn"
 	. "yu/yerror"
 )
+
+type P2pInfo struct {
+	host host.Host
+	ps   *pubsub.PubSub
+	ctx  context.Context
+}
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
 	r, err := loadNodeKeyReader(cfg)
@@ -50,7 +57,7 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.p2pHost.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
+	m.p2pInfo.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
 
 	for _, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
@@ -61,7 +68,7 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		if err != nil {
 			return err
 		}
-		err = m.p2pHost.Connect(m.ctx, *peer)
+		err = m.p2pInfo.host.Connect(m.p2pInfo.ctx, *peer)
 		if err != nil {
 			return err
 		}
@@ -210,4 +217,20 @@ func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) e
 type TxnsAndWorkerName struct {
 	Txns       SignedTxns
 	WorkerName string
+}
+
+func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
+	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+	if err != nil {
+		return err
+	}
+	byt, err := txns.Encode()
+	if err != nil {
+		return err
+	}
+	return topic.Publish(m.p2pInfo.ctx, byt)
+}
+
+func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
+
 }
