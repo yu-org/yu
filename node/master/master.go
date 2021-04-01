@@ -172,7 +172,13 @@ func (m *Master) SyncTxns(block IBlock) error {
 			}
 			fetchedTxns = append(fetchedTxns, stxn)
 		}
-		// todo: check txns
+
+		for _, fetchedTxn := range fetchedTxns {
+			err = m.txPool.NecessaryCheck(fetchedTxn)
+			if err != nil {
+				return err
+			}
+		}
 
 		return m.base.SetTxns(blockHash, fetchedTxns)
 	}

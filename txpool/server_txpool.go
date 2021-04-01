@@ -179,6 +179,23 @@ func (tp *ServerTxPool) TripodsCheck(stxn IsignedTxn) error {
 	return TripodsCheck(tp.land, stxn)
 }
 
+func (tp *ServerTxPool) NecessaryCheck(stxn IsignedTxn) (err error) {
+	err = tp.checkExecExist(stxn)
+	if err != nil {
+		return
+	}
+	err = tp.checkTxnSize(stxn)
+	if err != nil {
+		return
+	}
+	err = tp.checkSignature(stxn)
+	if err != nil {
+		return
+	}
+
+	return tp.TripodsCheck(stxn)
+}
+
 // check if tripod and execution exists
 func (tp *ServerTxPool) checkExecExist(stxn IsignedTxn) error {
 	return checkExecExist(tp.land, stxn)

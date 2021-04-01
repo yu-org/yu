@@ -70,7 +70,7 @@ func (tp *LocalTxPool) NewEmptySignedTxn() IsignedTxn {
 }
 
 func (tp *LocalTxPool) NewEmptySignedTxns() SignedTxns {
-
+	return make([]SignedTxn, 0)
 }
 
 func (tp *LocalTxPool) PoolSize() uint64 {
@@ -192,6 +192,23 @@ func (tp *LocalTxPool) BaseCheck(stxn IsignedTxn) error {
 
 func (tp *LocalTxPool) TripodsCheck(stxn IsignedTxn) error {
 	return TripodsCheck(tp.land, stxn)
+}
+
+func (tp *LocalTxPool) NecessaryCheck(stxn IsignedTxn) (err error) {
+	err = tp.checkExecExist(stxn)
+	if err != nil {
+		return
+	}
+	err = tp.checkTxnSize(stxn)
+	if err != nil {
+		return
+	}
+	err = tp.checkSignature(stxn)
+	if err != nil {
+		return
+	}
+
+	return tp.TripodsCheck(stxn)
 }
 
 // check if tripod and execution exists

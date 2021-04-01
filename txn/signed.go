@@ -63,9 +63,9 @@ func DecodeSignedTxn(data []byte) (st IsignedTxn, err error) {
 	return
 }
 
-type SignedTxns []IsignedTxn
+type SignedTxns []*SignedTxn
 
-func FromArray(txns []IsignedTxn) SignedTxns {
+func FromArray(txns []*SignedTxn) SignedTxns {
 	var stxns SignedTxns
 	stxns = append(stxns, txns...)
 	return stxns
@@ -79,12 +79,7 @@ func (sts SignedTxns) Encode() ([]byte, error) {
 	return GobEncode(sts)
 }
 
-func DecodeSignedTxns(data []byte) (SignedTxns, error) {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	var sts SignedTxns
-	err := decoder.Decode(&sts)
-	if err != nil {
-		return nil, err
-	}
-	return sts, nil
+func (sts SignedTxns) Decode(data []byte) (SignedTxns, error) {
+	err := GobDecode(data, &sts)
+	return sts, err
 }

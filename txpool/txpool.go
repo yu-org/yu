@@ -16,6 +16,8 @@ type ItxPool interface {
 	BaseCheck(IsignedTxn) error
 	// tripods check the txn
 	TripodsCheck(IsignedTxn) error
+	// use for SyncTxns
+	NecessaryCheck(stxn IsignedTxn) error
 	// insert into txpool
 	Insert(workerName string, txn IsignedTxn) error
 	// batch insert into txpool

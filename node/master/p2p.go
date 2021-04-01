@@ -247,7 +247,11 @@ func (m *Master) subFromP2P(blockHash Hash) ([]IsignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	stxns, err := m.txPool.NewEmptySignedTxns().Decode(msg.Data)
+	if err != nil {
+		return nil, err
+	}
+	return stxns.ToArray(), nil
 }
 
 func (m *Master) closeTopic() error {
