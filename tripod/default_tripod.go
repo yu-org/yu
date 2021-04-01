@@ -21,7 +21,7 @@ func (dt *DefaultTripod) TripodMeta() *TripodMeta {
 	return dt.meta
 }
 
-func (*DefaultTripod) CheckTxn(txn.IsignedTxn) error {
+func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 

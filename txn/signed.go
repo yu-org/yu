@@ -10,13 +10,13 @@ import (
 )
 
 type SignedTxn struct {
-	Raw       IunsignedTxn
+	Raw       *UnsignedTxn
 	TxnHash   Hash
 	Pubkey    PubKey
 	Signature []byte
 }
 
-func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (IsignedTxn, error) {
+func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*SignedTxn, error) {
 	raw, err := NewUnsignedTxn(caller, ecall)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (Isig
 	}, nil
 }
 
-func (st *SignedTxn) GetRaw() IunsignedTxn {
+func (st *SignedTxn) GetRaw() *UnsignedTxn {
 	return st.Raw
 }
 
@@ -57,7 +57,7 @@ func (st *SignedTxn) Size() int {
 	return int(unsafe.Sizeof(st))
 }
 
-func DecodeSignedTxn(data []byte) (st IsignedTxn, err error) {
+func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err = decoder.Decode(st)
 	return
@@ -71,7 +71,7 @@ func FromArray(txns []*SignedTxn) SignedTxns {
 	return stxns
 }
 
-func (sts SignedTxns) ToArray() []IsignedTxn {
+func (sts SignedTxns) ToArray() []*SignedTxn {
 	return sts[:]
 }
 

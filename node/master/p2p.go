@@ -233,7 +233,7 @@ func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
 	return m.p2pInfo.topic.Publish(m.p2pInfo.ctx, byt)
 }
 
-func (m *Master) subFromP2P(blockHash Hash) ([]IsignedTxn, error) {
+func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
 	topic, err := m.p2pInfo.ps.Join(blockHash.String())
 	if err != nil {
 		return nil, err

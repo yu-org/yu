@@ -3,7 +3,7 @@ package blockchain
 import (
 	. "yu/common"
 	. "yu/result"
-	"yu/txn"
+	. "yu/txn"
 )
 
 type IBlock interface {
@@ -66,11 +66,11 @@ type IChainStruct interface {
 }
 
 type IBlockBase interface {
-	GetTxn(txnHash Hash) (txn.IsignedTxn, error)
-	SetTxn(stxn txn.IsignedTxn) error
+	GetTxn(txnHash Hash) (*SignedTxn, error)
+	SetTxn(stxn *SignedTxn) error
 
-	GetTxns(blockHash Hash) ([]txn.IsignedTxn, error)
-	SetTxns(blockHash Hash, txns []txn.IsignedTxn) error
+	GetTxns(blockHash Hash) ([]*SignedTxn, error)
+	SetTxns(blockHash Hash, txns []*SignedTxn) error
 
 	GetEvents(blockHash Hash) ([]*Event, error)
 	SetEvents(events []*Event) error

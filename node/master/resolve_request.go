@@ -6,7 +6,7 @@ import (
 	"net/http/httputil"
 	. "yu/common"
 	. "yu/node"
-	"yu/txn"
+	. "yu/txn"
 )
 
 func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err error) {
@@ -21,7 +21,7 @@ func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err 
 	return
 }
 
-func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn txn.IsignedTxn, err error) {
+func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn *SignedTxn, err error) {
 	tripodName, callName := GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
@@ -33,7 +33,7 @@ func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execN
 	if err != nil {
 		return
 	}
-	stxn, err = txn.NewSignedTxn(caller, ecall, pubkey, sig)
+	stxn, err = NewSignedTxn(caller, ecall, pubkey, sig)
 	return
 }
 

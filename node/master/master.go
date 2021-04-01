@@ -46,7 +46,7 @@ type Master struct {
 
 	// ready to package a batch of txns to broadcast
 	// readyBcTxnsChan -> txnsBcChan -> P2P network
-	readyBcTxnsChan chan IsignedTxn
+	readyBcTxnsChan chan *SignedTxn
 	// number of broadcast txns every time
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
@@ -95,7 +95,7 @@ func NewMaster(
 		txPool:          txPool,
 		land:            land,
 		blockBcChan:     make(chan *TransferBody),
-		readyBcTxnsChan: make(chan IsignedTxn),
+		readyBcTxnsChan: make(chan *SignedTxn),
 		txnsBcChan:      make(chan *TransferBody),
 		NumOfBcTxns:     cfg.NumOfBcTxns,
 	}, nil
@@ -164,7 +164,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 		if err != nil {
 			return err
 		}
-		fetchedTxns := make([]IsignedTxn, 0)
+		fetchedTxns := make([]*SignedTxn, 0)
 		for _, txnHash := range needFetch {
 			stxn, exist := existTxnHash(txnHash, allTxns)
 			if !exist {
@@ -382,7 +382,7 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 	return txn.Set([]byte(ip), infoByt)
 }
 
-func existTxnHash(txnHash Hash, txns []IsignedTxn) (IsignedTxn, bool) {
+func existTxnHash(txnHash Hash, txns []*SignedTxn) (*SignedTxn, bool) {
 	for _, stxn := range txns {
 		if stxn.GetTxnHash() == txnHash {
 			return stxn, true

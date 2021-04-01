@@ -6,9 +6,9 @@ import (
 	. "yu/yerror"
 )
 
-type TxnCheck func(IsignedTxn) error
+type TxnCheck func(*SignedTxn) error
 
-func BaseCheck(checks []TxnCheck, stxn IsignedTxn) error {
+func BaseCheck(checks []TxnCheck, stxn *SignedTxn) error {
 	for _, check := range checks {
 		err := check(stxn)
 		if err != nil {
@@ -18,28 +18,28 @@ func BaseCheck(checks []TxnCheck, stxn IsignedTxn) error {
 	return nil
 }
 
-func TripodsCheck(land *Land, stxn IsignedTxn) error {
+func TripodsCheck(land *Land, stxn *SignedTxn) error {
 	return land.RangeList(func(tri Tripod) error {
 		return tri.CheckTxn(stxn)
 	})
 }
 
 // check if tripod and execution exists
-func checkExecExist(land *Land, stxn IsignedTxn) error {
+func checkExecExist(land *Land, stxn *SignedTxn) error {
 	ecall := stxn.GetRaw().Ecall()
 	tripodName := ecall.TripodName
 	execName := ecall.ExecName
 	return land.ExistExec(tripodName, execName)
 }
 
-func checkPoolLimit(txnsInPool []IsignedTxn, poolsize uint64) error {
+func checkPoolLimit(txnsInPool []*SignedTxn, poolsize uint64) error {
 	if uint64(len(txnsInPool)) >= poolsize {
 		return PoolOverflow
 	}
 	return nil
 }
 
-func checkSignature(stxn IsignedTxn) error {
+func checkSignature(stxn *SignedTxn) error {
 	sig := stxn.GetSignature()
 	hash := stxn.GetTxnHash()
 	if !stxn.GetPubkey().VerifySignature(hash.Bytes(), sig) {
@@ -48,14 +48,14 @@ func checkSignature(stxn IsignedTxn) error {
 	return nil
 }
 
-func checkTxnSize(txnMaxSize int, stxn IsignedTxn) error {
+func checkTxnSize(txnMaxSize int, stxn *SignedTxn) error {
 	if stxn.Size() > txnMaxSize {
 		return TxnTooLarge
 	}
 	return nil
 }
 
-func checkDuplicate(txnsInPool []IsignedTxn, stxn IsignedTxn) error {
+func checkDuplicate(txnsInPool []*SignedTxn, stxn *SignedTxn) error {
 	if existTxn(stxn.GetTxnHash(), txnsInPool) {
 		return TxnDuplicate
 	}

@@ -14,7 +14,7 @@ type UnsignedTxn struct {
 	timestamp int64
 }
 
-func NewUnsignedTxn(caller Address, ecall *Ecall) (IunsignedTxn, error) {
+func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	UnsignedTxn := &UnsignedTxn{
 		caller:    caller,
 		ecall:     ecall,
@@ -40,7 +40,7 @@ func (ut *UnsignedTxn) Ecall() *Ecall {
 	return ut.ecall
 }
 
-func (ut *UnsignedTxn) ToSignedTxn() (IsignedTxn, error) {
+func (ut *UnsignedTxn) ToSignedTxn() (*SignedTxn, error) {
 
 }
 
@@ -62,7 +62,7 @@ func (ut *UnsignedTxn) Encode() ([]byte, error) {
 	return GobEncode(ut)
 }
 
-func (ut *UnsignedTxn) Decode(data []byte) (IunsignedTxn, error) {
+func (ut *UnsignedTxn) Decode(data []byte) (*UnsignedTxn, error) {
 	err := GobDecode(data, ut)
 	return ut, err
 }

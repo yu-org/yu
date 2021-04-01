@@ -7,7 +7,7 @@ import (
 	"yu/keypair"
 	. "yu/result"
 	ysql "yu/storage/sql"
-	"yu/txn"
+	. "yu/txn"
 )
 
 type BlockBase struct {
@@ -20,13 +20,13 @@ func NewBlockBase(db ysql.SqlDB) *BlockBase {
 	}
 }
 
-func (bb *BlockBase) GetTxn(txnHash Hash) (txn.IsignedTxn, error) {
+func (bb *BlockBase) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	var ts TxnScheme
 	bb.db.Db().Where(&TxnScheme{TxnHash: txnHash.String()}).First(&ts)
 	return ts.toTxn()
 }
 
-func (bb *BlockBase) SetTxn(stxn txn.IsignedTxn) error {
+func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return err
@@ -35,10 +35,10 @@ func (bb *BlockBase) SetTxn(stxn txn.IsignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetTxns(blockHash Hash) ([]txn.IsignedTxn, error) {
+func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
 	var tss []TxnScheme
 	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
-	itxns := make([]txn.IsignedTxn, 0)
+	itxns := make([]*SignedTxn, 0)
 	for _, ts := range tss {
 		stxn, err := ts.toTxn()
 		if err != nil {
@@ -49,7 +49,7 @@ func (bb *BlockBase) GetTxns(blockHash Hash) ([]txn.IsignedTxn, error) {
 	return itxns, nil
 }
 
-func (bb *BlockBase) SetTxns(blockHash Hash, txns []txn.IsignedTxn) error {
+func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
 	txnSms := make([]TxnScheme, 0)
 	for _, stxn := range txns {
 		txnSm, err := newTxnScheme(blockHash, stxn)
@@ -122,7 +122,7 @@ func (TxnScheme) TableName() string {
 	return "txns"
 }
 
-func newTxnScheme(blockHash Hash, stxn txn.IsignedTxn) (TxnScheme, error) {
+func newTxnScheme(blockHash Hash, stxn *SignedTxn) (TxnScheme, error) {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return TxnScheme{}, err
@@ -131,7 +131,7 @@ func newTxnScheme(blockHash Hash, stxn txn.IsignedTxn) (TxnScheme, error) {
 	return txnSm, nil
 }
 
-func toTxnScheme(stxn txn.IsignedTxn) (TxnScheme, error) {
+func toTxnScheme(stxn *SignedTxn) (TxnScheme, error) {
 	rawTxnByt, err := stxn.GetRaw().Encode()
 	if err != nil {
 		return TxnScheme{}, err
@@ -146,8 +146,8 @@ func toTxnScheme(stxn txn.IsignedTxn) (TxnScheme, error) {
 	}, nil
 }
 
-func (t TxnScheme) toTxn() (txn.IsignedTxn, error) {
-	ut := &txn.UnsignedTxn{}
+func (t TxnScheme) toTxn() (*SignedTxn, error) {
+	ut := &UnsignedTxn{}
 	rawTxn, err := ut.Decode(FromHex(t.RawTxn))
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (t TxnScheme) toTxn() (txn.IsignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &txn.SignedTxn{
+	return &SignedTxn{
 		Raw:       rawTxn,
 		TxnHash:   HexToHash(t.TxnHash),
 		Pubkey:    pubkey,

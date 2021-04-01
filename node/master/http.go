@@ -7,7 +7,7 @@ import (
 	"net/http"
 	. "yu/common"
 	. "yu/node"
-	"yu/txn"
+	. "yu/txn"
 	. "yu/utils/error_handle"
 )
 
@@ -91,7 +91,7 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 
 	fmap := make(map[string]*TxnsAndWorkerName)
 	fmap[ip] = &TxnsAndWorkerName{
-		Txns:       []txn.IsignedTxn{stxn},
+		Txns:       []*SignedTxn{stxn},
 		WorkerName: name,
 	}
 	err = m.forwardTxnsForCheck(fmap)

@@ -16,14 +16,14 @@ type LocalTxPool struct {
 
 	poolSize    uint64
 	TxnMaxSize  int
-	pendingTxns []IsignedTxn
-	Txns        []IsignedTxn
+	pendingTxns []*SignedTxn
+	Txns        []*SignedTxn
 	packagedIdx int
 
 	// need to sync txns from p2p
 	ToSyncTxnsChan chan []Hash
 	// accept the txn-content of txn-hash from p2p
-	WaitSyncTxnsChan chan IsignedTxn
+	WaitSyncTxnsChan chan *SignedTxn
 	// wait sync txns timeout
 	WaitTxnsTimeout time.Duration
 
@@ -36,10 +36,10 @@ func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, er
 	return &LocalTxPool{
 		poolSize:         cfg.PoolSize,
 		TxnMaxSize:       cfg.TxnMaxSize,
-		Txns:             make([]IsignedTxn, 0),
+		Txns:             make([]*SignedTxn, 0),
 		packagedIdx:      0,
 		ToSyncTxnsChan:   make(chan []Hash),
-		WaitSyncTxnsChan: make(chan IsignedTxn, 1024),
+		WaitSyncTxnsChan: make(chan *SignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks:       make([]TxnCheck, 0),
 		land:             land,
@@ -65,7 +65,7 @@ func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
 	return tp
 }
 
-func (tp *LocalTxPool) NewEmptySignedTxn() IsignedTxn {
+func (tp *LocalTxPool) NewEmptySignedTxn() *SignedTxn {
 	return &SignedTxn{}
 }
 
@@ -83,7 +83,7 @@ func (tp *LocalTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txpool
-func (tp *LocalTxPool) Insert(_ string, stxn IsignedTxn) (err error) {
+func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) (err error) {
 	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return
@@ -109,16 +109,16 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) error {
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]IsignedTxn, error) {
-	return tp.PackageFor("", numLimit, func(IsignedTxn) error {
+func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]*SignedTxn, error) {
+	return tp.PackageFor("", numLimit, func(*SignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error) {
+func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
-	stxns := make([]IsignedTxn, 0)
+	stxns := make([]*SignedTxn, 0)
 	for i := 0; i < int(numLimit); i++ {
 		err := filter(tp.Txns[i])
 		if err != nil {
@@ -175,7 +175,7 @@ func (tp *LocalTxPool) Flush() error {
 	return nil
 }
 
-func existTxn(hash Hash, txns []IsignedTxn) bool {
+func existTxn(hash Hash, txns []*SignedTxn) bool {
 	for _, txn := range txns {
 		if txn.GetTxnHash() == hash {
 			return true
@@ -186,15 +186,15 @@ func existTxn(hash Hash, txns []IsignedTxn) bool {
 
 // --------- check txn ------
 
-func (tp *LocalTxPool) BaseCheck(stxn IsignedTxn) error {
+func (tp *LocalTxPool) BaseCheck(stxn *SignedTxn) error {
 	return BaseCheck(tp.BaseChecks, stxn)
 }
 
-func (tp *LocalTxPool) TripodsCheck(stxn IsignedTxn) error {
+func (tp *LocalTxPool) TripodsCheck(stxn *SignedTxn) error {
 	return TripodsCheck(tp.land, stxn)
 }
 
-func (tp *LocalTxPool) NecessaryCheck(stxn IsignedTxn) (err error) {
+func (tp *LocalTxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 	err = tp.checkExecExist(stxn)
 	if err != nil {
 		return
@@ -212,25 +212,25 @@ func (tp *LocalTxPool) NecessaryCheck(stxn IsignedTxn) (err error) {
 }
 
 // check if tripod and execution exists
-func (tp *LocalTxPool) checkExecExist(stxn IsignedTxn) error {
+func (tp *LocalTxPool) checkExecExist(stxn *SignedTxn) error {
 	return checkExecExist(tp.land, stxn)
 }
 
-func (tp *LocalTxPool) checkPoolLimit(IsignedTxn) error {
+func (tp *LocalTxPool) checkPoolLimit(*SignedTxn) error {
 	return checkPoolLimit(tp.Txns, tp.poolSize)
 }
 
-func (tp *LocalTxPool) checkSignature(stxn IsignedTxn) error {
+func (tp *LocalTxPool) checkSignature(stxn *SignedTxn) error {
 	return checkSignature(stxn)
 }
 
-func (tp *LocalTxPool) checkTxnSize(stxn IsignedTxn) error {
+func (tp *LocalTxPool) checkTxnSize(stxn *SignedTxn) error {
 	if stxn.Size() > tp.TxnMaxSize {
 		return TxnTooLarge
 	}
 	return checkTxnSize(tp.TxnMaxSize, stxn)
 }
 
-func (tp *LocalTxPool) checkDuplicate(stxn IsignedTxn) error {
+func (tp *LocalTxPool) checkDuplicate(stxn *SignedTxn) error {
 	return checkDuplicate(tp.Txns, stxn)
 }

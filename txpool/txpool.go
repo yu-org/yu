@@ -6,26 +6,26 @@ import (
 )
 
 type ItxPool interface {
-	NewEmptySignedTxn() IsignedTxn
+	NewEmptySignedTxn() *SignedTxn
 	NewEmptySignedTxns() SignedTxns
 	// return pool size of txpool
 	PoolSize() uint64
 	// txpool with the base check-functions
 	WithBaseChecks(checkFns []TxnCheck) ItxPool
 	// base check txn
-	BaseCheck(IsignedTxn) error
+	BaseCheck(*SignedTxn) error
 	// tripods check the txn
-	TripodsCheck(IsignedTxn) error
+	TripodsCheck(*SignedTxn) error
 	// use for SyncTxns
-	NecessaryCheck(stxn IsignedTxn) error
+	NecessaryCheck(stxn *SignedTxn) error
 	// insert into txpool
-	Insert(workerName string, txn IsignedTxn) error
+	Insert(workerName string, txn *SignedTxn) error
 	// batch insert into txpool
 	BatchInsert(workerName string, txns SignedTxns) error
 	// package some txns to send to tripods
-	Package(workerName string, numLimit uint64) ([]IsignedTxn, error)
+	Package(workerName string, numLimit uint64) ([]*SignedTxn, error)
 	// pacakge txns according to specific conditions
-	PackageFor(workerName string, numLimit uint64, filter func(IsignedTxn) error) ([]IsignedTxn, error)
+	PackageFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 	// get txn content of txn-hash from p2p network
 	SyncTxns(hashes []Hash) error
 	// remove txns after execute all tripods

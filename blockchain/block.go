@@ -69,7 +69,7 @@ func (b *Block) Decode(data []byte) (IBlock, error) {
 	return b, err
 }
 
-func MakeTxnRoot(txns []txn.IsignedTxn) (Hash, error) {
+func MakeTxnRoot(txns []*txn.SignedTxn) (Hash, error) {
 	txnsBytes := make([]Hash, 0)
 	for _, tx := range txns {
 		hash := tx.GetTxnHash()

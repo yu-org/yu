@@ -36,7 +36,7 @@ func (p *Pow) TripodMeta() *TripodMeta {
 	return p.meta
 }
 
-func (*Pow) CheckTxn(txn.IsignedTxn) error {
+func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 

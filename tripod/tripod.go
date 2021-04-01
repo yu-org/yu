@@ -9,7 +9,7 @@ import (
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
-	CheckTxn(txn.IsignedTxn) error
+	CheckTxn(*txn.SignedTxn) error
 
 	ValidateBlock(IBlock) bool
 
