@@ -25,9 +25,10 @@ import (
 )
 
 type P2pInfo struct {
-	host host.Host
-	ps   *pubsub.PubSub
-	ctx  context.Context
+	host  host.Host
+	ps    *pubsub.PubSub
+	ctx   context.Context
+	topic *pubsub.Topic
 }
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -224,13 +225,31 @@ func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
 	if err != nil {
 		return err
 	}
+	m.p2pInfo.topic = topic
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return topic.Publish(m.p2pInfo.ctx, byt)
+	return m.p2pInfo.topic.Publish(m.p2pInfo.ctx, byt)
 }
 
-func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
+func (m *Master) subFromP2P(blockHash Hash) ([]IsignedTxn, error) {
+	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+	if err != nil {
+		return nil, err
+	}
+	m.p2pInfo.topic = topic
+	sub, err := topic.Subscribe()
+	if err != nil {
+		return nil, err
+	}
+	msg, err := sub.Next(m.p2pInfo.ctx)
+	if err != nil {
+		return nil, err
+	}
 
+}
+
+func (m *Master) closeTopic() error {
+	return m.p2pInfo.topic.Close()
 }

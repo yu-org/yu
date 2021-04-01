@@ -37,6 +37,18 @@ func (b ErrBlockIllegal) Error() string {
 	return errors.Errorf("block(%s) illegal", b.BlockHash).Error()
 }
 
+type ErrNoTxnInP2P struct {
+	TxnHash string
+}
+
+func NoTxnInP2P(txnHash Hash) ErrNoTxnInP2P {
+	return ErrNoTxnInP2P{TxnHash: txnHash.String()}
+}
+
+func (t ErrNoTxnInP2P) Error() string {
+	return errors.Errorf("no txn(%s) in P2P network", t.TxnHash).Error()
+}
+
 type ErrTripodNotFound struct {
 	TripodName string
 }

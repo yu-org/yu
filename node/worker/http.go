@@ -60,8 +60,10 @@ func (w *Worker) HandleHttp() {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		err = w.land.RangeList(func(tri tripod.Tripod) error {
-			return tri.StartBlock(w.chain, block, w.txPool)
+		var needBroadcast bool
+		err = w.land.RangeList(func(tri tripod.Tripod) (err error) {
+			needBroadcast, err = tri.StartBlock(w.chain, block, w.txPool)
+			return
 		})
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)

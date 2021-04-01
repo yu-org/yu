@@ -13,7 +13,7 @@ type Tripod interface {
 
 	ValidateBlock(IBlock) bool
 
-	StartBlock(IBlockChain, IBlock, txpool.ItxPool) error
+	StartBlock(IBlockChain, IBlock, txpool.ItxPool) (needBroadcast bool, err error)
 
 	EndBlock(IBlockChain, IBlock) error
 

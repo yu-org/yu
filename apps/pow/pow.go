@@ -44,10 +44,10 @@ func (p *Pow) ValidateBlock(b IBlock) bool {
 	return spow.Validate(b, p.target, p.targetBits)
 }
 
-func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
+func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
 	chains, err := chain.Longest()
 	if err != nil {
-		return err
+		return
 	}
 
 	preBlock := chains[0].Last()
@@ -63,14 +63,17 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 	}
 	if p2pBlocks != nil {
 		block = p2pBlocks[0]
+		return
 	}
+
+	needBroadcast = true
 
 	block.SetPreHash(preHash)
 	block.SetHeight(height)
 
 	txns, err := pool.Package("", p.pkgTxnsLimit)
 	if err != nil {
-		return err
+		return
 	}
 	txnsHashes := make([]Hash, 0)
 	for _, hash := range txnsHashes {
@@ -80,18 +83,18 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) e
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
-		return err
+		return
 	}
 	block.SetStateRoot(txnRoot)
 
 	nonce, hash, err := spow.Run(block, p.target, p.targetBits)
 	if err != nil {
-		return err
+		return
 	}
 	block.SetExtra(nonce)
 	block.SetHash(hash)
 
-	return nil
+	return
 }
 
 func (*Pow) EndBlock(chain IBlockChain, block IBlock) error {

@@ -72,6 +72,14 @@ func (tp *ServerTxPool) withDefaultBaseChecks() *ServerTxPool {
 	return tp
 }
 
+func (tp *ServerTxPool) NewEmptySignedTxn() IsignedTxn {
+	return &SignedTxn{}
+}
+
+func (tp *ServerTxPool) NewEmptySignedTxns() SignedTxns {
+
+}
+
 func (tp *ServerTxPool) PoolSize() uint64 {
 	return tp.poolSize
 }

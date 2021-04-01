@@ -22,15 +22,30 @@ func (m *Master) Run() error {
 
 func (m *Master) LocalRun() error {
 	newBlock := m.chain.NewDefaultBlock()
+	needBcBlock := false
 	// start a new block
 	err := m.land.RangeList(func(tri Tripod) error {
-		return tri.StartBlock(m.chain, newBlock, m.txPool)
+		need, err := tri.StartBlock(m.chain, newBlock, m.txPool)
+		if err != nil {
+			return err
+		}
+		if need {
+			needBcBlock = true
+		}
+		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	go m.readyBroadcastBlock(newBlock)
+	if needBcBlock {
+		go func() {
+			err := m.broadcastBlockAndTxns(newBlock)
+			if err != nil {
+				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.Header().Hash(), err.Error())
+			}
+		}()
+	}
 
 	err = m.SyncTxns(newBlock)
 	if err != nil {
@@ -84,7 +99,8 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	go m.readyBroadcastBlock(newBlock)
+	// if newBlock.Hash == startblock.Hash
+	// m.readyBroadcastBlock(newBlock)
 
 	err = m.SyncTxns(newBlock)
 	if err != nil {
@@ -136,10 +152,15 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 	return nil
 }
 
-func (m *Master) readyBroadcastBlock(b IBlock) {
+func (m *Master) broadcastBlockAndTxns(b IBlock) error {
 	tbody, err := NewBlockTransferBody(b)
 	if err != nil {
-		logrus.Errorf("ready broadcast block(%s) error: %s", b.Header().Hash().String(), err.Error())
+		return err
+	}
+	txns, err := m.base.GetTxns(b.Header().Hash())
+	if err != nil {
+		return err
 	}
 	m.blockBcChan <- tbody
+	return m.pubToP2P(b.Header().Hash(), txns)
 }

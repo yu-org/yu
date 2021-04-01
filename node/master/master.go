@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -154,12 +153,29 @@ func (m *Master) SyncTxns(block IBlock) error {
 	}
 	needFetch := make([]Hash, 0)
 	for _, txnHash := range txnsHashes {
-		if !existTxnHash(txnHash, txns) {
+		_, exist := existTxnHash(txnHash, txns)
+		if !exist {
 			needFetch = append(needFetch, txnHash)
 		}
 	}
-	// todo: fetch txns from p2p-network and check them
-	// todo: insert txns into blockbase
+
+	if len(needFetch) > 0 {
+		allTxns, err := m.subFromP2P(blockHash)
+		if err != nil {
+			return err
+		}
+		fetchedTxns := make([]IsignedTxn, 0)
+		for _, txnHash := range needFetch {
+			stxn, exist := existTxnHash(txnHash, allTxns)
+			if !exist {
+				return NoTxnInP2P(txnHash)
+			}
+			fetchedTxns = append(fetchedTxns, stxn)
+		}
+		// todo: check txns
+
+		return m.base.SetTxns(blockHash, fetchedTxns)
+	}
 
 	return nil
 }
@@ -360,11 +376,11 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 	return txn.Set([]byte(ip), infoByt)
 }
 
-func existTxnHash(txnHash Hash, txns []IsignedTxn) bool {
+func existTxnHash(txnHash Hash, txns []IsignedTxn) (IsignedTxn, bool) {
 	for _, stxn := range txns {
 		if stxn.GetTxnHash() == txnHash {
-			return true
+			return stxn, true
 		}
 	}
-	return false
+	return nil, false
 }
