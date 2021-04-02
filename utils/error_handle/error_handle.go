@@ -12,7 +12,7 @@ func LogfIfErr(err error, format string, args ...interface{}) {
 	}
 }
 
-func BadReqErrStr(tripodName, callName string, err error) string {
+func FindNoCallStr(tripodName, callName string, err error) string {
 	return fmt.Sprintf("find Tripod(%s) Call(%s) error: %s", tripodName, callName, err.Error())
 }
 

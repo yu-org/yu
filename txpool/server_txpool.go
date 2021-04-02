@@ -129,36 +129,36 @@ func (tp *ServerTxPool) PackageFor(workerName string, numLimit uint64, filter fu
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
-
-	hashesMap := make(map[Hash]bool)
-	tp.RLock()
-	for _, txnHash := range hashes {
-		if !existTxn(txnHash, tp.Txns) {
-			tp.ToSyncTxnsChan <- txnHash
-			hashesMap[txnHash] = true
-		}
-	}
-	tp.RUnlock()
-
-	ticker := time.NewTicker(tp.WaitTxnsTimeout)
-
-	for len(hashesMap) > 0 {
-		select {
-		case stxn := <-tp.WaitSyncTxnsChan:
-			txnHash := stxn.GetRaw().ID()
-			delete(hashesMap, txnHash)
-			err := tp.Insert(workerName, stxn)
-			if err != nil {
-				return err
-			}
-		case <-ticker.C:
-			return WaitTxnsTimeout(hashesMap)
-		}
-	}
-
-	return nil
-}
+//func (tp *ServerTxPool) SyncTxns(hashes []Hash) error {
+//
+//	hashesMap := make(map[Hash]bool)
+//	tp.RLock()
+//	for _, txnHash := range hashes {
+//		if !existTxn(txnHash, tp.Txns) {
+//			tp.ToSyncTxnsChan <- txnHash
+//			hashesMap[txnHash] = true
+//		}
+//	}
+//	tp.RUnlock()
+//
+//	ticker := time.NewTicker(tp.WaitTxnsTimeout)
+//
+//	for len(hashesMap) > 0 {
+//		select {
+//		case stxn := <-tp.WaitSyncTxnsChan:
+//			txnHash := stxn.GetRaw().ID()
+//			delete(hashesMap, txnHash)
+//			err := tp.Insert(workerName, stxn)
+//			if err != nil {
+//				return err
+//			}
+//		case <-ticker.C:
+//			return WaitTxnsTimeout(hashesMap)
+//		}
+//	}
+//
+//	return nil
+//}
 
 // remove txns after execute all tripods
 func (tp *ServerTxPool) Flush() error {

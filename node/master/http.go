@@ -77,7 +77,7 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				BadReqErrStr(tripodName, callName, err),
+				FindNoCallStr(tripodName, callName, err),
 			)
 			return
 		}
@@ -121,7 +121,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				BadReqErrStr(qcall.TripodName, qcall.QueryName, err),
+				FindNoCallStr(qcall.TripodName, qcall.QueryName, err),
 			)
 			return
 		}
@@ -131,7 +131,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				BadReqErrStr(qcall.TripodName, qcall.QueryName, err),
+				FindNoCallStr(qcall.TripodName, qcall.QueryName, err),
 			)
 			return
 		}

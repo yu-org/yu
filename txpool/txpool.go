@@ -1,7 +1,6 @@
 package txpool
 
 import (
-	. "yu/common"
 	. "yu/txn"
 )
 
@@ -27,7 +26,7 @@ type ItxPool interface {
 	// pacakge txns according to specific conditions
 	PackageFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 	// get txn content of txn-hash from p2p network
-	SyncTxns(hashes []Hash) error
+	// SyncTxns(hashes []Hash) error
 	// remove txns after execute all tripods
 	Flush() error
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	. "yu/common"
 	. "yu/node"
+	. "yu/txn"
 	. "yu/utils/error_handle"
 )
 
@@ -50,22 +51,34 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		BadReqHttpResp(w, err.Error())
 		return
 	}
-	var ip string
+	var (
+		ip   string
+		name string
+	)
 	if m.RunMode == MasterWorker {
-		ip, err = m.findWorkerIP(tripodName, callName, ExecCall)
+		ip, name, err = m.findWorkerIpAndName(tripodName, callName, ExecCall)
 		if err != nil {
-			BadReqHttpResp(w, BadReqErrStr(tripodName, callName, err))
+			BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
 			return
 		}
 	}
 
-	// FIXME: insert txn with workerName
-	err = m.txPool.Insert(ip, stxn)
+	err = m.txPool.Insert(name, stxn)
 	if err != nil {
 		ServerErrorHttpResp(w, err.Error())
 		return
 	}
-	// todo: if MasterWorker: forwardTxnsForCheck
+
+	fmap := make(map[string]*TxnsAndWorkerName)
+	fmap[ip] = &TxnsAndWorkerName{
+		Txns:       []*SignedTxn{stxn},
+		WorkerName: name,
+	}
+	err = m.forwardTxnsForCheck(fmap)
+	if err != nil {
+		BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
+		return
+	}
 	m.readyBcTxnsChan <- stxn
 }
 
@@ -78,14 +91,14 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 	if m.RunMode == MasterWorker {
 		ip, err := m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
 		if err != nil {
-			BadReqHttpResp(w, BadReqErrStr(qcall.TripodName, qcall.QueryName, err))
+			BadReqHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
 		}
 		forwardQueryToWorker(ip, w, req)
 	} else {
 		err = m.land.Query(qcall)
 		if err != nil {
-			ServerErrorHttpResp(w, BadReqErrStr(qcall.TripodName, qcall.QueryName, err))
+			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
 		}
 	}

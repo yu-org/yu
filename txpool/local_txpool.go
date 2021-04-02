@@ -2,7 +2,6 @@ package txpool
 
 import (
 	"sync"
-	"time"
 	. "yu/common"
 	"yu/config"
 	"yu/tripod"
@@ -21,28 +20,28 @@ type LocalTxPool struct {
 	packagedIdx int
 
 	// need to sync txns from p2p
-	ToSyncTxnsChan chan []Hash
+	//ToSyncTxnsChan chan []Hash
 	// accept the txn-content of txn-hash from p2p
-	WaitSyncTxnsChan chan *SignedTxn
+	//WaitSyncTxnsChan chan *SignedTxn
 	// wait sync txns timeout
-	WaitTxnsTimeout time.Duration
+	//WaitTxnsTimeout time.Duration
 
 	BaseChecks []TxnCheck
 	land       *tripod.Land
 }
 
 func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
-	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
+	// WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &LocalTxPool{
-		poolSize:         cfg.PoolSize,
-		TxnMaxSize:       cfg.TxnMaxSize,
-		Txns:             make([]*SignedTxn, 0),
-		packagedIdx:      0,
-		ToSyncTxnsChan:   make(chan []Hash),
-		WaitSyncTxnsChan: make(chan *SignedTxn, 1024),
-		WaitTxnsTimeout:  WaitTxnsTimeout,
-		BaseChecks:       make([]TxnCheck, 0),
-		land:             land,
+		poolSize:    cfg.PoolSize,
+		TxnMaxSize:  cfg.TxnMaxSize,
+		Txns:        make([]*SignedTxn, 0),
+		packagedIdx: 0,
+		//ToSyncTxnsChan:   make(chan []Hash),
+		//WaitSyncTxnsChan: make(chan *SignedTxn, 1024),
+		//WaitTxnsTimeout:  WaitTxnsTimeout,
+		BaseChecks: make([]TxnCheck, 0),
+		land:       land,
 	}, nil
 }
 
@@ -131,40 +130,40 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 }
 
 // get txn content of txn-hash from p2p network
-func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
-
-	hashesMap := make(map[Hash]bool)
-	toSyncHashes := make([]Hash, 0)
-
-	tp.RLock()
-	for _, txnHash := range hashes {
-		if !existTxn(txnHash, tp.Txns) {
-			toSyncHashes = append(toSyncHashes, txnHash)
-			hashesMap[txnHash] = true
-		}
-	}
-	tp.RUnlock()
-
-	tp.ToSyncTxnsChan <- toSyncHashes
-
-	ticker := time.NewTicker(tp.WaitTxnsTimeout)
-
-	for len(hashesMap) > 0 {
-		select {
-		case stxn := <-tp.WaitSyncTxnsChan:
-			txnHash := stxn.GetTxnHash()
-			delete(hashesMap, txnHash)
-			err := tp.Insert("", stxn)
-			if err != nil {
-				return err
-			}
-		case <-ticker.C:
-			return WaitTxnsTimeout(hashesMap)
-		}
-	}
-
-	return nil
-}
+//func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
+//
+//	hashesMap := make(map[Hash]bool)
+//	toSyncHashes := make([]Hash, 0)
+//
+//	tp.RLock()
+//	for _, txnHash := range hashes {
+//		if !existTxn(txnHash, tp.Txns) {
+//			toSyncHashes = append(toSyncHashes, txnHash)
+//			hashesMap[txnHash] = true
+//		}
+//	}
+//	tp.RUnlock()
+//
+//	tp.ToSyncTxnsChan <- toSyncHashes
+//
+//	ticker := time.NewTicker(tp.WaitTxnsTimeout)
+//
+//	for len(hashesMap) > 0 {
+//		select {
+//		case stxn := <-tp.WaitSyncTxnsChan:
+//			txnHash := stxn.GetTxnHash()
+//			delete(hashesMap, txnHash)
+//			err := tp.Insert("", stxn)
+//			if err != nil {
+//				return err
+//			}
+//		case <-ticker.C:
+//			return WaitTxnsTimeout(hashesMap)
+//		}
+//	}
+//
+//	return nil
+//}
 
 // remove txns after execute all tripods
 func (tp *LocalTxPool) Flush() error {
