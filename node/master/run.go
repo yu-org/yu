@@ -69,6 +69,11 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
+	err = m.closeTopic()
+	if err != nil {
+		return err
+	}
+
 	go func() {
 		err := ExecuteTxns(newBlock, m.base, m.land)
 		if err != nil {
@@ -99,7 +104,7 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	// if newBlock.Hash == startblock.Hash
+	// todo: if need broadcast block,
 	// m.readyBroadcastBlock(newBlock)
 
 	err = m.SyncTxns(newBlock)
@@ -118,6 +123,11 @@ func (m *Master) MasterWokrerRun() error {
 	}
 
 	err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
+	if err != nil {
+		return err
+	}
+
+	err = m.closeTopic()
 	if err != nil {
 		return err
 	}

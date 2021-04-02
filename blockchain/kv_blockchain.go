@@ -1,35 +1,24 @@
 package blockchain
 
 import (
-	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
-	. "yu/config"
 	"yu/storage/kv"
 	ysql "yu/storage/sql"
 )
 
 // the Key Name of last finalized blockID
 var LastFinalizedKey = []byte("Last-Finalized-BlockID")
-var blocksFromP2pTopic = "blocks-from-p2p"
 
 type KvBlockChain struct {
 	chain         kv.KV
 	blocksFromP2p ysql.SqlDB
 }
 
-func NewKvBlockChain(kvCfg *KVconf, sqlCfg *SqlDbConf) *KvBlockChain {
-	kvdb, err := kv.NewKV(kvCfg)
-	if err != nil {
-		logrus.Panicf("load chain error: %s", err.Error())
-	}
-	db, err := ysql.NewSqlDB(sqlCfg)
-	if err != nil {
-		logrus.Panicf("load blocks-from-p2p error: %s", err.Error())
-	}
+func NewKvBlockChain(chainKV kv.KV, blocksFromP2pDB ysql.SqlDB) *KvBlockChain {
 	return &KvBlockChain{
-		chain:         kvdb,
-		blocksFromP2p: db,
+		chain:         chainKV,
+		blocksFromP2p: blocksFromP2pDB,
 	}
 }
 
