@@ -2,8 +2,10 @@ package blockchain
 
 import (
 	"errors"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	. "yu/common"
+	"yu/config"
 	"yu/keypair"
 	. "yu/result"
 	ysql "yu/storage/sql"
@@ -14,7 +16,12 @@ type BlockBase struct {
 	db ysql.SqlDB
 }
 
-func NewBlockBase(db ysql.SqlDB) *BlockBase {
+func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
+	db, err := ysql.NewSqlDB(&cfg.BaseDB)
+	if err != nil {
+		logrus.Panicf("load blockbase error: %s", err.Error())
+	}
+
 	return &BlockBase{
 		db: db,
 	}

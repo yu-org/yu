@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/sirupsen/logrus"
 	. "yu/common"
 )
 
@@ -76,6 +77,15 @@ type NodeKeeperConf struct {
 	HeartbeatGap int    `toml:"heartbeat_gap"`
 }
 
+type BlockchainConf struct {
+	ChainKV         KVconf    `toml:"chain_kv"`
+	BlocksFromP2pDB SqlDbConf `toml:"blocks_from_p2p_db"`
+}
+
+type BlockBaseConf struct {
+	BaseDB SqlDbConf `toml:"base_db"`
+}
+
 type TxpoolConf struct {
 	PoolSize        uint64 `toml:"pool_size"`
 	TxnMaxSize      int    `toml:"txn_max_size"`
@@ -85,7 +95,9 @@ type TxpoolConf struct {
 	WorkerIP string `toml:"worker_ip"`
 }
 
-func LoadConf(fpath string, cfg interface{}) (err error) {
-	_, err = toml.DecodeFile(fpath, cfg)
-	return
+func LoadConf(fpath string, cfg interface{}) {
+	_, err := toml.DecodeFile(fpath, cfg)
+	if err != nil {
+		logrus.Panicf("load config-file(%s) error: %s ", fpath, err.Error())
+	}
 }

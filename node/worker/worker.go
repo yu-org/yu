@@ -26,7 +26,6 @@ type Worker struct {
 
 	metadb kv.KV
 
-	//// FIXME: it should be a db server.
 	//// ready to package a batch of txns to broadcast
 	//readyBcTxnsChan chan IsignedTxn
 	//// number of broadcast txns every time

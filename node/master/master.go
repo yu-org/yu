@@ -105,6 +105,11 @@ func (m *Master) P2pID() string {
 	return m.p2pInfo.host.ID().String()
 }
 
+// todo: impl this
+func (m *Master) Startup() {
+
+}
+
 // Check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {

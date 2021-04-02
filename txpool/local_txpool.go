@@ -30,7 +30,7 @@ type LocalTxPool struct {
 	land       *tripod.Land
 }
 
-func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
+func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) *LocalTxPool {
 	// WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &LocalTxPool{
 		poolSize:    cfg.PoolSize,
@@ -42,15 +42,12 @@ func NewLocalTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, er
 		//WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks: make([]TxnCheck, 0),
 		land:       land,
-	}, nil
+	}
 }
 
-func LocalWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*LocalTxPool, error) {
-	tp, err := NewLocalTxPool(cfg, land)
-	if err != nil {
-		return nil, err
-	}
-	return tp.withDefaultBaseChecks(), nil
+func LocalWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) *LocalTxPool {
+	tp := NewLocalTxPool(cfg, land)
+	return tp.withDefaultBaseChecks()
 }
 
 func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
@@ -69,7 +66,7 @@ func (tp *LocalTxPool) NewEmptySignedTxn() *SignedTxn {
 }
 
 func (tp *LocalTxPool) NewEmptySignedTxns() SignedTxns {
-	return make([]SignedTxn, 0)
+	return make([]*SignedTxn, 0)
 }
 
 func (tp *LocalTxPool) PoolSize() uint64 {

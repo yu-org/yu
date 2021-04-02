@@ -1,8 +1,10 @@
 package blockchain
 
 import (
+	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
+	"yu/config"
 	"yu/storage/kv"
 	ysql "yu/storage/sql"
 )
@@ -15,7 +17,16 @@ type KvBlockChain struct {
 	blocksFromP2p ysql.SqlDB
 }
 
-func NewKvBlockChain(chainKV kv.KV, blocksFromP2pDB ysql.SqlDB) *KvBlockChain {
+func NewKvBlockChain(cfg *config.BlockchainConf) *KvBlockChain {
+	chainKV, err := kv.NewKV(&cfg.ChainKV)
+	if err != nil {
+		logrus.Panicf("load blockchain KVDB error: %s", err.Error())
+	}
+	blocksFromP2pDB, err := ysql.NewSqlDB(&cfg.BlocksFromP2pDB)
+	if err != nil {
+		logrus.Panicf("load blocks-from-p2p SQL-DB error: %s", err.Error())
+	}
+
 	return &KvBlockChain{
 		chain:         chainKV,
 		blocksFromP2p: blocksFromP2pDB,

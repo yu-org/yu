@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
 	. "yu/common"
@@ -33,10 +34,10 @@ type ServerTxPool struct {
 	land       *tripod.Land
 }
 
-func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*ServerTxPool, error) {
+func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) *ServerTxPool {
 	db, err := NewKV(&cfg.DB)
 	if err != nil {
-		return nil, err
+		logrus.Panicf("load server txpool error: %s", err.Error())
 	}
 	WaitTxnsTimeout := time.Duration(cfg.WaitTxnsTimeout)
 	return &ServerTxPool{
@@ -50,15 +51,12 @@ func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) (*ServerTxPool, 
 		WaitTxnsTimeout:  WaitTxnsTimeout,
 		BaseChecks:       make([]TxnCheck, 0),
 		land:             land,
-	}, nil
+	}
 }
 
-func ServerWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) (*ServerTxPool, error) {
-	tp, err := NewServerTxPool(cfg, land)
-	if err != nil {
-		return nil, err
-	}
-	return tp.withDefaultBaseChecks(), nil
+func ServerWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) *ServerTxPool {
+	tp := NewServerTxPool(cfg, land)
+	return tp.withDefaultBaseChecks()
 }
 
 func (tp *ServerTxPool) withDefaultBaseChecks() *ServerTxPool {
