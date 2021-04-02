@@ -16,9 +16,11 @@ const PARAMS_KEY = "params"
 func (m *Master) HandleHttp() {
 	r := gin.Default()
 
-	r.POST(RegisterNodeKeepersPath, func(c *gin.Context) {
-		m.registerNodeKeepers(c)
-	})
+	if m.RunMode == MasterWorker {
+		r.POST(RegisterNodeKeepersPath, func(c *gin.Context) {
+			m.registerNodeKeepers(c)
+		})
+	}
 
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {

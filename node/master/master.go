@@ -83,7 +83,7 @@ func NewMaster(
 		ctx:  ctx,
 	}
 
-	return &Master{
+	m := &Master{
 		p2pInfo:         p2pInfo,
 		RunMode:         cfg.RunMode,
 		nkDB:            nkDB,
@@ -98,16 +98,26 @@ func NewMaster(
 		readyBcTxnsChan: make(chan *SignedTxn),
 		txnsBcChan:      make(chan *TransferBody),
 		NumOfBcTxns:     cfg.NumOfBcTxns,
-	}, nil
+	}
+	err = m.ConnectP2PNetwork(cfg)
+	return m, err
 }
 
 func (m *Master) P2pID() string {
 	return m.p2pInfo.host.ID().String()
 }
 
-// todo: impl this
 func (m *Master) Startup() {
+	if m.RunMode == MasterWorker {
+		go m.CheckHealth()
+	}
 
+	go m.HandleHttp()
+	go m.HandleWS()
+
+	go m.BroadcastTxns()
+
+	m.Run()
 }
 
 // Check the health of NodeKeepers by SendHeartbeat to them.

@@ -9,14 +9,20 @@ import (
 	. "yu/yerror"
 )
 
-func (m *Master) Run() error {
-	switch m.RunMode {
-	case LocalNode:
-		return m.LocalRun()
-	case MasterWorker:
-		return m.MasterWokrerRun()
-	default:
-		return NoRunMode
+func (m *Master) Run() {
+	for {
+		var err error
+		switch m.RunMode {
+		case LocalNode:
+			err = m.LocalRun()
+		case MasterWorker:
+			err = m.MasterWokrerRun()
+		default:
+			logrus.Panic(NoRunMode)
+		}
+		if err != nil {
+			logrus.Errorf("run blockchain error: %s", err.Error())
+		}
 	}
 }
 
