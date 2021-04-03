@@ -1,6 +1,7 @@
 package master
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -96,10 +97,19 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 		}
 		forwardQueryToWorker(ip, w, req)
 	} else {
-		err = m.land.Query(qcall)
+		respObj, err := m.land.Query(qcall)
 		if err != nil {
 			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
+		}
+		respByt, err := json.Marshal(respObj)
+		if err != nil {
+			ServerErrorHttpResp(w, err.Error())
+			return
+		}
+		_, err = w.Write(respByt)
+		if err != nil {
+			logrus.Errorf("response Query result error: %s", err.Error())
 		}
 	}
 

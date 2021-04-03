@@ -53,19 +53,19 @@ func (l *Land) Execute(c *Ecall, ctx *Context) error {
 	return fn(ctx)
 }
 
-func (l *Land) Query(c *Qcall) error {
+func (l *Land) Query(c *Qcall) (interface{}, error) {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
-		return TripodNotFound(c.TripodName)
+		return nil, TripodNotFound(c.TripodName)
 	}
 	ph := Tripod.TripodMeta()
 	qry := ph.GetQuery(c.QueryName)
 	if qry == nil {
-		return QryNotFound(c.QueryName)
+		return nil, QryNotFound(c.QueryName)
 	}
 	ctx, err := NewContext(c.Params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return qry(ctx, c.BlockHash)
 }

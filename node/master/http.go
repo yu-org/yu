@@ -129,7 +129,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		}
 		forwardQueryToWorker(ip, c.Writer, c.Request)
 	} else {
-		err = m.land.Query(qcall)
+		respObj, err := m.land.Query(qcall)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
@@ -137,6 +137,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 			)
 			return
 		}
+		c.JSON(http.StatusOK, respObj)
 	}
 
 }
