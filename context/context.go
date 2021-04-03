@@ -7,19 +7,21 @@ import (
 )
 
 type Context struct {
+	Caller    Address
 	paramsMap map[string]interface{}
 	paramsStr JsonString
 	Events    []*Event
 	Errors    []*Error
 }
 
-func NewContext(paramsStr JsonString) (*Context, error) {
+func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
 	pMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(paramsStr), &pMap)
 	if err != nil {
 		return nil, err
 	}
 	return &Context{
+		Caller:    caller,
 		paramsMap: pMap,
 		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),

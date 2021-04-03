@@ -15,7 +15,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 	}
 	for _, stxn := range stxns {
 		ecall := stxn.GetRaw().Ecall()
-		ctx, err := context.NewContext(ecall.Params)
+		ctx, err := context.NewContext(stxn.GetPubkey().Address(), ecall.Params)
 		if err != nil {
 			return err
 		}

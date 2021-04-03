@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	. "yu/common"
+	"yu/context"
 	. "yu/node"
 	. "yu/txn"
 	. "yu/utils/error_handle"
@@ -129,7 +130,17 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		}
 		forwardQueryToWorker(ip, c.Writer, c.Request)
 	} else {
-		respObj, err := m.land.Query(qcall)
+		pubkey, err := GetPubkey(c.Request)
+		if err != nil {
+
+			return
+		}
+		ctx, err := context.NewContext(pubkey.Address(), qcall.Params)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		respObj, err := m.land.Query(qcall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,

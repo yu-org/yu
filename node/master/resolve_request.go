@@ -29,7 +29,8 @@ func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execN
 		Params:     params,
 	}
 	caller := GetAddress(req)
-	pubkey, sig, err := GetPubkeyAndSignature(req)
+	sig := GetSignature(req)
+	pubkey, err := GetPubkey(req)
 	if err != nil {
 		return
 	}

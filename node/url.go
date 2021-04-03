@@ -63,13 +63,13 @@ func GetBlockHash(req *http.Request) Hash {
 	return HexToHash(req.URL.Query().Get(BlockHashKey))
 }
 
-func GetPubkeyAndSignature(req *http.Request) (keypair.PubKey, []byte, error) {
+func GetPubkey(req *http.Request) (keypair.PubKey, error) {
 	keyType := req.URL.Query().Get(KeyTypeKey)
 	pubkeyStr := req.URL.Query().Get(PubkeyKey)
-	pubkey, err := keypair.PubKeyFromBytes(keyType, FromHex(pubkeyStr))
-	if err != nil {
-		return nil, nil, err
-	}
-	signatureStr := req.URL.Query().Get(SignatureKey)
-	return pubkey, FromHex(signatureStr), nil
+	return keypair.PubKeyFromBytes(keyType, FromHex(pubkeyStr))
+}
+
+func GetSignature(req *http.Request) []byte {
+	signStr := req.URL.Query().Get(SignatureKey)
+	return FromHex(signStr)
 }

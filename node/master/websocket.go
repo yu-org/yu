@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	. "yu/common"
+	"yu/context"
 	. "yu/node"
 	. "yu/txn"
 	. "yu/utils/error_handle"
@@ -97,7 +98,17 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 		}
 		forwardQueryToWorker(ip, w, req)
 	} else {
-		respObj, err := m.land.Query(qcall)
+		pubkey, err := GetPubkey(req)
+		if err != nil {
+
+			return
+		}
+		ctx, err := context.NewContext(pubkey.Address(), qcall.Params)
+		if err != nil {
+
+			return
+		}
+		respObj, err := m.land.Query(qcall, ctx)
 		if err != nil {
 			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
