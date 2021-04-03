@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/sirupsen/logrus"
+	"yu/apps/pow"
 	"yu/blockchain"
 	"yu/common"
 	"yu/config"
@@ -38,9 +39,7 @@ func main() {
 
 	chain := blockchain.NewKvBlockChain(&chainCfg)
 	base := blockchain.NewBlockBase(&baseCfg)
-	land := tripod.NewLand()
-
-	//todo: set tripods into land
+	land := loadLand()
 
 	var pool txpool.ItxPool
 	switch masterCfg.RunMode {
@@ -57,4 +56,11 @@ func main() {
 
 	m.Startup()
 
+}
+
+func loadLand() *tripod.Land {
+	land := tripod.NewLand()
+	powTripod := pow.NewPow(1024)
+	land.SetTripods(powTripod)
+	return land
 }

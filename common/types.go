@@ -31,6 +31,7 @@ type (
 	Execution func(*context.Context) error
 	// Developers define the 'Query' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.
+	// todo: Query needs response
 	Query func(*context.Context, Hash) error
 
 	JsonString = string
