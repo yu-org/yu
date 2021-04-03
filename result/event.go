@@ -16,10 +16,6 @@ type Event struct {
 	Value      string
 }
 
-type Display interface {
-	ToString() (string, error)
-}
-
 func (e *Event) Encode() ([]byte, error) {
 	return GobEncode(e)
 }

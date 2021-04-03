@@ -21,6 +21,10 @@ const (
 	FinalizeBlockStage = "Finalize Block"
 )
 
+type Display interface {
+	ToString() (string, error)
+}
+
 type (
 	BlockNum uint64
 	// Use to be a Key to store into KVDB.
