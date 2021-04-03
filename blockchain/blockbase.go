@@ -187,10 +187,6 @@ func (EventScheme) TableName() string {
 }
 
 func toEventScheme(event *Event) (EventScheme, error) {
-	value, err := event.ValueStr()
-	if err != nil {
-		return EventScheme{}, err
-	}
 	return EventScheme{
 		Caller:     event.Caller.String(),
 		BlockStage: event.BlockStage,
@@ -198,13 +194,11 @@ func toEventScheme(event *Event) (EventScheme, error) {
 		Height:     event.Height,
 		TripodName: event.TripodName,
 		ExecName:   event.ExecName,
-		Value:      value,
+		Value:      event.Value,
 	}, nil
 }
 
 func (e EventScheme) toEvent() (*Event, error) {
-
-	// todo: decode value
 	return &Event{
 		Caller:     HexToAddress(e.Caller),
 		BlockStage: e.BlockStage,
@@ -212,7 +206,7 @@ func (e EventScheme) toEvent() (*Event, error) {
 		Height:     e.Height,
 		TripodName: e.TripodName,
 		ExecName:   e.ExecName,
-		Value:      nil,
+		Value:      e.Value,
 	}, nil
 
 }

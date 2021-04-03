@@ -27,11 +27,16 @@ func NewContext(paramsStr JsonString) (*Context, error) {
 	}, nil
 }
 
-func (c *Context) EmitEvent(value Display) {
+func (c *Context) EmitEvent(value Display) error {
+	str, err := value.ToString()
+	if err != nil {
+		return err
+	}
 	event := &Event{
-		Value: value,
+		Value: str,
 	}
 	c.Events = append(c.Events, event)
+	return nil
 }
 
 func (c *Context) EmitError(e error) {
