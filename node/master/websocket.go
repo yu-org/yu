@@ -14,21 +14,27 @@ import (
 
 func (m *Master) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, ExecCall)
+		m.handleWS(w, req, execution)
 	})
 
 	http.HandleFunc(QryApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, QryCall)
+		m.handleWS(w, req, query)
 	})
 
 	http.HandleFunc(SubResultsPath, func(w http.ResponseWriter, req *http.Request) {
-
+		m.handleWS(w, req, subscription)
 	})
 
 	logrus.Panic(http.ListenAndServe(m.wsPort, nil))
 }
 
-func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, callType CallType) {
+const (
+	query = iota
+	execution
+	subscription
+)
+
+func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	upgrade := websocket.Upgrader{}
 	c, err := upgrade.Upgrade(w, req, nil)
 	if err != nil {
@@ -41,11 +47,13 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, callType Cal
 			BadReqHttpResp(w, err.Error())
 			continue
 		}
-		switch callType {
-		case ExecCall:
+		switch typ {
+		case execution:
 			m.handleWsExec(w, req, JsonString(msg))
-		case QryCall:
+		case query:
 			m.handleWsQry(w, req, JsonString(msg))
+		case subscription:
+			m.sub.Register(c)
 		}
 
 	}

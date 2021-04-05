@@ -14,7 +14,6 @@ import (
 	. "yu/common"
 	. "yu/config"
 	. "yu/node"
-	. "yu/result"
 	"yu/storage/kv"
 	. "yu/tripod"
 	. "yu/txn"
@@ -50,7 +49,7 @@ type Master struct {
 	// txns to broadcast into P2P network
 	txnsBcChan chan *TransferBody
 
-	resultsChan chan Result
+	sub *Subscription
 }
 
 func NewMaster(
@@ -98,7 +97,7 @@ func NewMaster(
 		readyBcTxnsChan: make(chan *SignedTxn),
 		txnsBcChan:      make(chan *TransferBody),
 		NumOfBcTxns:     cfg.NumOfBcTxns,
-		resultsChan:     make(chan Result),
+		sub:             NewSubscription(),
 	}
 	err = m.ConnectP2PNetwork(cfg)
 	return m, err
