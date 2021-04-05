@@ -41,6 +41,10 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 		ServerErrorHttpResp(w, err.Error())
 		return
 	}
+	if typ == subscription {
+		m.sub.Register(c)
+		return
+	}
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
@@ -52,8 +56,6 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 			m.handleWsExec(w, req, JsonString(msg))
 		case query:
 			m.handleWsQry(w, req, JsonString(msg))
-		case subscription:
-			m.sub.Register(c)
 		}
 
 	}
