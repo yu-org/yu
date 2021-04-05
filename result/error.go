@@ -16,6 +16,10 @@ type Error struct {
 	Err        error
 }
 
+func (e *Error) Type() ResultType {
+	return ErrorType
+}
+
 func (e *Error) Error() (str string) {
 	if e.BlockStage == ExecuteTxnsStage {
 		str = fmt.Sprintf(
@@ -42,6 +46,10 @@ func (e *Error) Error() (str string) {
 
 func (e *Error) Encode() ([]byte, error) {
 	return GobEncode(e)
+}
+
+func (e *Error) Decode(data []byte) error {
+	return GobDecode(data, e)
 }
 
 type Errors []Error

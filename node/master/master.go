@@ -14,6 +14,7 @@ import (
 	. "yu/common"
 	. "yu/config"
 	. "yu/node"
+	. "yu/result"
 	"yu/storage/kv"
 	. "yu/tripod"
 	. "yu/txn"
@@ -24,8 +25,6 @@ import (
 
 type Master struct {
 	sync.Mutex
-	// p2pHost host.Host
-	// ps      *pubsub.PubSub
 	p2pInfo *P2pInfo
 
 	RunMode RunMode
@@ -33,8 +32,7 @@ type Master struct {
 	nkDB     kv.KV
 	httpPort string
 	wsPort   string
-	// ctx      context.Context
-	timeout time.Duration
+	timeout  time.Duration
 
 	chain  IBlockChain
 	base   IBlockBase
@@ -51,6 +49,8 @@ type Master struct {
 	NumOfBcTxns int
 	// txns to broadcast into P2P network
 	txnsBcChan chan *TransferBody
+
+	resultsChan chan Result
 }
 
 func NewMaster(
@@ -98,6 +98,7 @@ func NewMaster(
 		readyBcTxnsChan: make(chan *SignedTxn),
 		txnsBcChan:      make(chan *TransferBody),
 		NumOfBcTxns:     cfg.NumOfBcTxns,
+		resultsChan:     make(chan Result),
 	}
 	err = m.ConnectP2PNetwork(cfg)
 	return m, err

@@ -20,6 +20,14 @@ func (e *Event) Encode() ([]byte, error) {
 	return GobEncode(e)
 }
 
+func (e *Event) Decode(data []byte) error {
+	return GobDecode(data, e)
+}
+
+func (e *Event) Type() ResultType {
+	return EventType
+}
+
 func (e *Event) Sprint() (str string) {
 	if e.BlockStage == ExecuteTxnsStage {
 		str = fmt.Sprintf(

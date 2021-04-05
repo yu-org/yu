@@ -21,6 +21,10 @@ func (m *Master) HandleWS() {
 		m.handleWS(w, req, QryCall)
 	})
 
+	http.HandleFunc(SubResultsPath, func(w http.ResponseWriter, req *http.Request) {
+
+	})
+
 	logrus.Panic(http.ListenAndServe(m.wsPort, nil))
 }
 

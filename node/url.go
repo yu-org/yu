@@ -44,8 +44,9 @@ const (
 )
 
 var (
-	ExecApiPath = filepath.Join(RootApiPath, ExecCallType)
-	QryApiPath  = filepath.Join(RootApiPath, QryCallType)
+	ExecApiPath    = filepath.Join(RootApiPath, ExecCallType)
+	QryApiPath     = filepath.Join(RootApiPath, QryCallType)
+	SubResultsPath = "/subscribe/results"
 )
 
 // return (Tripod Name, Execution/Query Name)
