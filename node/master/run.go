@@ -81,7 +81,7 @@ func (m *Master) LocalRun() error {
 	}
 
 	go func() {
-		err := ExecuteTxns(newBlock, m.base, m.land)
+		err := ExecuteTxns(newBlock, m.base, m.land, m.sub)
 		if err != nil {
 			logrus.Errorf(
 				"execute txns error at block(%s) : %s",

@@ -7,7 +7,7 @@ import (
 	"yu/tripod"
 )
 
-func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
+func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscription) error {
 	blockHash := block.Header().Hash()
 	stxns, err := base.GetTxns(blockHash)
 	if err != nil {
@@ -31,6 +31,8 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 			event.TripodName = ecall.TripodName
 			event.BlockStage = ExecuteTxnsStage
 			event.Caller = stxn.GetRaw().Caller()
+
+			sub.Push(event)
 		}
 
 		for _, e := range ctx.Errors {
@@ -40,9 +42,10 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land) error {
 			e.ExecName = ecall.ExecName
 			e.BlockHash = blockHash
 			e.Height = block.Header().Height()
+
+			sub.Push(e)
 		}
 
-		// todo: send event and error to client
 		err = base.SetEvents(ctx.Events)
 		if err != nil {
 			return err
