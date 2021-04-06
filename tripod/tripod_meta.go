@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	. "yu/common"
 	. "yu/tripod_store"
 )
 

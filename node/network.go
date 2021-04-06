@@ -2,7 +2,6 @@ package node
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"

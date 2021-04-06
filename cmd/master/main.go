@@ -46,7 +46,7 @@ func main() {
 	case common.LocalNode:
 		pool = txpool.LocalWithDefaultChecks(&txpoolCfg)
 	case common.MasterWorker:
-		pool = txpool.ServerWithDefaultChecks(&txpoolCfg, land)
+		pool = txpool.ServerWithDefaultChecks(&txpoolCfg)
 	}
 
 	m, err := master.NewMaster(&masterCfg, chain, base, pool, land)

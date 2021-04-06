@@ -22,8 +22,8 @@ func NewKV(cfg *KVconf) (KV, error) {
 		return NewBadger(cfg.Path)
 	case "bolt":
 		return NewBolt(cfg.Path)
-	case "tikv":
-		return NewTiKV(cfg.Path)
+	//case "tikv":
+	//	return NewTiKV(cfg.Path)
 
 	default:
 		return nil, NoKvdbType
