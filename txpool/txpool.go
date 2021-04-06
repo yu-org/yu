@@ -9,12 +9,12 @@ type ItxPool interface {
 	NewEmptySignedTxns() SignedTxns
 	// return pool size of txpool
 	PoolSize() uint64
-	// txpool with the base check-functions
+	// txpool with the check-functions
 	WithBaseChecks(checkFns []TxnCheck) ItxPool
+	WithTripodChecks(checkFns []TxnCheck) ItxPool
 	// base check txn
 	BaseCheck(*SignedTxn) error
-	// tripods check the txn
-	TripodsCheck(*SignedTxn) error
+	TripodsCheck(stxn *SignedTxn) error
 	// use for SyncTxns
 	NecessaryCheck(stxn *SignedTxn) error
 	// insert into txpool

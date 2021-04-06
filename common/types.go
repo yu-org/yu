@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"strconv"
 	"unsafe"
-	"yu/context"
 )
 
 type RunMode int
@@ -30,13 +29,6 @@ type (
 	// Use to be a Key to store into KVDB.
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
-	// Developers define the 'Execution' in the pod to let clients call.
-	// Just like transactions in ETH, extrinsic in Substrate
-	Execution func(*context.Context) error
-	// Developers define the 'Query' in the pod to let clients query the blockchain.
-	// This operation has no consensus reached in the blockchain network.
-	// respObj is a json object
-	Query func(*context.Context, Hash) (respObj interface{}, err error)
 
 	JsonString = string
 

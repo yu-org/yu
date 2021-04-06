@@ -44,7 +44,7 @@ func main() {
 	var pool txpool.ItxPool
 	switch masterCfg.RunMode {
 	case common.LocalNode:
-		pool = txpool.LocalWithDefaultChecks(&txpoolCfg, land)
+		pool = txpool.LocalWithDefaultChecks(&txpoolCfg)
 	case common.MasterWorker:
 		pool = txpool.ServerWithDefaultChecks(&txpoolCfg, land)
 	}

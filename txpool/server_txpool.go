@@ -7,7 +7,6 @@ import (
 	. "yu/common"
 	"yu/config"
 	. "yu/storage/kv"
-	"yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
@@ -30,11 +29,11 @@ type ServerTxPool struct {
 	// wait sync txns timeout
 	WaitTxnsTimeout time.Duration
 
-	BaseChecks []TxnCheck
-	land       *tripod.Land
+	baseChecks   []TxnCheck
+	tripodChecks []TxnCheck
 }
 
-func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) *ServerTxPool {
+func NewServerTxPool(cfg *config.TxpoolConf) *ServerTxPool {
 	db, err := NewKV(&cfg.DB)
 	if err != nil {
 		logrus.Panicf("load server txpool error: %s", err.Error())
@@ -49,19 +48,18 @@ func NewServerTxPool(cfg *config.TxpoolConf, land *tripod.Land) *ServerTxPool {
 		ToSyncTxnsChan:   make(chan Hash, 1024),
 		WaitSyncTxnsChan: make(chan *SignedTxn, 1024),
 		WaitTxnsTimeout:  WaitTxnsTimeout,
-		BaseChecks:       make([]TxnCheck, 0),
-		land:             land,
+		baseChecks:       make([]TxnCheck, 0),
+		tripodChecks:     make([]TxnCheck, 0),
 	}
 }
 
-func ServerWithDefaultChecks(cfg *config.TxpoolConf, land *tripod.Land) *ServerTxPool {
-	tp := NewServerTxPool(cfg, land)
+func ServerWithDefaultChecks(cfg *config.TxpoolConf) *ServerTxPool {
+	tp := NewServerTxPool(cfg)
 	return tp.withDefaultBaseChecks()
 }
 
 func (tp *ServerTxPool) withDefaultBaseChecks() *ServerTxPool {
-	tp.BaseChecks = []TxnCheck{
-		tp.checkExecExist,
+	tp.baseChecks = []TxnCheck{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
 		tp.checkDuplicate,
@@ -75,7 +73,7 @@ func (tp *ServerTxPool) NewEmptySignedTxn() *SignedTxn {
 }
 
 func (tp *ServerTxPool) NewEmptySignedTxns() SignedTxns {
-
+	return make([]*SignedTxn, 0)
 }
 
 func (tp *ServerTxPool) PoolSize() uint64 {
@@ -83,7 +81,12 @@ func (tp *ServerTxPool) PoolSize() uint64 {
 }
 
 func (tp *ServerTxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
-	tp.BaseChecks = checkFns
+	tp.baseChecks = append(tp.baseChecks, checkFns...)
+	return tp
+}
+
+func (tp *ServerTxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
+	tp.tripodChecks = append(tp.tripodChecks, checkFns...)
 	return tp
 }
 
@@ -170,18 +173,14 @@ func (tp *ServerTxPool) Flush() error {
 // --------- check txn ------
 
 func (tp *ServerTxPool) BaseCheck(stxn *SignedTxn) error {
-	return BaseCheck(tp.BaseChecks, stxn)
+	return Check(tp.baseChecks, stxn)
 }
 
 func (tp *ServerTxPool) TripodsCheck(stxn *SignedTxn) error {
-	return TripodsCheck(tp.land, stxn)
+	return Check(tp.tripodChecks, stxn)
 }
 
 func (tp *ServerTxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
-	err = tp.checkExecExist(stxn)
-	if err != nil {
-		return
-	}
 	err = tp.checkTxnSize(stxn)
 	if err != nil {
 		return
@@ -192,11 +191,6 @@ func (tp *ServerTxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 	}
 
 	return tp.TripodsCheck(stxn)
-}
-
-// check if tripod and execution exists
-func (tp *ServerTxPool) checkExecExist(stxn *SignedTxn) error {
-	return checkExecExist(tp.land, stxn)
 }
 
 func (tp *ServerTxPool) checkPoolLimit(*SignedTxn) error {

@@ -1,14 +1,13 @@
 package txpool
 
 import (
-	. "yu/tripod"
 	. "yu/txn"
 	. "yu/yerror"
 )
 
 type TxnCheck func(*SignedTxn) error
 
-func BaseCheck(checks []TxnCheck, stxn *SignedTxn) error {
+func Check(checks []TxnCheck, stxn *SignedTxn) error {
 	for _, check := range checks {
 		err := check(stxn)
 		if err != nil {
@@ -18,19 +17,11 @@ func BaseCheck(checks []TxnCheck, stxn *SignedTxn) error {
 	return nil
 }
 
-func TripodsCheck(land *Land, stxn *SignedTxn) error {
-	return land.RangeList(func(tri Tripod) error {
-		return tri.CheckTxn(stxn)
-	})
-}
-
-// check if tripod and execution exists
-func checkExecExist(land *Land, stxn *SignedTxn) error {
-	ecall := stxn.GetRaw().Ecall()
-	tripodName := ecall.TripodName
-	execName := ecall.ExecName
-	return land.ExistExec(tripodName, execName)
-}
+//func TripodsCheck(land *Land, stxn *SignedTxn) error {
+//	return land.RangeList(func(tri Tripod) error {
+//		return tri.CheckTxn(stxn)
+//	})
+//}
 
 func checkPoolLimit(txnsInPool []*SignedTxn, poolsize uint64) error {
 	if uint64(len(txnsInPool)) >= poolsize {

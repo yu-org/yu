@@ -40,10 +40,6 @@ func (ut *UnsignedTxn) Ecall() *Ecall {
 	return ut.ecall
 }
 
-func (ut *UnsignedTxn) ToSignedTxn() (*SignedTxn, error) {
-
-}
-
 func (ut *UnsignedTxn) Timestamp() int64 {
 	return ut.timestamp
 }
