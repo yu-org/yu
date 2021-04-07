@@ -3,6 +3,7 @@ package pow
 import (
 	"github.com/sirupsen/logrus"
 	"math/big"
+	"time"
 	. "yu/blockchain"
 	. "yu/common"
 	spow "yu/consensus/pow"
@@ -45,6 +46,7 @@ func (p *Pow) ValidateBlock(b IBlock) bool {
 }
 
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
+	time.Sleep(time.Second)
 	chains, err := chain.Longest()
 	if err != nil {
 		return

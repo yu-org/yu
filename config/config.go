@@ -14,8 +14,9 @@ type MasterConf struct {
 	HttpPort string `toml:"http_port"`
 	// serve websocket port
 	WsPort string `toml:"ws_port"`
-	DB     KVconf `toml:"db"`
+	NkDB     KVconf `toml:"nk_db"`
 	// when beyond 'Timeout', it means this nodekeeper is down.
+	// Unit is Second.
 	Timeout int `toml:"timeout"`
 	// number of broadcast txns every time
 	NumOfBcTxns int `toml:"num_of_bc_txns"`

@@ -59,7 +59,7 @@ func NewMaster(
 	txPool ItxPool,
 	land *Land,
 ) (*Master, error) {
-	nkDB, err := kv.NewKV(&cfg.DB)
+	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +139,7 @@ func (m *Master) CheckHealth() {
 	}
 }
 
+// FIXME: when number of txns is just less than NumOfBcTxns
 func (m *Master) BroadcastTxns() {
 	var txns SignedTxns
 	for {
