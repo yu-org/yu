@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/rand"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -54,7 +53,7 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 	if cfg.NodeKeyFile != "" {
 		return os.Open(cfg.NodeKeyFile)
 	}
-	return rand.Reader, nil
+	return nil, nil
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
