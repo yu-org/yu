@@ -46,6 +46,17 @@ func (bc *KvBlockChain) NewEmptyBlock() IBlock {
 	return &Block{}
 }
 
+func (bc *KvBlockChain) SetGenesis(b IBlock) error {
+	iter, err := bc.chain.Iter(nil)
+	if err != nil {
+		return err
+	}
+	if iter.Valid() {
+		return nil
+	}
+	return bc.AppendBlock(b)
+}
+
 // pending a block from other KvBlockChain-node for validating
 func (bc *KvBlockChain) InsertBlockFromP2P(b IBlock) error {
 	bs, err := toBlocksFromP2pScheme(b)
@@ -102,6 +113,7 @@ func (bc *KvBlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 		return nil, err
 	}
 	height := prevBlock.Header().Height() + 1
+	// FIXME: not height for prefix
 	iter, err := bc.chain.Iter(height.Bytes())
 	if err != nil {
 		return nil, err

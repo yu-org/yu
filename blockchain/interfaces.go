@@ -38,6 +38,8 @@ type IBlockChain interface {
 	NewEmptyBlock() IBlock
 	// just generate a block with timestamp
 	NewDefaultBlock() IBlock
+	// set genesis block
+	SetGenesis(b IBlock) error
 	// pending a block from other blockchain-node for validating and operating
 	InsertBlockFromP2P(ib IBlock) error
 	// get a pending block

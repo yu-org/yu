@@ -10,20 +10,30 @@ import (
 )
 
 func (m *Master) Run() {
-	for {
-		var err error
-		switch m.RunMode {
-		case LocalNode:
-			err = m.LocalRun()
-		case MasterWorker:
-			err = m.MasterWokrerRun()
-		default:
-			logrus.Panic(NoRunMode)
-		}
+
+	switch m.RunMode {
+	case LocalNode:
+		err := m.land.RangeList(func(tri Tripod) error {
+			return tri.InitChain(m.chain, m.base)
+		})
 		if err != nil {
+			logrus.Panicf("init chain error: %s", err.Error())
+		}
+		for {
+			err := m.LocalRun()
 			logrus.Errorf("run blockchain error: %s", err.Error())
 		}
+	case MasterWorker:
+		// todo: init chain
+		for {
+			err := m.MasterWokrerRun()
+			logrus.Errorf("run blockchain error: %s", err.Error())
+		}
+
+	default:
+		logrus.Panic(NoRunMode)
 	}
+
 }
 
 func (m *Master) LocalRun() error {

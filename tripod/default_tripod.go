@@ -29,6 +29,10 @@ func (*DefaultTripod) ValidateBlock(IBlock) bool {
 	return false
 }
 
+func (*DefaultTripod) InitChain(IBlockChain, IBlockBase) error {
+	return nil
+}
+
 func (*DefaultTripod) StartBlock(IBlockChain, IBlock, txpool.ItxPool) (bool, error) {
 	return false, nil
 }

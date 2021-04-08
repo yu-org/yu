@@ -45,6 +45,12 @@ func (p *Pow) ValidateBlock(b IBlock) bool {
 	return spow.Validate(b, p.target, p.targetBits)
 }
 
+func (*Pow) InitChain(chain IBlockChain, _ IBlockBase) error {
+	gensisBlock := chain.NewDefaultBlock()
+	gensisBlock.SetHeight(0)
+	return chain.SetGenesis(gensisBlock)
+}
+
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
 	time.Sleep(time.Second)
 	chains, err := chain.Longest()
