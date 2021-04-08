@@ -99,7 +99,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 	if err != nil {
 		return
 	}
-	block.SetExtra(nonce)
+	block.(*Block).SetNonce(nonce)
 	block.SetHash(hash)
 
 	return

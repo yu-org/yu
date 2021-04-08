@@ -10,7 +10,7 @@ type Header struct {
 	Height    BlockNum
 	TxnRoot   Hash
 	StateRoot Hash
-	Extra     interface{}
+	Nonce     int64
 	Timestamp int64
 }
 
@@ -38,6 +38,6 @@ func (h *Header) GetTimestamp() int64 {
 	return h.Timestamp
 }
 
-func (h *Header) GetExtra() interface{} {
-	return h.Extra
+func (h *Header) GetNonce() int64 {
+	return h.Nonce
 }

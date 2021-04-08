@@ -37,7 +37,7 @@ func main() {
 	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
 
-	chain := blockchain.NewKvBlockChain(&chainCfg)
+	chain := blockchain.NewBlockChain(&chainCfg)
 	base := blockchain.NewBlockBase(&baseCfg)
 	land := loadLand()
 

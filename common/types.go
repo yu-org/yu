@@ -1,8 +1,10 @@
 package common
 
 import (
+	"bytes"
 	"encoding/binary"
 	"strconv"
+	"strings"
 	"unsafe"
 )
 
@@ -121,3 +123,19 @@ type (
 )
 
 var NullHash Hash = [HashLen]byte{}
+
+func HashesToHex(hs []Hash) string {
+	var buffer bytes.Buffer
+	for _, h := range hs {
+		buffer.WriteString(ToHex(h.Bytes()))
+	}
+	return buffer.String()
+}
+
+func HexToHashes(s string) (hs []Hash) {
+	arr := strings.SplitN(s, "", HashLen)
+	for _, hx := range arr {
+		hs = append(hs, HexToHash(hx))
+	}
+	return
+}

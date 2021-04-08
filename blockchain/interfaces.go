@@ -17,8 +17,7 @@ type IBlock interface {
 	SetHeight(BlockNum)
 
 	GetHeader() IHeader
-	GetExtra() interface{}
-	SetExtra(extra interface{})
+	// SetExtra(extra interface{})
 
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
@@ -31,7 +30,7 @@ type IHeader interface {
 	GetTxnRoot() Hash
 	GetStateRoot() Hash
 	GetTimestamp() int64
-	GetExtra() interface{}
+	// GetExtra() interface{}
 }
 
 type IBlockChain interface {
@@ -52,7 +51,7 @@ type IBlockChain interface {
 	Children(prevBlockHash Hash) ([]IBlock, error)
 	Finalize(blockHash Hash) error
 	LastFinalized() (IBlock, error)
-	Leaves() ([]IBlock, error)
+	AllBlocks() ([]IBlock, error)
 
 	// return the longest children chains
 	Longest() ([]IChainStruct, error)

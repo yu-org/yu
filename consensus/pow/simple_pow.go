@@ -40,7 +40,7 @@ func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash com
 func Validate(block IBlock, target *big.Int, targetBits int64) bool {
 	var hashInt big.Int
 
-	var nonce int64 = block.GetExtra().(int64)
+	var nonce int64 = block.GetHeader().(*Header).GetNonce()
 	data, err := prepareData(block, nonce, targetBits)
 	if err != nil {
 		return false

@@ -45,12 +45,8 @@ func (b *Block) SetStateRoot(hash Hash) {
 	b.Header.StateRoot = hash
 }
 
-func (b *Block) GetExtra() interface{} {
-	return b.Header.GetExtra()
-}
-
-func (b *Block) SetExtra(extra interface{}) {
-	b.Header.Extra = extra
+func (b *Block) SetNonce(nonce int64) {
+	b.Header.Nonce = nonce
 }
 
 func (b *Block) Encode() ([]byte, error) {

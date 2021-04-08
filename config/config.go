@@ -79,7 +79,7 @@ type NodeKeeperConf struct {
 }
 
 type BlockchainConf struct {
-	ChainKV         KVconf    `toml:"chain_kv"`
+	ChainDB         SqlDbConf `toml:"chain_db"`
 	BlocksFromP2pDB SqlDbConf `toml:"blocks_from_p2p_db"`
 }
 
