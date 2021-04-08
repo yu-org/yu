@@ -35,10 +35,10 @@ func NewKvBlockChain(cfg *config.BlockchainConf) *KvBlockChain {
 
 func (bc *KvBlockChain) NewDefaultBlock() IBlock {
 	header := &Header{
-		timestamp: time.Now().UnixNano(),
+		Timestamp: time.Now().UnixNano(),
 	}
 	return &Block{
-		header: header,
+		Header: header,
 	}
 }
 
@@ -91,7 +91,7 @@ func (bc *KvBlockChain) FlushBlocksFromP2P(height BlockNum) error {
 }
 
 func (bc *KvBlockChain) AppendBlock(b IBlock) error {
-	blockId := b.Header().Hash().Bytes()
+	blockId := b.GetHeader().GetHash().Bytes()
 	blockByt, err := b.Encode()
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (bc *KvBlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	height := prevBlock.Header().Height() + 1
+	height := prevBlock.GetHeader().GetHeight() + 1
 	// FIXME: not height for prefix
 	iter, err := bc.chain.Iter(height.Bytes())
 	if err != nil {
@@ -129,7 +129,7 @@ func (bc *KvBlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 		if err != nil {
 			return nil, err
 		}
-		if block.Header().PrevHash() == prevBlockHash {
+		if block.GetHeader().GetPrevHash() == prevBlockHash {
 			blocks = append(blocks, block)
 		}
 
@@ -210,8 +210,8 @@ func toBlocksFromP2pScheme(b IBlock) (BlocksFromP2pScheme, error) {
 		return BlocksFromP2pScheme{}, err
 	}
 	return BlocksFromP2pScheme{
-		BlockHash:    b.Header().Hash().String(),
-		Height:       b.Header().Height(),
+		BlockHash:    b.GetHeader().GetHash().String(),
+		Height:       b.GetHeader().GetHeight(),
 		BlockContent: ToHex(byt),
 	}, nil
 }

@@ -161,8 +161,8 @@ func (m *Master) BroadcastTxns() {
 
 // sync P2P-network's txns
 func (m *Master) SyncTxns(block IBlock) error {
-	txnsHashes := block.TxnsHashes()
-	blockHash := block.Header().Hash()
+	txnsHashes := block.GetTxnsHashes()
+	blockHash := block.GetHeader().GetHash()
 	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err

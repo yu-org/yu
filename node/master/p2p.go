@@ -147,7 +147,7 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 			if tri.ValidateBlock(block) {
 				return nil
 			}
-			return BlockIllegal(block.Header().Hash())
+			return BlockIllegal(block.GetHeader().GetHash())
 		})
 		if err != nil {
 			return err

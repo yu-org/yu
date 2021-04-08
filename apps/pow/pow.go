@@ -60,8 +60,8 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 
 	preBlock := chains[0].Last()
 
-	preHeight := preBlock.Header().Height()
-	preHash := preBlock.Header().PrevHash()
+	preHeight := preBlock.GetHeader().GetHeight()
+	preHash := preBlock.GetHeader().GetPrevHash()
 
 	height := preHeight + 1
 

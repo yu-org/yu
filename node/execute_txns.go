@@ -8,7 +8,7 @@ import (
 )
 
 func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscription) error {
-	blockHash := block.Header().Hash()
+	blockHash := block.GetHeader().GetHash()
 	stxns, err := base.GetTxns(blockHash)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 		}
 
 		for _, event := range ctx.Events {
-			event.Height = block.Header().Height()
+			event.Height = block.GetHeader().GetHeight()
 			event.BlockHash = blockHash
 			event.ExecName = ecall.ExecName
 			event.TripodName = ecall.TripodName
@@ -41,7 +41,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 			e.TripodName = ecall.TripodName
 			e.ExecName = ecall.ExecName
 			e.BlockHash = blockHash
-			e.Height = block.Header().Height()
+			e.Height = block.GetHeader().GetHeight()
 
 			sub.Push(e)
 		}

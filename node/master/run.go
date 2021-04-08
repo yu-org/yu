@@ -58,7 +58,7 @@ func (m *Master) LocalRun() error {
 		go func() {
 			err := m.broadcastBlockAndTxns(newBlock)
 			if err != nil {
-				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.Header().Hash(), err.Error())
+				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHeader().GetHash(), err.Error())
 			}
 		}()
 	}
@@ -72,7 +72,7 @@ func (m *Master) LocalRun() error {
 	if err != nil {
 		return err
 	}
-	err = m.chain.FlushBlocksFromP2P(newBlock.Header().Height())
+	err = m.chain.FlushBlocksFromP2P(newBlock.GetHeader().GetHeight())
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (m *Master) LocalRun() error {
 		if err != nil {
 			logrus.Errorf(
 				"execute txns error at block(%s) : %s",
-				newBlock.Header().Hash().String(),
+				newBlock.GetHeader().GetHash().String(),
 				err.Error(),
 			)
 		}
@@ -133,7 +133,7 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = m.chain.FlushBlocksFromP2P(newBlock.Header().Height())
+	err = m.chain.FlushBlocksFromP2P(newBlock.GetHeader().GetHeight())
 	if err != nil {
 		return err
 	}
@@ -183,10 +183,10 @@ func (m *Master) broadcastBlockAndTxns(b IBlock) error {
 	if err != nil {
 		return err
 	}
-	txns, err := m.base.GetTxns(b.Header().Hash())
+	txns, err := m.base.GetTxns(b.GetHeader().GetHash())
 	if err != nil {
 		return err
 	}
 	m.blockBcChan <- tbody
-	return m.pubToP2P(b.Header().Hash(), txns)
+	return m.pubToP2P(b.GetHeader().GetHash(), txns)
 }

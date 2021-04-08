@@ -23,7 +23,7 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 	highestBlocks := make([]IBlock, 0)
 	var longestHeight BlockNum = 0
 	for _, block := range blocks {
-		bh := block.Header().Height()
+		bh := block.GetHeader().GetHeight()
 		if bh > longestHeight {
 			longestHeight = bh
 			highestBlocks = nil
@@ -33,13 +33,13 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 			highestBlocks = append(highestBlocks, block)
 		}
 
-		allBlocks[block.Header().Hash()] = block
+		allBlocks[block.GetHeader().GetHash()] = block
 	}
 
 	for _, hblock := range highestBlocks {
 		chain := NewEmptyChain(hblock)
-		for chain.root.Current.Header().PrevHash() != NullHash {
-			block, ok := allBlocks[chain.root.Current.Header().PrevHash()]
+		for chain.root.Current.GetHeader().GetPrevHash() != NullHash {
+			block, ok := allBlocks[chain.root.Current.GetHeader().GetPrevHash()]
 			if ok {
 				chain.InsertPrev(block)
 			}

@@ -5,39 +5,39 @@ import (
 )
 
 type Header struct {
-	prevHash  Hash
-	hash      Hash
-	height    BlockNum
-	txnRoot   Hash
-	stateRoot Hash
-	extra     interface{}
-	timestamp int64
+	PrevHash  Hash
+	Hash      Hash
+	Height    BlockNum
+	TxnRoot   Hash
+	StateRoot Hash
+	Extra     interface{}
+	Timestamp int64
 }
 
-func (h *Header) Height() BlockNum {
-	return h.height
+func (h *Header) GetHeight() BlockNum {
+	return h.Height
 }
 
-func (h *Header) Hash() Hash {
-	return h.hash
+func (h *Header) GetHash() Hash {
+	return h.Hash
 }
 
-func (h *Header) PrevHash() Hash {
-	return h.prevHash
+func (h *Header) GetPrevHash() Hash {
+	return h.PrevHash
 }
 
-func (h *Header) TxnRoot() Hash {
-	return h.txnRoot
+func (h *Header) GetTxnRoot() Hash {
+	return h.TxnRoot
 }
 
-func (h *Header) StateRoot() Hash {
-	return h.stateRoot
+func (h *Header) GetStateRoot() Hash {
+	return h.StateRoot
 }
 
-func (h *Header) Timestamp() int64 {
-	return h.timestamp
+func (h *Header) GetTimestamp() int64 {
+	return h.Timestamp
 }
 
-func (h *Header) Extra() interface{} {
-	return h.extra
+func (h *Header) GetExtra() interface{} {
+	return h.Extra
 }

@@ -9,48 +9,48 @@ import (
 )
 
 type Block struct {
-	header     *Header
-	txnsHashes []Hash
+	Header     *Header
+	TxnsHashes []Hash
 }
 
-func (b *Block) Header() IHeader {
-	return b.header
+func (b *Block) GetHeader() IHeader {
+	return b.Header
 }
 
-func (b *Block) TxnsHashes() []Hash {
-	return b.txnsHashes
+func (b *Block) GetTxnsHashes() []Hash {
+	return b.TxnsHashes
 }
 
 func (b *Block) SetTxnsHashes(hashes []Hash) {
-	b.txnsHashes = hashes
+	b.TxnsHashes = hashes
 }
 
 func (b *Block) SetHash(hash Hash) {
-	b.header.hash = hash
+	b.Header.Hash = hash
 }
 
 func (b *Block) SetPreHash(preHash Hash) {
-	b.header.prevHash = preHash
+	b.Header.PrevHash = preHash
 }
 
 func (b *Block) SetHeight(height BlockNum) {
-	b.header.height = height
+	b.Header.Height = height
 }
 
-func (b *Block) BlockId() BlockId {
-	return NewBlockId(b.header.Height(), b.header.Hash())
+func (b *Block) GetBlockId() BlockId {
+	return NewBlockId(b.Header.GetHeight(), b.Header.GetHash())
 }
 
 func (b *Block) SetStateRoot(hash Hash) {
-	b.header.stateRoot = hash
+	b.Header.StateRoot = hash
 }
 
-func (b *Block) Extra() interface{} {
-	return b.header.Extra()
+func (b *Block) GetExtra() interface{} {
+	return b.Header.GetExtra()
 }
 
 func (b *Block) SetExtra(extra interface{}) {
-	b.header.extra = extra
+	b.Header.Extra = extra
 }
 
 func (b *Block) Encode() ([]byte, error) {

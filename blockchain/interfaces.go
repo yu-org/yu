@@ -7,8 +7,8 @@ import (
 )
 
 type IBlock interface {
-	BlockId() BlockId
-	TxnsHashes() []Hash
+	GetBlockId() BlockId
+	GetTxnsHashes() []Hash
 	SetTxnsHashes(hashes []Hash)
 
 	SetHash(hash Hash)
@@ -16,8 +16,8 @@ type IBlock interface {
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
 
-	Header() IHeader
-	Extra() interface{}
+	GetHeader() IHeader
+	GetExtra() interface{}
 	SetExtra(extra interface{})
 
 	Encode() ([]byte, error)
@@ -25,13 +25,13 @@ type IBlock interface {
 }
 
 type IHeader interface {
-	Height() BlockNum
-	Hash() Hash
-	PrevHash() Hash
-	TxnRoot() Hash
-	StateRoot() Hash
-	Timestamp() int64
-	Extra() interface{}
+	GetHeight() BlockNum
+	GetHash() Hash
+	GetPrevHash() Hash
+	GetTxnRoot() Hash
+	GetStateRoot() Hash
+	GetTimestamp() int64
+	GetExtra() interface{}
 }
 
 type IBlockChain interface {
