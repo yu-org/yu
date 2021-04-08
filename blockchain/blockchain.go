@@ -1,15 +1,11 @@
 package blockchain
 
 import (
-	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
 	"yu/config"
 	ysql "yu/storage/sql"
 )
-
-// the Key Name of last finalized blockID
-var LastFinalizedKey = []byte("Last-Finalized-BlockID")
 
 type BlockChain struct {
 	chain         ysql.SqlDB
@@ -67,20 +63,30 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 	return block, nil
 }
 
-func NewBlockChain(cfg *config.BlockchainConf) *BlockChain {
+func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
 	if err != nil {
-		logrus.Panicf("load blockchain KVDB error: %s", err.Error())
+		return nil, err
 	}
 	blocksFromP2pDB, err := ysql.NewSqlDB(&cfg.BlocksFromP2pDB)
 	if err != nil {
-		logrus.Panicf("load blocks-from-p2p SQL-DB error: %s", err.Error())
+		return nil, err
+	}
+
+	err = chain.CreateIfNotExist(&BlocksScheme{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = blocksFromP2pDB.CreateIfNotExist(BlocksFromP2pScheme{})
+	if err != nil {
+		return nil, err
 	}
 
 	return &BlockChain{
 		chain:         chain,
 		blocksFromP2p: blocksFromP2pDB,
-	}
+	}, nil
 }
 
 func (bc *BlockChain) NewDefaultBlock() IBlock {
@@ -169,12 +175,16 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 
 	var blocks []IBlock
 	for rows.Next() {
-		var block Block
-		err = bc.chain.Db().ScanRows(rows, &block)
+		var bs BlocksScheme
+		err = bc.chain.Db().ScanRows(rows, &bs)
 		if err != nil {
 			return nil, err
 		}
-		blocks = append(blocks, &block)
+		block, err := bs.toBlock()
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
 	}
 	return blocks, nil
 }
@@ -203,12 +213,16 @@ func (bc *BlockChain) AllBlocks() ([]IBlock, error) {
 
 	var blocks []IBlock
 	for rows.Next() {
-		var block Block
-		err = bc.chain.Db().ScanRows(rows, &block)
+		var bs BlocksScheme
+		err = bc.chain.Db().ScanRows(rows, &bs)
 		if err != nil {
 			return nil, err
 		}
-		blocks = append(blocks, &block)
+		block, err := bs.toBlock()
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
 	}
 	return blocks, nil
 }

@@ -22,6 +22,13 @@ func (s *Sqlite) Db() *gorm.DB {
 	return s.DB
 }
 
+func (s *Sqlite) CreateIfNotExist(table interface{}) error {
+	if s.Migrator().HasTable(table) {
+		return nil
+	}
+	return s.Migrator().CreateTable(table)
+}
+
 func (*Sqlite) Type() storage.StoreType {
 	return storage.Embedded
 }

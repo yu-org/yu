@@ -37,8 +37,14 @@ func main() {
 	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
 
-	chain := blockchain.NewBlockChain(&chainCfg)
-	base := blockchain.NewBlockBase(&baseCfg)
+	chain, err := blockchain.NewBlockChain(&chainCfg)
+	if err != nil {
+		logrus.Panicf("load blockchain error: %s", err.Error())
+	}
+	base, err := blockchain.NewBlockBase(&baseCfg)
+	if err != nil {
+		logrus.Panicf("load blockbase error: %s", err.Error())
+	}
 	land := loadLand()
 
 	var pool txpool.ItxPool

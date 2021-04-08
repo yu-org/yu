@@ -10,6 +10,7 @@ import (
 type SqlDB interface {
 	storage.StorageType
 	Db() *gorm.DB
+	CreateIfNotExist(table interface{}) error
 }
 
 func NewSqlDB(cfg *config.SqlDbConf) (SqlDB, error) {

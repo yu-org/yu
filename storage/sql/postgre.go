@@ -22,6 +22,13 @@ func (p *PostgreSql) Db() *gorm.DB {
 	return p.DB
 }
 
+func (p *PostgreSql) CreateIfNotExist(table interface{}) error {
+	if p.Migrator().HasTable(table) {
+		return nil
+	}
+	return p.Migrator().CreateTable(table)
+}
+
 func (*PostgreSql) Type() storage.StoreType {
 	return storage.Server
 }

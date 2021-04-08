@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	. "yu/common"
 	"yu/config"
@@ -16,15 +15,30 @@ type BlockBase struct {
 	db ysql.SqlDB
 }
 
-func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
+func NewBlockBase(cfg *config.BlockBaseConf) (*BlockBase, error) {
 	db, err := ysql.NewSqlDB(&cfg.BaseDB)
 	if err != nil {
-		logrus.Panicf("load blockbase error: %s", err.Error())
+		return nil, err
+	}
+
+	err = db.CreateIfNotExist(&TxnScheme{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.CreateIfNotExist(&EventScheme{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.CreateIfNotExist(&ErrorScheme{})
+	if err != nil {
+		return nil, err
 	}
 
 	return &BlockBase{
 		db: db,
-	}
+	}, nil
 }
 
 func (bb *BlockBase) GetTxn(txnHash Hash) (*SignedTxn, error) {

@@ -22,6 +22,13 @@ func (m *Mysql) Db() *gorm.DB {
 	return m.DB
 }
 
+func (m *Mysql) CreateIfNotExist(table interface{}) error {
+	if m.Migrator().HasTable(table) {
+		return nil
+	}
+	return m.Migrator().CreateTable(table)
+}
+
 func (*Mysql) Type() storage.StoreType {
 	return storage.Server
 }
