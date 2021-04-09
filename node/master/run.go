@@ -21,7 +21,9 @@ func (m *Master) Run() {
 		}
 		for {
 			err := m.LocalRun()
-			logrus.Errorf("run blockchain error: %s", err.Error())
+			if err != nil {
+				logrus.Errorf("run blockchain error: %s", err.Error())
+			}
 		}
 	case MasterWorker:
 		// todo: init chain

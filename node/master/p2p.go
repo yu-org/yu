@@ -254,5 +254,8 @@ func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
 }
 
 func (m *Master) closeTopic() error {
-	return m.p2pInfo.topic.Close()
+	if m.p2pInfo.topic != nil {
+		return m.p2pInfo.topic.Close()
+	}
+	return nil
 }
