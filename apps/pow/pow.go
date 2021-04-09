@@ -69,7 +69,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 	if err != nil {
 		logrus.Errorf("get p2p-blocks error: %s", err.Error())
 	}
-	if p2pBlocks != nil {
+	if len(p2pBlocks) > 0 {
 		block = p2pBlocks[0]
 		return
 	}

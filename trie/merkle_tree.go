@@ -19,6 +19,14 @@ type MerkleNode struct {
 
 // NewMerkleTree creates a new Merkle tree from a sequence of data
 func NewMerkleTree(data []Hash) *MerkleTree {
+	if len(data) == 0 {
+		return &MerkleTree{RootNode: &MerkleNode{
+			Left:  nil,
+			Right: nil,
+			Data:  NullHash,
+		}}
+	}
+
 	var nodes []MerkleNode
 
 	if len(data)%2 != 0 {

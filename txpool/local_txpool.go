@@ -118,6 +118,9 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 	defer tp.Unlock()
 	stxns := make([]*SignedTxn, 0)
 	for i := 0; i < int(numLimit); i++ {
+		if i >= len(tp.Txns) {
+			break
+		}
 		err := filter(tp.Txns[i])
 		if err != nil {
 			return nil, err
