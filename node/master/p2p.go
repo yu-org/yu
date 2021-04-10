@@ -39,11 +39,24 @@ func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error)
 	if err != nil {
 		return nil, err
 	}
-	return libp2p.New(
+	p2pHost, err := libp2p.New(
 		ctx,
 		libp2p.Identity(priv),
 		libp2p.ListenAddrStrings(cfg.P2pListenAddrs...),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	hostAddr, err := maddr.NewMultiaddr(p2pHost.ID().Pretty())
+	if err != nil {
+		return nil, err
+	}
+	addr := p2pHost.Addrs()[0]
+	fullAddr := addr.Encapsulate(hostAddr)
+	logrus.Infof("I am %s", fullAddr)
+
+	return p2pHost, nil
 }
 
 func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
