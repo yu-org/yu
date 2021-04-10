@@ -52,18 +52,25 @@ func (*Pow) InitChain(chain IBlockChain, _ IBlockBase) error {
 }
 
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	chains, err := chain.Longest()
 	if err != nil {
 		return
 	}
 
+	for _, ch := range chains {
+		_ = ch.Range(func(block IBlock) error {
+			logrus.Info("longest chain block is ", block.GetHeader().GetHash().String())
+			return nil
+		})
+	}
+
 	preBlock := chains[0].Last()
 
-	preHeight := preBlock.GetHeader().GetHeight()
-	preHash := preBlock.GetHeader().GetPrevHash()
+	prevHeight := preBlock.GetHeader().GetHeight()
+	prevHash := preBlock.GetHeader().GetHash()
 
-	height := preHeight + 1
+	height := prevHeight + 1
 
 	p2pBlocks, err := chain.GetBlocksFromP2P(height)
 	if err != nil {
@@ -76,7 +83,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 
 	needBroadcast = true
 
-	block.SetPreHash(preHash)
+	block.SetPreHash(prevHash)
 	block.SetHeight(height)
 
 	txns, err := pool.Package("", p.pkgTxnsLimit)

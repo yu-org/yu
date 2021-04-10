@@ -17,7 +17,6 @@ type IBlock interface {
 	SetHeight(BlockNum)
 
 	GetHeader() IHeader
-	// SetExtra(extra interface{})
 
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
@@ -30,7 +29,6 @@ type IHeader interface {
 	GetTxnRoot() Hash
 	GetStateRoot() Hash
 	GetTimestamp() int64
-	// GetExtra() interface{}
 }
 
 type IBlockChain interface {
@@ -63,6 +61,7 @@ type IChainStruct interface {
 	Append(block IBlock)
 	InsertPrev(block IBlock)
 	First() IBlock
+	Range(fn func(block IBlock) error) error
 	Last() IBlock
 }
 

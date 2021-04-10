@@ -1,6 +1,9 @@
 package blockchain
 
-import . "yu/common"
+import (
+	"github.com/sirupsen/logrus"
+	. "yu/common"
+)
 
 type ChainStruct struct {
 	root *ChainNode
@@ -21,6 +24,7 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 	allBlocks := make(map[Hash]IBlock)
 
 	highestBlocks := make([]IBlock, 0)
+
 	var longestHeight BlockNum = 0
 	for _, block := range blocks {
 		bh := block.GetHeader().GetHeight()
@@ -38,10 +42,12 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 
 	for _, hblock := range highestBlocks {
 		chain := NewEmptyChain(hblock)
+		// FIXME: genesis block cannot be return if its prevHash is Null
 		for chain.root.Current.GetHeader().GetPrevHash() != NullHash {
 			block, ok := allBlocks[chain.root.Current.GetHeader().GetPrevHash()]
 			if ok {
 				chain.InsertPrev(block)
+				logrus.Info("make chain with block: ", block.GetHeader().GetHash().String())
 			}
 		}
 
@@ -79,6 +85,16 @@ func (c *ChainStruct) InsertPrev(block IBlock) {
 
 func (c *ChainStruct) First() IBlock {
 	return c.root.Current
+}
+
+func (c *ChainStruct) Range(fn func(block IBlock) error) error {
+	for cursor := c.root; cursor.Next != nil; cursor = cursor.Next {
+		err := fn(cursor.Current)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *ChainStruct) Last() IBlock {
