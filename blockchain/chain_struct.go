@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	"github.com/sirupsen/logrus"
 	. "yu/common"
 )
 
+// todo: consider use array instead of linklist
 type ChainStruct struct {
 	root *ChainNode
 }
@@ -42,12 +42,11 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 
 	for _, hblock := range highestBlocks {
 		chain := NewEmptyChain(hblock)
-		// FIXME: genesis block cannot be return if its prevHash is Null
+		// FIXME: genesis block cannot be returned if its prevHash is Null
 		for chain.root.Current.GetHeader().GetPrevHash() != NullHash {
 			block, ok := allBlocks[chain.root.Current.GetHeader().GetPrevHash()]
 			if ok {
 				chain.InsertPrev(block)
-				logrus.Info("make chain with block: ", block.GetHeader().GetHash().String())
 			}
 		}
 

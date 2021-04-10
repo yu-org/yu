@@ -58,13 +58,6 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 		return
 	}
 
-	for _, ch := range chains {
-		_ = ch.Range(func(block IBlock) error {
-			logrus.Info("longest chain block is ", block.GetHeader().GetHash().String())
-			return nil
-		})
-	}
-
 	preBlock := chains[0].Last()
 
 	prevHeight := preBlock.GetHeader().GetHeight()
