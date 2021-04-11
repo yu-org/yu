@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -48,7 +49,7 @@ func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error)
 		return nil, err
 	}
 
-	hostAddr, err := maddr.NewMultiaddr(p2pHost.ID().Pretty())
+	hostAddr, err := maddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", p2pHost.ID().Pretty()))
 	if err != nil {
 		return nil, err
 	}
