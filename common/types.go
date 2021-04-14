@@ -27,7 +27,7 @@ type Display interface {
 }
 
 type (
-	BlockNum uint64
+	BlockNum uint32
 	// Use to be a Key to store into KVDB.
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
@@ -66,12 +66,12 @@ func (bn BlockNum) len() int {
 
 func (bn BlockNum) Bytes() []byte {
 	byt := make([]byte, bn.len())
-	binary.BigEndian.PutUint64(byt, uint64(bn))
+	binary.BigEndian.PutUint32(byt, uint32(bn))
 	return byt
 }
 
 func BytesToBlockNum(byt []byte) BlockNum {
-	u := binary.BigEndian.Uint64(byt)
+	u := binary.BigEndian.Uint32(byt)
 	return BlockNum(u)
 }
 

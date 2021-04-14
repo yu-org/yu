@@ -1,4 +1,4 @@
-package node
+package master
 
 import (
 	"encoding/json"
@@ -66,4 +66,9 @@ func (tb *TransferBody) DecodeTxnsBody() (SignedTxns, error) {
 	var txns SignedTxns
 	err := tb.DecodeBody(&txns)
 	return txns, err
+}
+
+type BlocksRequest struct {
+	StartHeight BlockNum
+	EndHeight   BlockNum
 }

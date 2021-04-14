@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"yu/apps/pow"
 	"yu/blockchain"
@@ -54,6 +55,8 @@ func main() {
 	case common.MasterWorker:
 		pool = txpool.ServerWithDefaultChecks(&txpoolCfg)
 	}
+
+	gin.SetMode(gin.ReleaseMode)
 
 	m, err := master.NewMaster(&masterCfg, chain, base, pool, land)
 	if err != nil {

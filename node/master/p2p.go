@@ -12,10 +12,12 @@ import (
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
+	. "yu/blockchain"
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
@@ -24,11 +26,21 @@ import (
 	. "yu/yerror"
 )
 
+const (
+	BlocksTopic  = "blocks"
+	TxnsTopic    = "txns"
+	GenesisTopic = "genesis"
+)
+
 type P2pInfo struct {
 	host  host.Host
 	ps    *pubsub.PubSub
 	ctx   context.Context
 	topic *pubsub.Topic
+
+	blocksTp  *pubsub.Topic
+	txnsTp    *pubsub.Topic
+	genesisTp *pubsub.Topic
 }
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -98,23 +110,21 @@ func (m *Master) handleStream(s network.Stream) {
 
 // Read the data of blockchain from P2P network.
 func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
-	for {
-		byt, err := rw.ReadBytes('\n')
-		if err != nil {
-			logrus.Errorf("Read data from P2P-network error: %s", err.Error())
-			continue
-		}
+	byt, err := rw.ReadBytes('\n')
+	if err != nil {
+		logrus.Errorf("Read data from P2P-network error: %s", err.Error())
+		return
+	}
 
-		tbody, err := DecodeTb(byt)
-		if err != nil {
-			logrus.Errorf("decode data from P2P-network error: %s", err.Error())
-			continue
-		}
+	tbody, err := DecodeTb(byt)
+	if err != nil {
+		logrus.Errorf("decode data from P2P-network error: %s", err.Error())
+		return
+	}
 
-		err = m.handleTransferBody(tbody)
-		if err != nil {
-			logrus.Errorf("handle transfer-body error：%s", err.Error())
-		}
+	err = m.handleTransferBody(tbody)
+	if err != nil {
+		logrus.Errorf("handle transfer-body error：%s", err.Error())
 	}
 }
 
@@ -157,15 +167,22 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 		if err != nil {
 			return err
 		}
-		err = m.land.RangeList(func(tri tripod.Tripod) error {
-			if tri.ValidateBlock(block) {
-				return nil
+
+		switch m.RunMode {
+		case LocalNode:
+			err = m.land.RangeList(func(tri tripod.Tripod) error {
+				if tri.ValidateBlock(block) {
+					return nil
+				}
+				return BlockIllegal(block)
+			})
+			if err != nil {
+				return err
 			}
-			return BlockIllegal(block.GetHeader().GetHash())
-		})
-		if err != nil {
-			return err
+		case MasterWorker:
+			//todo: switch MasterWorker Mode
 		}
+
 		return m.chain.InsertBlockFromP2P(block)
 	case TxnsTransfer:
 		txns, err := tbody.DecodeTxnsBody()
@@ -231,6 +248,24 @@ func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) e
 type TxnsAndWorkerName struct {
 	Txns       SignedTxns
 	WorkerName string
+}
+
+func (m *Master) pubTxnsToP2P(block IBlock, txns SignedTxns) error {
+	blockHash := block.GetHeader().GetHash()
+	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+	if err != nil {
+		return err
+	}
+
+}
+
+func (m *Master) subTxnsFromP2P(block IBlock) ([]*SignedTxn, error) {
+	blockHash := block.GetHeader().GetHash()
+	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+	if err != nil {
+		return nil, err
+	}
+
 }
 
 func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {

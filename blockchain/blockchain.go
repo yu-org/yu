@@ -141,9 +141,7 @@ func (bc *BlockChain) GetBlocksFromP2P(height BlockNum) ([]IBlock, error) {
 }
 
 func (bc *BlockChain) FlushBlocksFromP2P(height BlockNum) error {
-	bc.blocksFromP2p.Db().Where(&BlocksFromP2pScheme{
-		Height: height,
-	}).Delete(BlocksFromP2pScheme{})
+	bc.blocksFromP2p.Db().Where("height <= ?", height).Delete(&BlocksFromP2pScheme{})
 	return nil
 }
 

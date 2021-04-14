@@ -112,6 +112,11 @@ func (m *Master) Startup() {
 		go m.CheckHealth()
 	}
 
+	err := m.SyncHistoryBlocks()
+	if err != nil {
+		logrus.Fatalf("sync history blocks error: %s", err.Error())
+	}
+
 	go m.HandleHttp()
 	go m.HandleWS()
 
@@ -197,6 +202,29 @@ func (m *Master) SyncTxns(block IBlock) error {
 		}
 
 		return m.base.SetTxns(blockHash, fetchedTxns)
+	}
+
+	return nil
+}
+
+func (m *Master) SyncHistoryBlocks() error {
+	var blocks []IBlock
+
+	switch m.RunMode {
+	case LocalNode:
+		for _, block := range blocks {
+			err := m.land.RangeList(func(tri Tripod) error {
+				if tri.ValidateBlock(block) {
+					return m.chain.AppendBlock(block)
+				}
+				return BlockIllegal(block)
+			})
+			if err != nil {
+				return err
+			}
+		}
+	case MasterWorker:
+		// todo
 	}
 
 	return nil
