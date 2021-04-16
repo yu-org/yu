@@ -12,7 +12,6 @@ import (
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"

@@ -38,6 +38,8 @@ func main() {
 	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
 
+	initLog()
+
 	chain, err := blockchain.NewBlockChain(&chainCfg)
 	if err != nil {
 		logrus.Panicf("load blockchain error: %s", err.Error())
@@ -72,4 +74,13 @@ func loadLand() *tripod.Land {
 	powTripod := pow.NewPow(1024)
 	land.SetTripods(powTripod)
 	return land
+}
+
+func initLog() {
+	formatter := &logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	}
+	logrus.SetFormatter(formatter)
+	logrus.SetLevel(logrus.InfoLevel)
 }
