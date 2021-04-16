@@ -25,12 +25,6 @@ import (
 	. "yu/yerror"
 )
 
-const (
-	BlocksTopic  = "blocks"
-	TxnsTopic    = "txns"
-	GenesisTopic = "genesis"
-)
-
 type P2pInfo struct {
 	host  host.Host
 	ps    *pubsub.PubSub
@@ -82,7 +76,7 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.p2pInfo.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
+	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
 
 	for _, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
@@ -93,7 +87,7 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		if err != nil {
 			return err
 		}
-		err = m.p2pInfo.host.Connect(m.p2pInfo.ctx, *peer)
+		err = m.host.Connect(context.Background(), *peer)
 		if err != nil {
 			return err
 		}
@@ -103,28 +97,29 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 
 func (m *Master) handleStream(s network.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-	go m.readFromNetwork(rw)
+	go func() {
+		err := m.readFromNetwork(rw)
+		if err != nil {
+			logrus.Errorf("read data from p2p error: %s", err.Error())
+		}
+	}()
 	go m.writeToNetwork(rw)
 }
 
 // Read the data of blockchain from P2P network.
-func (m *Master) readFromNetwork(rw *bufio.ReadWriter) {
+func (m *Master) readFromNetwork(rw *bufio.ReadWriter) error {
 	byt, err := rw.ReadBytes('\n')
 	if err != nil {
-		logrus.Errorf("Read data from P2P-network error: %s", err.Error())
-		return
+		return err
 	}
 
 	tbody, err := DecodeTb(byt)
 	if err != nil {
-		logrus.Errorf("decode data from P2P-network error: %s", err.Error())
-		return
+		return err
 	}
 
 	err = m.handleTransferBody(tbody)
-	if err != nil {
-		logrus.Errorf("handle transfer-body error：%s", err.Error())
-	}
+	return err
 }
 
 // Write and broadcast the data to P2P network.
@@ -249,61 +244,62 @@ type TxnsAndWorkerName struct {
 	WorkerName string
 }
 
-func (m *Master) pubTxnsToP2P(block IBlock, txns SignedTxns) error {
-	blockHash := block.GetHeader().GetHash()
-	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-	if err != nil {
-		return err
-	}
+//
+//func (m *Master) pubTxnsToP2P(block IBlock, txns SignedTxns) error {
+//	blockHash := block.GetHeader().GetHash()
+//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+//	if err != nil {
+//		return err
+//	}
+//
+//}
+//
+//func (m *Master) subTxnsFromP2P(block IBlock) ([]*SignedTxn, error) {
+//	blockHash := block.GetHeader().GetHash()
+//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//}
+//
+//func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
+//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+//	if err != nil {
+//		return err
+//	}
+//	m.p2pInfo.topic = topic
+//	byt, err := txns.Encode()
+//	if err != nil {
+//		return err
+//	}
+//	return m.p2pInfo.topic.Publish(m.p2pInfo.ctx, byt)
+//}
+//
+//func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
+//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
+//	if err != nil {
+//		return nil, err
+//	}
+//	m.p2pInfo.topic = topic
+//	sub, err := topic.Subscribe()
+//	if err != nil {
+//		return nil, err
+//	}
+//	msg, err := sub.Next(m.p2pInfo.ctx)
+//	if err != nil {
+//		return nil, err
+//	}
+//	stxns, err := m.txPool.NewEmptySignedTxns().Decode(msg.Data)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return stxns.ToArray(), nil
+//}
 
-}
-
-func (m *Master) subTxnsFromP2P(block IBlock) ([]*SignedTxn, error) {
-	blockHash := block.GetHeader().GetHash()
-	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-	if err != nil {
-		return nil, err
-	}
-
-}
-
-func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
-	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-	if err != nil {
-		return err
-	}
-	m.p2pInfo.topic = topic
-	byt, err := txns.Encode()
-	if err != nil {
-		return err
-	}
-	return m.p2pInfo.topic.Publish(m.p2pInfo.ctx, byt)
-}
-
-func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
-	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-	if err != nil {
-		return nil, err
-	}
-	m.p2pInfo.topic = topic
-	sub, err := topic.Subscribe()
-	if err != nil {
-		return nil, err
-	}
-	msg, err := sub.Next(m.p2pInfo.ctx)
-	if err != nil {
-		return nil, err
-	}
-	stxns, err := m.txPool.NewEmptySignedTxns().Decode(msg.Data)
-	if err != nil {
-		return nil, err
-	}
-	return stxns.ToArray(), nil
-}
-
-func (m *Master) closeTopic() error {
-	if m.p2pInfo.topic != nil {
-		return m.p2pInfo.topic.Close()
-	}
-	return nil
-}
+//func (m *Master) closeTopic() error {
+//	if m.p2pInfo.topic != nil {
+//		return m.p2pInfo.topic.Close()
+//	}
+//	return nil
+//}

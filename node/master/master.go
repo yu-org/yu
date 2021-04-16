@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -24,7 +25,9 @@ import (
 
 type Master struct {
 	sync.Mutex
-	p2pInfo *P2pInfo
+
+	host host.Host
+	ps   *pubsub.PubSub
 
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
@@ -49,6 +52,7 @@ type Master struct {
 	// txns to broadcast into P2P network
 	txnsBcChan chan *TransferBody
 
+	// event subscription
 	sub *Subscription
 }
 
@@ -76,14 +80,7 @@ func NewMaster(
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
-	p2pInfo := &P2pInfo{
-		host: p2pHost,
-		ps:   ps,
-		ctx:  ctx,
-	}
-
 	m := &Master{
-		p2pInfo:         p2pInfo,
 		RunMode:         cfg.RunMode,
 		nkDB:            nkDB,
 		timeout:         timeout,
@@ -104,11 +101,22 @@ func NewMaster(
 }
 
 func (m *Master) P2pID() string {
-	return m.p2pInfo.host.ID().String()
+	return m.host.ID().String()
 }
 
 func (m *Master) Startup() {
-	if m.RunMode == MasterWorker {
+
+	switch m.RunMode {
+	case LocalNode:
+		err := m.land.RangeList(func(tri Tripod) error {
+			return tri.InitChain(m.chain, m.base)
+		})
+		if err != nil {
+			logrus.Panicf("init chain error: %s", err.Error())
+		}
+	case MasterWorker:
+		// todo: init chain
+
 		go m.CheckHealth()
 	}
 

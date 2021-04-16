@@ -13,12 +13,6 @@ func (m *Master) Run() {
 
 	switch m.RunMode {
 	case LocalNode:
-		err := m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.chain, m.base)
-		})
-		if err != nil {
-			logrus.Panicf("init chain error: %s", err.Error())
-		}
 		for {
 			err := m.LocalRun()
 			if err != nil {
@@ -26,7 +20,6 @@ func (m *Master) Run() {
 			}
 		}
 	case MasterWorker:
-		// todo: init chain
 		for {
 			err := m.MasterWokrerRun()
 			logrus.Errorf("run blockchain error: %s", err.Error())
