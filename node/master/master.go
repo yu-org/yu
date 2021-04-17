@@ -127,6 +127,26 @@ func (m *Master) Startup() {
 	go m.HandleHttp()
 	go m.HandleWS()
 
+	go func() {
+		for {
+			err := m.AcceptBlocks()
+			if err != nil {
+				logrus.Errorf("accept blocks error: %s", err.Error())
+			}
+		}
+
+	}()
+
+	go func() {
+		for {
+			err := m.AcceptUnpkgTxns()
+			if err != nil {
+				logrus.Errorf("accept unpacked txns error: %s", err.Error())
+			}
+		}
+
+	}()
+
 	m.Run()
 }
 

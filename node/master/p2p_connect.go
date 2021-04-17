@@ -106,88 +106,28 @@ func (m *Master) handleStream(s network.Stream) {
 	go m.writeToNetwork(rw)
 }
 
-// Read the data of blockchain from P2P network.
-func (m *Master) readFromNetwork(rw *bufio.ReadWriter) error {
-	byt, err := rw.ReadBytes('\n')
+func (m *Master) AcceptBlocks() error {
+	block, err := m.subBlock()
 	if err != nil {
 		return err
 	}
 
-	tbody, err := DecodeTb(byt)
-	if err != nil {
-		return err
-	}
-
-	err = m.handleTransferBody(tbody)
-	return err
-}
-
-// Write and broadcast the data to P2P network.
-func (m *Master) writeToNetwork(rw *bufio.ReadWriter) {
-	for {
-		select {
-		case blocksBody := <-m.blockBcChan:
-			byt, err := blocksBody.Encode()
-			if err != nil {
-				logrus.Errorf("encode block-body error: %s", err.Error())
-				continue
+	switch m.RunMode {
+	case MasterWorker:
+		// todo: switch MasterWorker Mode
+	case LocalNode:
+		err = m.land.RangeList(func(tri tripod.Tripod) error {
+			if tri.ValidateBlock(block) {
+				return nil
 			}
-			_, err = rw.Write(byt)
-			if err != nil {
-				logrus.Errorf("write block-body to P2P network error: %s", err.Error())
-				continue
-			}
-			rw.Flush()
-		case txnsBody := <-m.txnsBcChan:
-			byt, err := txnsBody.Encode()
-			if err != nil {
-				logrus.Errorf("encode txns-body error: %s", err.Error())
-				continue
-			}
-			_, err = rw.Write(byt)
-			if err != nil {
-				logrus.Errorf("write txns-body error: %s", err.Error())
-				continue
-			}
-			rw.Flush()
-		}
-	}
-}
-
-func (m *Master) handleTransferBody(tbody *TransferBody) error {
-	switch tbody.Type {
-	case BlockTransfer:
-		block, err := tbody.DecodeBlockBody()
+			return BlockIllegal(block)
+		})
 		if err != nil {
 			return err
 		}
-
-		switch m.RunMode {
-		case LocalNode:
-			err = m.land.RangeList(func(tri tripod.Tripod) error {
-				if tri.ValidateBlock(block) {
-					return nil
-				}
-				return BlockIllegal(block)
-			})
-			if err != nil {
-				return err
-			}
-		case MasterWorker:
-			//todo: switch MasterWorker Mode
-		}
-
-		return m.chain.InsertBlockFromP2P(block)
-	case TxnsTransfer:
-		txns, err := tbody.DecodeTxnsBody()
-		if err != nil {
-			return err
-		}
-
-		return nil
-	default:
-		return NoTransferBodyType
 	}
+
+	return m.chain.InsertBlockFromP2P(block)
 }
 
 func (m *Master) AcceptUnpkgTxns() error {
@@ -195,36 +135,45 @@ func (m *Master) AcceptUnpkgTxns() error {
 	if err != nil {
 		return err
 	}
-	// key: workerIP
-	forwardMap := make(map[string]*TxnsAndWorkerName)
-	for _, txn := range txns {
-		ecall := txn.GetRaw().Ecall()
-		tripodName := ecall.TripodName
-		execName := ecall.ExecName
-		workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
-		if err != nil {
-			return err
-		}
-		oldTxns := forwardMap[workerIP].Txns
-		forwardMap[workerIP] = &TxnsAndWorkerName{
-			Txns:       append(oldTxns, txn),
-			WorkerName: workerName,
-		}
-	}
 
-	if m.RunMode == MasterWorker {
+	switch m.RunMode {
+	case MasterWorker:
+		// key: workerIP
+		forwardMap := make(map[string]*TxnsAndWorkerName)
+		for _, txn := range txns {
+			ecall := txn.GetRaw().Ecall()
+			tripodName := ecall.TripodName
+			execName := ecall.ExecName
+			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
+			if err != nil {
+				return err
+			}
+			oldTxns := forwardMap[workerIP].Txns
+			forwardMap[workerIP] = &TxnsAndWorkerName{
+				Txns:       append(oldTxns, txn),
+				WorkerName: workerName,
+			}
+		}
+
 		err := m.forwardTxnsForCheck(forwardMap)
 		if err != nil {
 			return err
 		}
-	}
 
-	for _, twn := range forwardMap {
-		err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
+		for _, twn := range forwardMap {
+			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
+			if err != nil {
+				return err
+			}
+		}
+
+	case LocalNode:
+		err = m.txPool.BatchInsert("", txns)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
