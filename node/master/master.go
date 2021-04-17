@@ -42,15 +42,16 @@ type Master struct {
 	land   *Land
 
 	// blocks to broadcast into P2P network
-	blockBcChan chan *TransferBody
+	// blockBcChan chan *TransferBody
 
 	// ready to package a batch of txns to broadcast
 	// readyBcTxnsChan -> txnsBcChan -> P2P network
-	readyBcTxnsChan chan *SignedTxn
+	// readyBcTxnsChan chan *SignedTxn
 	// number of broadcast txns every time
-	NumOfBcTxns int
+	// NumOfBcTxns int
+
 	// txns to broadcast into P2P network
-	txnsBcChan chan *TransferBody
+	// txnsBcChan chan *TransferBody
 
 	// event subscription
 	sub *Subscription
@@ -81,20 +82,18 @@ func NewMaster(
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	m := &Master{
-		RunMode:         cfg.RunMode,
-		nkDB:            nkDB,
-		timeout:         timeout,
-		httpPort:        MakePort(cfg.HttpPort),
-		wsPort:          MakePort(cfg.WsPort),
-		chain:           chain,
-		base:            base,
-		txPool:          txPool,
-		land:            land,
-		blockBcChan:     make(chan *TransferBody),
-		readyBcTxnsChan: make(chan *SignedTxn),
-		txnsBcChan:      make(chan *TransferBody),
-		NumOfBcTxns:     cfg.NumOfBcTxns,
-		sub:             NewSubscription(),
+		host:     p2pHost,
+		ps:       ps,
+		RunMode:  cfg.RunMode,
+		nkDB:     nkDB,
+		timeout:  timeout,
+		httpPort: MakePort(cfg.HttpPort),
+		wsPort:   MakePort(cfg.WsPort),
+		chain:    chain,
+		base:     base,
+		txPool:   txPool,
+		land:     land,
+		sub:      NewSubscription(),
 	}
 	err = m.ConnectP2PNetwork(cfg)
 	return m, err
@@ -128,8 +127,6 @@ func (m *Master) Startup() {
 	go m.HandleHttp()
 	go m.HandleWS()
 
-	go m.BroadcastTxns()
-
 	m.Run()
 }
 
@@ -153,24 +150,24 @@ func (m *Master) CheckHealth() {
 }
 
 // FIXME: when number of txns is just less than NumOfBcTxns
-func (m *Master) BroadcastTxns() {
-	var txns SignedTxns
-	for {
-		select {
-		case txn := <-m.readyBcTxnsChan:
-			txns = append(txns, txn)
-			if len(txns) == m.NumOfBcTxns {
-				body, err := NewTxnsTransferBody(txns)
-				if err != nil {
-					logrus.Errorf("new TxnTransferBody error: %s", err.Error())
-					continue
-				}
-				m.txnsBcChan <- body
-				txns = nil
-			}
-		}
-	}
-}
+//func (m *Master) BroadcastTxns() {
+//	var txns SignedTxns
+//	for {
+//		select {
+//		case txn := <-m.readyBcTxnsChan:
+//			txns = append(txns, txn)
+//			if len(txns) == m.NumOfBcTxns {
+//				body, err := NewTxnsTransferBody(txns)
+//				if err != nil {
+//					logrus.Errorf("new TxnTransferBody error: %s", err.Error())
+//					continue
+//				}
+//				m.txnsBcChan <- body
+//				txns = nil
+//			}
+//		}
+//	}
+//}
 
 // sync P2P-network's txns
 func (m *Master) SyncTxns(block IBlock) error {
@@ -189,7 +186,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 	}
 
 	if len(needFetch) > 0 {
-		allTxns, err := m.subFromP2P(blockHash)
+		blockHash, allTxns, err := m.subPackedTxns()
 		if err != nil {
 			return err
 		}

@@ -67,35 +67,43 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		BadReqHttpResp(w, err.Error())
 		return
 	}
-	var (
-		ip   string
-		name string
-	)
-	if m.RunMode == MasterWorker {
-		ip, name, err = m.findWorkerIpAndName(tripodName, callName, ExecCall)
+
+	switch m.RunMode {
+	case MasterWorker:
+		ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
 		if err != nil {
 			BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
 			return
 		}
+
+		fmap := make(map[string]*TxnsAndWorkerName)
+		fmap[ip] = &TxnsAndWorkerName{
+			Txns:       FromArray(stxn),
+			WorkerName: name,
+		}
+		err = m.forwardTxnsForCheck(fmap)
+		if err != nil {
+			BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
+			return
+		}
+
+		err = m.txPool.Insert(name, stxn)
+		if err != nil {
+			ServerErrorHttpResp(w, err.Error())
+			return
+		}
+	case LocalNode:
+		err = m.txPool.Insert("", stxn)
+		if err != nil {
+			ServerErrorHttpResp(w, err.Error())
+			return
+		}
 	}
 
-	err = m.txPool.Insert(name, stxn)
+	err = m.pubUnpackedTxns(FromArray(stxn))
 	if err != nil {
-		ServerErrorHttpResp(w, err.Error())
-		return
+		BadReqHttpResp(w, err.Error())
 	}
-
-	fmap := make(map[string]*TxnsAndWorkerName)
-	fmap[ip] = &TxnsAndWorkerName{
-		Txns:       []*SignedTxn{stxn},
-		WorkerName: name,
-	}
-	err = m.forwardTxnsForCheck(fmap)
-	if err != nil {
-		BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
-		return
-	}
-	m.readyBcTxnsChan <- stxn
 }
 
 func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params JsonString) {
@@ -104,14 +112,16 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 		BadReqHttpResp(w, err.Error())
 		return
 	}
-	if m.RunMode == MasterWorker {
+
+	switch m.RunMode {
+	case MasterWorker:
 		ip, err := m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
 		if err != nil {
 			BadReqHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
 		}
 		forwardQueryToWorker(ip, w, req)
-	} else {
+	case LocalNode:
 		pubkey, err := GetPubkey(req)
 		if err != nil {
 

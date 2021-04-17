@@ -56,11 +56,11 @@ func (m *Master) LocalRun() error {
 				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHeader().GetHash(), err.Error())
 			}
 		}()
-	}
-
-	err = m.SyncTxns(newBlock)
-	if err != nil {
-		return err
+	} else {
+		err = m.SyncTxns(newBlock)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = m.txPool.Flush()
@@ -76,11 +76,6 @@ func (m *Master) LocalRun() error {
 	err = m.land.RangeList(func(tri Tripod) error {
 		return tri.EndBlock(m.chain, newBlock)
 	})
-	if err != nil {
-		return err
-	}
-
-	err = m.closeTopic()
 	if err != nil {
 		return err
 	}
@@ -174,14 +169,15 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 }
 
 func (m *Master) broadcastBlockAndTxns(b IBlock) error {
-	tbody, err := NewBlockTransferBody(b)
+	blockHash := b.GetHeader().GetHash()
+	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err
 	}
-	txns, err := m.base.GetTxns(b.GetHeader().GetHash())
+
+	err = m.pubBlock(b)
 	if err != nil {
 		return err
 	}
-	m.blockBcChan <- tbody
-	return m.pubToP2P(b.GetHeader().GetHash(), txns)
+	return m.pubPackedTxns(blockHash, txns)
 }

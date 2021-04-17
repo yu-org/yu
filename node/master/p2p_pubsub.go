@@ -2,16 +2,19 @@ package master
 
 import (
 	"context"
+	"encoding/json"
 	. "yu/blockchain"
+	. "yu/common"
 	. "yu/txn"
 )
 
 const (
-	BlockTopic = "block"
-	TxnsTopic  = "txns"
+	BlockTopic        = "block"
+	PackedTxnsTopic   = "packed-txns"
+	UnpackedTxnsTopic = "unpacked-txns"
 )
 
-func (m *Master) pubBlockToP2P(block IBlock) error {
+func (m *Master) pubBlock(block IBlock) error {
 	byt, err := block.Encode()
 	if err != nil {
 		return err
@@ -19,7 +22,7 @@ func (m *Master) pubBlockToP2P(block IBlock) error {
 	return m.pubToP2P(BlockTopic, byt)
 }
 
-func (m *Master) subBlockFromP2P() (IBlock, error) {
+func (m *Master) subBlock() (IBlock, error) {
 	byt, err := m.subFromP2P(BlockTopic)
 	if err != nil {
 		return nil, err
@@ -27,20 +30,46 @@ func (m *Master) subBlockFromP2P() (IBlock, error) {
 	return m.chain.NewEmptyBlock().Decode(byt)
 }
 
-func (m *Master) pubTxnsToP2P(txns SignedTxns) error {
+func (m *Master) pubPackedTxns(blockHash Hash, txns SignedTxns) error {
+	pt, err := NewPackedTxns(blockHash, txns)
+	if err != nil {
+		return err
+	}
+	byt, err := json.Marshal(pt)
+	if err != nil {
+		return err
+	}
+	return m.pubToP2P(PackedTxnsTopic, byt)
+}
+
+func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
+	byt, err := m.subFromP2P(PackedTxnsTopic)
+	if err != nil {
+		return NullHash, nil, err
+	}
+	var pt PackedTxns
+	err = json.Unmarshal(byt, &pt)
+	if err != nil {
+		return NullHash, nil, err
+	}
+	return pt.Resolve()
+}
+
+func (m *Master) pubUnpackedTxns(txns SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return m.pubToP2P(TxnsTopic, byt)
+	return m.pubToP2P(UnpackedTxnsTopic, byt)
 }
 
-func (m *Master) subTxnsFromP2P() (SignedTxns, error) {
-	byt, err := m.subFromP2P(TxnsTopic)
+func (m *Master) subUnpackedTxns() (SignedTxns, error) {
+	byt, err := m.subFromP2P(UnpackedTxnsTopic)
 	if err != nil {
 		return nil, err
 	}
-	return m.txPool.NewEmptySignedTxns().Decode(byt)
+	txns := SignedTxns{}
+	return txns.Decode(byt)
 }
 
 func (m *Master) pubToP2P(topic string, msg []byte) error {

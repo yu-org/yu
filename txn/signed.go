@@ -65,7 +65,7 @@ func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
 
 type SignedTxns []*SignedTxn
 
-func FromArray(txns []*SignedTxn) SignedTxns {
+func FromArray(txns ...*SignedTxn) SignedTxns {
 	var stxns SignedTxns
 	stxns = append(stxns, txns...)
 	return stxns

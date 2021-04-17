@@ -71,12 +71,9 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	var (
-		ip   string
-		name string
-	)
-	if m.RunMode == MasterWorker {
-		ip, name, err = m.findWorkerIpAndName(tripodName, callName, ExecCall)
+	switch m.RunMode {
+	case MasterWorker:
+		ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
@@ -84,26 +81,35 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 			)
 			return
 		}
+
+		fmap := make(map[string]*TxnsAndWorkerName)
+		fmap[ip] = &TxnsAndWorkerName{
+			Txns:       FromArray(stxn),
+			WorkerName: name,
+		}
+		err = m.forwardTxnsForCheck(fmap)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		err = m.txPool.Insert(name, stxn)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+	case LocalNode:
+		err = m.txPool.Insert("", stxn)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 	}
 
-	err = m.txPool.Insert(name, stxn)
+	err = m.pubUnpackedTxns(FromArray(stxn))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
-		return
 	}
-
-	fmap := make(map[string]*TxnsAndWorkerName)
-	fmap[ip] = &TxnsAndWorkerName{
-		Txns:       []*SignedTxn{stxn},
-		WorkerName: name,
-	}
-	err = m.forwardTxnsForCheck(fmap)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	m.readyBcTxnsChan <- stxn
 }
 
 func (m *Master) handleHttpQry(c *gin.Context) {
@@ -118,7 +124,8 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 		return
 	}
 
-	if m.RunMode == MasterWorker {
+	switch m.RunMode {
+	case MasterWorker:
 		var ip string
 		ip, err = m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
 		if err != nil {
@@ -129,7 +136,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 			return
 		}
 		forwardQueryToWorker(ip, c.Writer, c.Request)
-	} else {
+	case LocalNode:
 		pubkey, err := GetPubkey(c.Request)
 		if err != nil {
 

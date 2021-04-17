@@ -184,49 +184,53 @@ func (m *Master) handleTransferBody(tbody *TransferBody) error {
 			return err
 		}
 
-		// key: workerIP
-		forwardMap := make(map[string]*TxnsAndWorkerName)
-		for _, txn := range txns {
-			ecall := txn.GetRaw().Ecall()
-			tripodName := ecall.TripodName
-			execName := ecall.ExecName
-			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
-			if err != nil {
-				return err
-			}
-			oldTxns := forwardMap[workerIP].Txns
-			forwardMap[workerIP] = &TxnsAndWorkerName{
-				Txns:       append(oldTxns, txn),
-				WorkerName: workerName,
-			}
-		}
-
-		if m.RunMode == MasterWorker {
-			err := m.forwardTxnsForCheck(forwardMap)
-			if err != nil {
-				return err
-			}
-		}
-
-		for _, twn := range forwardMap {
-			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
-			if err != nil {
-				return err
-			}
-		}
 		return nil
 	default:
 		return NoTransferBodyType
 	}
 }
 
-func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) error {
-	for workerIP, txns := range forwardMap {
-		newTbody, err := NewTxnsTransferBody(txns.Txns)
+func (m *Master) AcceptUnpkgTxns() error {
+	txns, err := m.subUnpackedTxns()
+	if err != nil {
+		return err
+	}
+	// key: workerIP
+	forwardMap := make(map[string]*TxnsAndWorkerName)
+	for _, txn := range txns {
+		ecall := txn.GetRaw().Ecall()
+		tripodName := ecall.TripodName
+		execName := ecall.ExecName
+		workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
 		if err != nil {
 			return err
 		}
-		byt, err := newTbody.Encode()
+		oldTxns := forwardMap[workerIP].Txns
+		forwardMap[workerIP] = &TxnsAndWorkerName{
+			Txns:       append(oldTxns, txn),
+			WorkerName: workerName,
+		}
+	}
+
+	if m.RunMode == MasterWorker {
+		err := m.forwardTxnsForCheck(forwardMap)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, twn := range forwardMap {
+		err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) error {
+	for workerIP, txns := range forwardMap {
+		byt, err := txns.Txns.Encode()
 		if err != nil {
 			return err
 		}
@@ -243,63 +247,3 @@ type TxnsAndWorkerName struct {
 	Txns       SignedTxns
 	WorkerName string
 }
-
-//
-//func (m *Master) pubTxnsToP2P(block IBlock, txns SignedTxns) error {
-//	blockHash := block.GetHeader().GetHash()
-//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-//	if err != nil {
-//		return err
-//	}
-//
-//}
-//
-//func (m *Master) subTxnsFromP2P(block IBlock) ([]*SignedTxn, error) {
-//	blockHash := block.GetHeader().GetHash()
-//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//}
-//
-//func (m *Master) pubToP2P(blockHash Hash, txns SignedTxns) error {
-//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-//	if err != nil {
-//		return err
-//	}
-//	m.p2pInfo.topic = topic
-//	byt, err := txns.Encode()
-//	if err != nil {
-//		return err
-//	}
-//	return m.p2pInfo.topic.Publish(m.p2pInfo.ctx, byt)
-//}
-//
-//func (m *Master) subFromP2P(blockHash Hash) ([]*SignedTxn, error) {
-//	topic, err := m.p2pInfo.ps.Join(blockHash.String())
-//	if err != nil {
-//		return nil, err
-//	}
-//	m.p2pInfo.topic = topic
-//	sub, err := topic.Subscribe()
-//	if err != nil {
-//		return nil, err
-//	}
-//	msg, err := sub.Next(m.p2pInfo.ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//	stxns, err := m.txPool.NewEmptySignedTxns().Decode(msg.Data)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return stxns.ToArray(), nil
-//}
-
-//func (m *Master) closeTopic() error {
-//	if m.p2pInfo.topic != nil {
-//		return m.p2pInfo.topic.Close()
-//	}
-//	return nil
-//}
