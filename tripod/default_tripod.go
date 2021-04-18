@@ -25,7 +25,7 @@ func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) ValidateBlock(IBlock) bool {
+func (*DefaultTripod) ValidateBlock(IBlockChain, IBlock) bool {
 	return false
 }
 

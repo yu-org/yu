@@ -239,7 +239,7 @@ func (m *Master) SyncHistoryBlocks() error {
 	case LocalNode:
 		for _, block := range blocks {
 			err := m.land.RangeList(func(tri Tripod) error {
-				if tri.ValidateBlock(block) {
+				if tri.ValidateBlock(m.chain, block) {
 					return m.chain.AppendBlock(block)
 				}
 				return BlockIllegal(block)

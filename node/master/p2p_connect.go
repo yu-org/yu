@@ -11,12 +11,10 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	. "yu/blockchain"
 	. "yu/common"
 	"yu/config"
 	. "yu/node"
@@ -24,17 +22,6 @@ import (
 	. "yu/txn"
 	. "yu/yerror"
 )
-
-type P2pInfo struct {
-	host  host.Host
-	ps    *pubsub.PubSub
-	ctx   context.Context
-	topic *pubsub.Topic
-
-	blocksTp  *pubsub.Topic
-	txnsTp    *pubsub.Topic
-	genesisTp *pubsub.Topic
-}
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
 	r, err := loadNodeKeyReader(cfg)
@@ -76,7 +63,7 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.handleStream)
+	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.shakeHand)
 
 	for _, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
@@ -95,15 +82,50 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	return nil
 }
 
-func (m *Master) handleStream(s network.Stream) {
+func (m *Master) shakeHand(s network.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-	go func() {
-		err := m.readFromNetwork(rw)
-		if err != nil {
-			logrus.Errorf("read data from p2p error: %s", err.Error())
-		}
-	}()
-	go m.writeToNetwork(rw)
+
+}
+
+func (m *Master) acceptHandShake(rw *bufio.ReadWriter) error {
+	byt, err := rw.ReadBytes('\n')
+	if err != nil {
+		return err
+	}
+
+	remoteInfo, err := DecodeHsInfo(byt)
+	if err != nil {
+		return err
+	}
+
+	localInfo, err := m.NewHsInfo()
+	if err != nil {
+		return err
+	}
+
+	breq, err := localInfo.Compare(remoteInfo)
+	if err != nil {
+		return err
+	}
+	if breq == nil {
+		return nil
+	}
+
+	// push history blocks to remote node
+
+}
+
+func (m *Master) sendHandShake(rw *bufio.ReadWriter) error {
+	hs, err := m.NewHsInfo()
+	if err != nil {
+		return err
+	}
+	byt, err := hs.Encode()
+	if err != nil {
+		return err
+	}
+	_, err = rw.Write(byt)
+	return err
 }
 
 func (m *Master) AcceptBlocks() error {
@@ -117,7 +139,7 @@ func (m *Master) AcceptBlocks() error {
 		// todo: switch MasterWorker Mode
 	case LocalNode:
 		err = m.land.RangeList(func(tri tripod.Tripod) error {
-			if tri.ValidateBlock(block) {
+			if tri.ValidateBlock(m.chain, block) {
 				return nil
 			}
 			return BlockIllegal(block)

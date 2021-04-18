@@ -31,10 +31,22 @@ type IHeader interface {
 	GetTimestamp() int64
 }
 
+type ConvergeType int
+
+const (
+	Longest ConvergeType = iota
+	Heaviest
+	Finalize
+)
+
 type IBlockChain interface {
+	ConvergeType() ConvergeType
+
 	NewEmptyBlock() IBlock
 	// just generate a block with timestamp
 	NewDefaultBlock() IBlock
+	// get genesis block
+	GetGenesis() (IBlock, error)
 	// set genesis block
 	SetGenesis(b IBlock) error
 	// pending a block from other blockchain-node for validating and operating
@@ -48,8 +60,11 @@ type IBlockChain interface {
 	GetBlock(blockHash Hash) (IBlock, error)
 	Children(prevBlockHash Hash) ([]IBlock, error)
 	Finalize(blockHash Hash) error
-	LastFinalized() (IBlock, error)
-	AllBlocks() ([]IBlock, error)
+	GetFinalizedBlock() (IBlock, error)
+	GetEndBlock() (IBlock, error)
+	GetAllBlocks() ([]IBlock, error)
+
+	GetRangeBlocks(startHeight, endHeight BlockNum) ([]IBlock, error)
 
 	// return the longest children chains
 	Longest() ([]IChainStruct, error)

@@ -41,7 +41,7 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(b IBlock) bool {
+func (p *Pow) ValidateBlock(_ IBlockChain, b IBlock) bool {
 	return spow.Validate(b, p.target, p.targetBits)
 }
 
@@ -53,15 +53,14 @@ func (*Pow) InitChain(chain IBlockChain, _ IBlockBase) error {
 
 func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
-	chains, err := chain.Longest()
+
+	prevBlock, err := chain.GetEndBlock()
 	if err != nil {
 		return
 	}
 
-	preBlock := chains[0].Last()
-
-	prevHeight := preBlock.GetHeader().GetHeight()
-	prevHash := preBlock.GetHeader().GetHash()
+	prevHeight := prevBlock.GetHeader().GetHeight()
+	prevHash := prevBlock.GetHeader().GetHash()
 
 	height := prevHeight + 1
 

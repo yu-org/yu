@@ -11,6 +11,8 @@ var TypeErr = errors.New("the type of params error")
 var NoRunMode = errors.New("no run mode")
 var NoKeyType = errors.New("no key type")
 
+var GenesisBlockIllegal = errors.New("genesis block is illegal")
+
 var NoKvdbType = errors.New("no kvdb type")
 var NoQueueType = errors.New("no queue type")
 var NoSqlDbType = errors.New("no sqlDB type")
