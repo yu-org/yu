@@ -2,6 +2,7 @@ package master
 
 import (
 	"encoding/json"
+	. "yu/blockchain"
 	. "yu/common"
 	. "yu/txn"
 	"yu/yerror"
@@ -23,7 +24,7 @@ func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	fBlock, err := m.chain.GetFinalizedBlock()
+	fBlock, err := m.chain.LastFinalized()
 	if err != nil {
 		return nil, err
 	}
@@ -42,19 +43,26 @@ func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
 
 }
 
-func (hs *HandShakeInfo) Compare(other *HandShakeInfo) (*BlocksRange, error) {
+// return a BlocksRange if other node's height is lower
+func (hs *HandShakeInfo) Compare(ctype ConvergeType, other *HandShakeInfo) (*BlocksRange, error) {
 	if hs.GenesisBlockHash != other.GenesisBlockHash {
 		return nil, yerror.GenesisBlockIllegal
 	}
 
-	if hs.EndHeight < other.EndHeight || hs.FinalizeHeight < other.FinalizeHeight {
-		if other.FinalizeHeight == 0 {
+	if ctype == Finalize {
+		if hs.FinalizeHeight > other.FinalizeHeight {
 			return &BlocksRange{
-				StartHeight: hs.EndHeight,
-				EndHeight:   other.EndHeight,
+				StartHeight: other.FinalizeHeight,
+				EndHeight:   hs.FinalizeHeight,
 			}, nil
 		}
-
+	} else {
+		if hs.EndHeight > other.EndHeight {
+			return &BlocksRange{
+				StartHeight: other.EndHeight,
+				EndHeight:   hs.EndHeight,
+			}, nil
+		}
 	}
 
 	return nil, nil

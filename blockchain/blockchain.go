@@ -206,7 +206,7 @@ func (bc *BlockChain) Finalize(blockHash Hash) error {
 	return nil
 }
 
-func (bc *BlockChain) GetFinalizedBlock() (IBlock, error) {
+func (bc *BlockChain) LastFinalized() (IBlock, error) {
 	var bs BlocksScheme
 	bc.chain.Db().Where(&BlocksScheme{
 		Finalize: true,

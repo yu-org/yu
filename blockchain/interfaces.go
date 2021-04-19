@@ -60,7 +60,7 @@ type IBlockChain interface {
 	GetBlock(blockHash Hash) (IBlock, error)
 	Children(prevBlockHash Hash) ([]IBlock, error)
 	Finalize(blockHash Hash) error
-	GetFinalizedBlock() (IBlock, error)
+	LastFinalized() (IBlock, error)
 	GetEndBlock() (IBlock, error)
 	GetAllBlocks() ([]IBlock, error)
 

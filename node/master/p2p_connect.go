@@ -63,7 +63,7 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.shakeHand)
+	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.AcceptShakeHand)
 
 	for _, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
@@ -82,40 +82,47 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	return nil
 }
 
-func (m *Master) shakeHand(s network.Stream) {
-	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-
+func (m *Master) AcceptShakeHand(s network.Stream) {
+	blockRange, err := m.compareNewNodeInfo(s)
+	if err != nil {
+		logrus.Errorf("compare new node info error: %s", err.Error())
+	}
+	hsResp := &HandShakeResp{
+		Br:  blockRange,
+		Err: err,
+	}
+	byt, err := hsResp.Encode()
+	if err != nil {
+		logrus.Errorf("encode handshake response error: %s", err.Error())
+		return
+	}
+	_, err = s.Write(byt)
+	if err != nil {
+		logrus.Errorf("write handshake response error: %s", err.Error())
+	}
 }
 
-func (m *Master) acceptHandShake(rw *bufio.ReadWriter) error {
-	byt, err := rw.ReadBytes('\n')
+func (m *Master) compareNewNodeInfo(s network.Stream) (*BlocksRange, error) {
+	buf := bufio.NewReader(s)
+	byt, err := buf.ReadBytes('\n')
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	remoteInfo, err := DecodeHsInfo(byt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	localInfo, err := m.NewHsInfo()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	breq, err := localInfo.Compare(remoteInfo)
-	if err != nil {
-		return err
-	}
-	if breq == nil {
-		return nil
-	}
-
-	// push history blocks to remote node
-
+	return localInfo.Compare(m.chain.ConvergeType(), remoteInfo)
 }
 
-func (m *Master) sendHandShake(rw *bufio.ReadWriter) error {
+func (m *Master) SendHandShake(rw *bufio.ReadWriter) error {
 	hs, err := m.NewHsInfo()
 	if err != nil {
 		return err
