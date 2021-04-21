@@ -5,6 +5,7 @@ import (
 	. "yu/common"
 	"yu/config"
 	ysql "yu/storage/sql"
+	"yu/utils/codec"
 )
 
 type BlockChain struct {
@@ -104,6 +105,27 @@ func (bc *BlockChain) NewDefaultBlock() IBlock {
 
 func (bc *BlockChain) NewEmptyBlock() IBlock {
 	return &Block{}
+}
+
+func (bc *BlockChain) EncodeBlocks(blocks []IBlock) ([]byte, error) {
+	var bs []*Block
+	for _, b := range blocks {
+		bs = append(bs, b.(*Block))
+	}
+	return codec.GobEncode(bs)
+}
+
+func (bc *BlockChain) DecodeBlocks(data []byte) ([]IBlock, error) {
+	var bs []*Block
+	err := codec.GobDecode(data, &bs)
+	if err != nil {
+		return nil, err
+	}
+	var blocks []IBlock
+	for _, b := range bs {
+		blocks = append(blocks, b)
+	}
+	return blocks, nil
 }
 
 func (bc *BlockChain) GetGenesis() (IBlock, error) {

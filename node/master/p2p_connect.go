@@ -1,7 +1,6 @@
 package master
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
+	"io/ioutil"
 	"os"
 	. "yu/common"
 	"yu/config"
@@ -63,7 +63,14 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), m.AcceptShakeHand)
+	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), func(s network.Stream) {
+		err := m.handleHsReq(s)
+		if err != nil {
+			logrus.Errorf("handle hand-shake request from node(%s) error: %s",
+				s.Conn().RemotePeer().Pretty(), err.Error(),
+			)
+		}
+	})
 
 	for _, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
@@ -82,60 +89,116 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	return nil
 }
 
-func (m *Master) AcceptShakeHand(s network.Stream) {
-	blockRange, err := m.compareNewNodeInfo(s)
+// Shake hand to the node of p2p network when starts up.
+// If we have missing history block, fetch them.
+func (m *Master) SyncFromP2pNode(s network.Stream) error {
+	resp, err := m.requestP2pNode(nil, s)
 	if err != nil {
-		logrus.Errorf("compare new node info error: %s", err.Error())
+		return err
 	}
-	hsResp := &HandShakeResp{
-		Br:  blockRange,
-		Err: err,
+
+	for resp.MissingRange != nil {
+		// todo: the missing range maybe very huge and we need fetch them multiple times
+		// the remote node will return new Missing blocks-range in this response.
+		resp, err = m.requestP2pNode(resp.MissingRange, s)
+		if err != nil {
+			return err
+		}
+
+		if resp.BlocksByt != nil {
+			blocks, err := m.chain.DecodeBlocks(resp.BlocksByt)
+			if err != nil {
+				return err
+			}
+			err = m.SyncHistoryBlocks(blocks)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
-	byt, err := hsResp.Encode()
+
+	return nil
+}
+
+func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
+	hs, err := m.NewHsReq(fetchRange)
 	if err != nil {
-		logrus.Errorf("encode handshake response error: %s", err.Error())
-		return
+		return nil, err
+	}
+	byt, err := hs.Encode()
+	if err != nil {
+		return nil, err
 	}
 	_, err = s.Write(byt)
 	if err != nil {
-		logrus.Errorf("write handshake response error: %s", err.Error())
+		return nil, err
 	}
+
+	respByt, err := ioutil.ReadAll(s)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeHsResp(respByt)
 }
 
-func (m *Master) compareNewNodeInfo(s network.Stream) (*BlocksRange, error) {
-	buf := bufio.NewReader(s)
-	byt, err := buf.ReadBytes('\n')
+func (m *Master) handleHsReq(s network.Stream) error {
+	byt, err := ioutil.ReadAll(s)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	remoteInfo, err := DecodeHsInfo(byt)
+	remoteReq, err := DecodeHsRequest(byt)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
+	var blocksByt []byte
+	if remoteReq.FetchRange != nil {
+		blocksByt, err = m.getMissingBlocksByt(remoteReq)
+		if err != nil {
+			return err
+		}
+	}
+
+	missingRange, err := m.compareMissingRange(remoteReq.Info)
+	if err != nil {
+		return err
+	}
+
+	hsResp := &HandShakeResp{
+		MissingRange: missingRange,
+		BlocksByt:    blocksByt,
+		// todo
+		// Err: err,
+	}
+	byt, err = hsResp.Encode()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.Write(byt)
+	return err
+}
+
+func (m *Master) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, error) {
 	localInfo, err := m.NewHsInfo()
 	if err != nil {
 		return nil, err
 	}
-
 	return localInfo.Compare(m.chain.ConvergeType(), remoteInfo)
 }
 
-func (m *Master) SendHandShake(rw *bufio.ReadWriter) error {
-	hs, err := m.NewHsInfo()
+func (m *Master) getMissingBlocksByt(remoteReq *HandShakeRequest) ([]byte, error) {
+	fetchRange := remoteReq.FetchRange
+	blocks, err := m.chain.GetRangeBlocks(fetchRange.StartHeight, fetchRange.EndHeight)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	byt, err := hs.Encode()
-	if err != nil {
-		return err
-	}
-	_, err = rw.Write(byt)
-	return err
+	return m.chain.EncodeBlocks(blocks)
 }
 
-func (m *Master) AcceptBlocks() error {
+func (m *Master) AcceptBlocksFromP2P() error {
 	block, err := m.subBlock()
 	if err != nil {
 		return err

@@ -8,6 +8,35 @@ import (
 	"yu/yerror"
 )
 
+type HandShakeRequest struct {
+	FetchRange *BlocksRange
+	Info       *HandShakeInfo
+}
+
+func (m *Master) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
+	info, err := m.NewHsInfo()
+	if err != nil {
+		return nil, err
+	}
+	return &HandShakeRequest{
+		FetchRange: fetchRange,
+		Info:       info,
+	}, nil
+}
+
+func (hs *HandShakeRequest) Encode() ([]byte, error) {
+	return json.Marshal(hs)
+}
+
+func DecodeHsRequest(data []byte) (*HandShakeRequest, error) {
+	var hs HandShakeRequest
+	err := json.Unmarshal(data, &hs)
+	if err != nil {
+		return nil, err
+	}
+	return &hs, nil
+}
+
 type HandShakeInfo struct {
 	GenesisBlockHash Hash
 
@@ -52,14 +81,14 @@ func (hs *HandShakeInfo) Compare(ctype ConvergeType, other *HandShakeInfo) (*Blo
 	if ctype == Finalize {
 		if hs.FinalizeHeight > other.FinalizeHeight {
 			return &BlocksRange{
-				StartHeight: other.FinalizeHeight,
+				StartHeight: other.FinalizeHeight + 1,
 				EndHeight:   hs.FinalizeHeight,
 			}, nil
 		}
 	} else {
 		if hs.EndHeight > other.EndHeight {
 			return &BlocksRange{
-				StartHeight: other.EndHeight,
+				StartHeight: other.EndHeight + 1,
 				EndHeight:   hs.EndHeight,
 			}, nil
 		}
@@ -68,19 +97,12 @@ func (hs *HandShakeInfo) Compare(ctype ConvergeType, other *HandShakeInfo) (*Blo
 	return nil, nil
 }
 
-func (hs *HandShakeInfo) Encode() ([]byte, error) {
-	return json.Marshal(hs)
-}
-
-func DecodeHsInfo(data []byte) (*HandShakeInfo, error) {
-	var hs HandShakeInfo
-	err := json.Unmarshal(data, &hs)
-	return &hs, err
-}
-
 type HandShakeResp struct {
-	Br  *BlocksRange
-	Err error
+	// missing blocks range
+	MissingRange *BlocksRange
+	// compressed blocks bytes
+	BlocksByt []byte
+	// Err       error
 }
 
 func (hs *HandShakeResp) Encode() ([]byte, error) {

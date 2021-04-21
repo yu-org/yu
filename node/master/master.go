@@ -119,17 +119,12 @@ func (m *Master) Startup() {
 		go m.CheckHealth()
 	}
 
-	err := m.SyncHistoryBlocks()
-	if err != nil {
-		logrus.Fatalf("sync history blocks error: %s", err.Error())
-	}
-
 	go m.HandleHttp()
 	go m.HandleWS()
 
 	go func() {
 		for {
-			err := m.AcceptBlocks()
+			err := m.AcceptBlocksFromP2P()
 			if err != nil {
 				logrus.Errorf("accept blocks error: %s", err.Error())
 			}
@@ -232,9 +227,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 	return nil
 }
 
-func (m *Master) SyncHistoryBlocks() error {
-	var blocks []IBlock
-
+func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {

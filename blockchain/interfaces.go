@@ -45,6 +45,10 @@ type IBlockChain interface {
 	NewEmptyBlock() IBlock
 	// just generate a block with timestamp
 	NewDefaultBlock() IBlock
+
+	EncodeBlocks(blocks []IBlock) ([]byte, error)
+	DecodeBlocks(data []byte) ([]IBlock, error)
+
 	// get genesis block
 	GetGenesis() (IBlock, error)
 	// set genesis block
