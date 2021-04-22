@@ -102,7 +102,10 @@ type HandShakeResp struct {
 	MissingRange *BlocksRange
 	// compressed blocks bytes
 	BlocksByt []byte
-	Err       error
+	// key: block-hash,
+	// value: compressed txns bytes
+	TxnsByt map[Hash][]byte
+	Err     error
 }
 
 func (hs *HandShakeResp) Encode() ([]byte, error) {
@@ -137,8 +140,7 @@ func NewPackedTxns(blockHash Hash, txns SignedTxns) (*PackedTxns, error) {
 }
 
 func (pt *PackedTxns) Resolve() (Hash, SignedTxns, error) {
-	txns := SignedTxns{}
-	stxns, err := txns.Decode(pt.TxnsBytes)
+	stxns, err := DecodeSignedTxns(pt.TxnsBytes)
 	if err != nil {
 		return NullHash, nil, err
 	}

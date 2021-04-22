@@ -133,11 +133,6 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = m.closeTopic()
-	if err != nil {
-		return err
-	}
-
 	go func() {
 		err := m.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
 		if err != nil {

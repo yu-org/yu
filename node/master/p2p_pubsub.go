@@ -68,8 +68,7 @@ func (m *Master) subUnpackedTxns() (SignedTxns, error) {
 	if err != nil {
 		return nil, err
 	}
-	txns := SignedTxns{}
-	return txns.Decode(byt)
+	return DecodeSignedTxns(byt)
 }
 
 func (m *Master) pubToP2P(topic string, msg []byte) error {

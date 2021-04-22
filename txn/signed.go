@@ -1,8 +1,6 @@
 package txn
 
 import (
-	"bytes"
-	"encoding/gob"
 	"unsafe"
 	. "yu/common"
 	. "yu/keypair"
@@ -57,11 +55,11 @@ func (st *SignedTxn) Size() int {
 	return int(unsafe.Sizeof(st))
 }
 
-func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err = decoder.Decode(st)
-	return
-}
+//func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
+//	decoder := gob.NewDecoder(bytes.NewReader(data))
+//	err = decoder.Decode(st)
+//	return
+//}
 
 type SignedTxns []*SignedTxn
 
@@ -79,7 +77,8 @@ func (sts SignedTxns) Encode() ([]byte, error) {
 	return GobEncode(sts)
 }
 
-func (sts SignedTxns) Decode(data []byte) (SignedTxns, error) {
-	err := GobDecode(data, &sts)
-	return sts, err
+func DecodeSignedTxns(data []byte) (SignedTxns, error) {
+	txns := SignedTxns{}
+	err := GobDecode(data, &txns)
+	return txns, err
 }

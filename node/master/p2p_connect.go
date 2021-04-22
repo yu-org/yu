@@ -135,6 +135,20 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 				return err
 			}
 		}
+
+		if resp.TxnsByt != nil {
+			for blockHash, byt := range resp.TxnsByt {
+				txns, err := DecodeSignedTxns(byt)
+				if err != nil {
+					return err
+				}
+				err = m.base.SetTxns(blockHash, txns)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -172,9 +186,12 @@ func (m *Master) handleHsReq(s network.Stream) error {
 		return err
 	}
 
-	var blocksByt []byte
+	var (
+		blocksByt []byte
+		txnsByt   map[Hash][]byte
+	)
 	if remoteReq.FetchRange != nil {
-		blocksByt, err = m.getMissingBlocksByt(remoteReq)
+		blocksByt, txnsByt, err = m.getMissingBlocksTxns(remoteReq)
 		if err != nil {
 			return err
 		}
@@ -185,6 +202,7 @@ func (m *Master) handleHsReq(s network.Stream) error {
 	hsResp := &HandShakeResp{
 		MissingRange: missingRange,
 		BlocksByt:    blocksByt,
+		TxnsByt:      txnsByt,
 		Err:          err,
 	}
 	byt, err = hsResp.Encode()
@@ -204,13 +222,32 @@ func (m *Master) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, e
 	return localInfo.Compare(m.chain.ConvergeType(), remoteInfo)
 }
 
-func (m *Master) getMissingBlocksByt(remoteReq *HandShakeRequest) ([]byte, error) {
+func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[Hash][]byte, error) {
 	fetchRange := remoteReq.FetchRange
 	blocks, err := m.chain.GetRangeBlocks(fetchRange.StartHeight, fetchRange.EndHeight)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return m.chain.EncodeBlocks(blocks)
+	blocksByt, err := m.chain.EncodeBlocks(blocks)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	txnsByt := make(map[Hash][]byte)
+	for _, block := range blocks {
+		blockHash := block.GetHeader().GetHash()
+		txns, err := m.base.GetTxns(blockHash)
+		if err != nil {
+			return nil, nil, err
+		}
+		byt, err := FromArray(txns...).Encode()
+		if err != nil {
+			return nil, nil, err
+		}
+		txnsByt[blockHash] = byt
+	}
+
+	return blocksByt, txnsByt, nil
 }
 
 func (m *Master) AcceptBlocksFromP2P() error {
