@@ -102,7 +102,7 @@ type HandShakeResp struct {
 	MissingRange *BlocksRange
 	// compressed blocks bytes
 	BlocksByt []byte
-	// Err       error
+	Err       error
 }
 
 func (hs *HandShakeResp) Encode() ([]byte, error) {

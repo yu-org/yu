@@ -110,6 +110,9 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 	if err != nil {
 		return err
 	}
+	if resp.Err != nil {
+		return resp.Err
+	}
 
 	for resp.MissingRange != nil {
 		// todo: the missing range maybe very huge and we need fetch them multiple times
@@ -117,6 +120,9 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 		resp, err = m.requestP2pNode(resp.MissingRange, s)
 		if err != nil {
 			return err
+		}
+		if resp.Err != nil {
+			return resp.Err
 		}
 
 		if resp.BlocksByt != nil {
@@ -129,7 +135,6 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 				return err
 			}
 		}
-
 	}
 
 	return nil
@@ -176,14 +181,11 @@ func (m *Master) handleHsReq(s network.Stream) error {
 	}
 
 	missingRange, err := m.compareMissingRange(remoteReq.Info)
-	if err != nil {
-		return err
-	}
 
 	hsResp := &HandShakeResp{
 		MissingRange: missingRange,
 		BlocksByt:    blocksByt,
-		// Err: err,
+		Err:          err,
 	}
 	byt, err = hsResp.Encode()
 	if err != nil {
