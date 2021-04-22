@@ -63,7 +63,8 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	m.host.SetStreamHandler(protocol.ID(cfg.ProtocolID), func(s network.Stream) {
+	pid := protocol.ID(cfg.ProtocolID)
+	m.host.SetStreamHandler(pid, func(s network.Stream) {
 		err := m.handleHsReq(s)
 		if err != nil {
 			logrus.Errorf("handle hand-shake request from node(%s) error: %s",
@@ -72,7 +73,7 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		}
 	})
 
-	for _, addrStr := range cfg.ConnectAddrs {
+	for i, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
 		if err != nil {
 			return err
@@ -81,6 +82,19 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		if err != nil {
 			return err
 		}
+
+		// sync history block from first connected P2P-node
+		if i == 0 {
+			s, err := m.host.NewStream(context.Background(), peer.ID, pid)
+			if err != nil {
+				return err
+			}
+			err = m.SyncFromP2pNode(s)
+			if err != nil {
+				return err
+			}
+		}
+
 		err = m.host.Connect(context.Background(), *peer)
 		if err != nil {
 			return err
@@ -169,7 +183,6 @@ func (m *Master) handleHsReq(s network.Stream) error {
 	hsResp := &HandShakeResp{
 		MissingRange: missingRange,
 		BlocksByt:    blocksByt,
-		// todo
 		// Err: err,
 	}
 	byt, err = hsResp.Encode()
