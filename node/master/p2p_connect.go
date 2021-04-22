@@ -264,7 +264,7 @@ func (m *Master) AcceptBlocksFromP2P() error {
 			if tri.ValidateBlock(m.chain, block) {
 				return nil
 			}
-			return BlockIllegal(block)
+			return BlockIllegal(block.GetHeader().GetHash())
 		})
 		if err != nil {
 			return err

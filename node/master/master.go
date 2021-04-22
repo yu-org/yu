@@ -235,17 +235,31 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				if tri.ValidateBlock(m.chain, block) {
 					return m.chain.AppendBlock(block)
 				}
-				return BlockIllegal(block)
+				return BlockIllegal(block.GetHeader().GetHash())
 			})
 			if err != nil {
 				return err
 			}
 		}
+
+		return m.executeChainTxns()
+
 	case MasterWorker:
 		// todo
+		return nil
+	default:
+		return NoRunMode
 	}
+}
 
-	return nil
+func (m *Master) executeChainTxns() error {
+	chain, err := m.chain.Chain()
+	if err != nil {
+		return err
+	}
+	return chain.Range(func(block IBlock) error {
+		return ExecuteTxns(block, m.base, m.land, nil)
+	})
 }
 
 func (m *Master) registerNodeKeepers(c *gin.Context) {

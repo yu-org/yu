@@ -2,7 +2,6 @@ package yerror
 
 import (
 	"github.com/pkg/errors"
-	"yu/blockchain"
 	. "yu/common"
 )
 
@@ -31,8 +30,8 @@ type ErrBlockIllegal struct {
 	BlockHash string
 }
 
-func BlockIllegal(block blockchain.IBlock) ErrBlockIllegal {
-	return ErrBlockIllegal{BlockHash: block.GetHeader().GetHash().String()}
+func BlockIllegal(blockHash Hash) ErrBlockIllegal {
+	return ErrBlockIllegal{BlockHash: blockHash.String()}
 }
 
 func (b ErrBlockIllegal) Error() string {

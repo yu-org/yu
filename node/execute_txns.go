@@ -32,7 +32,9 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 			event.BlockStage = ExecuteTxnsStage
 			event.Caller = stxn.GetRaw().Caller()
 
-			sub.Push(event)
+			if sub != nil {
+				sub.Push(event)
+			}
 		}
 
 		for _, e := range ctx.Errors {
@@ -43,7 +45,9 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 			e.BlockHash = blockHash
 			e.Height = block.GetHeader().GetHeight()
 
-			sub.Push(e)
+			if sub != nil {
+				sub.Push(e)
+			}
 		}
 
 		err = base.SetEvents(ctx.Events)
