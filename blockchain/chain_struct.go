@@ -19,6 +19,14 @@ func NewEmptyChain(root IBlock) *ChainStruct {
 	}
 }
 
+func MakeFinalizedChain(blocks []IBlock) IChainStruct {
+	chain := NewEmptyChain(blocks[0])
+	for i := 1; i < len(blocks); i++ {
+		chain.Append(blocks[i])
+	}
+	return chain
+}
+
 func MakeLongestChain(blocks []IBlock) []IChainStruct {
 	longestChains := make([]IChainStruct, 0)
 	allBlocks := make(map[Hash]IBlock)

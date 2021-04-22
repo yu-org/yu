@@ -10,6 +10,7 @@ var TypeErr = errors.New("the type of params error")
 
 var NoRunMode = errors.New("no run mode")
 var NoKeyType = errors.New("no key type")
+var NoConvergeType = errors.New("no converge type")
 
 var GenesisBlockIllegal = errors.New("genesis block is illegal")
 

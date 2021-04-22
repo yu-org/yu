@@ -6,6 +6,7 @@ import (
 	"yu/config"
 	ysql "yu/storage/sql"
 	"yu/utils/codec"
+	"yu/yerror"
 )
 
 type BlockChain struct {
@@ -159,19 +160,11 @@ func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
 }
 
 func (bc *BlockChain) GetBlocksFromP2P(height BlockNum) ([]IBlock, error) {
-	var bss []BlocksFromP2pScheme
+	var bsp []BlocksFromP2pScheme
 	bc.blocksFromP2p.Db().Where(&BlocksFromP2pScheme{
 		Height: height,
-	}).Find(&bss)
-	blocks := make([]IBlock, 0)
-	for _, bs := range bss {
-		b, err := bs.toBlock()
-		if err != nil {
-			return nil, err
-		}
-		blocks = append(blocks, b)
-	}
-	return blocks, nil
+	}).Find(&bsp)
+	return bspToBlocks(bsp), nil
 }
 
 func (bc *BlockChain) FlushBlocksFromP2P(height BlockNum) error {
@@ -237,12 +230,12 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 }
 
 func (bc *BlockChain) GetEndBlock() (IBlock, error) {
-	chains, err := bc.Longest()
+	chain, err := bc.Chain()
 	if err != nil {
 		return nil, err
 	}
 
-	return chains[0].Last(), nil
+	return chain.Last(), nil
 }
 
 func (bc *BlockChain) GetAllBlocks() ([]IBlock, error) {
@@ -271,18 +264,31 @@ func (bc *BlockChain) GetAllBlocks() ([]IBlock, error) {
 func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) ([]IBlock, error) {
 	var bss []BlocksScheme
 	bc.chain.Db().Where("height BETWEEN ? AND ?", startHeight, endHeight).Find(&bss)
-	blocks := make([]IBlock, 0)
-	for _, bs := range bss {
-		b, err := bs.toBlock()
+	return bssToBlocks(bss), nil
+}
+
+func (bc *BlockChain) Chain() (IChainStruct, error) {
+	switch bc.ConvergeType() {
+	case Longest:
+		chains, err := bc.LongestChains()
 		if err != nil {
 			return nil, err
 		}
-		blocks = append(blocks, b)
+		return chains[0], nil
+	case Heaviest:
+		chains, err := bc.HeaviestChains()
+		if err != nil {
+			return nil, err
+		}
+		return chains[0], nil
+	case Finalize:
+		return bc.FinalizedChain()
+	default:
+		return nil, yerror.NoConvergeType
 	}
-	return blocks, nil
 }
 
-func (bc *BlockChain) Longest() ([]IChainStruct, error) {
+func (bc *BlockChain) LongestChains() ([]IChainStruct, error) {
 	blocks, err := bc.GetAllBlocks()
 	if err != nil {
 		return nil, err
@@ -290,12 +296,21 @@ func (bc *BlockChain) Longest() ([]IChainStruct, error) {
 	return MakeLongestChain(blocks), nil
 }
 
-func (bc *BlockChain) Heaviest() ([]IChainStruct, error) {
+func (bc *BlockChain) HeaviestChains() ([]IChainStruct, error) {
 	blocks, err := bc.GetAllBlocks()
 	if err != nil {
 		return nil, err
 	}
 	return MakeHeaviestChain(blocks), nil
+}
+
+func (bc *BlockChain) FinalizedChain() (IChainStruct, error) {
+	var bss []BlocksScheme
+	bc.chain.Db().Where(&BlocksScheme{
+		Finalize: true,
+	}).Order("height").Find(&bss)
+	blocks := bssToBlocks(bss)
+	return MakeFinalizedChain(blocks), nil
 }
 
 type BlocksFromP2pScheme struct {
@@ -324,4 +339,28 @@ func (bs BlocksFromP2pScheme) toBlock() (IBlock, error) {
 	byt := FromHex(bs.BlockContent)
 	b := &Block{}
 	return b.Decode(byt)
+}
+
+func bssToBlocks(bss []BlocksScheme) []IBlock {
+	blocks := make([]IBlock, 0)
+	for _, bs := range bss {
+		b, err := bs.toBlock()
+		if err != nil {
+			return nil
+		}
+		blocks = append(blocks, b)
+	}
+	return blocks
+}
+
+func bspToBlocks(bsp []BlocksFromP2pScheme) []IBlock {
+	blocks := make([]IBlock, 0)
+	for _, bs := range bsp {
+		b, err := bs.toBlock()
+		if err != nil {
+			return nil
+		}
+		blocks = append(blocks, b)
+	}
+	return blocks
 }
