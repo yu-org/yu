@@ -3,12 +3,12 @@ package mpt
 import (
 	"bytes"
 	"testing"
-	"yu/storage/kv"
+	"yu/config"
 )
 
 func TestDataBaseSetPutandGet(t *testing.T) {
-	cfg := &kv.KVconf{
-		KVtype: "badger",
+	cfg := &config.KVconf{
+		KvType: "badger",
 		Path:   "./testdb",
 	}
 	db, err := NewNodeBase(cfg)
