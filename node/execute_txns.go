@@ -19,7 +19,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 		if err != nil {
 			return err
 		}
-		err = land.Execute(ecall, ctx)
+		err = land.Execute(ecall, ctx, block)
 		if err != nil {
 			return err
 		}

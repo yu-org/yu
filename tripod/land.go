@@ -1,6 +1,7 @@
 package tripod
 
 import (
+	. "yu/blockchain"
 	. "yu/common"
 	. "yu/context"
 	. "yu/yerror"
@@ -28,7 +29,7 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 	}
 }
 
-func (l *Land) Execute(c *Ecall, ctx *Context) error {
+func (l *Land) Execute(c *Ecall, ctx *Context, block IBlock) error {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
@@ -38,7 +39,7 @@ func (l *Land) Execute(c *Ecall, ctx *Context) error {
 	if fn == nil {
 		return ExecNotFound(c.ExecName)
 	}
-	return fn(ctx)
+	return fn(ctx, block)
 }
 
 func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
