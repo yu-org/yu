@@ -267,7 +267,7 @@ func (m *Master) executeChainTxns() error {
 		return err
 	}
 	return chain.Range(func(block IBlock) error {
-		return ExecuteTxns(block, m.base, m.land, nil)
+		return ExecuteTxns(block, m.chain, m.base, m.land, nil)
 	})
 }
 

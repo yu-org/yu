@@ -7,7 +7,7 @@ import (
 	"yu/tripod"
 )
 
-func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscription) error {
+func ExecuteTxns(block IBlock, chain IBlockChain, base IBlockBase, land *tripod.Land, sub *Subscription) error {
 	blockHash := block.GetHeader().GetHash()
 	stxns, err := base.GetTxns(blockHash)
 	if err != nil {
@@ -20,6 +20,11 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 			return err
 		}
 		err = land.Execute(ecall, ctx, block)
+		if err != nil {
+			return err
+		}
+
+		err = chain.UpdateBlock(block)
 		if err != nil {
 			return err
 		}

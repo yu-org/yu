@@ -62,6 +62,8 @@ type IBlockChain interface {
 
 	AppendBlock(b IBlock) error
 	GetBlock(blockHash Hash) (IBlock, error)
+	UpdateBlock(b IBlock) error
+
 	Children(prevBlockHash Hash) ([]IBlock, error)
 	Finalize(blockHash Hash) error
 	LastFinalized() (IBlock, error)

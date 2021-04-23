@@ -189,6 +189,17 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
 	return bs.toBlock()
 }
 
+func (bc *BlockChain) UpdateBlock(b IBlock) error {
+	bs, err := toBlocksScheme(b)
+	if err != nil {
+		return err
+	}
+	bc.chain.Db().Where(&BlocksScheme{
+		Hash: b.GetHeader().GetHash().String(),
+	}).Updates(bs)
+	return nil
+}
+
 func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 	rows, err := bc.chain.Db().Where(&BlocksScheme{
 		PrevHash: prevBlockHash.String(),
