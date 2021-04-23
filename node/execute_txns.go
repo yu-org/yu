@@ -14,7 +14,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 		return err
 	}
 	for _, stxn := range stxns {
-		ecall := stxn.GetRaw().Ecall()
+		ecall := stxn.GetRaw().GetEcall()
 		ctx, err := context.NewContext(stxn.GetPubkey().Address(), ecall.Params)
 		if err != nil {
 			return err
@@ -30,7 +30,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 			event.ExecName = ecall.ExecName
 			event.TripodName = ecall.TripodName
 			event.BlockStage = ExecuteTxnsStage
-			event.Caller = stxn.GetRaw().Caller()
+			event.Caller = stxn.GetRaw().GetCaller()
 
 			if sub != nil {
 				sub.Push(event)
@@ -38,7 +38,7 @@ func ExecuteTxns(block IBlock, base IBlockBase, land *tripod.Land, sub *Subscrip
 		}
 
 		for _, e := range ctx.Errors {
-			e.Caller = stxn.GetRaw().Caller()
+			e.Caller = stxn.GetRaw().GetCaller()
 			e.BlockStage = ExecuteTxnsStage
 			e.TripodName = ecall.TripodName
 			e.ExecName = ecall.ExecName

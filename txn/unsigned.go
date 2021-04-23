@@ -8,40 +8,40 @@ import (
 )
 
 type UnsignedTxn struct {
-	id        Hash
-	caller    Address
-	ecall     *Ecall
-	timestamp int64
+	Id        Hash
+	Caller    Address
+	Ecall     *Ecall
+	Timestamp int64
 }
 
 func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	UnsignedTxn := &UnsignedTxn{
-		caller:    caller,
-		ecall:     ecall,
-		timestamp: time.Now().UnixNano(),
+		Caller:    caller,
+		Ecall:     ecall,
+		Timestamp: time.Now().UnixNano(),
 	}
 	id, err := UnsignedTxn.Hash()
 	if err != nil {
 		return nil, err
 	}
-	UnsignedTxn.id = id
+	UnsignedTxn.Id = id
 	return UnsignedTxn, nil
 }
 
 func (ut *UnsignedTxn) ID() Hash {
-	return ut.id
+	return ut.Id
 }
 
-func (ut *UnsignedTxn) Caller() Address {
-	return ut.caller
+func (ut *UnsignedTxn) GetCaller() Address {
+	return ut.Caller
 }
 
-func (ut *UnsignedTxn) Ecall() *Ecall {
-	return ut.ecall
+func (ut *UnsignedTxn) GetEcall() *Ecall {
+	return ut.Ecall
 }
 
-func (ut *UnsignedTxn) Timestamp() int64 {
-	return ut.timestamp
+func (ut *UnsignedTxn) GetTimestamp() int64 {
+	return ut.Timestamp
 }
 
 func (ut *UnsignedTxn) Hash() (Hash, error) {

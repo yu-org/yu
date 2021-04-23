@@ -285,7 +285,7 @@ func (m *Master) AcceptUnpkgTxns() error {
 		// key: workerIP
 		forwardMap := make(map[string]*TxnsAndWorkerName)
 		for _, txn := range txns {
-			ecall := txn.GetRaw().Ecall()
+			ecall := txn.GetRaw().GetEcall()
 			tripodName := ecall.TripodName
 			execName := ecall.ExecName
 			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)

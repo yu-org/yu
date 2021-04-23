@@ -55,6 +55,11 @@ type Master struct {
 
 	// event subscription
 	sub *Subscription
+
+	// p2p topics
+	blockTopic        *pubsub.Topic
+	packedTxnsTopic   *pubsub.Topic
+	unpackedTxnsTopic *pubsub.Topic
 }
 
 func NewMaster(
@@ -96,6 +101,10 @@ func NewMaster(
 		sub:      NewSubscription(),
 	}
 	err = m.ConnectP2PNetwork(cfg)
+	if err != nil {
+		return nil, err
+	}
+	err = m.initTopics()
 	return m, err
 }
 

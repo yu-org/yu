@@ -53,7 +53,7 @@ func (m *Master) LocalRun() error {
 		go func() {
 			err := m.broadcastBlockAndTxns(newBlock)
 			if err != nil {
-				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHeader().GetHash(), err.Error())
+				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHeader().GetHash().String(), err.Error())
 			}
 		}()
 	} else {
