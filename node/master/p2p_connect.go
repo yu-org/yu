@@ -65,12 +65,15 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	pid := protocol.ID(cfg.ProtocolID)
 	m.host.SetStreamHandler(pid, func(s network.Stream) {
+
+		logrus.Info("listen request from new node!!!!!!!!")
 		err := m.handleHsReq(s)
 		if err != nil {
 			logrus.Errorf("handle hand-shake request from node(%s) error: %s",
 				s.Conn().RemotePeer().Pretty(), err.Error(),
 			)
 		}
+
 	})
 
 	ctx := context.Background()
@@ -108,6 +111,8 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 // Shake hand to the node of p2p network when starts up.
 // If we have missing history block, fetch them.
 func (m *Master) SyncFromP2pNode(s network.Stream) error {
+	logrus.Info("start to sync history from other node")
+
 	resp, err := m.requestP2pNode(nil, s)
 	if err != nil {
 		return err
@@ -123,6 +128,9 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 		if err != nil {
 			return err
 		}
+
+		logrus.Infof("fetch result: missingRange start is %d, end is %d", resp.MissingRange.StartHeight, resp.MissingRange.EndHeight)
+
 		if resp.Err != nil {
 			return resp.Err
 		}
@@ -132,6 +140,9 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 			if err != nil {
 				return err
 			}
+
+			logrus.Info("fetch history blocks are: ", blocks)
+
 			err = m.SyncHistoryBlocks(blocks)
 			if err != nil {
 				return err
@@ -156,28 +167,8 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 	return nil
 }
 
-func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
-	hs, err := m.NewHsReq(fetchRange)
-	if err != nil {
-		return nil, err
-	}
-	byt, err := hs.Encode()
-	if err != nil {
-		return nil, err
-	}
-	_, err = s.Write(byt)
-	if err != nil {
-		return nil, err
-	}
-
-	respByt, err := ioutil.ReadAll(s)
-	if err != nil {
-		return nil, err
-	}
-	return DecodeHsResp(respByt)
-}
-
 func (m *Master) handleHsReq(s network.Stream) error {
+
 	byt, err := ioutil.ReadAll(s)
 	if err != nil {
 		return err
@@ -187,6 +178,9 @@ func (m *Master) handleHsReq(s network.Stream) error {
 	if err != nil {
 		return err
 	}
+
+	logrus.Info("remote info is: ", remoteReq.Info)
+	logrus.Info("remote request fetch range: ", remoteReq.FetchRange)
 
 	var (
 		blocksByt []byte
@@ -214,6 +208,32 @@ func (m *Master) handleHsReq(s network.Stream) error {
 
 	_, err = s.Write(byt)
 	return err
+}
+
+func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
+	hs, err := m.NewHsReq(fetchRange)
+	if err != nil {
+		return nil, err
+	}
+
+	logrus.Info("handshake info genesis-blockHash is   ", hs.Info.GenesisBlockHash.String())
+	logrus.Info("handshake info end-blockhash is    ", hs.Info.EndBlockHash.String())
+	logrus.Info("handshake fetch range request is     ", hs.FetchRange)
+
+	byt, err := hs.Encode()
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.Write(byt)
+	if err != nil {
+		return nil, err
+	}
+
+	respByt, err := ioutil.ReadAll(s)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeHsResp(respByt)
 }
 
 func (m *Master) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, error) {
