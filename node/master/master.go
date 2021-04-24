@@ -100,6 +100,12 @@ func NewMaster(
 		land:     land,
 		sub:      NewSubscription(),
 	}
+
+	err = m.InitChain()
+	if err != nil {
+		return nil, err
+	}
+
 	err = m.ConnectP2PNetwork(cfg)
 	if err != nil {
 		return nil, err
@@ -114,17 +120,7 @@ func (m *Master) P2pID() string {
 
 func (m *Master) Startup() {
 
-	switch m.RunMode {
-	case LocalNode:
-		err := m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.chain, m.base)
-		})
-		if err != nil {
-			logrus.Panicf("init chain error: %s", err.Error())
-		}
-	case MasterWorker:
-		// todo: init chain
-
+	if m.RunMode == MasterWorker {
 		go m.CheckHealth()
 	}
 
@@ -152,6 +148,21 @@ func (m *Master) Startup() {
 	}()
 
 	m.Run()
+}
+
+func (m *Master) InitChain() error {
+	switch m.RunMode {
+	case LocalNode:
+		return m.land.RangeList(func(tri Tripod) error {
+			return tri.InitChain(m.chain, m.base)
+		})
+	case MasterWorker:
+		// todo: init chain
+
+		return nil
+	default:
+		return NoRunMode
+	}
 }
 
 // Check the health of NodeKeepers by SendHeartbeat to them.

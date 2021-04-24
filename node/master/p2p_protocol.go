@@ -2,7 +2,6 @@ package master
 
 import (
 	"encoding/json"
-	. "yu/blockchain"
 	. "yu/common"
 	. "yu/txn"
 	"yu/yerror"
@@ -40,10 +39,7 @@ func DecodeHsRequest(data []byte) (*HandShakeRequest, error) {
 type HandShakeInfo struct {
 	GenesisBlockHash Hash
 
-	// When POW, these two will be always 0 and null.
-	FinalizeHeight    BlockNum
-	FinalizeBlockHash Hash
-
+	// when chain is finlaized chain, end block is the finalized block
 	EndHeight    BlockNum
 	EndBlockHash Hash
 }
@@ -53,45 +49,30 @@ func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	fBlock, err := m.chain.LastFinalized()
-	if err != nil {
-		return nil, err
-	}
+
 	eBlock, err := m.chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
 
 	return &HandShakeInfo{
-		GenesisBlockHash:  gBlock.GetHeader().GetHash(),
-		FinalizeHeight:    fBlock.GetHeader().GetHeight(),
-		FinalizeBlockHash: fBlock.GetHeader().GetHash(),
-		EndHeight:         eBlock.GetHeader().GetHeight(),
-		EndBlockHash:      eBlock.GetHeader().GetHash(),
+		GenesisBlockHash: gBlock.GetHeader().GetHash(),
+		EndHeight:        eBlock.GetHeader().GetHeight(),
+		EndBlockHash:     eBlock.GetHeader().GetHash(),
 	}, nil
-
 }
 
 // return a BlocksRange if other node's height is lower
-func (hs *HandShakeInfo) Compare(ctype ConvergeType, other *HandShakeInfo) (*BlocksRange, error) {
+func (hs *HandShakeInfo) Compare(other *HandShakeInfo) (*BlocksRange, error) {
 	if hs.GenesisBlockHash != other.GenesisBlockHash {
 		return nil, yerror.GenesisBlockIllegal
 	}
 
-	if ctype == Finalize {
-		if hs.FinalizeHeight > other.FinalizeHeight {
-			return &BlocksRange{
-				StartHeight: other.FinalizeHeight + 1,
-				EndHeight:   hs.FinalizeHeight,
-			}, nil
-		}
-	} else {
-		if hs.EndHeight > other.EndHeight {
-			return &BlocksRange{
-				StartHeight: other.EndHeight + 1,
-				EndHeight:   hs.EndHeight,
-			}, nil
-		}
+	if hs.EndHeight > other.EndHeight {
+		return &BlocksRange{
+			StartHeight: other.EndHeight + 1,
+			EndHeight:   hs.EndHeight,
+		}, nil
 	}
 
 	return nil, nil

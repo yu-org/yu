@@ -73,6 +73,8 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		}
 	})
 
+	ctx := context.Background()
+
 	for i, addrStr := range cfg.ConnectAddrs {
 		addr, err := maddr.NewMultiaddr(addrStr)
 		if err != nil {
@@ -83,9 +85,14 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 			return err
 		}
 
+		err = m.host.Connect(ctx, *peer)
+		if err != nil {
+			return err
+		}
+
 		// sync history block from first connected P2P-node
 		if i == 0 {
-			s, err := m.host.NewStream(context.Background(), peer.ID, pid)
+			s, err := m.host.NewStream(ctx, peer.ID, pid)
 			if err != nil {
 				return err
 			}
@@ -93,11 +100,6 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 			if err != nil {
 				return err
 			}
-		}
-
-		err = m.host.Connect(context.Background(), *peer)
-		if err != nil {
-			return err
 		}
 	}
 	return nil
@@ -219,7 +221,7 @@ func (m *Master) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, e
 	if err != nil {
 		return nil, err
 	}
-	return localInfo.Compare(m.chain.ConvergeType(), remoteInfo)
+	return localInfo.Compare(remoteInfo)
 }
 
 func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[Hash][]byte, error) {

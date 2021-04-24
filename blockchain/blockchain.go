@@ -131,17 +131,13 @@ func (bc *BlockChain) DecodeBlocks(data []byte) ([]IBlock, error) {
 
 func (bc *BlockChain) GetGenesis() (IBlock, error) {
 	var block BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
-		Height: 0,
-	}).First(&block)
+	bc.chain.Db().Where("height = ?", "0").First(&block)
 	return block.toBlock()
 }
 
 func (bc *BlockChain) SetGenesis(b IBlock) error {
 	var blocks []BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
-		Height: 0,
-	}).Find(&blocks)
+	bc.chain.Db().Where("height = ?", "0").Find(&blocks)
 
 	if len(blocks) == 0 {
 		return bc.AppendBlock(b)
