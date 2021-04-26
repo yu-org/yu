@@ -1,6 +1,7 @@
 package master
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
-	"io/ioutil"
 	"os"
 	. "yu/common"
 	"yu/config"
@@ -66,13 +66,18 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 	pid := protocol.ID(cfg.ProtocolID)
 	m.host.SetStreamHandler(pid, func(s network.Stream) {
 
-		logrus.Info("listen request from new node!!!!!!!!")
-		err := m.handleHsReq(s)
-		if err != nil {
-			logrus.Errorf("handle hand-shake request from node(%s) error: %s",
-				s.Conn().RemotePeer().Pretty(), err.Error(),
-			)
-		}
+		go func() {
+			var oldErr error
+			for {
+				err := m.handleHsReq(s)
+				if err != nil && err != oldErr {
+					logrus.Errorf("handle hand-shake request from node(%s) error: %s",
+						s.Conn().RemotePeer().Pretty(), err.Error(),
+					)
+					oldErr = err
+				}
+			}
+		}()
 
 	})
 
@@ -129,7 +134,10 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 			return err
 		}
 
-		logrus.Infof("fetch result: missingRange start is %d, end is %d", resp.MissingRange.StartHeight, resp.MissingRange.EndHeight)
+		if resp.MissingRange != nil {
+			logrus.Infof("fetch result: missingRange start is %d, end is %d",
+				resp.MissingRange.StartHeight, resp.MissingRange.EndHeight)
+		}
 
 		if resp.Err != nil {
 			return resp.Err
@@ -169,7 +177,7 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 
 func (m *Master) handleHsReq(s network.Stream) error {
 
-	byt, err := ioutil.ReadAll(s)
+	byt, err := readFromStream(s)
 	if err != nil {
 		return err
 	}
@@ -179,7 +187,8 @@ func (m *Master) handleHsReq(s network.Stream) error {
 		return err
 	}
 
-	logrus.Info("remote info is: ", remoteReq.Info)
+	logrus.Info("remote info genesis-block is: ", remoteReq.Info.GenesisBlockHash.String())
+	logrus.Info("remote info end-block hash is ", remoteReq.Info.EndBlockHash.String())
 	logrus.Info("remote request fetch range: ", remoteReq.FetchRange)
 
 	var (
@@ -195,6 +204,10 @@ func (m *Master) handleHsReq(s network.Stream) error {
 
 	missingRange, err := m.compareMissingRange(remoteReq.Info)
 
+	if missingRange != nil {
+		logrus.Infof("missing range start-height is %d,  end-height is %d", missingRange.StartHeight, missingRange.EndHeight)
+	}
+
 	hsResp := &HandShakeResp{
 		MissingRange: missingRange,
 		BlocksByt:    blocksByt,
@@ -206,8 +219,7 @@ func (m *Master) handleHsReq(s network.Stream) error {
 		return err
 	}
 
-	_, err = s.Write(byt)
-	return err
+	return writeToStream(byt, s)
 }
 
 func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
@@ -224,12 +236,13 @@ func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*Han
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.Write(byt)
+
+	err = writeToStream(byt, s)
 	if err != nil {
 		return nil, err
 	}
 
-	respByt, err := ioutil.ReadAll(s)
+	respByt, err := readFromStream(s)
 	if err != nil {
 		return nil, err
 	}
@@ -361,4 +374,14 @@ func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) e
 type TxnsAndWorkerName struct {
 	Txns       SignedTxns
 	WorkerName string
+}
+
+func readFromStream(s network.Stream) ([]byte, error) {
+	return bufio.NewReader(s).ReadBytes('\n')
+}
+
+func writeToStream(data []byte, s network.Stream) error {
+	data = append(data, '\n')
+	_, err := s.Write(data)
+	return err
 }

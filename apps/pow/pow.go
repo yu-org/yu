@@ -105,6 +105,7 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 }
 
 func (*Pow) EndBlock(chain IBlockChain, block IBlock) error {
+	logrus.Infof("append block(%d)", block.GetHeader().GetHeight())
 	return chain.AppendBlock(block)
 }
 

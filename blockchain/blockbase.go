@@ -79,7 +79,9 @@ func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
 		}
 		txnSms = append(txnSms, txnSm)
 	}
-	bb.db.Db().Create(&txnSms)
+	if len(txnSms) > 0 {
+		bb.db.Db().Create(&txnSms)
+	}
 	return nil
 }
 
@@ -106,7 +108,9 @@ func (bb *BlockBase) SetEvents(events []*Event) error {
 		}
 		eventSms = append(eventSms, eventSm)
 	}
-	bb.db.Db().Create(&eventSms)
+	if len(eventSms) > 0 {
+		bb.db.Db().Create(&eventSms)
+	}
 	return nil
 }
 
@@ -125,7 +129,9 @@ func (bb *BlockBase) SetErrors(errs []*Error) error {
 	for _, err := range errs {
 		errSms = append(errSms, toErrorScheme(err))
 	}
-	bb.db.Db().Create(&errSms)
+	if len(errSms) > 0 {
+		bb.db.Db().Create(&errSms)
+	}
 	return nil
 }
 
