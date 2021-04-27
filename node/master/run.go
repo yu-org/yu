@@ -49,6 +49,8 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
+	logrus.Infof("finish start block(%s) height(%d)", newBlock.GetHeader().GetHash().String(), newBlock.GetHeader().GetHeight())
+
 	if needBcBlock {
 		go func() {
 			err := m.broadcastBlockAndTxns(newBlock)

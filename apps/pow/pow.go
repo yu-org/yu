@@ -62,6 +62,8 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 	prevHeight := prevBlock.GetHeader().GetHeight()
 	prevHash := prevBlock.GetHeader().GetHash()
 
+	logrus.Infof("prev-block hash is (%s), height is (%d)", prevHash.String(), prevHeight)
+
 	height := prevHeight + 1
 
 	p2pBlocks, err := chain.GetBlocksFromP2P(height)
@@ -69,7 +71,8 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 		logrus.Errorf("get p2p-blocks error: %s", err.Error())
 	}
 	if len(p2pBlocks) > 0 {
-		block = p2pBlocks[0]
+		block.CopyFrom(p2pBlocks[0])
+		logrus.Infof("use block(%s) from p2p", block.GetHeader().GetHash().String())
 		return
 	}
 

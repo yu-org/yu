@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
 	"yu/config"
@@ -367,6 +368,7 @@ func bspToBlocks(bsp []BlocksFromP2pScheme) []IBlock {
 		if err != nil {
 			return nil
 		}
+		logrus.Infof("blocksFromP2pScheme is block(%s) height(%d)", b.GetHeader().GetHash().String(), b.GetHeader().GetHeight())
 		blocks = append(blocks, b)
 	}
 	return blocks

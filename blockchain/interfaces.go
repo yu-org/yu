@@ -20,6 +20,8 @@ type IBlock interface {
 
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
+
+	CopyFrom(other IBlock)
 }
 
 type IHeader interface {
