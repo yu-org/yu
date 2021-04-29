@@ -65,18 +65,9 @@ func (m *Master) LocalRun() error {
 		}
 	}
 
-	err = m.txPool.Flush()
-	if err != nil {
-		return err
-	}
-	err = m.chain.FlushBlocksFromP2P(newBlock.GetHeader().GetHeight())
-	if err != nil {
-		return err
-	}
-
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.EndBlock(m.chain, newBlock)
+		return tri.EndBlock(m.chain, newBlock, m.txPool)
 	})
 	if err != nil {
 		return err

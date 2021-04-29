@@ -3,7 +3,7 @@ package tripod
 import (
 	. "yu/blockchain"
 	"yu/txn"
-	"yu/txpool"
+	. "yu/txpool"
 )
 
 type Tripod interface {
@@ -15,9 +15,9 @@ type Tripod interface {
 
 	InitChain(IBlockChain, IBlockBase) error
 
-	StartBlock(IBlockChain, IBlock, txpool.ItxPool) (needBroadcast bool, err error)
+	StartBlock(IBlockChain, IBlock, ItxPool) (needBroadcast bool, err error)
 
-	EndBlock(IBlockChain, IBlock) error
+	EndBlock(IBlockChain, IBlock, ItxPool) error
 
 	FinalizeBlock(IBlockChain, IBlock) error
 }

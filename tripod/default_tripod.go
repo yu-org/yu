@@ -3,7 +3,7 @@ package tripod
 import (
 	. "yu/blockchain"
 	"yu/txn"
-	"yu/txpool"
+	. "yu/txpool"
 )
 
 type DefaultTripod struct {
@@ -33,11 +33,11 @@ func (*DefaultTripod) InitChain(IBlockChain, IBlockBase) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlockChain, IBlock, txpool.ItxPool) (bool, error) {
+func (*DefaultTripod) StartBlock(IBlockChain, IBlock, ItxPool) (bool, error) {
 	return false, nil
 }
 
-func (*DefaultTripod) EndBlock(IBlockChain, IBlock) error {
+func (*DefaultTripod) EndBlock(IBlockChain, IBlock, ItxPool) error {
 	return nil
 }
 

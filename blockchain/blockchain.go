@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
 	"yu/config"
@@ -156,17 +155,30 @@ func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
 	return nil
 }
 
-func (bc *BlockChain) GetBlocksFromP2P(height BlockNum) ([]IBlock, error) {
+func (bc *BlockChain) TakeP2pBlocksUntil(height BlockNum) (map[BlockNum][]IBlock, error) {
 	var bsp []BlocksFromP2pScheme
-	bc.blocksFromP2p.Db().Where(&BlocksFromP2pScheme{
-		Height: height,
-	}).Find(&bsp)
-	return bspToBlocks(bsp), nil
+	bc.blocksFromP2p.Db().Where("height <= ?", height).Order("height").Find(&bsp)
+	blocks := bspToBlocks(bsp)
+	hBlocks := make(map[BlockNum][]IBlock, 0)
+	for _, block := range blocks {
+		height := block.GetHeader().GetHeight()
+		hBlocks[height] = append(hBlocks[height], block)
+	}
+
+	for _, b := range blocks {
+		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{}, b.GetHeader().GetHash())
+	}
+	return hBlocks, nil
 }
 
-func (bc *BlockChain) FlushBlocksFromP2P(height BlockNum) error {
-	bc.blocksFromP2p.Db().Where("height <= ?", height).Delete(&BlocksFromP2pScheme{})
-	return nil
+func (bc *BlockChain) TakeP2pBlocks(height BlockNum) ([]IBlock, error) {
+	var bsp []BlocksFromP2pScheme
+	bc.blocksFromP2p.Db().Where("height = ?", height).Find(&bsp)
+
+	for _, bs := range bsp {
+		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{}, bs.BlockHash)
+	}
+	return bspToBlocks(bsp), nil
 }
 
 func (bc *BlockChain) AppendBlock(b IBlock) error {
@@ -368,7 +380,6 @@ func bspToBlocks(bsp []BlocksFromP2pScheme) []IBlock {
 		if err != nil {
 			return nil
 		}
-		logrus.Infof("blocksFromP2pScheme is block(%s) height(%d)", b.GetHeader().GetHash().String(), b.GetHeader().GetHeight())
 		blocks = append(blocks, b)
 	}
 	return blocks

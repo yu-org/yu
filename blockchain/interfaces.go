@@ -57,10 +57,9 @@ type IBlockChain interface {
 	SetGenesis(b IBlock) error
 	// pending a block from other blockchain-node for validating and operating
 	InsertBlockFromP2P(ib IBlock) error
-	// get a pending block
-	GetBlocksFromP2P(height BlockNum) ([]IBlock, error)
-	// remove a block when finished validating and operate the block
-	FlushBlocksFromP2P(height BlockNum) error
+
+	TakeP2pBlocksUntil(height BlockNum) (map[BlockNum][]IBlock, error)
+	TakeP2pBlocks(height BlockNum) ([]IBlock, error)
 
 	AppendBlock(b IBlock) error
 	GetBlock(blockHash Hash) (IBlock, error)
