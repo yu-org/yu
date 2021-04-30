@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"github.com/sirupsen/logrus"
 	"time"
 	. "yu/common"
 	"yu/config"
@@ -147,6 +148,10 @@ func (bc *BlockChain) SetGenesis(b IBlock) error {
 
 // pending a block from other BlockChain-node for validating
 func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
+	if bc.ExistsBlock(b.GetHeader().GetHash()) {
+		logrus.Infof("block(%s) height(%d) exists", b.GetHeader().GetHash().String(), b.GetHeader().GetHeight())
+		return nil
+	}
 	bs, err := toBlocksFromP2pScheme(b)
 	if err != nil {
 		return err
@@ -155,9 +160,9 @@ func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
 	return nil
 }
 
-func (bc *BlockChain) TakeP2pBlocksUntil(height BlockNum) (map[BlockNum][]IBlock, error) {
+func (bc *BlockChain) TakeP2pBlocksBefore(height BlockNum) (map[BlockNum][]IBlock, error) {
 	var bsp []BlocksFromP2pScheme
-	bc.blocksFromP2p.Db().Where("height <= ?", height).Order("height").Find(&bsp)
+	bc.blocksFromP2p.Db().Where("height < ?", height).Order("height").Find(&bsp)
 	blocks := bspToBlocks(bsp)
 	hBlocks := make(map[BlockNum][]IBlock, 0)
 	for _, block := range blocks {
@@ -166,7 +171,7 @@ func (bc *BlockChain) TakeP2pBlocksUntil(height BlockNum) (map[BlockNum][]IBlock
 	}
 
 	for _, b := range blocks {
-		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{}, b.GetHeader().GetHash())
+		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: b.GetHeader().GetHash().String()})
 	}
 	return hBlocks, nil
 }
@@ -176,18 +181,35 @@ func (bc *BlockChain) TakeP2pBlocks(height BlockNum) ([]IBlock, error) {
 	bc.blocksFromP2p.Db().Where("height = ?", height).Find(&bsp)
 
 	for _, bs := range bsp {
-		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{}, bs.BlockHash)
+		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: bs.BlockHash})
 	}
 	return bspToBlocks(bsp), nil
 }
 
 func (bc *BlockChain) AppendBlock(b IBlock) error {
+	if bc.ExistsBlock(b.GetHeader().GetHash()) {
+		return nil
+	}
+
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
 	}
 	bc.chain.Db().Create(&bs)
 	return nil
+}
+
+func (bc *BlockChain) ExistsBlock(blockHash Hash) bool {
+	var bss []BlocksScheme
+	bc.chain.Db().Where(&BlocksScheme{
+		Hash: blockHash.String(),
+	}).Find(&bss)
+
+	for _, bs := range bss {
+		logrus.Info("exists block result: ", bs.Hash)
+	}
+
+	return len(bss) > 0
 }
 
 func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {

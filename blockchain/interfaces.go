@@ -58,11 +58,12 @@ type IBlockChain interface {
 	// pending a block from other blockchain-node for validating and operating
 	InsertBlockFromP2P(ib IBlock) error
 
-	TakeP2pBlocksUntil(height BlockNum) (map[BlockNum][]IBlock, error)
+	TakeP2pBlocksBefore(height BlockNum) (map[BlockNum][]IBlock, error)
 	TakeP2pBlocks(height BlockNum) ([]IBlock, error)
 
 	AppendBlock(b IBlock) error
 	GetBlock(blockHash Hash) (IBlock, error)
+	ExistsBlock(blockHash Hash) bool
 	UpdateBlock(b IBlock) error
 
 	Children(prevBlockHash Hash) ([]IBlock, error)

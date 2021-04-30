@@ -111,16 +111,6 @@ func (m *Master) MasterWokrerRun() error {
 		return err
 	}
 
-	err = m.txPool.Flush()
-	if err != nil {
-		return err
-	}
-
-	err = m.chain.FlushBlocksFromP2P(newBlock.GetHeader().GetHeight())
-	if err != nil {
-		return err
-	}
-
 	err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
 	if err != nil {
 		return err

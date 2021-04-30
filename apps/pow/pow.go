@@ -66,26 +66,27 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 
 	height := prevHeight + 1
 
-	p2pBlocks, err := chain.TakeP2pBlocksUntil(height)
+	pbMap, err := chain.TakeP2pBlocksBefore(height)
+	if err != nil {
+		logrus.Errorf("get p2p-blocks before error: %s", err.Error())
+	}
+
+	for _, pbs := range pbMap {
+		for _, pb := range pbs {
+			err = chain.AppendBlock(pb)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	pbsht, err := chain.TakeP2pBlocks(height)
 	if err != nil {
 		logrus.Errorf("get p2p-blocks error: %s", err.Error())
 	}
-	if len(p2pBlocks) > 0 {
-		if blocks, ok := p2pBlocks[height]; ok {
-			block.CopyFrom(blocks[0])
-			delete(p2pBlocks, height)
-			logrus.Infof("use block(%s) from p2p", block.GetHeader().GetHash().String())
-		}
-
-		for _, pbs := range p2pBlocks {
-			for _, pb := range pbs {
-				err = chain.AppendBlock(pb)
-				if err != nil {
-					return
-				}
-			}
-		}
-
+	if len(pbsht) > 0 {
+		block.CopyFrom(pbsht[0])
+		logrus.Infof("USE P2P block(%s)", block.GetHeader().GetHash().String())
 		return
 	}
 
@@ -121,11 +122,13 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 }
 
 func (*Pow) EndBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
-	logrus.Infof("append block(%d)", block.GetHeader().GetHeight())
 	err := chain.AppendBlock(block)
 	if err != nil {
 		return err
 	}
+
+	logrus.Infof("append block(%d)", block.GetHeader().GetHeight())
+
 	return pool.Flush()
 }
 

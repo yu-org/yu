@@ -15,7 +15,7 @@ func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash com
 	var hashInt big.Int
 	nonce = 0
 
-	logrus.Info("Mining a new Block!!!")
+	logrus.Info("[[[Mining a new Block!!!]]]")
 	for nonce < math.MaxInt64 {
 		var data []byte
 		data, err = prepareData(block, nonce, targetBits)
