@@ -7,9 +7,10 @@ import (
 	. "yu/blockchain"
 	. "yu/common"
 	spow "yu/consensus/pow"
+	. "yu/env"
+	"yu/node"
 	. "yu/tripod"
 	"yu/txn"
-	"yu/txpool"
 )
 
 type Pow struct {
@@ -45,14 +46,19 @@ func (p *Pow) ValidateBlock(_ IBlockChain, b IBlock) bool {
 	return spow.Validate(b, p.target, p.targetBits)
 }
 
-func (*Pow) InitChain(chain IBlockChain, _ IBlockBase) error {
+func (*Pow) InitChain(env *Env, _ *Land) error {
+	chain := env.Chain
 	gensisBlock := chain.NewDefaultBlock()
 	gensisBlock.SetHeight(0)
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (needBroadcast bool, err error) {
+func (p *Pow) StartBlock(env *Env, _ *Land) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
+
+	block := env.CurrentBlock
+	chain := env.Chain
+	pool := env.Pool
 
 	prevBlock, err := chain.GetEndBlock()
 	if err != nil {
@@ -121,8 +127,17 @@ func (p *Pow) StartBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) (
 	return
 }
 
-func (*Pow) EndBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error {
-	err := chain.AppendBlock(block)
+func (*Pow) EndBlock(env *Env, land *Land) error {
+	block := env.CurrentBlock
+	chain := env.Chain
+	pool := env.Pool
+
+	err := node.ExecuteTxns(env, land)
+	if err != nil {
+		return err
+	}
+
+	err = chain.AppendBlock(block)
 	if err != nil {
 		return err
 	}
@@ -132,6 +147,6 @@ func (*Pow) EndBlock(chain IBlockChain, block IBlock, pool txpool.ItxPool) error
 	return pool.Flush()
 }
 
-func (*Pow) FinalizeBlock(IBlockChain, IBlock) error {
+func (*Pow) FinalizeBlock(_ *Env, _ *Land) error {
 	return nil
 }

@@ -2,8 +2,8 @@ package tripod
 
 import (
 	. "yu/blockchain"
+	. "yu/env"
 	"yu/txn"
-	. "yu/txpool"
 )
 
 type DefaultTripod struct {
@@ -29,18 +29,18 @@ func (*DefaultTripod) ValidateBlock(IBlockChain, IBlock) bool {
 	return false
 }
 
-func (*DefaultTripod) InitChain(IBlockChain, IBlockBase) error {
+func (*DefaultTripod) InitChain(*Env, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlockChain, IBlock, ItxPool) (bool, error) {
+func (*DefaultTripod) StartBlock(*Env, *Land) (bool, error) {
 	return false, nil
 }
 
-func (*DefaultTripod) EndBlock(IBlockChain, IBlock, ItxPool) error {
+func (*DefaultTripod) EndBlock(*Env, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(IBlockChain, IBlock) error {
+func (*DefaultTripod) FinalizeBlock(*Env, *Land) error {
 	return nil
 }

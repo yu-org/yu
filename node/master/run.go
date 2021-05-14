@@ -36,7 +36,7 @@ func (m *Master) LocalRun() error {
 	needBcBlock := false
 	// start a new block
 	err := m.land.RangeList(func(tri Tripod) error {
-		need, err := tri.StartBlock(m.chain, newBlock, m.txPool)
+		need, err := tri.StartBlock(m.GetEnv(newBlock), m.land)
 		if err != nil {
 			return err
 		}
@@ -67,26 +67,32 @@ func (m *Master) LocalRun() error {
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.EndBlock(m.chain, newBlock, m.txPool)
+		return tri.EndBlock(m.GetEnv(newBlock), m.land)
 	})
 	if err != nil {
 		return err
 	}
 
-	go func() {
-		err := ExecuteTxns(newBlock, m.chain, m.base, m.land, m.sub)
-		if err != nil {
-			logrus.Errorf(
-				"execute txns error at block(%s) : %s",
-				newBlock.GetHeader().GetHash().String(),
-				err.Error(),
-			)
-		}
-	}()
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//defer wg.Wait()
+	//
+	//// fixme: block thread unsafe
+	//go func() {
+	//	err := ExecuteTxns(m.GetEnv(newBlock))
+	//	if err != nil {
+	//		logrus.Errorf(
+	//			"execute txns error at block(%s) : %s",
+	//			newBlock.GetHeader().GetHash().String(),
+	//			err.Error(),
+	//		)
+	//	}
+	//	wg.Done()
+	//}()
 
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
-		return tri.FinalizeBlock(m.chain, newBlock)
+		return tri.FinalizeBlock(m.GetEnv(newBlock), m.land)
 	})
 }
 

@@ -2,6 +2,7 @@ package master
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -124,15 +125,21 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 	case LocalNode:
 		pubkey, err := GetPubkey(req)
 		if err != nil {
-
+			BadReqHttpResp(w, fmt.Sprintf("get pubkey error: %s", err.Error()))
 			return
 		}
 		ctx, err := context.NewContext(pubkey.Address(), qcall.Params)
 		if err != nil {
-
+			BadReqHttpResp(w, fmt.Sprintf("new context error: %s", err.Error()))
 			return
 		}
-		respObj, err := m.land.Query(qcall, ctx)
+
+		endBlock, err := m.chain.GetEndBlock()
+		if err != nil {
+			ServerErrorHttpResp(w, fmt.Sprintf("get end block error: %s", err.Error()))
+			return
+		}
+		respObj, err := m.land.Query(qcall, ctx, m.GetEnv(endBlock))
 		if err != nil {
 			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return

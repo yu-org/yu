@@ -1,4 +1,4 @@
-package node
+package subscribe
 
 import (
 	. "github.com/gorilla/websocket"

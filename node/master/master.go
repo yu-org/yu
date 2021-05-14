@@ -14,8 +14,10 @@ import (
 	. "yu/blockchain"
 	. "yu/common"
 	. "yu/config"
+	. "yu/env"
 	. "yu/node"
 	"yu/storage/kv"
+	"yu/subscribe"
 	. "yu/tripod"
 	. "yu/txn"
 	. "yu/txpool"
@@ -54,7 +56,7 @@ type Master struct {
 	// txnsBcChan chan *TransferBody
 
 	// event subscription
-	sub *Subscription
+	sub *subscribe.Subscription
 
 	// p2p topics
 	blockTopic        *pubsub.Topic
@@ -98,7 +100,7 @@ func NewMaster(
 		base:     base,
 		txPool:   txPool,
 		land:     land,
-		sub:      NewSubscription(),
+		sub:      subscribe.NewSubscription(),
 	}
 
 	err = m.InitChain()
@@ -154,7 +156,7 @@ func (m *Master) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.chain, m.base)
+			return tri.InitChain(m.GetEnv(nil), m.land)
 		})
 	case MasterWorker:
 		// todo: init chain
@@ -278,8 +280,18 @@ func (m *Master) executeChainTxns() error {
 		return err
 	}
 	return chain.Range(func(block IBlock) error {
-		return ExecuteTxns(block, m.chain, m.base, m.land, nil)
+		return ExecuteTxns(m.GetEnv(block), m.land)
 	})
+}
+
+func (m *Master) GetEnv(currentBlock IBlock) *Env {
+	return &Env{
+		CurrentBlock: currentBlock,
+		Chain:        m.chain,
+		Base:         m.base,
+		Pool:         m.txPool,
+		Sub:          m.sub,
+	}
 }
 
 func (m *Master) registerNodeKeepers(c *gin.Context) {

@@ -134,12 +134,6 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 			return err
 		}
 
-		// remove this log
-		if resp.MissingRange != nil {
-			logrus.Infof("fetch result: missingRange start is %d, end is %d",
-				resp.MissingRange.StartHeight, resp.MissingRange.EndHeight)
-		}
-
 		if resp.Err != nil {
 			return resp.Err
 		}

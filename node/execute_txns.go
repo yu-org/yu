@@ -1,13 +1,18 @@
 package node
 
 import (
-	. "yu/blockchain"
 	. "yu/common"
 	"yu/context"
+	"yu/env"
 	"yu/tripod"
 )
 
-func ExecuteTxns(block IBlock, chain IBlockChain, base IBlockBase, land *tripod.Land, sub *Subscription) error {
+func ExecuteTxns(env *env.Env, land *tripod.Land) error {
+	block := env.CurrentBlock
+	chain := env.Chain
+	base := env.Base
+	sub := env.Sub
+
 	blockHash := block.GetHeader().GetHash()
 	stxns, err := base.GetTxns(blockHash)
 	if err != nil {
@@ -19,7 +24,7 @@ func ExecuteTxns(block IBlock, chain IBlockChain, base IBlockBase, land *tripod.
 		if err != nil {
 			return err
 		}
-		err = land.Execute(ecall, ctx, block)
+		err = land.Execute(ecall, ctx, env)
 		if err != nil {
 			return err
 		}

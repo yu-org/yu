@@ -2,22 +2,22 @@ package tripod
 
 import (
 	. "yu/blockchain"
-	"yu/txn"
-	. "yu/txpool"
+	. "yu/env"
+	. "yu/txn"
 )
 
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
-	CheckTxn(*txn.SignedTxn) error
+	CheckTxn(*SignedTxn) error
 
 	ValidateBlock(IBlockChain, IBlock) bool
 
-	InitChain(IBlockChain, IBlockBase) error
+	InitChain(env *Env, land *Land) error
 
-	StartBlock(IBlockChain, IBlock, ItxPool) (needBroadcast bool, err error)
+	StartBlock(env *Env, land *Land) (needBroadcast bool, err error)
 
-	EndBlock(IBlockChain, IBlock, ItxPool) error
+	EndBlock(env *Env, land *Land) error
 
-	FinalizeBlock(IBlockChain, IBlock) error
+	FinalizeBlock(env *Env, land *Land) error
 }
