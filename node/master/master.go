@@ -290,6 +290,7 @@ func (m *Master) GetEnv(currentBlock IBlock) *Env {
 		Chain:        m.chain,
 		Base:         m.base,
 		Pool:         m.txPool,
+		Peer:         m.host,
 		Sub:          m.sub,
 	}
 }
