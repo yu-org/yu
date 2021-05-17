@@ -293,7 +293,7 @@ func (m *Master) AcceptBlocksFromP2P() error {
 		// todo: switch MasterWorker Mode
 	case LocalNode:
 		err = m.land.RangeList(func(tri tripod.Tripod) error {
-			if tri.ValidateBlock(m.chain, block) {
+			if tri.ValidateBlock(m.GetEnv(block)) {
 				return nil
 			}
 			return BlockIllegal(block.GetHeader().GetHash())

@@ -254,7 +254,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	case LocalNode:
 		for _, block := range blocks {
 			err := m.land.RangeList(func(tri Tripod) error {
-				if tri.ValidateBlock(m.chain, block) {
+				if tri.ValidateBlock(m.GetEnv(block)) {
 					return m.chain.AppendBlock(block)
 				}
 				return BlockIllegal(block.GetHeader().GetHash())

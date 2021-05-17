@@ -1,7 +1,6 @@
 package tripod
 
 import (
-	. "yu/blockchain"
 	. "yu/env"
 	"yu/txn"
 )
@@ -25,7 +24,7 @@ func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) ValidateBlock(IBlockChain, IBlock) bool {
+func (*DefaultTripod) ValidateBlock(*Env) bool {
 	return false
 }
 

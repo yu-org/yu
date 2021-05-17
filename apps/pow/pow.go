@@ -42,8 +42,8 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(_ IBlockChain, b IBlock) bool {
-	return spow.Validate(b, p.target, p.targetBits)
+func (p *Pow) ValidateBlock(env *Env) bool {
+	return spow.Validate(env.CurrentBlock, p.target, p.targetBits)
 }
 
 func (*Pow) InitChain(env *Env, _ *Land) error {
