@@ -17,11 +17,11 @@ type Event struct {
 }
 
 func (e *Event) Encode() ([]byte, error) {
-	return GobEncode(e)
+	return GlobalCodec.EncodeToBytes(e)
 }
 
 func (e *Event) Decode(data []byte) error {
-	return GobDecode(data, e)
+	return GlobalCodec.DecodeBytes(data, e)
 }
 
 func (e *Event) Type() ResultType {
@@ -52,18 +52,18 @@ func (e *Event) Sprint() (str string) {
 	return
 }
 
-type Events []Event
-
-func ToEvents(events []Event) Events {
-	var es Events
-	es = append(es, events...)
-	return es
-}
-
-func (es Events) ToArray() []Event {
-	return es[:]
-}
-
-func (es Events) Encode() ([]byte, error) {
-	return GobEncode(es)
-}
+//type Events []Event
+//
+//func ToEvents(events []Event) Events {
+//	var es Events
+//	es = append(es, events...)
+//	return es
+//}
+//
+//func (es Events) ToArray() []Event {
+//	return es[:]
+//}
+//
+//func (es Events) Encode() ([]byte, error) {
+//	return GobEncode(es)
+//}

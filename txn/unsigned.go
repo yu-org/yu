@@ -55,10 +55,10 @@ func (ut *UnsignedTxn) Hash() (Hash, error) {
 }
 
 func (ut *UnsignedTxn) Encode() ([]byte, error) {
-	return GobEncode(ut)
+	return GlobalCodec.EncodeToBytes(ut)
 }
 
 func (ut *UnsignedTxn) Decode(data []byte) (*UnsignedTxn, error) {
-	err := GobDecode(data, ut)
+	err := GlobalCodec.DecodeBytes(data, ut)
 	return ut, err
 }

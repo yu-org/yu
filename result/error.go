@@ -45,25 +45,26 @@ func (e *Error) Error() (str string) {
 }
 
 func (e *Error) Encode() ([]byte, error) {
-	return GobEncode(e)
+	return GlobalCodec.EncodeToBytes(e)
 }
 
 func (e *Error) Decode(data []byte) error {
-	return GobDecode(data, e)
+	return GlobalCodec.DecodeBytes(data, e)
 }
 
-type Errors []Error
-
-func ToErrors(errors []Error) Errors {
-	var es Errors
-	es = append(es, errors...)
-	return es
-}
-
-func (es Errors) ToArray() []Error {
-	return es[:]
-}
-
-func (es Errors) Encode() ([]byte, error) {
-	return GobEncode(es)
-}
+//
+//type Errors []Error
+//
+//func ToErrors(errors []Error) Errors {
+//	var es Errors
+//	es = append(es, errors...)
+//	return es
+//}
+//
+//func (es Errors) ToArray() []Error {
+//	return es[:]
+//}
+//
+//func (es Errors) Encode() ([]byte, error) {
+//	return GobEncode(es)
+//}

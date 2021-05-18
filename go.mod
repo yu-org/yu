@@ -8,6 +8,7 @@ require (
 	github.com/HyperService-Consortium/go-rlp v1.0.2
 	github.com/cockroachdb/pebble v0.0.0-20201210152317-024096017eda // indirect
 	github.com/dgraph-io/badger v1.6.2
+	github.com/ethereum/go-ethereum v1.10.3 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
@@ -23,7 +24,7 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/tendermint/tendermint v0.34.0
 	go.etcd.io/bbolt v1.3.5
-	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/grpc/examples v0.0.0-20210405205600-8892a7b247c0 // indirect

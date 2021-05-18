@@ -6,64 +6,13 @@ import (
 	. "yu/common"
 	"yu/config"
 	ysql "yu/storage/sql"
-	"yu/utils/codec"
+	. "yu/utils/codec"
 	"yu/yerror"
 )
 
 type BlockChain struct {
 	chain         ysql.SqlDB
 	blocksFromP2p ysql.SqlDB
-}
-
-type BlocksScheme struct {
-	Hash       string `gorm:"primaryKey"`
-	PrevHash   string
-	Height     BlockNum
-	TxnRoot    string
-	StateRoot  string
-	Nonce      int64
-	Timestamp  int64
-	TxnsHashes string
-
-	Finalize bool
-}
-
-func (BlocksScheme) TableName() string {
-	return "blockchain"
-}
-
-func toBlocksScheme(b IBlock) (BlocksScheme, error) {
-	header := b.GetHeader()
-	bs := BlocksScheme{
-		Hash:       header.GetHash().String(),
-		PrevHash:   header.GetPrevHash().String(),
-		Height:     header.GetHeight(),
-		TxnRoot:    header.GetTxnRoot().String(),
-		StateRoot:  header.GetStateRoot().String(),
-		Nonce:      header.(*Header).GetNonce(),
-		Timestamp:  header.GetTimestamp(),
-		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
-		Finalize:   false,
-	}
-	return bs, nil
-}
-
-func (b *BlocksScheme) toBlock() (IBlock, error) {
-	header := &Header{
-		PrevHash:  HexToHash(b.PrevHash),
-		Hash:      HexToHash(b.Hash),
-		Height:    b.Height,
-		TxnRoot:   HexToHash(b.TxnRoot),
-		StateRoot: HexToHash(b.StateRoot),
-		Nonce:     b.Nonce,
-		Timestamp: b.Timestamp,
-	}
-	block := &Block{
-		Header:     header,
-		TxnsHashes: HexToHashes(b.TxnsHashes),
-	}
-
-	return block, nil
 }
 
 func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
@@ -114,12 +63,12 @@ func (bc *BlockChain) EncodeBlocks(blocks []IBlock) ([]byte, error) {
 	for _, b := range blocks {
 		bs = append(bs, b.(*Block))
 	}
-	return codec.GobEncode(bs)
+	return GlobalCodec.EncodeToBytes(bs)
 }
 
 func (bc *BlockChain) DecodeBlocks(data []byte) ([]IBlock, error) {
 	var bs []*Block
-	err := codec.GobDecode(data, &bs)
+	err := GlobalCodec.DecodeBytes(data, &bs)
 	if err != nil {
 		return nil, err
 	}
@@ -353,6 +302,57 @@ func (bc *BlockChain) FinalizedChain() (IChainStruct, error) {
 	}).Order("height").Find(&bss)
 	blocks := bssToBlocks(bss)
 	return MakeFinalizedChain(blocks), nil
+}
+
+type BlocksScheme struct {
+	Hash       string `gorm:"primaryKey"`
+	PrevHash   string
+	Height     BlockNum
+	TxnRoot    string
+	StateRoot  string
+	Nonce      int64
+	Timestamp  int64
+	TxnsHashes string
+
+	Finalize bool
+}
+
+func (BlocksScheme) TableName() string {
+	return "blockchain"
+}
+
+func toBlocksScheme(b IBlock) (BlocksScheme, error) {
+	header := b.GetHeader()
+	bs := BlocksScheme{
+		Hash:       header.GetHash().String(),
+		PrevHash:   header.GetPrevHash().String(),
+		Height:     header.GetHeight(),
+		TxnRoot:    header.GetTxnRoot().String(),
+		StateRoot:  header.GetStateRoot().String(),
+		Nonce:      header.(*Header).GetNonce(),
+		Timestamp:  header.GetTimestamp(),
+		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
+		Finalize:   false,
+	}
+	return bs, nil
+}
+
+func (b *BlocksScheme) toBlock() (IBlock, error) {
+	header := &Header{
+		PrevHash:  HexToHash(b.PrevHash),
+		Hash:      HexToHash(b.Hash),
+		Height:    b.Height,
+		TxnRoot:   HexToHash(b.TxnRoot),
+		StateRoot: HexToHash(b.StateRoot),
+		Nonce:     b.Nonce,
+		Timestamp: b.Timestamp,
+	}
+	block := &Block{
+		Header:     header,
+		TxnsHashes: HexToHashes(b.TxnsHashes),
+	}
+
+	return block, nil
 }
 
 type BlocksFromP2pScheme struct {

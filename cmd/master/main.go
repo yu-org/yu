@@ -11,6 +11,7 @@ import (
 	"yu/node/master"
 	"yu/tripod"
 	"yu/txpool"
+	"yu/utils/codec"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func main() {
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
 
 	initLog()
+
+	codec.GlobalCodec = &codec.RlpCodec{}
 
 	chain, err := blockchain.NewBlockChain(&chainCfg)
 	if err != nil {

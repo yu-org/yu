@@ -48,7 +48,7 @@ func (st *SignedTxn) GetSignature() []byte {
 }
 
 func (st *SignedTxn) Encode() ([]byte, error) {
-	return GobEncode(st)
+	return GlobalCodec.EncodeToBytes(st)
 }
 
 func (st *SignedTxn) Size() int {
@@ -74,11 +74,11 @@ func (sts SignedTxns) ToArray() []*SignedTxn {
 }
 
 func (sts SignedTxns) Encode() ([]byte, error) {
-	return GobEncode(sts)
+	return GlobalCodec.EncodeToBytes(sts)
 }
 
 func DecodeSignedTxns(data []byte) (SignedTxns, error) {
 	txns := SignedTxns{}
-	err := GobDecode(data, &txns)
+	err := GlobalCodec.DecodeBytes(data, &txns)
 	return txns, err
 }
