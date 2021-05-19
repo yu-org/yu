@@ -8,10 +8,9 @@ import (
 )
 
 type Env struct {
-	CurrentBlock IBlock
-	Chain        IBlockChain
-	Base         IBlockBase
-	Pool         ItxPool
+	Chain IBlockChain
+	Base  IBlockBase
+	Pool  ItxPool
 
 	Peer host.Host
 

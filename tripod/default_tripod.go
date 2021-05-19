@@ -1,6 +1,7 @@
 package tripod
 
 import (
+	. "yu/blockchain"
 	. "yu/env"
 	"yu/txn"
 )
@@ -24,7 +25,7 @@ func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) ValidateBlock(*Env) bool {
+func (*DefaultTripod) ValidateBlock(IBlock, *Env) bool {
 	return false
 }
 
@@ -32,14 +33,14 @@ func (*DefaultTripod) InitChain(*Env, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(*Env, *Land) (bool, error) {
-	return false, nil
+func (*DefaultTripod) StartBlock(*Env, *Land) (IBlock, bool, error) {
+	return nil, false, nil
 }
 
-func (*DefaultTripod) EndBlock(*Env, *Land) error {
+func (*DefaultTripod) EndBlock(IBlock, *Env, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(*Env, *Land) error {
+func (*DefaultTripod) FinalizeBlock(IBlock, *Env, *Land) error {
 	return nil
 }

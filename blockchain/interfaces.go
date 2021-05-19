@@ -30,7 +30,7 @@ type IHeader interface {
 	GetPrevHash() Hash
 	GetTxnRoot() Hash
 	GetStateRoot() Hash
-	GetTimestamp() int64
+	GetTimestamp() uint64
 }
 
 type ConvergeType int
@@ -45,8 +45,6 @@ type IBlockChain interface {
 	ConvergeType() ConvergeType
 
 	NewEmptyBlock() IBlock
-	// just generate a block with timestamp
-	NewDefaultBlock() IBlock
 
 	EncodeBlocks(blocks []IBlock) ([]byte, error)
 	DecodeBlocks(data []byte) ([]IBlock, error)

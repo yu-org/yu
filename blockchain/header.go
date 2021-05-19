@@ -10,8 +10,8 @@ type Header struct {
 	Height    BlockNum
 	TxnRoot   Hash
 	StateRoot Hash
-	Nonce     int64
-	Timestamp int64
+	Nonce     uint64
+	Timestamp uint64
 }
 
 func (h *Header) GetHeight() BlockNum {
@@ -34,10 +34,6 @@ func (h *Header) GetStateRoot() Hash {
 	return h.StateRoot
 }
 
-func (h *Header) GetTimestamp() int64 {
+func (h *Header) GetTimestamp() uint64 {
 	return h.Timestamp
-}
-
-func (h *Header) GetNonce() int64 {
-	return h.Nonce
 }

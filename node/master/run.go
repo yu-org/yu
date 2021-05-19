@@ -32,11 +32,16 @@ func (m *Master) Run() {
 }
 
 func (m *Master) LocalRun() error {
-	newBlock := m.chain.NewDefaultBlock()
+
 	needBcBlock := false
+	var newBlock IBlock
 	// start a new block
 	err := m.land.RangeList(func(tri Tripod) error {
-		need, err := tri.StartBlock(m.GetEnv(newBlock), m.land)
+		var (
+			need bool
+			err  error
+		)
+		newBlock, need, err = tri.StartBlock(m.GetEnv(), m.land)
 		if err != nil {
 			return err
 		}
@@ -67,69 +72,53 @@ func (m *Master) LocalRun() error {
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.EndBlock(m.GetEnv(newBlock), m.land)
+		return tri.EndBlock(newBlock, m.GetEnv(), m.land)
 	})
 	if err != nil {
 		return err
 	}
 
-	//var wg sync.WaitGroup
-	//wg.Add(1)
-	//defer wg.Wait()
-	//
-	//// fixme: block thread unsafe
-	//go func() {
-	//	err := ExecuteTxns(m.GetEnv(newBlock))
-	//	if err != nil {
-	//		logrus.Errorf(
-	//			"execute txns error at block(%s) : %s",
-	//			newBlock.GetHeader().GetHash().String(),
-	//			err.Error(),
-	//		)
-	//	}
-	//	wg.Done()
-	//}()
-
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
-		return tri.FinalizeBlock(m.GetEnv(newBlock), m.land)
+		return tri.FinalizeBlock(newBlock, m.GetEnv(), m.land)
 	})
 }
 
 func (m *Master) MasterWokrerRun() error {
-	workersIps, err := m.allWorkersIP()
-	if err != nil {
-		return err
-	}
-
-	newBlock := m.chain.NewDefaultBlock()
-
-	err = m.nortifyWorker(workersIps, StartBlockPath, newBlock)
-	if err != nil {
-		return err
-	}
-
-	// todo: if need broadcast block,
-	// m.readyBroadcastBlock(newBlock)
-
-	err = m.SyncTxns(newBlock)
-	if err != nil {
-		return err
-	}
-
-	err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
-	if err != nil {
-		return err
-	}
-
-	go func() {
-		err := m.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
-		if err != nil {
-			logrus.Errorf("nortify worker executing txns error: %s", err.Error())
-		}
-	}()
-
-	return m.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
+	//workersIps, err := m.allWorkersIP()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//newBlock := m.chain.NewDefaultBlock()
+	//
+	//err = m.nortifyWorker(workersIps, StartBlockPath, newBlock)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// todo: if need broadcast block,
+	//// m.readyBroadcastBlock(newBlock)
+	//
+	//err = m.SyncTxns(newBlock)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//go func() {
+	//	err := m.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
+	//	if err != nil {
+	//		logrus.Errorf("nortify worker executing txns error: %s", err.Error())
+	//	}
+	//}()
+	//
+	//return m.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
+	return nil
 }
 
 func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock) error {

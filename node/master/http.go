@@ -148,13 +148,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 			return
 		}
 
-		endBlock, err := m.chain.GetEndBlock()
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-
-		respObj, err := m.land.Query(qcall, ctx, m.GetEnv(endBlock))
+		respObj, err := m.land.Query(qcall, ctx, m.GetEnv())
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,

@@ -1,6 +1,7 @@
 package tripod
 
 import (
+	. "yu/blockchain"
 	. "yu/env"
 	. "yu/txn"
 )
@@ -10,13 +11,13 @@ type Tripod interface {
 
 	CheckTxn(*SignedTxn) error
 
-	ValidateBlock(env *Env) bool
+	ValidateBlock(block IBlock, env *Env) bool
 
 	InitChain(env *Env, land *Land) error
 
-	StartBlock(env *Env, land *Land) (needBroadcast bool, err error)
+	StartBlock(env *Env, land *Land) (newBlock IBlock, needBroadcast bool, err error)
 
-	EndBlock(env *Env, land *Land) error
+	EndBlock(block IBlock, env *Env, land *Land) error
 
-	FinalizeBlock(env *Env, land *Land) error
+	FinalizeBlock(block IBlock, env *Env, land *Land) error
 }

@@ -156,7 +156,7 @@ func (m *Master) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.GetEnv(nil), m.land)
+			return tri.InitChain(m.GetEnv(), m.land)
 		})
 	case MasterWorker:
 		// todo: init chain
@@ -254,7 +254,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	case LocalNode:
 		for _, block := range blocks {
 			err := m.land.RangeList(func(tri Tripod) error {
-				if tri.ValidateBlock(m.GetEnv(block)) {
+				if tri.ValidateBlock(block, m.GetEnv()) {
 					return m.chain.AppendBlock(block)
 				}
 				return BlockIllegal(block.GetHeader().GetHash())
@@ -280,18 +280,17 @@ func (m *Master) executeChainTxns() error {
 		return err
 	}
 	return chain.Range(func(block IBlock) error {
-		return ExecuteTxns(m.GetEnv(block), m.land)
+		return ExecuteTxns(block, m.GetEnv(), m.land)
 	})
 }
 
-func (m *Master) GetEnv(currentBlock IBlock) *Env {
+func (m *Master) GetEnv() *Env {
 	return &Env{
-		CurrentBlock: currentBlock,
-		Chain:        m.chain,
-		Base:         m.base,
-		Pool:         m.txPool,
-		Peer:         m.host,
-		Sub:          m.sub,
+		Chain: m.chain,
+		Base:  m.base,
+		Pool:  m.txPool,
+		Peer:  m.host,
+		Sub:   m.sub,
 	}
 }
 

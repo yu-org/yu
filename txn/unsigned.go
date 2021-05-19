@@ -2,23 +2,23 @@ package txn
 
 import (
 	"crypto/sha256"
-	"time"
 	. "yu/common"
 	. "yu/utils/codec"
+	ytime "yu/utils/time"
 )
 
 type UnsignedTxn struct {
 	Id        Hash
 	Caller    Address
 	Ecall     *Ecall
-	Timestamp int64
+	Timestamp uint64
 }
 
 func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	UnsignedTxn := &UnsignedTxn{
 		Caller:    caller,
 		Ecall:     ecall,
-		Timestamp: time.Now().UnixNano(),
+		Timestamp: ytime.NowNanoTsU64(),
 	}
 	id, err := UnsignedTxn.Hash()
 	if err != nil {
@@ -40,7 +40,7 @@ func (ut *UnsignedTxn) GetEcall() *Ecall {
 	return ut.Ecall
 }
 
-func (ut *UnsignedTxn) GetTimestamp() int64 {
+func (ut *UnsignedTxn) GetTimestamp() uint64 {
 	return ut.Timestamp
 }
 

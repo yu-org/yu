@@ -45,7 +45,7 @@ func (b *Block) SetStateRoot(hash Hash) {
 	b.Header.StateRoot = hash
 }
 
-func (b *Block) SetNonce(nonce int64) {
+func (b *Block) SetNonce(nonce uint64) {
 	b.Header.Nonce = nonce
 }
 

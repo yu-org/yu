@@ -40,8 +40,8 @@ func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash com
 func Validate(block IBlock, target *big.Int, targetBits int64) bool {
 	var hashInt big.Int
 
-	var nonce int64 = block.GetHeader().(*Header).GetNonce()
-	data, err := prepareData(block, nonce, targetBits)
+	var nonce uint64 = block.GetHeader().(*Header).Nonce
+	data, err := prepareData(block, int64(nonce), targetBits)
 	if err != nil {
 		return false
 	}
@@ -52,7 +52,8 @@ func Validate(block IBlock, target *big.Int, targetBits int64) bool {
 }
 
 func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
-	hex1, err := intToHex(block.GetHeader().GetTimestamp())
+	num := block.GetHeader().GetTimestamp()
+	hex1, err := intToHex(int64(num))
 	if err != nil {
 		return nil, err
 	}

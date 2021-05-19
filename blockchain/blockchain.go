@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"github.com/sirupsen/logrus"
-	"time"
 	. "yu/common"
 	"yu/config"
 	ysql "yu/storage/sql"
@@ -43,15 +42,6 @@ func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 
 func (bc *BlockChain) ConvergeType() ConvergeType {
 	return Longest
-}
-
-func (bc *BlockChain) NewDefaultBlock() IBlock {
-	header := &Header{
-		Timestamp: time.Now().UnixNano(),
-	}
-	return &Block{
-		Header: header,
-	}
 }
 
 func (bc *BlockChain) NewEmptyBlock() IBlock {
@@ -310,8 +300,8 @@ type BlocksScheme struct {
 	Height     BlockNum
 	TxnRoot    string
 	StateRoot  string
-	Nonce      int64
-	Timestamp  int64
+	Nonce      uint64
+	Timestamp  uint64
 	TxnsHashes string
 
 	Finalize bool
@@ -329,7 +319,7 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		Height:     header.GetHeight(),
 		TxnRoot:    header.GetTxnRoot().String(),
 		StateRoot:  header.GetStateRoot().String(),
-		Nonce:      header.(*Header).GetNonce(),
+		Nonce:      header.(*Header).Nonce,
 		Timestamp:  header.GetTimestamp(),
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
 		Finalize:   false,

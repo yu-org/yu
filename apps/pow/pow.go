@@ -11,6 +11,7 @@ import (
 	"yu/node"
 	. "yu/tripod"
 	"yu/txn"
+	ytime "yu/utils/time"
 )
 
 type Pow struct {
@@ -34,6 +35,14 @@ func NewPow(pkgTxnsLimit uint64) *Pow {
 	}
 }
 
+func newDefaultBlock() *Block {
+	return &Block{
+		Header: &Header{
+			Timestamp: ytime.NowNanoTsU64(),
+		},
+	}
+}
+
 func (p *Pow) TripodMeta() *TripodMeta {
 	return p.meta
 }
@@ -42,21 +51,21 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(env *Env) bool {
-	return spow.Validate(env.CurrentBlock, p.target, p.targetBits)
+func (p *Pow) ValidateBlock(block IBlock, env *Env) bool {
+	return spow.Validate(block, p.target, p.targetBits)
 }
 
 func (*Pow) InitChain(env *Env, _ *Land) error {
 	chain := env.Chain
-	gensisBlock := chain.NewDefaultBlock()
+	gensisBlock := newDefaultBlock()
 	gensisBlock.SetHeight(0)
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Pow) StartBlock(env *Env, _ *Land) (needBroadcast bool, err error) {
+func (p *Pow) StartBlock(env *Env, _ *Land) (block IBlock, needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
-	block := env.CurrentBlock
+	block = newDefaultBlock()
 	chain := env.Chain
 	pool := env.Pool
 
@@ -121,18 +130,17 @@ func (p *Pow) StartBlock(env *Env, _ *Land) (needBroadcast bool, err error) {
 	if err != nil {
 		return
 	}
-	block.(*Block).SetNonce(nonce)
+	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
 	return
 }
 
-func (*Pow) EndBlock(env *Env, land *Land) error {
-	block := env.CurrentBlock
+func (*Pow) EndBlock(block IBlock, env *Env, land *Land) error {
 	chain := env.Chain
 	pool := env.Pool
 
-	err := node.ExecuteTxns(env, land)
+	err := node.ExecuteTxns(block, env, land)
 	if err != nil {
 		return err
 	}
@@ -147,6 +155,6 @@ func (*Pow) EndBlock(env *Env, land *Land) error {
 	return pool.Flush()
 }
 
-func (*Pow) FinalizeBlock(_ *Env, _ *Land) error {
+func (*Pow) FinalizeBlock(_ IBlock, _ *Env, _ *Land) error {
 	return nil
 }

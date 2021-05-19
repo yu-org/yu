@@ -134,12 +134,7 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 			return
 		}
 
-		endBlock, err := m.chain.GetEndBlock()
-		if err != nil {
-			ServerErrorHttpResp(w, fmt.Sprintf("get end block error: %s", err.Error()))
-			return
-		}
-		respObj, err := m.land.Query(qcall, ctx, m.GetEnv(endBlock))
+		respObj, err := m.land.Query(qcall, ctx, m.GetEnv())
 		if err != nil {
 			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
