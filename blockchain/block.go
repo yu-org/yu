@@ -1,11 +1,10 @@
 package blockchain
 
 import (
-	"bytes"
-	"encoding/gob"
 	. "yu/common"
 	"yu/trie"
 	"yu/txn"
+	. "yu/utils/codec"
 )
 
 type Block struct {
@@ -50,19 +49,13 @@ func (b *Block) SetNonce(nonce uint64) {
 }
 
 func (b *Block) Encode() ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := gob.NewEncoder(&buf)
-	err := encoder.Encode(b)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return GlobalCodec.EncodeToBytes(b)
 }
 
 func (b *Block) Decode(data []byte) (IBlock, error) {
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(b)
-	return b, err
+	var block Block
+	err := GlobalCodec.DecodeBytes(data, &block)
+	return &block, err
 }
 
 func (b *Block) CopyFrom(other IBlock) {
