@@ -15,8 +15,8 @@
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package types contains data types related to Ethereum consensus.
-package blockchain
+package eth
 
-type EthBlock struct {
+type Block struct {
 
 }

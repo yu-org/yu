@@ -15,7 +15,7 @@
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package types contains data types related to Ethereum consensus.
-package blockchain
+package eth
 
 import (
 	"encoding/binary"
@@ -48,7 +48,7 @@ func (n BlockNonce) Uint64() uint64 {
 }
 
 // Header represents a block header in the Ethereum blockchain.
-type EthHeader struct {
+type Header struct {
 	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
 	UncleHash   common.Hash    `json:"sha3Uncles"       gencodec:"required"`
 	Coinbase    common.Address `json:"miner"            gencodec:"required"`
@@ -68,3 +68,29 @@ type EthHeader struct {
 	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
 	BaseFee *big.Int `json:"baseFee" rlp:"optional"`
 }
+
+func (h *Header) GetHash() common.Hash {
+	return rlpHash(h)
+}
+
+func (h *Header) GetHeight() common.BlockNum {
+	return common.BlockNum(h.Number.Uint64())
+}
+
+func (h *Header) GetPrevHash() common.Hash {
+	return h.ParentHash
+}
+
+func (h *Header) GetTxnRoot() common.Hash {
+	return h.TxHash
+}
+
+func (h *Header) GetStateRoot() common.Hash {
+	return h.Root
+}
+
+func (h *Header) GetTimestamp() uint64 {
+	return h.Time
+}
+
+
