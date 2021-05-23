@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 	. "yu/blockchain"
+	. "yu/chain_env"
 	. "yu/common"
 	. "yu/config"
-	. "yu/env"
 	. "yu/node"
 	"yu/storage/kv"
 	"yu/subscribe"
@@ -284,8 +284,8 @@ func (m *Master) executeChainTxns() error {
 	})
 }
 
-func (m *Master) GetEnv() *Env {
-	return &Env{
+func (m *Master) GetEnv() *ChainEnv {
+	return &ChainEnv{
 		Chain: m.chain,
 		Base:  m.base,
 		Pool:  m.txPool,

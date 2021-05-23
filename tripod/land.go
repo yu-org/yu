@@ -1,9 +1,9 @@
 package tripod
 
 import (
+	. "yu/chain_env"
 	. "yu/common"
 	. "yu/context"
-	. "yu/env"
 	. "yu/yerror"
 )
 
@@ -29,7 +29,7 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 	}
 }
 
-func (l *Land) Execute(c *Ecall, ctx *Context, env *Env) error {
+func (l *Land) Execute(c *Ecall, ctx *Context, env *ChainEnv) error {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
@@ -42,7 +42,7 @@ func (l *Land) Execute(c *Ecall, ctx *Context, env *Env) error {
 	return fn(ctx, env)
 }
 
-func (l *Land) Query(c *Qcall, ctx *Context, env *Env) (interface{}, error) {
+func (l *Land) Query(c *Qcall, ctx *Context, env *ChainEnv) (interface{}, error) {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)

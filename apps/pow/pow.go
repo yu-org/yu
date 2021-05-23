@@ -5,9 +5,9 @@ import (
 	"math/big"
 	"time"
 	. "yu/blockchain"
+	. "yu/chain_env"
 	. "yu/common"
 	spow "yu/consensus/pow"
-	. "yu/env"
 	"yu/node"
 	. "yu/tripod"
 	"yu/txn"
@@ -51,18 +51,18 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(block IBlock, env *Env) bool {
+func (p *Pow) ValidateBlock(block IBlock, env *ChainEnv) bool {
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
-func (*Pow) InitChain(env *Env, _ *Land) error {
+func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
 	gensisBlock := newDefaultBlock()
 	gensisBlock.SetHeight(0)
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Pow) StartBlock(env *Env, _ *Land) (block IBlock, needBroadcast bool, err error) {
+func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
 	block = newDefaultBlock()
@@ -136,7 +136,7 @@ func (p *Pow) StartBlock(env *Env, _ *Land) (block IBlock, needBroadcast bool, e
 	return
 }
 
-func (*Pow) EndBlock(block IBlock, env *Env, land *Land) error {
+func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 	chain := env.Chain
 	pool := env.Pool
 
@@ -155,6 +155,6 @@ func (*Pow) EndBlock(block IBlock, env *Env, land *Land) error {
 	return pool.Flush()
 }
 
-func (*Pow) FinalizeBlock(_ IBlock, _ *Env, _ *Land) error {
+func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land) error {
 	return nil
 }

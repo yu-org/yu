@@ -2,13 +2,13 @@ package node
 
 import (
 	. "yu/blockchain"
+	"yu/chain_env"
 	. "yu/common"
 	"yu/context"
-	. "yu/env"
 	. "yu/tripod"
 )
 
-func ExecuteTxns(block IBlock, env *Env, land *Land) error {
+func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 	chain := env.Chain
 	base := env.Base
 	sub := env.Sub
