@@ -1,10 +1,10 @@
 package txn
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/keypair"
+	. "github.com/Lawliet-Chan/yu/utils/codec"
 	"unsafe"
-	. "yu/common"
-	. "yu/keypair"
-	. "yu/utils/codec"
 )
 
 type SignedTxn struct {

@@ -1,7 +1,7 @@
 package blockchain
 
 import (
-	. "yu/common"
+	. "github.com/Lawliet-Chan/yu/common"
 )
 
 type Header struct {

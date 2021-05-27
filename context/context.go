@@ -2,8 +2,8 @@ package context
 
 import (
 	"encoding/json"
-	. "yu/common"
-	. "yu/result"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/result"
 )
 
 type Context struct {

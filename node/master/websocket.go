@@ -3,14 +3,14 @@ package master
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/context"
+	. "github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/utils/error_handle"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	. "yu/common"
-	"yu/context"
-	. "yu/node"
-	. "yu/txn"
-	. "yu/utils/error_handle"
 )
 
 func (m *Master) HandleWS() {

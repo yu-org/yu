@@ -18,10 +18,10 @@ package mpt
 
 import (
 	"fmt"
-	. "yu/common"
+	. "github.com/Lawliet-Chan/yu/common"
 )
 
-// MissingNodeError is returned by the trie functions (TryGet, TryUpdate, TryDelete)
+// MissingNodeError is returned by the trie functions (TryGet, Trgithub.com/Lawliet-Chan/yupdate, TryDelete)
 // in the case where a trie node is not present in the local database. It contains
 // information necessary for retrieving the missing node.
 type MissingNodeError struct {

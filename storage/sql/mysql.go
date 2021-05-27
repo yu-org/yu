@@ -1,9 +1,9 @@
 package sql
 
 import (
+	"github.com/Lawliet-Chan/yu/storage"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"yu/storage"
 )
 
 type Mysql struct {

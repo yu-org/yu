@@ -1,9 +1,9 @@
 package blockchain
 
 import (
-	. "yu/common"
-	. "yu/result"
-	. "yu/txn"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/result"
+	. "github.com/Lawliet-Chan/yu/txn"
 )
 
 type IBlock interface {

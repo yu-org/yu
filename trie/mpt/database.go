@@ -1,10 +1,10 @@
 package mpt
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	"github.com/Lawliet-Chan/yu/storage/kv"
 	"sync"
-	. "yu/common"
-	"yu/config"
-	"yu/storage/kv"
 )
 
 type NodeBase struct {

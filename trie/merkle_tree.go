@@ -2,7 +2,7 @@ package trie
 
 import (
 	"crypto/sha256"
-	. "yu/common"
+	. "github.com/Lawliet-Chan/yu/common"
 )
 
 // MerkleTree represent a Merkle tree

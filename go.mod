@@ -19,13 +19,13 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/nats-io/nats.go v1.10.0
-	github.com/pingcap/tidb v1.1.0-beta.0.20210108095858-c2ee8d37c22f
+	github.com/pingcap/tidb v1.1.0-beta.0.20210108095858-c2ee8d37c22f // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/tendermint/tendermint v0.34.0
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/grpc/examples v0.0.0-20210405205600-8892a7b247c0 // indirect
 	gorm.io/driver/mysql v1.0.5

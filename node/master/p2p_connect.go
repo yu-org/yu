@@ -5,6 +5,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	. "github.com/Lawliet-Chan/yu/node"
+	"github.com/Lawliet-Chan/yu/tripod"
+	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -15,12 +21,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	. "yu/common"
-	"yu/config"
-	. "yu/node"
-	"yu/tripod"
-	. "yu/txn"
-	. "yu/yerror"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {

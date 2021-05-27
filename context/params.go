@@ -2,8 +2,8 @@ package context
 
 import (
 	"encoding/json"
+	. "github.com/Lawliet-Chan/yu/yerror"
 	"reflect"
-	. "yu/yerror"
 )
 
 func (c *Context) BindJson(v interface{}) error {

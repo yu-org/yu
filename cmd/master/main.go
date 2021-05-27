@@ -2,16 +2,16 @@ package main
 
 import (
 	"flag"
+	"github.com/Lawliet-Chan/yu/apps/pow"
+	"github.com/Lawliet-Chan/yu/blockchain"
+	"github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	"github.com/Lawliet-Chan/yu/node/master"
+	"github.com/Lawliet-Chan/yu/tripod"
+	"github.com/Lawliet-Chan/yu/txpool"
+	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"yu/apps/pow"
-	"yu/blockchain"
-	"yu/common"
-	"yu/config"
-	"yu/node/master"
-	"yu/tripod"
-	"yu/txpool"
-	"yu/utils/codec"
 )
 
 func main() {
@@ -27,16 +27,16 @@ func main() {
 		txpoolCfg config.TxpoolConf
 	)
 
-	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
+	flag.StringVar(&masterCfgPath, "m", "github.com/Lawliet-Chan/yu_conf/master.toml", "Master config file path")
 	config.LoadConf(masterCfgPath, &masterCfg)
 
-	flag.StringVar(&chainCfgPath, "c", "yu_conf/blockchain.toml", "blockchain config file path")
+	flag.StringVar(&chainCfgPath, "c", "github.com/Lawliet-Chan/yu_conf/blockchain.toml", "blockchain config file path")
 	config.LoadConf(chainCfgPath, &chainCfg)
 
-	flag.StringVar(&baseCfgPath, "b", "yu_conf/blockbase.toml", "blockbase config file path")
+	flag.StringVar(&baseCfgPath, "b", "github.com/Lawliet-Chan/yu_conf/blockbase.toml", "blockbase config file path")
 	config.LoadConf(baseCfgPath, &baseCfg)
 
-	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
+	flag.StringVar(&txpoolCfgPath, "tp", "github.com/Lawliet-Chan/yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
 
 	initLog()

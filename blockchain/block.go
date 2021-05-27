@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	. "yu/common"
-	"yu/trie"
-	"yu/txn"
-	. "yu/utils/codec"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/trie"
+	"github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/utils/codec"
 )
 
 type Block struct {

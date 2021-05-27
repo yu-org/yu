@@ -20,7 +20,7 @@ package mpt
 import (
 	"bytes"
 	"fmt"
-	. "yu/common"
+	. "github.com/Lawliet-Chan/yu/common"
 )
 
 var (

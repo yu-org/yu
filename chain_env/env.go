@@ -1,10 +1,10 @@
 package chain_env
 
 import (
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	. "github.com/Lawliet-Chan/yu/subscribe"
+	. "github.com/Lawliet-Chan/yu/txpool"
 	"github.com/libp2p/go-libp2p-core/host"
-	. "yu/blockchain"
-	. "yu/subscribe"
-	. "yu/txpool"
 )
 
 type ChainEnv struct {

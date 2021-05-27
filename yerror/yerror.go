@@ -1,8 +1,8 @@
 package yerror
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/pkg/errors"
-	. "yu/common"
 )
 
 var TypeErr = errors.New("the type of params error")

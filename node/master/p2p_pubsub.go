@@ -3,10 +3,10 @@ package master
 import (
 	"context"
 	"encoding/json"
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/txn"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	. "yu/blockchain"
-	. "yu/common"
-	. "yu/txn"
 )
 
 const (

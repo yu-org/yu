@@ -1,8 +1,8 @@
 package queue
 
 import (
+	"github.com/Lawliet-Chan/yu/storage"
 	"github.com/nats-io/nats.go"
-	"yu/storage"
 )
 
 type NatsQueue struct {

@@ -2,13 +2,13 @@ package blockchain
 
 import (
 	"errors"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	"github.com/Lawliet-Chan/yu/keypair"
+	. "github.com/Lawliet-Chan/yu/result"
+	ysql "github.com/Lawliet-Chan/yu/storage/sql"
+	. "github.com/Lawliet-Chan/yu/txn"
 	"gorm.io/gorm"
-	. "yu/common"
-	"yu/config"
-	"yu/keypair"
-	. "yu/result"
-	ysql "yu/storage/sql"
-	. "yu/txn"
 )
 
 type BlockBase struct {

@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/storage/kv"
 	"io"
 	"testing"
 	"unicode/utf8"
-	. "yu/common"
-	"yu/storage/kv"
 )
 
 func MustUnmarshal(data []byte, load interface{}) {

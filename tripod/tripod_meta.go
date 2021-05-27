@@ -1,12 +1,12 @@
 package tripod
 
 import (
+	. "github.com/Lawliet-Chan/yu/tripod_store"
 	"github.com/sirupsen/logrus"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
-	. "yu/tripod_store"
 )
 
 type TripodMeta struct {

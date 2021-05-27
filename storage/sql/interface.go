@@ -1,10 +1,10 @@
 package sql
 
 import (
+	"github.com/Lawliet-Chan/yu/config"
+	"github.com/Lawliet-Chan/yu/storage"
+	"github.com/Lawliet-Chan/yu/yerror"
 	"gorm.io/gorm"
-	"yu/config"
-	"yu/storage"
-	"yu/yerror"
 )
 
 type SqlDB interface {

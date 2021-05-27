@@ -1,9 +1,9 @@
 package queue
 
 import (
-	"yu/config"
-	"yu/storage"
-	. "yu/yerror"
+	"github.com/Lawliet-Chan/yu/config"
+	"github.com/Lawliet-Chan/yu/storage"
+	. "github.com/Lawliet-Chan/yu/yerror"
 )
 
 type Queue interface {

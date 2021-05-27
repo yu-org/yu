@@ -1,10 +1,10 @@
 package node
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/keypair"
 	"net/http"
 	"path/filepath"
-	. "yu/common"
-	"yu/keypair"
 )
 
 const (

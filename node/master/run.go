@@ -1,12 +1,12 @@
 package master
 
 import (
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/tripod"
+	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
-	. "yu/blockchain"
-	. "yu/common"
-	. "yu/node"
-	. "yu/tripod"
-	. "yu/yerror"
 )
 
 func (m *Master) Run() {

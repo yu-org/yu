@@ -2,9 +2,9 @@ package master
 
 import (
 	"encoding/json"
-	. "yu/common"
-	. "yu/txn"
-	"yu/yerror"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/txn"
+	"github.com/Lawliet-Chan/yu/yerror"
 )
 
 type HandShakeRequest struct {

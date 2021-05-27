@@ -2,9 +2,9 @@ package txn
 
 import (
 	"crypto/sha256"
-	. "yu/common"
-	. "yu/utils/codec"
-	ytime "yu/utils/time"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/utils/codec"
+	ytime "github.com/Lawliet-Chan/yu/utils/time"
 )
 
 type UnsignedTxn struct {

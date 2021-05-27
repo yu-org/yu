@@ -1,11 +1,11 @@
 package node
 
 import (
-	. "yu/blockchain"
-	"yu/chain_env"
-	. "yu/common"
-	"yu/context"
-	. "yu/tripod"
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	"github.com/Lawliet-Chan/yu/chain_env"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/context"
+	. "github.com/Lawliet-Chan/yu/tripod"
 )
 
 func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {

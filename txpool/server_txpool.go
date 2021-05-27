@@ -1,14 +1,14 @@
 package txpool
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	. "github.com/Lawliet-Chan/yu/storage/kv"
+	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
-	. "yu/common"
-	"yu/config"
-	. "yu/storage/kv"
-	. "yu/txn"
-	. "yu/yerror"
 )
 
 // This implementation only use for Master-Worker mode.

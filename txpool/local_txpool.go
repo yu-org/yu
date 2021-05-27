@@ -1,11 +1,11 @@
 package txpool
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/yerror"
 	"sync"
-	. "yu/common"
-	"yu/config"
-	. "yu/txn"
-	. "yu/yerror"
 )
 
 // This implementation only use for Local-Node mode.

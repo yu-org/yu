@@ -1,9 +1,9 @@
 package sql
 
 import (
+	"github.com/Lawliet-Chan/yu/storage"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"yu/storage"
 )
 
 type Sqlite struct {

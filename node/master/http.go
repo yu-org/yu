@@ -1,15 +1,15 @@
 package master
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/context"
+	. "github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/Lawliet-Chan/yu/utils/error_handle"
 	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
 	"net/http"
-	. "yu/common"
-	"yu/context"
-	. "yu/node"
-	. "yu/txn"
-	. "yu/utils/error_handle"
 )
 
 const PARAMS_KEY = "params"

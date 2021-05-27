@@ -1,9 +1,9 @@
 package tripod
 
 import (
-	. "yu/blockchain"
-	. "yu/chain_env"
-	. "yu/txn"
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	. "github.com/Lawliet-Chan/yu/chain_env"
+	. "github.com/Lawliet-Chan/yu/txn"
 )
 
 type Tripod interface {

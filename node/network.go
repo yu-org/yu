@@ -2,11 +2,11 @@ package node
 
 import (
 	"bytes"
+	. "github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
-	. "yu/blockchain"
 )
 
 func SendHeartbeats(addrs []string, handleAlive func(addr string) error, handleDead func(addr string) error) {

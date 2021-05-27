@@ -1,12 +1,12 @@
 package master
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/txn"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httputil"
-	. "yu/common"
-	. "yu/node"
-	. "yu/txn"
 )
 
 func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err error) {

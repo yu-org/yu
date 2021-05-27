@@ -1,8 +1,8 @@
 package tripod_store
 
 import (
-	. "yu/storage/kv"
-	. "yu/yerror"
+	. "github.com/Lawliet-Chan/yu/storage/kv"
+	. "github.com/Lawliet-Chan/yu/yerror"
 )
 
 type TripodKV struct {

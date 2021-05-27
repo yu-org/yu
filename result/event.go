@@ -2,8 +2,8 @@ package result
 
 import (
 	"fmt"
-	. "yu/common"
-	. "yu/utils/codec"
+	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/Lawliet-Chan/yu/utils/codec"
 )
 
 type Event struct {

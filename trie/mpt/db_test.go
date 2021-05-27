@@ -2,8 +2,8 @@ package mpt
 
 import (
 	"bytes"
+	"github.com/Lawliet-Chan/yu/config"
 	"testing"
-	"yu/config"
 )
 
 func TestDataBaseSetPutandGet(t *testing.T) {

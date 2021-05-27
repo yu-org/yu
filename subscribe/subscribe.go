@@ -1,10 +1,10 @@
 package subscribe
 
 import (
+	. "github.com/Lawliet-Chan/yu/result"
 	. "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"sync"
-	. "yu/result"
 )
 
 type Subscription struct {

@@ -1,17 +1,17 @@
 package pow
 
 import (
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	. "github.com/Lawliet-Chan/yu/chain_env"
+	. "github.com/Lawliet-Chan/yu/common"
+	spow "github.com/Lawliet-Chan/yu/consensus/pow"
+	"github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/tripod"
+	"github.com/Lawliet-Chan/yu/txn"
+	ytime "github.com/Lawliet-Chan/yu/utils/time"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"time"
-	. "yu/blockchain"
-	. "yu/chain_env"
-	. "yu/common"
-	spow "yu/consensus/pow"
-	"yu/node"
-	. "yu/tripod"
-	"yu/txn"
-	ytime "yu/utils/time"
 )
 
 type Pow struct {

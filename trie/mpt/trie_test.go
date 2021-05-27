@@ -2,9 +2,9 @@ package mpt
 
 import (
 	"bytes"
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/storage/kv"
 	"testing"
-	. "yu/common"
-	"yu/storage/kv"
 )
 
 func TestTrieSetPutandGet(t *testing.T) {

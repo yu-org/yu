@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	. "github.com/Lawliet-Chan/yu/blockchain"
+	"github.com/Lawliet-Chan/yu/common"
 	"github.com/sirupsen/logrus"
 	"math"
 	"math/big"
-	. "yu/blockchain"
-	"yu/common"
 )
 
 func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {

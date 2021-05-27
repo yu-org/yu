@@ -1,12 +1,12 @@
 package blockchain
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/Lawliet-Chan/yu/config"
+	ysql "github.com/Lawliet-Chan/yu/storage/sql"
+	. "github.com/Lawliet-Chan/yu/utils/codec"
+	"github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
-	. "yu/common"
-	"yu/config"
-	ysql "yu/storage/sql"
-	. "yu/utils/codec"
-	"yu/yerror"
 )
 
 type BlockChain struct {

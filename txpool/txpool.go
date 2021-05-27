@@ -1,7 +1,7 @@
 package txpool
 
 import (
-	. "yu/txn"
+	. "github.com/Lawliet-Chan/yu/txn"
 )
 
 type ItxPool interface {
