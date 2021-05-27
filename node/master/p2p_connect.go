@@ -267,7 +267,7 @@ func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[
 
 	txnsByt := make(map[Hash][]byte)
 	for _, block := range blocks {
-		blockHash := block.GetHeader().GetHash()
+		blockHash := block.GetHash()
 		txns, err := m.base.GetTxns(blockHash)
 		if err != nil {
 			return nil, nil, err
@@ -296,14 +296,14 @@ func (m *Master) AcceptBlocksFromP2P() error {
 			if tri.ValidateBlock(block, m.GetEnv()) {
 				return nil
 			}
-			return BlockIllegal(block.GetHeader().GetHash())
+			return BlockIllegal(block.GetHash())
 		})
 		if err != nil {
 			return err
 		}
 	}
 
-	logrus.Infof("accept block(%s) height(%d) from p2p", block.GetHeader().GetHash().String(), block.GetHeader().GetHeight())
+	logrus.Infof("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
 	return m.chain.InsertBlockFromP2P(block)
 }
 

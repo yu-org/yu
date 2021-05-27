@@ -54,13 +54,13 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
-	logrus.Infof("finish start block(%s) height(%d)", newBlock.GetHeader().GetHash().String(), newBlock.GetHeader().GetHeight())
+	logrus.Infof("finish start block(%s) height(%d)", newBlock.GetHash().String(), newBlock.GetHeight())
 
 	if needBcBlock {
 		go func() {
 			err := m.broadcastBlockAndTxns(newBlock)
 			if err != nil {
-				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHeader().GetHash().String(), err.Error())
+				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHash().String(), err.Error())
 			}
 		}()
 	} else {
@@ -142,7 +142,7 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 }
 
 func (m *Master) broadcastBlockAndTxns(b IBlock) error {
-	blockHash := b.GetHeader().GetHash()
+	blockHash := b.GetHash()
 	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err

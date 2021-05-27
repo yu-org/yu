@@ -7,6 +7,9 @@ import (
 )
 
 type IBlock interface {
+	IHeader
+	GetHeader() IHeader
+
 	GetBlockId() BlockId
 	GetTxnsHashes() []Hash
 	SetTxnsHashes(hashes []Hash)
@@ -15,8 +18,6 @@ type IBlock interface {
 	SetPreHash(hash Hash)
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
-
-	GetHeader() IHeader
 
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
@@ -32,6 +33,8 @@ type IHeader interface {
 	GetStateRoot() Hash
 	GetTimestamp() uint64
 }
+
+// --------------- blockchain interface ----------------
 
 type ConvergeType int
 

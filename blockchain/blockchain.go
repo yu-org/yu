@@ -87,8 +87,8 @@ func (bc *BlockChain) SetGenesis(b IBlock) error {
 
 // pending a block from other BlockChain-node for validating
 func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
-	if bc.ExistsBlock(b.GetHeader().GetHash()) {
-		logrus.Infof("block(%s) height(%d) exists", b.GetHeader().GetHash().String(), b.GetHeader().GetHeight())
+	if bc.ExistsBlock(b.GetHash()) {
+		logrus.Infof("block(%s) height(%d) exists", b.GetHash().String(), b.GetHeight())
 		return nil
 	}
 	bs, err := toBlocksFromP2pScheme(b)
@@ -105,12 +105,12 @@ func (bc *BlockChain) TakeP2pBlocksBefore(height BlockNum) (map[BlockNum][]IBloc
 	blocks := bspToBlocks(bsp)
 	hBlocks := make(map[BlockNum][]IBlock, 0)
 	for _, block := range blocks {
-		height := block.GetHeader().GetHeight()
+		height := block.GetHeight()
 		hBlocks[height] = append(hBlocks[height], block)
 	}
 
 	for _, b := range blocks {
-		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: b.GetHeader().GetHash().String()})
+		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: b.GetHash().String()})
 	}
 	return hBlocks, nil
 }
@@ -126,7 +126,7 @@ func (bc *BlockChain) TakeP2pBlocks(height BlockNum) ([]IBlock, error) {
 }
 
 func (bc *BlockChain) AppendBlock(b IBlock) error {
-	if bc.ExistsBlock(b.GetHeader().GetHash()) {
+	if bc.ExistsBlock(b.GetHash()) {
 		return nil
 	}
 
@@ -165,7 +165,7 @@ func (bc *BlockChain) UpdateBlock(b IBlock) error {
 		return err
 	}
 	bc.chain.Db().Where(&BlocksScheme{
-		Hash: b.GetHeader().GetHash().String(),
+		Hash: b.GetHash().String(),
 	}).Updates(bs)
 	return nil
 }
@@ -312,15 +312,14 @@ func (BlocksScheme) TableName() string {
 }
 
 func toBlocksScheme(b IBlock) (BlocksScheme, error) {
-	header := b.GetHeader()
 	bs := BlocksScheme{
-		Hash:       header.GetHash().String(),
-		PrevHash:   header.GetPrevHash().String(),
-		Height:     header.GetHeight(),
-		TxnRoot:    header.GetTxnRoot().String(),
-		StateRoot:  header.GetStateRoot().String(),
-		Nonce:      header.(*Header).Nonce,
-		Timestamp:  header.GetTimestamp(),
+		Hash:       b.GetHash().String(),
+		PrevHash:   b.GetPrevHash().String(),
+		Height:     b.GetHeight(),
+		TxnRoot:    b.GetTxnRoot().String(),
+		StateRoot:  b.GetStateRoot().String(),
+		Nonce:      b.GetHeader().(*Header).Nonce,
+		Timestamp:  b.GetTimestamp(),
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
 		Finalize:   false,
 	}
@@ -361,8 +360,8 @@ func toBlocksFromP2pScheme(b IBlock) (BlocksFromP2pScheme, error) {
 		return BlocksFromP2pScheme{}, err
 	}
 	return BlocksFromP2pScheme{
-		BlockHash:    b.GetHeader().GetHash().String(),
-		Height:       b.GetHeader().GetHeight(),
+		BlockHash:    b.GetHash().String(),
+		Height:       b.GetHeight(),
 		BlockContent: ToHex(byt),
 	}, nil
 }

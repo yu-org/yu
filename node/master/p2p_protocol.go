@@ -56,9 +56,9 @@ func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
 	}
 
 	return &HandShakeInfo{
-		GenesisBlockHash: gBlock.GetHeader().GetHash(),
-		EndHeight:        eBlock.GetHeader().GetHeight(),
-		EndBlockHash:     eBlock.GetHeader().GetHash(),
+		GenesisBlockHash: gBlock.GetHash(),
+		EndHeight:        eBlock.GetHeight(),
+		EndBlockHash:     eBlock.GetHash(),
 	}, nil
 }
 

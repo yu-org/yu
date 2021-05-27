@@ -13,7 +13,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 	base := env.Base
 	sub := env.Sub
 
-	blockHash := block.GetHeader().GetHash()
+	blockHash := block.GetHash()
 	stxns, err := base.GetTxns(blockHash)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 		}
 
 		for _, event := range ctx.Events {
-			event.Height = block.GetHeader().GetHeight()
+			event.Height = block.GetHeight()
 			event.BlockHash = blockHash
 			event.ExecName = ecall.ExecName
 			event.TripodName = ecall.TripodName
@@ -53,7 +53,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			e.TripodName = ecall.TripodName
 			e.ExecName = ecall.ExecName
 			e.BlockHash = blockHash
-			e.Height = block.GetHeader().GetHeight()
+			e.Height = block.GetHeight()
 
 			if sub != nil {
 				sub.Push(e)

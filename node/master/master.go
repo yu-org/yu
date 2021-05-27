@@ -209,7 +209,7 @@ func (m *Master) CheckHealth() {
 // sync P2P-network's txns
 func (m *Master) SyncTxns(block IBlock) error {
 	txnsHashes := block.GetTxnsHashes()
-	blockHash := block.GetHeader().GetHash()
+	blockHash := block.GetHash()
 	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err
@@ -257,7 +257,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				if tri.ValidateBlock(block, m.GetEnv()) {
 					return m.chain.AppendBlock(block)
 				}
-				return BlockIllegal(block.GetHeader().GetHash())
+				return BlockIllegal(block.GetHash())
 			})
 			if err != nil {
 				return err

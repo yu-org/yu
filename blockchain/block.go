@@ -12,6 +12,30 @@ type Block struct {
 	TxnsHashes []Hash
 }
 
+func (b *Block) GetHeight() BlockNum {
+	return b.Header.GetHeight()
+}
+
+func (b *Block) GetHash() Hash {
+	return b.Header.GetHash()
+}
+
+func (b *Block) GetPrevHash() Hash {
+	return b.Header.GetPrevHash()
+}
+
+func (b *Block) GetTxnRoot() Hash {
+	return b.Header.GetTxnRoot()
+}
+
+func (b *Block) GetStateRoot() Hash {
+	return b.Header.GetStateRoot()
+}
+
+func (b *Block) GetTimestamp() uint64 {
+	return b.Header.GetTimestamp()
+}
+
 func (b *Block) GetHeader() IHeader {
 	return b.Header
 }

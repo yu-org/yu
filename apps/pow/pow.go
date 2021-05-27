@@ -74,8 +74,8 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 		return
 	}
 
-	prevHeight := prevBlock.GetHeader().GetHeight()
-	prevHash := prevBlock.GetHeader().GetHash()
+	prevHeight := prevBlock.GetHeight()
+	prevHash := prevBlock.GetHash()
 
 	logrus.Infof("prev-block hash is (%s), height is (%d)", prevHash.String(), prevHeight)
 
@@ -101,7 +101,7 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 	}
 	if len(pbsht) > 0 {
 		block.CopyFrom(pbsht[0])
-		logrus.Infof("USE P2P block(%s)", block.GetHeader().GetHash().String())
+		logrus.Infof("USE P2P block(%s)", block.GetHash().String())
 		return
 	}
 
@@ -150,7 +150,7 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	logrus.Infof("append block(%d)", block.GetHeader().GetHeight())
+	logrus.Infof("append block(%d)", block.GetHeight())
 
 	return pool.Flush()
 }
