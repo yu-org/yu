@@ -98,6 +98,7 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 			return err
 		}
 
+		// todo: we need make some strategy to choose the best node(s)
 		// sync history block from first connected P2P-node
 		if i == 0 {
 			s, err := m.host.NewStream(ctx, peer.ID, pid)

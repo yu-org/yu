@@ -7,18 +7,20 @@ import (
 )
 
 type DefaultTripod struct {
-	meta *TripodMeta
+	*DefaultChainLifeCycle
+	Meta *TripodMeta
 }
 
 func NewDefaultTripod(name string) *DefaultTripod {
 	meta := NewTripodMeta(name)
 	return &DefaultTripod{
-		meta: meta,
+		DefaultChainLifeCycle: &DefaultChainLifeCycle{},
+		Meta:                  meta,
 	}
 }
 
 func (dt *DefaultTripod) TripodMeta() *TripodMeta {
-	return dt.meta
+	return dt.Meta
 }
 
 func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
@@ -29,18 +31,20 @@ func (*DefaultTripod) ValidateBlock(IBlock, *ChainEnv) bool {
 	return false
 }
 
-func (*DefaultTripod) InitChain(*ChainEnv, *Land) error {
+type DefaultChainLifeCycle struct{}
+
+func (*DefaultChainLifeCycle) InitChain(*ChainEnv, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(*ChainEnv, *Land) (IBlock, bool, error) {
+func (*DefaultChainLifeCycle) StartBlock(*ChainEnv, *Land) (IBlock, bool, error) {
 	return nil, false, nil
 }
 
-func (*DefaultTripod) EndBlock(IBlock, *ChainEnv, *Land) error {
+func (*DefaultChainLifeCycle) EndBlock(IBlock, *ChainEnv, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(IBlock, *ChainEnv, *Land) error {
+func (*DefaultChainLifeCycle) FinalizeBlock(IBlock, *ChainEnv, *Land) error {
 	return nil
 }

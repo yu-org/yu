@@ -286,11 +286,12 @@ func (m *Master) executeChainTxns() error {
 
 func (m *Master) GetEnv() *ChainEnv {
 	return &ChainEnv{
-		Chain: m.chain,
-		Base:  m.base,
-		Pool:  m.txPool,
-		Peer:  m.host,
-		Sub:   m.sub,
+		RunMode: m.RunMode,
+		Chain:   m.chain,
+		Base:    m.base,
+		Pool:    m.txPool,
+		Peer:    m.host,
+		Sub:     m.sub,
 	}
 }
 

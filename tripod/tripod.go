@@ -13,6 +13,10 @@ type Tripod interface {
 
 	ValidateBlock(block IBlock, env *ChainEnv) bool
 
+	ChainLifeCycle
+}
+
+type ChainLifeCycle interface {
 	InitChain(env *ChainEnv, land *Land) error
 
 	StartBlock(env *ChainEnv, land *Land) (newBlock IBlock, needBroadcast bool, err error)
