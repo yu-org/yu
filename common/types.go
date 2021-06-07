@@ -52,6 +52,10 @@ type (
 	CallType int
 )
 
+func (e *Ecall) Bytes() []byte {
+	return Sha256([]byte(e.TripodName), []byte(e.ExecName), []byte(e.Params))
+}
+
 const (
 	ExecCall CallType = iota
 	QryCall

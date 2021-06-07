@@ -15,17 +15,17 @@ type UnsignedTxn struct {
 }
 
 func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
-	UnsignedTxn := &UnsignedTxn{
+	utxn := &UnsignedTxn{
 		Caller:    caller,
 		Ecall:     ecall,
 		Timestamp: ytime.NowNanoTsU64(),
 	}
-	id, err := UnsignedTxn.Hash()
+	id, err := utxn.Hash()
 	if err != nil {
 		return nil, err
 	}
-	UnsignedTxn.Id = id
-	return UnsignedTxn, nil
+	utxn.Id = id
+	return utxn, nil
 }
 
 func (ut *UnsignedTxn) ID() Hash {

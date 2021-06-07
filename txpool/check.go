@@ -32,8 +32,8 @@ func checkPoolLimit(txnsInPool []*SignedTxn, poolsize uint64) error {
 
 func checkSignature(stxn *SignedTxn) error {
 	sig := stxn.GetSignature()
-	hash := stxn.GetTxnHash()
-	if !stxn.GetPubkey().VerifySignature(hash.Bytes(), sig) {
+	ecall := stxn.GetRaw().GetEcall()
+	if !stxn.GetPubkey().VerifySignature(ecall.Bytes(), sig) {
 		return TxnSignatureErr
 	}
 	return nil

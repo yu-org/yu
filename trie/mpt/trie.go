@@ -462,7 +462,6 @@ func (t *Trie) resolve(n node, prefix []byte) (node, error) {
 
 func (t *Trie) resolveHash(n HashNode, prefix []byte) (node, error) {
 	hash := BytesToHash(n)
-	// fmt.Println("resolving", hash)
 	if node := t.db.node(hash); node != nil {
 		return node, nil
 	}
@@ -471,11 +470,11 @@ func (t *Trie) resolveHash(n HashNode, prefix []byte) (node, error) {
 
 // Hash returns the root hash of the trie. It does not write to the
 // database and can be used even if the trie doesn't have one.
-// func (t *Trie) Hash() Hash {
-// 	hash, cached, _ := t.hashRoot(nil, nil)
-// 	t.root = cached
-// 	return common.BytesToHash(hash.(HashNode))
-// }
+func (t *Trie) Hash() Hash {
+	hash, cached, _ := t.hashRoot(nil, nil)
+	t.root = cached
+	return BytesToHash(hash.(HashNode))
+}
 
 // // Commit writes all nodes to the trie's memory database, tracking the internal
 // // and external (for account tries) references.
