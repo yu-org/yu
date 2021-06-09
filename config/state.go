@@ -1,5 +1,10 @@
 package config
 
 type StateConf struct {
-	KvDB KVconf `toml:"kv_db"`
+	KV StateKvConf `toml:"kv"`
+}
+
+type StateKvConf struct {
+	IndexDB  KVconf `toml:"index_db"`
+	NodeBase KVconf `toml:"node_base"`
 }

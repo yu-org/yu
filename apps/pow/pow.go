@@ -125,7 +125,7 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 	if err != nil {
 		return
 	}
-	block.SetStateRoot(txnRoot)
+	block.SetTxnHash(txnRoot)
 
 	nonce, hash, err := spow.Run(block, p.target, p.targetBits)
 	if err != nil {
@@ -153,12 +153,14 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	err = env.Commit()
+	stateRoot, err := env.Commit()
 	if err != nil {
 		return err
 	}
 	env.SetCanRead(block.GetHash())
 	logrus.Infof("append block(%d)", block.GetHeight())
+
+	block.SetStateRoot(stateRoot)
 
 	return pool.Flush()
 }

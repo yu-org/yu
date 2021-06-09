@@ -56,6 +56,10 @@ func (b *Block) SetPreHash(preHash Hash) {
 	b.Header.PrevHash = preHash
 }
 
+func (b *Block) SetTxnHash(hash Hash) {
+	b.Header.TxnRoot = hash
+}
+
 func (b *Block) SetHeight(height BlockNum) {
 	b.Header.Height = height
 }

@@ -10,7 +10,7 @@ type StateStore struct {
 }
 
 func NewStateStore(cfg *StateConf, canRead Hash) (*StateStore, error) {
-	stateKV, err := NewStateKV(&cfg.KvDB, canRead)
+	stateKV, err := NewStateKV(&cfg.KV, canRead)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (ss *StateStore) SetCanRead(blockHash Hash) {
 	ss.KVDB.SetCanRead(blockHash)
 }
 
-func (ss *StateStore) Commit() error {
+func (ss *StateStore) Commit() (Hash, error) {
 	return ss.KVDB.Commit()
 }
 
