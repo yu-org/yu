@@ -21,8 +21,8 @@ func (ss *StateStore) StartBlock(blockHash Hash) {
 	ss.KVDB.StartBlock(blockHash)
 }
 
-func (ss *StateStore) CanReadBlock(blockHash Hash) {
-	ss.KVDB.CanReadBlock(blockHash)
+func (ss *StateStore) SetCanRead(blockHash Hash) {
+	ss.KVDB.SetCanRead(blockHash)
 }
 
 func (ss *StateStore) Commit() error {

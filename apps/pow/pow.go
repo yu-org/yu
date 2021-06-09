@@ -157,7 +157,7 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 	if err != nil {
 		return err
 	}
-	env.CanReadBlock(block.GetHash())
+	env.SetCanRead(block.GetHash())
 	logrus.Infof("append block(%d)", block.GetHeight())
 
 	return pool.Flush()

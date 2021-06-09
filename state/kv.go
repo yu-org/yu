@@ -105,7 +105,7 @@ func (skv *StateKV) StartBlock(blockHash Hash) {
 	skv.nowBlock = blockHash
 }
 
-func (skv *StateKV) CanReadBlock(blockHash Hash) {
+func (skv *StateKV) SetCanRead(blockHash Hash) {
 	skv.canReadBlock = blockHash
 }
 
