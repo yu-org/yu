@@ -6,11 +6,13 @@ import (
 	. "github.com/Lawliet-Chan/yu/trie/mpt"
 )
 
-//                        Merkle Patricia Trie
-//             /                    |                   \
+//                         Merkle Patricia Trie
+//                   /              |              \
+//                  /               |               \
 //        blockHash             blockHash            blockHash
 //		/     |     \         /     |     \        /     |     \
-//	   kv    kv     kv       kv     kv    kv      kv     kv    kv
+//     /      |      \		 /      |      \      /      |      \
+//	  kv      kv      kv     kv     kv     kv    kv     kv      kv
 
 type StateKV struct {
 	nodeBase *NodeBase
