@@ -102,6 +102,7 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 	if len(pbsht) > 0 {
 		block.CopyFrom(pbsht[0])
 		logrus.Infof("USE P2P block(%s)", block.GetHash().String())
+		env.StartBlock(block.GetHash())
 		return
 	}
 
@@ -133,6 +134,8 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
+	env.StartBlock(hash)
+
 	return
 }
 
@@ -150,6 +153,11 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
+	err = env.Commit()
+	if err != nil {
+		return err
+	}
+	env.CanReadBlock(block.GetHash())
 	logrus.Infof("append block(%d)", block.GetHeight())
 
 	return pool.Flush()

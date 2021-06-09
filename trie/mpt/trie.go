@@ -25,7 +25,7 @@ import (
 
 var (
 	// emptyRoot is the known root hash of an empty trie.
-	emptyRoot = HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
+	EmptyRoot = HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 
 	// emptyState is the known hash of an empty state trie entry.
 	emptyState = Keccak256Hash(nil)
@@ -64,7 +64,7 @@ func NewTrie(root Hash, db *NodeBase) (*Trie, error) {
 	trie := &Trie{
 		db: db,
 	}
-	if root != (Hash{}) && root != emptyRoot {
+	if root != (Hash{}) && root != EmptyRoot {
 		rootnode, err := trie.resolveHash(root.Bytes(), nil)
 		if err != nil {
 			return nil, err
@@ -492,7 +492,7 @@ func (t *Trie) Commit(onleaf LeafCallback) (root Hash, err error) {
 
 func (t *Trie) hashRoot(db *NodeBase, onleaf LeafCallback) (node, node, error) {
 	if t.root == nil {
-		return HashNode(emptyRoot.Bytes()), nil, nil
+		return HashNode(EmptyRoot.Bytes()), nil, nil
 	}
 	h := newHasher(onleaf)
 	defer returnHasherToPool(h)

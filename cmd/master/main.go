@@ -7,6 +7,7 @@ import (
 	"github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
+	"github.com/Lawliet-Chan/yu/state"
 	"github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
@@ -20,11 +21,13 @@ func main() {
 		chainCfgPath  string
 		baseCfgPath   string
 		txpoolCfgPath string
+		stateCfgPath  string
 
 		masterCfg config.MasterConf
 		chainCfg  config.BlockchainConf
 		baseCfg   config.BlockBaseConf
 		txpoolCfg config.TxpoolConf
+		stateCfg  config.StateConf
 	)
 
 	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
@@ -38,6 +41,9 @@ func main() {
 
 	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
+
+	flag.StringVar(&stateCfgPath, "s", "yu_conf/state.toml", "state config file path")
+	config.LoadConf(stateCfgPath, &stateCfg)
 
 	initLog()
 
@@ -63,13 +69,27 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 
-	m, err := master.NewMaster(&masterCfg, chain, base, pool, land)
+	stateStore, err := loadStateStore(chain, &stateCfg)
+	if err != nil {
+		logrus.Panicf("load stateKV error: %s", err.Error())
+	}
+
+	m, err := master.NewMaster(&masterCfg, chain, base, pool, stateStore, land)
 	if err != nil {
 		logrus.Panicf("load master error: %s", err.Error())
 	}
 
 	m.Startup()
 
+}
+
+func loadStateStore(chain blockchain.IBlockChain, cfg *config.StateConf) (*state.StateStore, error) {
+	b, err := chain.GetEndBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return state.NewStateStore(cfg, b.GetHash())
 }
 
 func loadLand() *tripod.Land {

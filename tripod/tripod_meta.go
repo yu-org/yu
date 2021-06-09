@@ -1,7 +1,6 @@
 package tripod
 
 import (
-	. "github.com/Lawliet-Chan/yu/tripod_store"
 	"github.com/sirupsen/logrus"
 	"path/filepath"
 	"reflect"
@@ -10,8 +9,6 @@ import (
 )
 
 type TripodMeta struct {
-	*TripodStore
-
 	name string
 	// Key: Execution Name
 	execs map[string]Execution

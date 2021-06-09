@@ -8,6 +8,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/config"
 	. "github.com/Lawliet-Chan/yu/node"
+	. "github.com/Lawliet-Chan/yu/state"
 	"github.com/Lawliet-Chan/yu/storage/kv"
 	"github.com/Lawliet-Chan/yu/subscribe"
 	. "github.com/Lawliet-Chan/yu/tripod"
@@ -38,10 +39,12 @@ type Master struct {
 	wsPort   string
 	timeout  time.Duration
 
-	chain  IBlockChain
-	base   IBlockBase
-	txPool ItxPool
-	land   *Land
+	chain      IBlockChain
+	base       IBlockBase
+	txPool     ItxPool
+	stateStore *StateStore
+
+	land *Land
 
 	// blocks to broadcast into P2P network
 	// blockBcChan chan *TransferBody
@@ -69,6 +72,7 @@ func NewMaster(
 	chain IBlockChain,
 	base IBlockBase,
 	txPool ItxPool,
+	store *StateStore,
 	land *Land,
 ) (*Master, error) {
 	nkDB, err := kv.NewKV(&cfg.NkDB)
@@ -89,18 +93,20 @@ func NewMaster(
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	m := &Master{
-		host:     p2pHost,
-		ps:       ps,
-		RunMode:  cfg.RunMode,
-		nkDB:     nkDB,
-		timeout:  timeout,
-		httpPort: MakePort(cfg.HttpPort),
-		wsPort:   MakePort(cfg.WsPort),
-		chain:    chain,
-		base:     base,
-		txPool:   txPool,
-		land:     land,
-		sub:      subscribe.NewSubscription(),
+		host:       p2pHost,
+		ps:         ps,
+		RunMode:    cfg.RunMode,
+		nkDB:       nkDB,
+		timeout:    timeout,
+		httpPort:   MakePort(cfg.HttpPort),
+		wsPort:     MakePort(cfg.WsPort),
+		chain:      chain,
+		base:       base,
+		txPool:     txPool,
+		stateStore: store,
+
+		land: land,
+		sub:  subscribe.NewSubscription(),
 	}
 
 	err = m.InitChain()
@@ -286,12 +292,13 @@ func (m *Master) executeChainTxns() error {
 
 func (m *Master) GetEnv() *ChainEnv {
 	return &ChainEnv{
-		RunMode: m.RunMode,
-		Chain:   m.chain,
-		Base:    m.base,
-		Pool:    m.txPool,
-		Peer:    m.host,
-		Sub:     m.sub,
+		StateStore: m.stateStore,
+		RunMode:    m.RunMode,
+		Chain:      m.chain,
+		Base:       m.base,
+		Pool:       m.txPool,
+		Peer:       m.host,
+		Sub:        m.sub,
 	}
 }
 
