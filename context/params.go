@@ -3,6 +3,7 @@ package context
 import (
 	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/yerror"
+	"github.com/sirupsen/logrus"
 	"reflect"
 )
 
@@ -14,7 +15,15 @@ func (c *Context) Get(name string) interface{} {
 	return c.paramsMap[name]
 }
 
-func (c *Context) GetString(name string) (string, error) {
+func (c *Context) GetString(name string) string {
+	str, err := c.TryGetString(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return str
+}
+
+func (c *Context) TryGetString(name string) (string, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.String {
 		return pi.(string), nil
@@ -22,7 +31,31 @@ func (c *Context) GetString(name string) (string, error) {
 	return "", TypeErr
 }
 
-func (c *Context) GetBoolean(name string) (bool, error) {
+func (c *Context) GetBytes(name string) []byte {
+	byt, err := c.TryGetBytes(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return byt
+}
+
+func (c *Context) TryGetBytes(name string) ([]byte, error) {
+	pi := c.paramsMap[name]
+	if byt, ok := pi.([]byte); ok {
+		return byt, nil
+	}
+	return nil, TypeErr
+}
+
+func (c *Context) GetBoolean(name string) bool {
+	b, err := c.TryGetBoolean(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return b
+}
+
+func (c *Context) TryGetBoolean(name string) (bool, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Bool {
 		return pi.(bool), nil
@@ -30,7 +63,15 @@ func (c *Context) GetBoolean(name string) (bool, error) {
 	return false, TypeErr
 }
 
-func (c *Context) GetInt(name string) (int, error) {
+func (c *Context) GetInt(name string) int {
+	i, err := c.TryGetInt(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return i
+}
+
+func (c *Context) TryGetInt(name string) (int, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int {
 		return pi.(int), nil
@@ -38,7 +79,15 @@ func (c *Context) GetInt(name string) (int, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetUint(name string) (uint, error) {
+func (c *Context) GetUint(name string) uint {
+	u, err := c.TryGetUint(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return u
+}
+
+func (c *Context) TryGetUint(name string) (uint, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint {
 		return pi.(uint), nil
@@ -46,7 +95,15 @@ func (c *Context) GetUint(name string) (uint, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetInt8(name string) (int8, error) {
+func (c *Context) GetInt8(name string) int8 {
+	i, err := c.TryGetInt8(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return i
+}
+
+func (c *Context) TryGetInt8(name string) (int8, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int8 {
 		return pi.(int8), nil
@@ -54,7 +111,15 @@ func (c *Context) GetInt8(name string) (int8, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetUint8(name string) (uint8, error) {
+func (c *Context) GetUint8(name string) uint8 {
+	u, err := c.TryGetUint8(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return u
+}
+
+func (c *Context) TryGetUint8(name string) (uint8, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint8 {
 		return pi.(uint8), nil
@@ -62,7 +127,15 @@ func (c *Context) GetUint8(name string) (uint8, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetInt16(name string) (int16, error) {
+func (c *Context) GetInt16(name string) int16 {
+	i, err := c.TryGetInt16(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return i
+}
+
+func (c *Context) TryGetInt16(name string) (int16, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int16 {
 		return pi.(int16), nil
@@ -70,7 +143,15 @@ func (c *Context) GetInt16(name string) (int16, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetUint16(name string) (uint16, error) {
+func (c *Context) GetUint16(name string) uint16 {
+	u, err := c.TryGetUint16(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return u
+}
+
+func (c *Context) TryGetUint16(name string) (uint16, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint16 {
 		return pi.(uint16), nil
@@ -78,7 +159,15 @@ func (c *Context) GetUint16(name string) (uint16, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetInt32(name string) (int32, error) {
+func (c *Context) GetInt32(name string) int32 {
+	i, err := c.TryGetInt32(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return i
+}
+
+func (c *Context) TryGetInt32(name string) (int32, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int32 {
 		return pi.(int32), nil
@@ -86,7 +175,15 @@ func (c *Context) GetInt32(name string) (int32, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetUint32(name string) (uint32, error) {
+func (c *Context) GetUint32(name string) uint32 {
+	u, err := c.TryGetUint32(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return u
+}
+
+func (c *Context) TryGetUint32(name string) (uint32, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint32 {
 		return pi.(uint32), nil
@@ -94,7 +191,15 @@ func (c *Context) GetUint32(name string) (uint32, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetInt64(name string) (int64, error) {
+func (c *Context) GetInt64(name string) int64 {
+	i, err := c.TryGetInt64(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return i
+}
+
+func (c *Context) TryGetInt64(name string) (int64, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Int64 {
 		return pi.(int64), nil
@@ -102,7 +207,15 @@ func (c *Context) GetInt64(name string) (int64, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetUint64(name string) (uint64, error) {
+func (c *Context) GetUint64(name string) uint64 {
+	u, err := c.TryGetUint64(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return u
+}
+
+func (c *Context) TryGetUint64(name string) (uint64, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Uint64 {
 		return pi.(uint64), nil
@@ -110,7 +223,15 @@ func (c *Context) GetUint64(name string) (uint64, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetFloat32(name string) (float32, error) {
+func (c *Context) GetFloat32(name string) float32 {
+	f, err := c.TryGetFloat32(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return f
+}
+
+func (c *Context) TryGetFloat32(name string) (float32, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Float32 {
 		return pi.(float32), nil
@@ -118,7 +239,15 @@ func (c *Context) GetFloat32(name string) (float32, error) {
 	return 0, TypeErr
 }
 
-func (c *Context) GetFloat64(name string) (float64, error) {
+func (c *Context) GetFloat64(name string) float64 {
+	f, err := c.TryGetFloat64(name)
+	if err != nil {
+		logrus.Panic(TypeErr)
+	}
+	return f
+}
+
+func (c *Context) TryGetFloat64(name string) (float64, error) {
 	pi := c.paramsMap[name]
 	if reflect.TypeOf(pi).Kind() == reflect.Float64 {
 		return pi.(float64), nil
