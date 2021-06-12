@@ -24,56 +24,56 @@ func NewTripodMeta(name string) *TripodMeta {
 	}
 }
 
-func (th *TripodMeta) Name() string {
-	return th.name
+func (t *TripodMeta) Name() string {
+	return t.name
 }
 
-func (th *TripodMeta) SetExecs(fns ...Execution) {
+func (t *TripodMeta) SetExecs(fns ...Execution) {
 	for _, fn := range fns {
 		ptr := reflect.ValueOf(fn).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
 		nameEnd := filepath.Ext(nameFull)
 		name := strings.TrimPrefix(nameEnd, ".")
-		th.execs[name] = fn
+		t.execs[name] = fn
 		logrus.Infof("register Execution (%s) into TripodMeta \n", name)
 	}
 }
 
-func (th *TripodMeta) SetQueries(queries ...Query) {
+func (t *TripodMeta) SetQueries(queries ...Query) {
 	for _, q := range queries {
 		ptr := reflect.ValueOf(q).Pointer()
 		nameFull := runtime.FuncForPC(ptr).Name()
 		nameEnd := filepath.Ext(nameFull)
 		name := strings.TrimPrefix(nameEnd, ".")
-		th.queries[name] = q
+		t.queries[name] = q
 		logrus.Infof("register Query (%s) into TripodMeta \n", name)
 	}
 }
 
-func (th *TripodMeta) ExistExec(execName string) bool {
-	_, ok := th.execs[execName]
+func (t *TripodMeta) ExistExec(execName string) bool {
+	_, ok := t.execs[execName]
 	return ok
 }
 
-func (th *TripodMeta) GetExec(name string) Execution {
-	return th.execs[name]
+func (t *TripodMeta) GetExec(name string) Execution {
+	return t.execs[name]
 }
 
-func (th *TripodMeta) GetQuery(name string) Query {
-	return th.queries[name]
+func (t *TripodMeta) GetQuery(name string) Query {
+	return t.queries[name]
 }
 
-func (th *TripodMeta) AllQueryNames() []string {
+func (t *TripodMeta) AllQueryNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range th.queries {
+	for name, _ := range t.queries {
 		allNames = append(allNames, name)
 	}
 	return allNames
 }
 
-func (th *TripodMeta) AllExecNames() []string {
+func (t *TripodMeta) AllExecNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range th.execs {
+	for name, _ := range t.execs {
 		allNames = append(allNames, name)
 	}
 	return allNames

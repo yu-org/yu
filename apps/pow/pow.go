@@ -47,6 +47,10 @@ func (p *Pow) TripodMeta() *TripodMeta {
 	return p.meta
 }
 
+func (p *Pow) Name() string {
+	return p.meta.Name()
+}
+
 func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }

@@ -21,11 +21,11 @@ func NewLand() *Land {
 }
 
 func (l *Land) SetTripods(Tripods ...Tripod) {
-	for _, Tripod := range Tripods {
-		TripodName := Tripod.TripodMeta().Name()
-		l.tripodsMap[TripodName] = Tripod
+	for _, tri := range Tripods {
+		triName := tri.TripodMeta().Name()
+		l.tripodsMap[triName] = tri
 
-		l.orderedTripods = append(l.orderedTripods, Tripod)
+		l.orderedTripods = append(l.orderedTripods, tri)
 	}
 }
 

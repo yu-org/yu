@@ -9,6 +9,8 @@ import (
 type Tripod interface {
 	TripodMeta() *TripodMeta
 
+	Name() string
+
 	CheckTxn(*SignedTxn) error
 
 	ValidateBlock(block IBlock, env *ChainEnv) bool

@@ -47,27 +47,32 @@ func NewStateKV(cfg *StateKvConf, canReadBlock Hash) (*StateKV, error) {
 	}, nil
 }
 
-func (skv *StateKV) Set(key, value []byte) {
+func (skv *StateKV) Set(triName NameString, key, value []byte) {
 	skv.stashes = append(skv.stashes, &KvStash{
 		ops:   SetOp,
-		Key:   key,
+		Key:   makeKey(triName, key),
 		Value: value,
 	})
 }
 
-func (skv *StateKV) Delete(key []byte) {
+func (skv *StateKV) Delete(triName NameString, key []byte) {
 	skv.stashes = append(skv.stashes, &KvStash{
 		ops:   DeleteOp,
-		Key:   key,
+		Key:   makeKey(triName, key),
 		Value: nil,
 	})
 }
 
-func (skv *StateKV) Get(key []byte) ([]byte, error) {
-	return skv.GetByBlockHash(key, skv.canReadBlock)
+func (skv *StateKV) Get(triName NameString, key []byte) ([]byte, error) {
+	return skv.GetByBlockHash(triName, key, skv.canReadBlock)
 }
 
-func (skv *StateKV) GetByBlockHash(key []byte, blockHash Hash) ([]byte, error) {
+func (skv *StateKV) Exist(triName NameString, key []byte) bool {
+	value, _ := skv.Get(triName, key)
+	return value != nil
+}
+
+func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
 	stateRoot, err := skv.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
@@ -76,7 +81,7 @@ func (skv *StateKV) GetByBlockHash(key []byte, blockHash Hash) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return mpt.TryGet(key)
+	return mpt.TryGet(makeKey(triName, key))
 }
 
 // return StateRoot or error
@@ -156,6 +161,11 @@ func (skv *StateKV) getIndexDB(blockHash Hash) (Hash, error) {
 	return BytesToHash(stateRoot), nil
 }
 
+func makeKey(triName NameString, key []byte) []byte {
+	tripodName := []byte(triName.Name())
+	return append(tripodName, key...)
+}
+
 type Ops int
 
 const (
@@ -167,4 +177,8 @@ type KvStash struct {
 	ops   Ops
 	Key   []byte
 	Value []byte
+}
+
+type NameString interface {
+	Name() string
 }

@@ -23,6 +23,10 @@ func (dt *DefaultTripod) TripodMeta() *TripodMeta {
 	return dt.Meta
 }
 
+func (dt *DefaultTripod) Name() string {
+	return dt.Meta.name
+}
+
 func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
