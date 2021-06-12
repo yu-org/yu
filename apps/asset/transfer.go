@@ -51,6 +51,7 @@ func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 	}
 
 	a.setBalance(env, from, fromBalance)
+	ctx.EmitEvent("Transfer Completed!")
 
 	return
 }
@@ -59,11 +60,13 @@ func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 
-	if env.KVDB.Exist(a, addr.Bytes()) {
+	if a.exsitAccount(env, addr) {
+		ctx.EmitEvent("Account Exists!")
 		return nil
 	}
 
 	a.setBalance(env, addr, Amount(amount))
+	ctx.EmitEvent("Account Created Success!")
 	return nil
 }
 

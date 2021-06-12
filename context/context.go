@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/result"
+	"github.com/Lawliet-Chan/yu/utils/codec"
+	"github.com/sirupsen/logrus"
 )
 
 type Context struct {
@@ -29,16 +31,15 @@ func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
 	}, nil
 }
 
-func (c *Context) EmitEvent(value Display) error {
-	str, err := value.ToString()
+func (c *Context) EmitEvent(value interface{}) {
+	byt, err := codec.GlobalCodec.EncodeToBytes(value)
 	if err != nil {
-		return err
+		logrus.Panicf("encode event to bytes error: %s", err.Error())
 	}
 	event := &Event{
-		Value: str,
+		Value: string(byt),
 	}
 	c.Events = append(c.Events, event)
-	return nil
 }
 
 func (c *Context) EmitError(e error) {
