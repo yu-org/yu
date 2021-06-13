@@ -26,7 +26,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 		}
 		err = land.Execute(ecall, ctx, env)
 		if err != nil {
-			return err
+			ctx.EmitError(err)
 		}
 
 		err = chain.UpdateBlock(block)
@@ -47,24 +47,22 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			}
 		}
 
-		for _, e := range ctx.Errors {
-			e.Caller = stxn.GetRaw().GetCaller()
-			e.BlockStage = ExecuteTxnsStage
-			e.TripodName = ecall.TripodName
-			e.ExecName = ecall.ExecName
-			e.BlockHash = blockHash
-			e.Height = block.GetHeight()
+		ctx.Error.Caller = stxn.GetRaw().GetCaller()
+		ctx.Error.BlockStage = ExecuteTxnsStage
+		ctx.Error.TripodName = ecall.TripodName
+		ctx.Error.ExecName = ecall.ExecName
+		ctx.Error.BlockHash = blockHash
+		ctx.Error.Height = block.GetHeight()
 
-			if sub != nil {
-				sub.Push(e)
-			}
+		if sub != nil {
+			sub.Push(ctx.Error)
 		}
 
 		err = base.SetEvents(ctx.Events)
 		if err != nil {
 			return err
 		}
-		err = base.SetErrors(ctx.Errors)
+		err = base.SetError(ctx.Error)
 		if err != nil {
 			return err
 		}

@@ -51,7 +51,7 @@ func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 	}
 
 	a.setBalance(env, from, fromBalance)
-	ctx.EmitEvent("Transfer Completed!")
+	_ = ctx.EmitEvent("Transfer Completed!")
 
 	return
 }
@@ -61,12 +61,12 @@ func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
 	amount := ctx.GetUint64("amount")
 
 	if a.exsitAccount(env, addr) {
-		ctx.EmitEvent("Account Exists!")
+		_ = ctx.EmitEvent("Account Exists!")
 		return nil
 	}
 
 	a.setBalance(env, addr, Amount(amount))
-	ctx.EmitEvent("Account Created Success!")
+	_ = ctx.EmitEvent("Account Created Success!")
 	return nil
 }
 

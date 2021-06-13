@@ -13,7 +13,7 @@ type Context struct {
 	paramsMap map[string]interface{}
 	paramsStr JsonString
 	Events    []*Event
-	Errors    []*Error
+	Error     *Error
 }
 
 func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
@@ -27,24 +27,24 @@ func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
 		paramsMap: pMap,
 		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),
-		Errors:    make([]*Error, 0),
 	}, nil
 }
 
-func (c *Context) EmitEvent(value interface{}) {
+func (c *Context) EmitEvent(value interface{}) error {
 	byt, err := codec.GlobalCodec.EncodeToBytes(value)
 	if err != nil {
-		logrus.Panicf("encode event to bytes error: %s", err.Error())
+		logrus.Errorf("encode event to bytes error: %s", err.Error())
+		return err
 	}
 	event := &Event{
 		Value: string(byt),
 	}
 	c.Events = append(c.Events, event)
+	return nil
 }
 
 func (c *Context) EmitError(e error) {
-	err := &Error{
+	c.Error = &Error{
 		Err: e,
 	}
-	c.Errors = append(c.Errors, err)
 }

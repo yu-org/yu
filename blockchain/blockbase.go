@@ -124,14 +124,12 @@ func (bb *BlockBase) GetErrors(blockHash Hash) ([]*Error, error) {
 	return errs, nil
 }
 
-func (bb *BlockBase) SetErrors(errs []*Error) error {
-	errSms := make([]ErrorScheme, 0)
-	for _, err := range errs {
-		errSms = append(errSms, toErrorScheme(err))
+func (bb *BlockBase) SetError(err *Error) error {
+	if err == nil {
+		return nil
 	}
-	if len(errSms) > 0 {
-		bb.db.Db().Create(&errSms)
-	}
+	errscm := toErrorScheme(err)
+	bb.db.Db().Create(&errscm)
 	return nil
 }
 

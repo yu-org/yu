@@ -104,5 +104,5 @@ type IBlockBase interface {
 	SetEvents(events []*Event) error
 
 	GetErrors(blockHash Hash) ([]*Error, error)
-	SetErrors(errs []*Error) error
+	SetError(err *Error) error
 }
