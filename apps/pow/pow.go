@@ -43,7 +43,7 @@ func newDefaultBlock() *Block {
 	}
 }
 
-func (p *Pow) TripodMeta() *TripodMeta {
+func (p *Pow) GetTripodMeta() *TripodMeta {
 	return p.meta
 }
 

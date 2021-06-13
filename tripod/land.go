@@ -22,7 +22,7 @@ func NewLand() *Land {
 
 func (l *Land) SetTripods(Tripods ...Tripod) {
 	for _, tri := range Tripods {
-		triName := tri.TripodMeta().Name()
+		triName := tri.GetTripodMeta().Name()
 		l.tripodsMap[triName] = tri
 
 		l.orderedTripods = append(l.orderedTripods, tri)
@@ -34,7 +34,7 @@ func (l *Land) Execute(c *Ecall, ctx *Context, env *ChainEnv) error {
 	if !ok {
 		return TripodNotFound(c.TripodName)
 	}
-	ph := Tripod.TripodMeta()
+	ph := Tripod.GetTripodMeta()
 	fn := ph.GetExec(c.ExecName)
 	if fn == nil {
 		return ExecNotFound(c.ExecName)
@@ -47,7 +47,7 @@ func (l *Land) Query(c *Qcall, ctx *Context, env *ChainEnv) (interface{}, error)
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
-	ph := Tripod.TripodMeta()
+	ph := Tripod.GetTripodMeta()
 	qry := ph.GetQuery(c.QueryName)
 	if qry == nil {
 		return nil, QryNotFound(c.QueryName)

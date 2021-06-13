@@ -2,13 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/Lawliet-Chan/yu/apps/pow"
+	"github.com/Lawliet-Chan/yu/apps"
 	"github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
 	"github.com/Lawliet-Chan/yu/state"
-	"github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
@@ -57,7 +56,7 @@ func main() {
 	if err != nil {
 		logrus.Panicf("load blockbase error: %s", err.Error())
 	}
-	land := loadLand()
+	land := apps.LoadLand()
 
 	var pool txpool.ItxPool
 	switch masterCfg.RunMode {
@@ -90,13 +89,6 @@ func loadStateStore(chain blockchain.IBlockChain, cfg *config.StateConf) (*state
 	}
 
 	return state.NewStateStore(cfg, b.GetHash())
-}
-
-func loadLand() *tripod.Land {
-	land := tripod.NewLand()
-	powTripod := pow.NewPow(1024)
-	land.SetTripods(powTripod)
-	return land
 }
 
 func initLog() {

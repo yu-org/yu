@@ -17,7 +17,10 @@ type Asset struct {
 func NewAsset(tokenName string) *Asset {
 	df := NewDefaultTripod("asset")
 
-	return &Asset{df, tokenName}
+	a := &Asset{df, tokenName}
+	a.SetExecs(a.Transfer, a.CreateAccount)
+
+	return a
 }
 
 func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
