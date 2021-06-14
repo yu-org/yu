@@ -8,9 +8,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	. "github.com/Lawliet-Chan/yu/node"
-	"github.com/Lawliet-Chan/yu/tripod"
 	. "github.com/Lawliet-Chan/yu/txn"
-	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -281,78 +279,6 @@ func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[
 	}
 
 	return blocksByt, txnsByt, nil
-}
-
-func (m *Master) AcceptBlocksFromP2P() error {
-	block, err := m.subBlock()
-	if err != nil {
-		return err
-	}
-
-	switch m.RunMode {
-	case MasterWorker:
-		// todo: switch MasterWorker Mode
-	case LocalNode:
-		err = m.land.RangeList(func(tri tripod.Tripod) error {
-			if tri.ValidateBlock(block, m.GetEnv()) {
-				return nil
-			}
-			return BlockIllegal(block.GetHash())
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	logrus.Infof("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
-	return m.chain.InsertBlockFromP2P(block)
-}
-
-func (m *Master) AcceptUnpkgTxns() error {
-	txns, err := m.subUnpackedTxns()
-	if err != nil {
-		return err
-	}
-
-	switch m.RunMode {
-	case MasterWorker:
-		// key: workerIP
-		forwardMap := make(map[string]*TxnsAndWorkerName)
-		for _, txn := range txns {
-			ecall := txn.GetRaw().GetEcall()
-			tripodName := ecall.TripodName
-			execName := ecall.ExecName
-			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
-			if err != nil {
-				return err
-			}
-			oldTxns := forwardMap[workerIP].Txns
-			forwardMap[workerIP] = &TxnsAndWorkerName{
-				Txns:       append(oldTxns, txn),
-				WorkerName: workerName,
-			}
-		}
-
-		err := m.forwardTxnsForCheck(forwardMap)
-		if err != nil {
-			return err
-		}
-
-		for _, twn := range forwardMap {
-			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
-			if err != nil {
-				return err
-			}
-		}
-
-	case LocalNode:
-		err = m.txPool.BatchInsert("", txns)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) error {

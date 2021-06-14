@@ -173,6 +173,78 @@ func (m *Master) InitChain() error {
 	}
 }
 
+func (m *Master) AcceptBlocksFromP2P() error {
+	block, err := m.subBlock()
+	if err != nil {
+		return err
+	}
+
+	switch m.RunMode {
+	case MasterWorker:
+		// todo: switch MasterWorker Mode
+	case LocalNode:
+		err = m.land.RangeList(func(tri Tripod) error {
+			if tri.ValidateBlock(block, m.GetEnv()) {
+				return nil
+			}
+			return BlockIllegal(block.GetHash())
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	logrus.Infof("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
+	return m.chain.InsertBlockFromP2P(block)
+}
+
+func (m *Master) AcceptUnpkgTxns() error {
+	txns, err := m.subUnpackedTxns()
+	if err != nil {
+		return err
+	}
+
+	switch m.RunMode {
+	case MasterWorker:
+		// key: workerIP
+		forwardMap := make(map[string]*TxnsAndWorkerName)
+		for _, txn := range txns {
+			ecall := txn.GetRaw().GetEcall()
+			tripodName := ecall.TripodName
+			execName := ecall.ExecName
+			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
+			if err != nil {
+				return err
+			}
+			oldTxns := forwardMap[workerIP].Txns
+			forwardMap[workerIP] = &TxnsAndWorkerName{
+				Txns:       append(oldTxns, txn),
+				WorkerName: workerName,
+			}
+		}
+
+		err := m.forwardTxnsForCheck(forwardMap)
+		if err != nil {
+			return err
+		}
+
+		for _, twn := range forwardMap {
+			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
+			if err != nil {
+				return err
+			}
+		}
+
+	case LocalNode:
+		err = m.txPool.BatchInsert("", txns)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Check the health of NodeKeepers by SendHeartbeat to them.
 func (m *Master) CheckHealth() {
 	for {
