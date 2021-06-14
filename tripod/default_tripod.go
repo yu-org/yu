@@ -26,7 +26,7 @@ func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 }
 
 func (*DefaultTripod) ValidateBlock(IBlock, *ChainEnv) bool {
-	return false
+	return true
 }
 
 func (*DefaultTripod) InitChain(*ChainEnv, *Land) error {
