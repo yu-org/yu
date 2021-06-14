@@ -55,7 +55,21 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(block IBlock, env *ChainEnv) bool {
+func (p *Pow) ValidateBlock(block IBlock, _ *ChainEnv) bool {
+	logrus.Infof("validate block(%s): \n"+
+		"height = %d, \n"+
+		"prevHash = %s \n"+
+		"txnHash = %s \n"+
+		"state-root = %s \n"+
+		"nonce = %d \n"+
+		"timestamp = %d \n",
+		block.GetHash().String(),
+		block.GetHeight(),
+		block.GetPrevHash().String(),
+		block.GetTxnRoot().String(),
+		block.GetStateRoot().String(),
+		block.GetHeader().(*Header).Nonce,
+		block.GetTimestamp())
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
@@ -66,10 +80,10 @@ func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bool, err error) {
+func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
-	block = newDefaultBlock()
+	block.CopyFrom(newDefaultBlock())
 	chain := env.Chain
 	pool := env.Pool
 
@@ -135,11 +149,11 @@ func (p *Pow) StartBlock(env *ChainEnv, _ *Land) (block IBlock, needBroadcast bo
 	if err != nil {
 		return
 	}
+
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
 	env.StartBlock(hash)
-
 	return
 }
 

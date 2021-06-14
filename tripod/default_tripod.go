@@ -33,8 +33,8 @@ func (*DefaultTripod) InitChain(*ChainEnv, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(*ChainEnv, *Land) (IBlock, bool, error) {
-	return nil, false, nil
+func (*DefaultTripod) StartBlock(IBlock, *ChainEnv, *Land) (bool, error) {
+	return false, nil
 }
 
 func (*DefaultTripod) EndBlock(IBlock, *ChainEnv, *Land) error {

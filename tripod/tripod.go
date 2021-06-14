@@ -17,7 +17,7 @@ type Tripod interface {
 
 	InitChain(env *ChainEnv, land *Land) error
 
-	StartBlock(env *ChainEnv, land *Land) (newBlock IBlock, needBroadcast bool, err error)
+	StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error)
 
 	EndBlock(block IBlock, env *ChainEnv, land *Land) error
 

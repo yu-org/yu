@@ -11,7 +11,7 @@ import (
 //                         Merkle Patricia Trie
 //                   /              |              \
 //                  /               |               \
-//  blockHash, stateRoot   blockHash, stateRoot    blockHash, stateRoot
+//  blockHash->stateRoot   blockHash->stateRoot  blockHash->stateRoot
 //		/     |     \         /     |     \        /     |     \
 //     /      |      \		 /      |      \      /      |      \
 //	  kv      kv      kv     kv     kv     kv    kv     kv      kv
@@ -27,7 +27,7 @@ type StateKV struct {
 	stashes      []*KvStash
 }
 
-func NewStateKV(cfg *StateKvConf, canReadBlock Hash) (*StateKV, error) {
+func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
 	indexDB, err := NewKV(&cfg.IndexDB)
 	if err != nil {
 		return nil, err
@@ -39,11 +39,10 @@ func NewStateKV(cfg *StateKvConf, canReadBlock Hash) (*StateKV, error) {
 	}
 
 	return &StateKV{
-		indexDB:      indexDB,
-		nodeBase:     nodeBase,
-		nowBlock:     NullHash,
-		canReadBlock: canReadBlock,
-		stashes:      make([]*KvStash, 0),
+		indexDB:  indexDB,
+		nodeBase: nodeBase,
+		nowBlock: NullHash,
+		stashes:  make([]*KvStash, 0),
 	}, nil
 }
 
@@ -86,7 +85,7 @@ func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Has
 
 // return StateRoot or error
 func (skv *StateKV) Commit() (Hash, error) {
-	mpt, err := NewTrie(skv.nowBlock, skv.nodeBase)
+	mpt, err := NewTrie(EmptyRoot, skv.nodeBase)
 	if err != nil {
 		skv.Discard()
 		return NullHash, err

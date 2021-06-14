@@ -9,8 +9,8 @@ type StateStore struct {
 	KVDB *StateKV
 }
 
-func NewStateStore(cfg *StateConf, canRead Hash) (*StateStore, error) {
-	stateKV, err := NewStateKV(&cfg.KV, canRead)
+func NewStateStore(cfg *StateConf) (*StateStore, error) {
+	stateKV, err := NewStateKV(&cfg.KV)
 	if err != nil {
 		return nil, err
 	}

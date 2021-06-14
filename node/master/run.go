@@ -34,14 +34,14 @@ func (m *Master) Run() {
 func (m *Master) LocalRun() error {
 
 	needBcBlock := false
-	var newBlock IBlock
+	var newBlock IBlock = m.chain.NewEmptyBlock()
 	// start a new block
 	err := m.land.RangeList(func(tri Tripod) error {
 		var (
 			need bool
 			err  error
 		)
-		newBlock, need, err = tri.StartBlock(m.GetEnv(), m.land)
+		need, err = tri.StartBlock(newBlock, m.GetEnv(), m.land)
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,9 @@ func (m *Master) LocalRun() error {
 		return err
 	}
 
-	logrus.Infof("finish start block(%s) height(%d)", newBlock.GetHash().String(), newBlock.GetHeight())
+	logrus.Infof("finish start block(%s) height(%d)",
+		newBlock.GetHash().String(),
+		newBlock.GetHeight())
 
 	if needBcBlock {
 		go func() {

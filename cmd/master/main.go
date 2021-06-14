@@ -68,7 +68,7 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 
-	stateStore, err := loadStateStore(chain, &stateCfg)
+	stateStore, err := state.NewStateStore(&stateCfg)
 	if err != nil {
 		logrus.Panicf("load stateKV error: %s", err.Error())
 	}
@@ -80,15 +80,6 @@ func main() {
 
 	m.Startup()
 
-}
-
-func loadStateStore(chain blockchain.IBlockChain, cfg *config.StateConf) (*state.StateStore, error) {
-	b, err := chain.GetEndBlock()
-	if err != nil {
-		return nil, err
-	}
-
-	return state.NewStateStore(cfg, b.GetHash())
 }
 
 func initLog() {
