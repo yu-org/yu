@@ -18,6 +18,7 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
+	"math/rand"
 	"os"
 )
 
@@ -56,6 +57,9 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 	}
 	if cfg.NodeKeyFile != "" {
 		return os.Open(cfg.NodeKeyFile)
+	}
+	if cfg.NodeKeyRandSeed != 0 {
+		return rand.New(rand.NewSource(cfg.NodeKeyRandSeed)), nil
 	}
 	return nil, nil
 }

@@ -34,6 +34,8 @@ type MasterConf struct {
 	// 3: ECDSA
 	NodeKeyType int `toml:"node_key_type"`
 
+	NodeKeyRandSeed int64 `toml:"node_key_rand_seed"`
+
 	NodeKey string `toml:"node_key"`
 
 	// Only RSA has this param.
