@@ -30,24 +30,26 @@ func (t *TripodMeta) Name() string {
 
 func (t *TripodMeta) SetExecs(fns ...Execution) {
 	for _, fn := range fns {
-		ptr := reflect.ValueOf(fn).Pointer()
-		nameFull := runtime.FuncForPC(ptr).Name()
-		nameEnd := filepath.Ext(nameFull)
-		name := strings.TrimPrefix(nameEnd, ".")
+		name := getFuncName(fn)
 		t.execs[name] = fn
-		logrus.Infof("register Execution (%s) into TripodMeta \n", name)
+		logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
 
 func (t *TripodMeta) SetQueries(queries ...Query) {
 	for _, q := range queries {
-		ptr := reflect.ValueOf(q).Pointer()
-		nameFull := runtime.FuncForPC(ptr).Name()
-		nameEnd := filepath.Ext(nameFull)
-		name := strings.TrimPrefix(nameEnd, ".")
+		name := getFuncName(q)
 		t.queries[name] = q
-		logrus.Infof("register Query (%s) into TripodMeta \n", name)
+		logrus.Infof("register Query(%s) into Tripod(%s) \n", name, t.name)
 	}
+}
+
+func getFuncName(i interface{}) string {
+	ptr := reflect.ValueOf(i).Pointer()
+	nameFull := runtime.FuncForPC(ptr).Name()
+	nameEnd := filepath.Ext(nameFull)
+	funcName := strings.TrimPrefix(nameEnd, ".")
+	return strings.TrimSuffix(funcName, "-fm")
 }
 
 func (t *TripodMeta) ExistExec(execName string) bool {
