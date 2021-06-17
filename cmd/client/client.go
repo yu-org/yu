@@ -23,9 +23,13 @@ func main() {
 		panic("generate To Address key error: " + err.Error())
 	}
 
+	go subEvent()
+
 	createAccount(privkey, pubkey)
 
 	transfer(privkey, pubkey, toPubkey.Address())
+
+	select {}
 
 }
 
@@ -83,11 +87,10 @@ func callChain(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	u.Query().Add(SignatureKey, ToHex(signByt))
 	u.Query().Add(PubkeyKey, pubkey.String())
 
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	_, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic("dial chain error: " + err.Error())
 	}
-	c.Close()
 }
 
 func subEvent() {
@@ -96,7 +99,6 @@ func subEvent() {
 	if err != nil {
 		panic("dial chain error: " + err.Error())
 	}
-	defer c.Close()
 
 	for {
 		_, msg, err := c.ReadMessage()

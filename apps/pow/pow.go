@@ -56,20 +56,6 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 }
 
 func (p *Pow) ValidateBlock(block IBlock, _ *ChainEnv) bool {
-	logrus.Infof("validate block(%s): \n"+
-		"height = %d, \n"+
-		"prevHash = %s \n"+
-		"txnHash = %s \n"+
-		"state-root = %s \n"+
-		"nonce = %d \n"+
-		"timestamp = %d \n",
-		block.GetHash().String(),
-		block.GetHeight(),
-		block.GetPrevHash().String(),
-		block.GetTxnRoot().String(),
-		block.GetStateRoot().String(),
-		block.GetHeader().(*Header).Nonce,
-		block.GetTimestamp())
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
