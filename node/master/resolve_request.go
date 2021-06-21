@@ -22,10 +22,10 @@ func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err 
 }
 
 func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn *SignedTxn, err error) {
-	tripodName, callName := GetTripodCallName(req)
+	tripodName, execName = GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
-		ExecName:   callName,
+		ExecName:   execName,
 		Params:     params,
 	}
 	caller := GetAddress(req)

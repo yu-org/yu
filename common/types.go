@@ -49,7 +49,11 @@ type (
 )
 
 func (e *Ecall) Bytes() []byte {
-	return Sha256([]byte(e.TripodName), []byte(e.ExecName), []byte(e.Params))
+	var byt []byte
+	byt = append(byt, []byte(e.TripodName)...)
+	byt = append(byt, []byte(e.ExecName)...)
+	byt = append(byt, []byte(e.Params)...)
+	return byt
 }
 
 const (

@@ -3,7 +3,7 @@ package codec
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/HyperService-Consortium/go-rlp"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var GlobalCodec Codec

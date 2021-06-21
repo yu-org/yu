@@ -81,15 +81,26 @@ func callChain(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	}
 
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: ExecApiPath}
-	u.Query().Add(TripodNameKey, ecall.TripodName)
-	u.Query().Add(CallNameKey, ecall.ExecName)
-	u.Query().Add(AddressKey, pubkey.Address().String())
-	u.Query().Add(SignatureKey, ToHex(signByt))
-	u.Query().Add(PubkeyKey, pubkey.String())
+	q := u.Query()
+	q.Set(TripodNameKey, ecall.TripodName)
+	q.Set(CallNameKey, ecall.ExecName)
+	q.Set(AddressKey, pubkey.Address().String())
+	q.Set(SignatureKey, ToHex(signByt))
+	q.Set(KeyTypeKey, Sr25519)
+	q.Set(PubkeyKey, pubkey.String())
 
-	_, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
+	u.RawQuery = q.Encode()
+
+	logrus.Info(u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic("dial chain error: " + err.Error())
+	}
+
+	err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
+	if err != nil {
+		panic("write message to chain error: " + err.Error())
 	}
 }
 

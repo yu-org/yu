@@ -43,20 +43,21 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 		return
 	}
 	if typ == subscription {
+		logrus.Info("!!!!!!!!  register a sub")
 		m.sub.Register(c)
 		return
 	}
 	for {
-		_, msg, err := c.ReadMessage()
+		_, params, err := c.ReadMessage()
 		if err != nil {
 			BadReqHttpResp(w, err.Error())
 			continue
 		}
 		switch typ {
 		case execution:
-			m.handleWsExec(w, req, JsonString(msg))
+			m.handleWsExec(w, req, JsonString(params))
 		case query:
-			m.handleWsQry(w, req, JsonString(msg))
+			m.handleWsQry(w, req, JsonString(params))
 		}
 
 	}
@@ -105,6 +106,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 	if err != nil {
 		BadReqHttpResp(w, err.Error())
 	}
+	logrus.Info("publish unpacked txns to P2P")
 }
 
 func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params JsonString) {

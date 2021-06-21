@@ -74,11 +74,47 @@ func (sts SignedTxns) ToArray() []*SignedTxn {
 }
 
 func (sts SignedTxns) Encode() ([]byte, error) {
-	return GlobalCodec.EncodeToBytes(sts)
+	var msts MidSignedTxns
+	for _, st := range sts {
+		msts = append(msts, &MidSignedTxn{
+			Raw:       st.Raw,
+			TxnHash:   st.TxnHash,
+			KeyType:   st.Pubkey.Type(),
+			Pubkey:    st.Pubkey.Bytes(),
+			Signature: st.Signature,
+		})
+	}
+	return GlobalCodec.EncodeToBytes(msts)
 }
 
 func DecodeSignedTxns(data []byte) (SignedTxns, error) {
-	txns := SignedTxns{}
-	err := GlobalCodec.DecodeBytes(data, &txns)
-	return txns, err
+	mtxns := MidSignedTxns{}
+	err := GlobalCodec.DecodeBytes(data, &mtxns)
+	if err != nil {
+		return nil, err
+	}
+	var sts SignedTxns
+	for _, mtxn := range mtxns {
+		pubKey, err := PubKeyFromBytes(mtxn.KeyType, mtxn.Pubkey)
+		if err != nil {
+			return nil, err
+		}
+		sts = append(sts, &SignedTxn{
+			Raw:       mtxn.Raw,
+			TxnHash:   mtxn.TxnHash,
+			Pubkey:    pubKey,
+			Signature: mtxn.Signature,
+		})
+	}
+	return sts, err
+}
+
+type MidSignedTxns []*MidSignedTxn
+
+type MidSignedTxn struct {
+	Raw       *UnsignedTxn
+	TxnHash   Hash
+	KeyType   string
+	Pubkey    []byte
+	Signature []byte
 }

@@ -8,7 +8,7 @@ require (
 	github.com/HyperService-Consortium/go-rlp v1.0.2
 	github.com/cockroachdb/pebble v0.0.0-20201210152317-024096017eda // indirect
 	github.com/dgraph-io/badger v1.6.2
-	github.com/ethereum/go-ethereum v1.10.3 // indirect
+	github.com/ethereum/go-ethereum v1.10.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect
