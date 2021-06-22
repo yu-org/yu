@@ -13,8 +13,10 @@ import (
 type LocalTxPool struct {
 	sync.RWMutex
 
-	poolSize    uint64
-	TxnMaxSize  int
+	poolSize   uint64
+	TxnMaxSize int
+
+	txnsHashes  map[Hash]bool
 	Txns        []*SignedTxn
 	packagedIdx int
 
@@ -26,6 +28,7 @@ func NewLocalTxPool(cfg *config.TxpoolConf) *LocalTxPool {
 	return &LocalTxPool{
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
+		txnsHashes:   make(map[Hash]bool),
 		Txns:         make([]*SignedTxn, 0),
 		packagedIdx:  0,
 		baseChecks:   make([]TxnCheck, 0),
@@ -42,7 +45,6 @@ func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
 	tp.baseChecks = []TxnCheck{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
-		tp.checkDuplicate,
 		tp.checkSignature,
 	}
 	return tp
@@ -72,6 +74,9 @@ func (tp *LocalTxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
 
 // insert into txpool
 func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) (err error) {
+	if _, ok := tp.txnsHashes[stxn.TxnHash]; ok {
+		return
+	}
 	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return
@@ -82,6 +87,7 @@ func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) (err error) {
 	}
 
 	tp.Txns = append(tp.Txns, stxn)
+	tp.txnsHashes[stxn.TxnHash] = true
 	return
 }
 
@@ -164,6 +170,7 @@ func (tp *LocalTxPool) Flush() error {
 	tp.Lock()
 	tp.Txns = tp.Txns[tp.packagedIdx:]
 	tp.packagedIdx = 0
+	tp.txnsHashes = make(map[Hash]bool)
 	tp.Unlock()
 	return nil
 }
