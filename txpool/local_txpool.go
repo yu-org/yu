@@ -5,6 +5,7 @@ import (
 	"github.com/Lawliet-Chan/yu/config"
 	. "github.com/Lawliet-Chan/yu/txn"
 	. "github.com/Lawliet-Chan/yu/yerror"
+	"github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -14,16 +15,8 @@ type LocalTxPool struct {
 
 	poolSize    uint64
 	TxnMaxSize  int
-	pendingTxns []*SignedTxn
 	Txns        []*SignedTxn
 	packagedIdx int
-
-	// need to sync txns from p2p
-	//ToSyncTxnsChan chan []Hash
-	// accept the txn-content of txn-hash from p2p
-	//WaitSyncTxnsChan chan *SignedTxn
-	// wait sync txns timeout
-	//WaitTxnsTimeout time.Duration
 
 	baseChecks   []TxnCheck
 	tripodChecks []TxnCheck
@@ -31,13 +24,10 @@ type LocalTxPool struct {
 
 func NewLocalTxPool(cfg *config.TxpoolConf) *LocalTxPool {
 	return &LocalTxPool{
-		poolSize:    cfg.PoolSize,
-		TxnMaxSize:  cfg.TxnMaxSize,
-		Txns:        make([]*SignedTxn, 0),
-		packagedIdx: 0,
-		//ToSyncTxnsChan:   make(chan []Hash),
-		//WaitSyncTxnsChan: make(chan *SignedTxn, 1024),
-		//WaitTxnsTimeout:  WaitTxnsTimeout,
+		poolSize:     cfg.PoolSize,
+		TxnMaxSize:   cfg.TxnMaxSize,
+		Txns:         make([]*SignedTxn, 0),
+		packagedIdx:  0,
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
 	}
@@ -91,7 +81,7 @@ func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) (err error) {
 		return
 	}
 
-	tp.pendingTxns = append(tp.pendingTxns, stxn)
+	tp.Txns = append(tp.Txns, stxn)
 	return
 }
 
@@ -116,11 +106,13 @@ func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]*SignedTxn, error) 
 func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
+	logrus.Info("+++++++ start package txns ++++++++")
 	stxns := make([]*SignedTxn, 0)
 	for i := 0; i < int(numLimit); i++ {
 		if i >= len(tp.Txns) {
 			break
 		}
+		logrus.Info("********************** package txn: ", tp.Txns[i].GetTxnHash().String())
 		err := filter(tp.Txns[i])
 		if err != nil {
 			return nil, err

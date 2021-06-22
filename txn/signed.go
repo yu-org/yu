@@ -73,6 +73,13 @@ func (sts SignedTxns) ToArray() []*SignedTxn {
 	return sts[:]
 }
 
+func (sts SignedTxns) Hashes() (hashes []Hash) {
+	for _, st := range sts {
+		hashes = append(hashes, st.TxnHash)
+	}
+	return
+}
+
 func (sts SignedTxns) Encode() ([]byte, error) {
 	var msts MidSignedTxns
 	for _, st := range sts {
