@@ -112,7 +112,6 @@ func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]*SignedTxn, error) 
 func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
-	logrus.Info("+++++++ start package txns ++++++++")
 	stxns := make([]*SignedTxn, 0)
 	for i := 0; i < int(numLimit); i++ {
 		if i >= len(tp.Txns) {
@@ -128,42 +127,6 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 	}
 	return stxns, nil
 }
-
-// get txn content of txn-hash from p2p network
-//func (tp *LocalTxPool) SyncTxns(hashes []Hash) error {
-//
-//	hashesMap := make(map[Hash]bool)
-//	toSyncHashes := make([]Hash, 0)
-//
-//	tp.RLock()
-//	for _, txnHash := range hashes {
-//		if !existTxn(txnHash, tp.Txns) {
-//			toSyncHashes = append(toSyncHashes, txnHash)
-//			hashesMap[txnHash] = true
-//		}
-//	}
-//	tp.RUnlock()
-//
-//	tp.ToSyncTxnsChan <- toSyncHashes
-//
-//	ticker := time.NewTicker(tp.WaitTxnsTimeout)
-//
-//	for len(hashesMap) > 0 {
-//		select {
-//		case stxn := <-tp.WaitSyncTxnsChan:
-//			txnHash := stxn.GetTxnHash()
-//			delete(hashesMap, txnHash)
-//			err := tp.Insert("", stxn)
-//			if err != nil {
-//				return err
-//			}
-//		case <-ticker.C:
-//			return WaitTxnsTimeout(hashesMap)
-//		}
-//	}
-//
-//	return nil
-//}
 
 // remove txns after execute all tripods
 func (tp *LocalTxPool) Flush() error {

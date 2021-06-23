@@ -16,7 +16,7 @@ type IBlock interface {
 
 	SetHash(hash Hash)
 	SetPreHash(hash Hash)
-	SetTxnHash(hash Hash)
+	SetTxnRoot(hash Hash)
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
 
