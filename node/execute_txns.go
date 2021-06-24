@@ -53,10 +53,10 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			ctx.Error.ExecName = ecall.ExecName
 			ctx.Error.BlockHash = blockHash
 			ctx.Error.Height = block.GetHeight()
-		}
 
-		if sub != nil {
-			sub.Push(ctx.Error)
+			if sub != nil {
+				sub.Push(ctx.Error)
+			}
 		}
 
 		err = base.SetEvents(ctx.Events)
