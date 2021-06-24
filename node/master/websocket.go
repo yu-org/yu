@@ -47,26 +47,25 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 		m.sub.Register(c)
 		return
 	}
-	for {
-		_, params, err := c.ReadMessage()
-		if err != nil {
-			BadReqHttpResp(w, err.Error())
-			continue
-		}
-		switch typ {
-		case execution:
-			m.handleWsExec(w, req, JsonString(params))
-		case query:
-			m.handleWsQry(w, req, JsonString(params))
-		}
 
+	_, params, err := c.ReadMessage()
+	if err != nil {
+		BadReqHttpResp(w, fmt.Sprintf("read websocket message from client error: %v", err))
+		return
 	}
+	switch typ {
+	case execution:
+		m.handleWsExec(w, req, JsonString(params))
+	case query:
+		m.handleWsQry(w, req, JsonString(params))
+	}
+
 }
 
 func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params JsonString) {
 	tripodName, callName, stxn, err := getExecInfoFromReq(req, params)
 	if err != nil {
-		BadReqHttpResp(w, err.Error())
+		BadReqHttpResp(w, fmt.Sprintf("get Execution info from websocket error: %v", err))
 		return
 	}
 
@@ -104,7 +103,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 
 	err = m.pubUnpackedTxns(FromArray(stxn))
 	if err != nil {
-		BadReqHttpResp(w, err.Error())
+		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.GetTxnHash().String(), err))
 	}
 	logrus.Info("publish unpacked txns to P2P")
 }
@@ -112,7 +111,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params JsonString) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
-		BadReqHttpResp(w, err.Error())
+		BadReqHttpResp(w, fmt.Sprintf("get Query info from websocket error: %v", err))
 		return
 	}
 

@@ -46,13 +46,14 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 				sub.Push(event)
 			}
 		}
-
-		ctx.Error.Caller = stxn.GetRaw().GetCaller()
-		ctx.Error.BlockStage = ExecuteTxnsStage
-		ctx.Error.TripodName = ecall.TripodName
-		ctx.Error.ExecName = ecall.ExecName
-		ctx.Error.BlockHash = blockHash
-		ctx.Error.Height = block.GetHeight()
+		if ctx.Error != nil {
+			ctx.Error.Caller = stxn.GetRaw().GetCaller()
+			ctx.Error.BlockStage = ExecuteTxnsStage
+			ctx.Error.TripodName = ecall.TripodName
+			ctx.Error.ExecName = ecall.ExecName
+			ctx.Error.BlockHash = blockHash
+			ctx.Error.Height = block.GetHeight()
+		}
 
 		if sub != nil {
 			sub.Push(ctx.Error)

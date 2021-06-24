@@ -1,6 +1,7 @@
 package context
 
 import (
+	"bytes"
 	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/result"
@@ -17,14 +18,16 @@ type Context struct {
 }
 
 func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
-	pMap := make(map[string]interface{})
-	err := json.Unmarshal([]byte(paramsStr), &pMap)
+	var i interface{}
+	d := json.NewDecoder(bytes.NewReader([]byte(paramsStr)))
+	d.UseNumber()
+	err := d.Decode(&i)
 	if err != nil {
 		return nil, err
 	}
 	return &Context{
 		Caller:    caller,
-		paramsMap: pMap,
+		paramsMap: i.(map[string]interface{}),
 		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),
 	}, nil

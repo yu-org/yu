@@ -3,7 +3,6 @@ package pow
 import (
 	. "github.com/Lawliet-Chan/yu/blockchain"
 	. "github.com/Lawliet-Chan/yu/chain_env"
-	. "github.com/Lawliet-Chan/yu/common"
 	spow "github.com/Lawliet-Chan/yu/consensus/pow"
 	"github.com/Lawliet-Chan/yu/node"
 	. "github.com/Lawliet-Chan/yu/tripod"
@@ -69,6 +68,8 @@ func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
+	logrus.Warnf("start block...................")
+
 	block.CopyFrom(newDefaultBlock())
 	chain := env.Chain
 	pool := env.Pool
@@ -119,17 +120,15 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	if err != nil {
 		return
 	}
-	txnsHashes := make([]Hash, 0)
-	for _, hash := range txnsHashes {
-		txnsHashes = append(txnsHashes, hash)
-	}
-	block.SetTxnsHashes(txnsHashes)
+
+	hashes := txn.FromArray(txns...).Hashes()
+	block.SetTxnsHashes(hashes)
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
 		return
 	}
-	block.SetTxnHash(txnRoot)
+	block.SetTxnRoot(txnRoot)
 
 	nonce, hash, err := spow.Run(block, p.target, p.targetBits)
 	if err != nil {
@@ -140,7 +139,14 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	block.SetHash(hash)
 
 	env.StartBlock(hash)
+	err = env.Base.SetTxns(block.GetHash(), txns)
 	return
+}
+
+func logTxnsHashes(b IBlock) {
+	for _, hash := range b.GetTxnsHashes() {
+		logrus.Warnf(" block's txnsHashes are %v", hash.String())
+	}
 }
 
 func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {

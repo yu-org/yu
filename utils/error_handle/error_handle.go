@@ -17,8 +17,9 @@ func FindNoCallStr(tripodName, callName string, err error) string {
 }
 
 func BadReqHttpResp(w http.ResponseWriter, reason string) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(reason))
+	//w.WriteHeader(http.StatusBadRequest)
+	//w.Write([]byte(reason))
+	logrus.Panic(reason)
 }
 
 func ServerErrorHttpResp(w http.ResponseWriter, reason string) {
