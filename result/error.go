@@ -1,9 +1,9 @@
 package result
 
 import (
+	"encoding/json"
 	"fmt"
 	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/utils/codec"
 )
 
 type Error struct {
@@ -45,11 +45,11 @@ func (e *Error) Error() (str string) {
 }
 
 func (e *Error) Encode() ([]byte, error) {
-	return GlobalCodec.EncodeToBytes(e)
+	return json.Marshal(e)
 }
 
 func (e *Error) Decode(data []byte) error {
-	return GlobalCodec.DecodeBytes(data, e)
+	return json.Unmarshal(data, e)
 }
 
 //

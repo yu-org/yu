@@ -1,9 +1,9 @@
 package result
 
 import (
+	"encoding/json"
 	"fmt"
 	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/utils/codec"
 )
 
 type Event struct {
@@ -17,11 +17,11 @@ type Event struct {
 }
 
 func (e *Event) Encode() ([]byte, error) {
-	return GlobalCodec.EncodeToBytes(e)
+	return json.Marshal(e)
 }
 
 func (e *Event) Decode(data []byte) error {
-	return GlobalCodec.DecodeBytes(data, e)
+	return json.Unmarshal(data, e)
 }
 
 func (e *Event) Type() ResultType {
@@ -31,19 +31,19 @@ func (e *Event) Type() ResultType {
 func (e *Event) Sprint() (str string) {
 	if e.BlockStage == ExecuteTxnsStage {
 		str = fmt.Sprintf(
-			"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %v",
+			"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
 			e.Caller.String(),
 			e.TripodName,
 			e.ExecName,
-			e.BlockHash,
+			e.BlockHash.String(),
 			e.Height,
 			e.Value,
 		)
 	} else {
 		str = fmt.Sprintf(
-			"[Event] %s Block(%s) on Height(%d) in Tripod(%s): %v",
+			"[Event] %s Block(%s) on Height(%d) in Tripod(%s): %s",
 			e.BlockStage,
-			e.BlockHash,
+			e.BlockHash.String(),
 			e.Height,
 			e.TripodName,
 			e.Value,
