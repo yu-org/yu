@@ -68,16 +68,18 @@ func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
-	logrus.Warnf("start block...................")
-
 	block.CopyFrom(newDefaultBlock())
 	chain := env.Chain
 	pool := env.Pool
+
+	logrus.Warnf("start block...................")
 
 	prevBlock, err := chain.GetEndBlock()
 	if err != nil {
 		return
 	}
+
+	logrus.Warnf("get end block...................")
 
 	prevHeight := prevBlock.GetHeight()
 	prevHash := prevBlock.GetHash()
@@ -141,12 +143,6 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	env.StartBlock(hash)
 	err = env.Base.SetTxns(block.GetHash(), txns)
 	return
-}
-
-func logTxnsHashes(b IBlock) {
-	for _, hash := range b.GetTxnsHashes() {
-		logrus.Warnf(" block's txnsHashes are %v", hash.String())
-	}
 }
 
 func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {

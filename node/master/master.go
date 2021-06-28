@@ -305,6 +305,11 @@ func (m *Master) SyncTxns(block IBlock) error {
 		if err != nil {
 			return err
 		}
+
+		for _, stxn := range allTxns {
+			logrus.Warnf("sub txn is %s", stxn.TxnHash.String())
+		}
+
 		fetchedTxns := make([]*SignedTxn, 0)
 		for _, txnHash := range needFetch {
 			stxn, exist := existTxnHash(txnHash, allTxns)
@@ -572,6 +577,7 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 
 func existTxnHash(txnHash Hash, txns []*SignedTxn) (*SignedTxn, bool) {
 	for _, stxn := range txns {
+		logrus.Infof("%%%%%%%%%%%%%% sync txn from p2p is %s", stxn.GetTxnHash().String())
 		if stxn.GetTxnHash() == txnHash {
 			return stxn, true
 		}

@@ -144,15 +144,25 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 }
 
 func (m *Master) broadcastBlockAndTxns(b IBlock) error {
+	err := m.pubBlock(b)
+	if err != nil {
+		return err
+	}
+
 	blockHash := b.GetHash()
 	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err
 	}
 
-	err = m.pubBlock(b)
-	if err != nil {
-		return err
+	//logrus.Warnf("============  pub block(%s) to P2P =============", blockHash.String())
+	//
+	//for _, stxn := range txns {
+	//	logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
+	//}
+
+	if len(txns) == 0 {
+		return nil
 	}
 	return m.pubPackedTxns(blockHash, txns)
 }

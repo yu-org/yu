@@ -7,6 +7,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/txn"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -72,6 +73,7 @@ func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
 	if err != nil {
 		return NullHash, nil, err
 	}
+	logrus.Warnf("sub block is %s ", pt.BlockHash)
 	return pt.Resolve()
 }
 
