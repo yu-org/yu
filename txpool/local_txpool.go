@@ -73,33 +73,31 @@ func (tp *LocalTxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txpool
-func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) (err error) {
-	if _, ok := tp.txnsHashes[stxn.TxnHash]; ok {
-		return
-	}
-	err = tp.BaseCheck(stxn)
-	if err != nil {
-		return
-	}
-	err = tp.TripodsCheck(stxn)
-	if err != nil {
-		return
-	}
-
-	tp.Txns = append(tp.Txns, stxn)
-	tp.txnsHashes[stxn.TxnHash] = true
-	return
+func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) error {
+	return tp.BatchInsert("", FromArray(stxn))
 }
 
 // batch insert into txpool
-func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) error {
-	for _, txn := range txns {
-		err := tp.Insert("", txn)
-		if err != nil {
-			return err
+func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
+	tp.Lock()
+	defer tp.Unlock()
+	for _, stxn := range txns {
+		if _, ok := tp.txnsHashes[stxn.TxnHash]; ok {
+			return
 		}
+		err = tp.BaseCheck(stxn)
+		if err != nil {
+			return
+		}
+		err = tp.TripodsCheck(stxn)
+		if err != nil {
+			return
+		}
+
+		tp.Txns = append(tp.Txns, stxn)
+		tp.txnsHashes[stxn.TxnHash] = true
 	}
-	return nil
+	return
 }
 
 // package some txns to send to tripods
