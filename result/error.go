@@ -27,7 +27,7 @@ func (e *Error) Error() (str string) {
 			e.Caller.String(),
 			e.TripodName,
 			e.ExecName,
-			e.BlockHash,
+			e.BlockHash.String(),
 			e.Height,
 			e.Err.Error(),
 		)
@@ -35,7 +35,7 @@ func (e *Error) Error() (str string) {
 		str = fmt.Sprintf(
 			"[Error] %s Block(%s) on Height(%d) in Tripod(%s): %s",
 			e.BlockStage,
-			e.BlockHash,
+			e.BlockHash.String(),
 			e.Height,
 			e.TripodName,
 			e.Err.Error(),
