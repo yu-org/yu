@@ -7,21 +7,26 @@ import (
 )
 
 type Event struct {
-	Caller     Address
-	BlockStage string
-	BlockHash  Hash
-	Height     BlockNum
-	TripodName string
-	ExecName   string
-	Value      string
+	Caller     Address  `json:"caller"`
+	BlockStage string   `json:"block_stage"`
+	BlockHash  Hash     `json:"block_hash"`
+	Height     BlockNum `json:"height"`
+	TripodName string   `json:"tripod_name"`
+	ExecName   string   `json:"exec_name"`
+	Value      string   `json:"value"`
 }
 
 func (e *Event) Encode() ([]byte, error) {
-	return json.Marshal(e)
+	byt, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	byt = append(EventTypeByt, byt...)
+	return byt, nil
 }
 
 func (e *Event) Decode(data []byte) error {
-	return json.Unmarshal(data, e)
+	return json.Unmarshal(data[ResultTypeBytesLen:], e)
 }
 
 func (e *Event) Type() ResultType {

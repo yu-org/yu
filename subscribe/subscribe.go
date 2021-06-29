@@ -43,8 +43,11 @@ func (s *Subscription) emitToClients() {
 				logrus.Errorf("encode Result error: %s", err.Error())
 				continue
 			}
+
 			s.subscribers.Range(func(connI, _ interface{}) bool {
 				conn := connI.(*Conn)
+
+				logrus.Warn("emit result: ", string(byt))
 
 				err = conn.WriteMessage(BinaryMessage, byt)
 				if err != nil {

@@ -48,6 +48,6 @@ func (c *Context) EmitEvent(value interface{}) error {
 
 func (c *Context) EmitError(e error) {
 	c.Error = &Error{
-		Err: e,
+		Err: e.Error(),
 	}
 }

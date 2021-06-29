@@ -7,13 +7,13 @@ import (
 )
 
 type Error struct {
-	Caller     Address
-	BlockStage string
-	BlockHash  Hash
-	Height     BlockNum
-	TripodName string
-	ExecName   string
-	Err        error
+	Caller     Address  `json:"caller"`
+	BlockStage string   `json:"block_stage"`
+	BlockHash  Hash     `json:"block_hash"`
+	Height     BlockNum `json:"height"`
+	TripodName string   `json:"tripod_name"`
+	ExecName   string   `json:"exec_name"`
+	Err        string   `json:"err"`
 }
 
 func (e *Error) Type() ResultType {
@@ -29,7 +29,7 @@ func (e *Error) Error() (str string) {
 			e.ExecName,
 			e.BlockHash.String(),
 			e.Height,
-			e.Err.Error(),
+			e.Err,
 		)
 	} else {
 		str = fmt.Sprintf(
@@ -38,18 +38,23 @@ func (e *Error) Error() (str string) {
 			e.BlockHash.String(),
 			e.Height,
 			e.TripodName,
-			e.Err.Error(),
+			e.Err,
 		)
 	}
 	return
 }
 
 func (e *Error) Encode() ([]byte, error) {
-	return json.Marshal(e)
+	byt, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	byt = append(ErrorTypeByt, byt...)
+	return byt, nil
 }
 
 func (e *Error) Decode(data []byte) error {
-	return json.Unmarshal(data, e)
+	return json.Unmarshal(data[ResultTypeBytesLen:], e)
 }
 
 //

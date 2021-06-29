@@ -6,6 +6,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/context"
 	. "github.com/Lawliet-Chan/yu/tripod"
+	"github.com/sirupsen/logrus"
 )
 
 func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
@@ -34,6 +35,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			return err
 		}
 
+		logrus.Warn("range results")
 		for _, event := range ctx.Events {
 			event.Height = block.GetHeight()
 			event.BlockHash = blockHash
@@ -42,6 +44,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			event.BlockStage = ExecuteTxnsStage
 			event.Caller = stxn.GetRaw().GetCaller()
 
+			logrus.Warn("start to push event: ", event.Sprint())
 			if sub != nil {
 				sub.Push(event)
 			}
@@ -54,6 +57,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			ctx.Error.BlockHash = blockHash
 			ctx.Error.Height = block.GetHeight()
 
+			logrus.Error("start to push error: ", ctx.Error.Error())
 			if sub != nil {
 				sub.Push(ctx.Error)
 			}

@@ -72,14 +72,12 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	chain := env.Chain
 	pool := env.Pool
 
-	logrus.Warnf("start block...................")
-
 	prevBlock, err := chain.GetEndBlock()
 	if err != nil {
 		return
 	}
 
-	logrus.Warnf("get end block...................")
+	logrus.Warnf("start block...................")
 
 	prevHeight := prevBlock.GetHeight()
 	prevHash := prevBlock.GetHash()
@@ -164,9 +162,9 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 	env.SetCanRead(block.GetHash())
-	logrus.Infof("append block(%d)", block.GetHeight())
-
 	block.SetStateRoot(stateRoot)
+
+	logrus.Infof("append block(%d)", block.GetHeight())
 
 	return pool.Flush()
 }

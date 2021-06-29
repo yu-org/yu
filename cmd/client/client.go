@@ -116,7 +116,10 @@ func subEvent() {
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
 		}
-		result := DecodeResult(msg)
+		result, err := DecodeResult(msg)
+		if err != nil {
+			logrus.Panicf("decode result error: %s", err.Error())
+		}
 		switch result.Type() {
 		case EventType:
 			logrus.Info(result.(*Event).Sprint())

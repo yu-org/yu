@@ -6,7 +6,6 @@ import (
 	ysql "github.com/Lawliet-Chan/yu/storage/sql"
 	. "github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/Lawliet-Chan/yu/yerror"
-	"github.com/sirupsen/logrus"
 )
 
 type BlockChain struct {
@@ -88,7 +87,6 @@ func (bc *BlockChain) SetGenesis(b IBlock) error {
 // pending a block from other BlockChain-node for validating
 func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
 	if bc.ExistsBlock(b.GetHash()) {
-		logrus.Infof("block(%s) height(%d) exists", b.GetHash().String(), b.GetHeight())
 		return nil
 	}
 	bs, err := toBlocksFromP2pScheme(b)
@@ -143,10 +141,6 @@ func (bc *BlockChain) ExistsBlock(blockHash Hash) bool {
 	bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
 	}).Find(&bss)
-
-	for _, bs := range bss {
-		logrus.Info("exists block result: ", bs.Hash)
-	}
 
 	return len(bss) > 0
 }

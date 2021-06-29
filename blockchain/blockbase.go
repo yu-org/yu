@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"errors"
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/keypair"
@@ -252,7 +251,7 @@ func toErrorScheme(err *Error) ErrorScheme {
 		Height:     err.Height,
 		TripodName: err.TripodName,
 		ExecName:   err.ExecName,
-		Error:      err.Err.Error(),
+		Error:      err.Err,
 	}
 }
 
@@ -264,6 +263,6 @@ func (e ErrorScheme) toError() *Error {
 		Height:     e.Height,
 		TripodName: e.TripodName,
 		ExecName:   e.ExecName,
-		Err:        errors.New(e.Error),
+		Err:        e.Error,
 	}
 }
