@@ -155,14 +155,14 @@ func (m *Master) broadcastBlockAndTxns(b IBlock) error {
 		return err
 	}
 
-	//logrus.Warnf("============  pub block(%s) to P2P =============", blockHash.String())
-	//
-	//for _, stxn := range txns {
-	//	logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
-	//}
-
 	if len(txns) == 0 {
 		return nil
 	}
+
+	logrus.Warnf("=== pub block(%s) to P2P ===", blockHash.String())
+	for _, stxn := range txns {
+		logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
+	}
+
 	return m.pubPackedTxns(blockHash, txns)
 }

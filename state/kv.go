@@ -172,6 +172,7 @@ const (
 	DeleteOp
 )
 
+// FIXME: need a txnhash
 type KvStash struct {
 	ops   Ops
 	Key   []byte

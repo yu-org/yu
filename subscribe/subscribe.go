@@ -47,8 +47,6 @@ func (s *Subscription) emitToClients() {
 			s.subscribers.Range(func(connI, _ interface{}) bool {
 				conn := connI.(*Conn)
 
-				logrus.Warn("emit result: ", string(byt))
-
 				err = conn.WriteMessage(BinaryMessage, byt)
 				if err != nil {
 					logrus.Errorf("emit result to client(%s) error: %s", conn.RemoteAddr().String(), err.Error())

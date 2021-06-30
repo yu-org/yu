@@ -287,7 +287,9 @@ func (m *Master) CheckHealth() {
 // sync P2P-network's txns
 func (m *Master) SyncTxns(block IBlock) error {
 	txnsHashes := block.GetTxnsHashes()
+
 	blockHash := block.GetHash()
+	// fixme: should get from txpool
 	txns, err := m.base.GetTxns(blockHash)
 	if err != nil {
 		return err
@@ -301,13 +303,17 @@ func (m *Master) SyncTxns(block IBlock) error {
 	}
 
 	if len(needFetch) > 0 {
+		logrus.Warnf("!!!!!!!!!!!!! start sub packed txns")
+
 		blockHash, allTxns, err := m.subPackedTxns()
 		if err != nil {
 			return err
 		}
 
+		logrus.Warnf("~~~~~~~~~~~ sub block is %s", blockHash.String())
+
 		for _, stxn := range allTxns {
-			logrus.Warnf("sub txn is %s", stxn.TxnHash.String())
+			logrus.Warnf("~~~~~~~~~~~ sub txn is %s", stxn.TxnHash.String())
 		}
 
 		fetchedTxns := make([]*SignedTxn, 0)

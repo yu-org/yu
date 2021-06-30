@@ -27,6 +27,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 		}
 		err = land.Execute(ecall, ctx, env)
 		if err != nil {
+			env.Discard()
 			ctx.EmitError(err)
 		}
 
@@ -35,7 +36,6 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			return err
 		}
 
-		logrus.Warn("range results")
 		for _, event := range ctx.Events {
 			event.Height = block.GetHeight()
 			event.BlockHash = blockHash
@@ -44,7 +44,6 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			event.BlockStage = ExecuteTxnsStage
 			event.Caller = stxn.GetRaw().GetCaller()
 
-			logrus.Warn("start to push event: ", event.Sprint())
 			if sub != nil {
 				sub.Push(event)
 			}

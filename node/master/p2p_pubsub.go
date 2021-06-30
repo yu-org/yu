@@ -65,6 +65,7 @@ func (m *Master) pubPackedTxns(blockHash Hash, txns SignedTxns) error {
 
 func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
 	byt, err := m.subFromP2P(m.packedTxnsTopic)
+	logrus.Warn("############## sub block  ")
 	if err != nil {
 		return NullHash, nil, err
 	}
@@ -73,7 +74,7 @@ func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
 	if err != nil {
 		return NullHash, nil, err
 	}
-	logrus.Warnf("sub block is %s ", pt.BlockHash)
+
 	return pt.Resolve()
 }
 

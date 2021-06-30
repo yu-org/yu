@@ -32,7 +32,6 @@ func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 		return AccountNotFound(from)
 	}
 
-	logrus.Warn("check account~~~~~~~~~~")
 	fromBalance := a.getBalance(env, from)
 	if fromBalance < amount {
 		return InsufficientFunds
@@ -54,10 +53,8 @@ func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 		return
 	}
 
-	logrus.Warnf("start set account balance~~~~~~~~")
 	a.setBalance(env, from, fromBalance)
 
-	logrus.Warnf("ready to emit event~~~~~~~~~~~~~")
 	_ = ctx.EmitEvent("Transfer Completed!")
 
 	return
@@ -72,7 +69,6 @@ func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
 		return nil
 	}
 
-	logrus.Warnf("create account~~~~~~~~~~~~~~~~~~~`")
 	a.setBalance(env, addr, Amount(amount))
 	_ = ctx.EmitEvent("Account Created Success!")
 	return nil
