@@ -3,8 +3,22 @@ package master
 import (
 	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/txn"
+	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/Lawliet-Chan/yu/yerror"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"strconv"
+)
+
+const (
+	HandshakeType int = iota
+	SyncTxnsType
+
+	RequestTypeBytesLen = 1
+)
+
+var (
+	HandshakeReqByt = []byte(strconv.Itoa(HandshakeType))
+	SyncTxnsReqByt  = []byte(strconv.Itoa(SyncTxnsType))
 )
 
 type HandShakeRequest struct {
@@ -24,12 +38,16 @@ func (m *Master) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
 }
 
 func (hs *HandShakeRequest) Encode() ([]byte, error) {
-	return json.Marshal(hs)
+	byt, err := json.Marshal(hs)
+	if err != nil {
+		return nil, err
+	}
+	return append(HandshakeReqByt, byt...), nil
 }
 
 func DecodeHsRequest(data []byte) (*HandShakeRequest, error) {
 	var hs HandShakeRequest
-	err := json.Unmarshal(data, &hs)
+	err := json.Unmarshal(data[RequestTypeBytesLen:], &hs)
 	if err != nil {
 		return nil, err
 	}
@@ -104,26 +122,44 @@ type BlocksRange struct {
 	EndHeight   BlockNum
 }
 
-type PackedTxns struct {
-	BlockHash string
-	TxnsBytes []byte
+//type PackedTxns struct {
+//	BlockHash string
+//	TxnsBytes []byte
+//}
+//
+//func NewPackedTxns(blockHash Hash, txns SignedTxns) (*PackedTxns, error) {
+//	byt, err := txns.Encode()
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &PackedTxns{
+//		BlockHash: blockHash.String(),
+//		TxnsBytes: byt,
+//	}, nil
+//}
+//
+//func (pt *PackedTxns) Resolve() (Hash, SignedTxns, error) {
+//	stxns, err := DecodeSignedTxns(pt.TxnsBytes)
+//	if err != nil {
+//		return NullHash, nil, err
+//	}
+//	return HexToHash(pt.BlockHash), stxns, nil
+//}
+
+type TxnsRequest struct {
+	Hashes        []Hash
+	BlockProducer peer.ID
 }
 
-func NewPackedTxns(blockHash Hash, txns SignedTxns) (*PackedTxns, error) {
-	byt, err := txns.Encode()
+func (tr TxnsRequest) Encode() ([]byte, error) {
+	byt, err := codec.GlobalCodec.EncodeToBytes(tr)
 	if err != nil {
 		return nil, err
 	}
-	return &PackedTxns{
-		BlockHash: blockHash.String(),
-		TxnsBytes: byt,
-	}, nil
+	return append(SyncTxnsReqByt, byt...), nil
 }
 
-func (pt *PackedTxns) Resolve() (Hash, SignedTxns, error) {
-	stxns, err := DecodeSignedTxns(pt.TxnsBytes)
-	if err != nil {
-		return NullHash, nil, err
-	}
-	return HexToHash(pt.BlockHash), stxns, nil
+func DecodeTxnsRequest(data []byte) (tr TxnsRequest, err error) {
+	err = codec.GlobalCodec.DecodeBytes(data[RequestTypeBytesLen:], &tr)
+	return
 }

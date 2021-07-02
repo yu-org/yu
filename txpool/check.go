@@ -45,10 +45,3 @@ func checkTxnSize(txnMaxSize int, stxn *SignedTxn) error {
 	}
 	return nil
 }
-
-func checkDuplicate(txnsInPool []*SignedTxn, stxn *SignedTxn) error {
-	if existTxn(stxn.GetTxnHash(), txnsInPool) {
-		return TxnDuplicate
-	}
-	return nil
-}

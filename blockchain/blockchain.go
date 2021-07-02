@@ -6,6 +6,7 @@ import (
 	ysql "github.com/Lawliet-Chan/yu/storage/sql"
 	. "github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/Lawliet-Chan/yu/yerror"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type BlockChain struct {
@@ -297,6 +298,7 @@ type BlocksScheme struct {
 	Nonce      uint64
 	Timestamp  uint64
 	TxnsHashes string
+	PeerID     string
 
 	Finalize bool
 }
@@ -315,20 +317,35 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		Nonce:      b.GetHeader().(*Header).Nonce,
 		Timestamp:  b.GetTimestamp(),
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
+		PeerID:     b.GetProducerPeer().String(),
 		Finalize:   false,
 	}
 	return bs, nil
 }
 
 func (b *BlocksScheme) toBlock() (IBlock, error) {
+	var (
+		peerID peer.ID
+		err    error
+	)
+	if b.PeerID == "" {
+		peerID = peer.ID("")
+	} else {
+		peerID, err = peer.Decode(b.PeerID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	header := &Header{
-		PrevHash:  HexToHash(b.PrevHash),
-		Hash:      HexToHash(b.Hash),
-		Height:    b.Height,
-		TxnRoot:   HexToHash(b.TxnRoot),
-		StateRoot: HexToHash(b.StateRoot),
-		Nonce:     b.Nonce,
-		Timestamp: b.Timestamp,
+		PrevHash:     HexToHash(b.PrevHash),
+		Hash:         HexToHash(b.Hash),
+		Height:       b.Height,
+		TxnRoot:      HexToHash(b.TxnRoot),
+		StateRoot:    HexToHash(b.StateRoot),
+		Nonce:        b.Nonce,
+		Timestamp:    b.Timestamp,
+		ProducerPeer: peerID,
 	}
 	block := &Block{
 		Header:     header,
@@ -339,9 +356,10 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 }
 
 type BlocksFromP2pScheme struct {
-	BlockHash    string `gorm:"primaryKey"`
-	Height       BlockNum
-	BlockContent string
+	BlockHash     string `gorm:"primaryKey"`
+	Height        BlockNum
+	BlockContent  string
+	BlockProducer string
 }
 
 func (BlocksFromP2pScheme) TableName() string {

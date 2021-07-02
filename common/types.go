@@ -143,3 +143,11 @@ func HexToHashes(s string) (hs []Hash) {
 	}
 	return
 }
+
+func HashesToBytes(hs []Hash) []byte {
+	return []byte(HashesToHex(hs))
+}
+
+func BytesToHashes(data []byte) []Hash {
+	return HexToHashes(string(data))
+}

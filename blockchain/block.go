@@ -5,6 +5,7 @@ import (
 	"github.com/Lawliet-Chan/yu/trie"
 	"github.com/Lawliet-Chan/yu/txn"
 	. "github.com/Lawliet-Chan/yu/utils/codec"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type Block struct {
@@ -70,6 +71,14 @@ func (b *Block) GetBlockId() BlockId {
 
 func (b *Block) SetStateRoot(hash Hash) {
 	b.Header.StateRoot = hash
+}
+
+func (b *Block) GetProducerPeer() peer.ID {
+	return b.Header.ProducerPeer
+}
+
+func (b *Block) SetProducerPeer(peerID peer.ID) {
+	b.Header.ProducerPeer = peerID
 }
 
 func (b *Block) SetNonce(nonce uint64) {

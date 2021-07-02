@@ -77,7 +77,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 		return
 	}
 
-	logrus.Warnf("start block...................")
+	logrus.Info("start block...................")
 
 	prevHeight := prevBlock.GetHeight()
 	prevHash := prevBlock.GetHash()
@@ -135,8 +135,12 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 		return
 	}
 
+	env.Pool.Reset()
+
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
+
+	block.SetProducerPeer(env.Peer.ID())
 
 	env.StartBlock(hash)
 	err = env.Base.SetTxns(block.GetHash(), txns)
@@ -166,7 +170,8 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 	logrus.Infof("append block(%d)", block.GetHeight())
 
-	return pool.Flush()
+	pool.Flush()
+	return nil
 }
 
 func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land) error {

@@ -16,13 +16,13 @@ func (m *Master) Run() {
 		for {
 			err := m.LocalRun()
 			if err != nil {
-				logrus.Errorf("run blockchain error: %s", err.Error())
+				logrus.Errorf("local-run blockchain error: %s", err.Error())
 			}
 		}
 	case MasterWorker:
 		for {
 			err := m.MasterWokrerRun()
-			logrus.Errorf("run blockchain error: %s", err.Error())
+			logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
 		}
 
 	default:
@@ -60,7 +60,7 @@ func (m *Master) LocalRun() error {
 
 	if needBcBlock {
 		go func() {
-			err := m.broadcastBlockAndTxns(newBlock)
+			err := m.pubBlock(newBlock)
 			if err != nil {
 				logrus.Errorf("broadcast block(%s) and txns error: %s", newBlock.GetHash().String(), err.Error())
 			}
@@ -143,26 +143,26 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 	return nil
 }
 
-func (m *Master) broadcastBlockAndTxns(b IBlock) error {
-	err := m.pubBlock(b)
-	if err != nil {
-		return err
-	}
-
-	blockHash := b.GetHash()
-	txns, err := m.base.GetTxns(blockHash)
-	if err != nil {
-		return err
-	}
-
-	if len(txns) == 0 {
-		return nil
-	}
-
-	logrus.Warnf("=== pub block(%s) to P2P ===", blockHash.String())
-	for _, stxn := range txns {
-		logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
-	}
-
-	return m.pubPackedTxns(blockHash, txns)
-}
+//func (m *Master) broadcastBlockAndTxns(b IBlock) error {
+//	err := m.pubBlock(b)
+//	if err != nil {
+//		return err
+//	}
+//
+//	blockHash := b.GetHash()
+//	txns, err := m.base.GetTxns(blockHash)
+//	if err != nil {
+//		return err
+//	}
+//
+//	if len(txns) == 0 {
+//		return nil
+//	}
+//
+//	logrus.Warnf("=== pub block(%s) to P2P ===", blockHash.String())
+//	for _, stxn := range txns {
+//		logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
+//	}
+//
+//	return m.pubPackedTxns(blockHash, txns)
+//}

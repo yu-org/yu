@@ -18,6 +18,8 @@ import (
 	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/gin-gonic/gin"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -29,8 +31,10 @@ import (
 type Master struct {
 	sync.Mutex
 
-	host host.Host
-	ps   *pubsub.PubSub
+	host           host.Host
+	ps             *pubsub.PubSub
+	protocolID     protocol.ID
+	ConnectedPeers []peer.ID
 
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
@@ -63,7 +67,6 @@ type Master struct {
 
 	// p2p topics
 	blockTopic        *pubsub.Topic
-	packedTxnsTopic   *pubsub.Topic
 	unpackedTxnsTopic *pubsub.Topic
 }
 
@@ -79,6 +82,7 @@ func NewMaster(
 	if err != nil {
 		return nil, err
 	}
+	pid := protocol.ID(cfg.ProtocolID)
 	ctx := context.Background()
 	p2pHost, err := makeP2pHost(ctx, cfg)
 	if err != nil {
@@ -95,6 +99,7 @@ func NewMaster(
 	m := &Master{
 		host:       p2pHost,
 		ps:         ps,
+		protocolID: pid,
 		RunMode:    cfg.RunMode,
 		nkDB:       nkDB,
 		timeout:    timeout,
@@ -284,20 +289,14 @@ func (m *Master) CheckHealth() {
 //	}
 //}
 
-// sync P2P-network's txns
+// sync txns of P2P-network
 func (m *Master) SyncTxns(block IBlock) error {
 	txnsHashes := block.GetTxnsHashes()
 
-	blockHash := block.GetHash()
-	// fixme: should get from txpool
-	txns, err := m.base.GetTxns(blockHash)
-	if err != nil {
-		return err
-	}
 	needFetch := make([]Hash, 0)
 	for _, txnHash := range txnsHashes {
-		_, exist := existTxnHash(txnHash, txns)
-		if !exist {
+		stxn := m.txPool.GetTxn(txnHash)
+		if stxn == nil {
 			needFetch = append(needFetch, txnHash)
 		}
 	}
@@ -305,24 +304,23 @@ func (m *Master) SyncTxns(block IBlock) error {
 	if len(needFetch) > 0 {
 		logrus.Warnf("!!!!!!!!!!!!! start sub packed txns")
 
-		blockHash, allTxns, err := m.subPackedTxns()
+		var fetchPeer peer.ID
+		if m.ConnectedPeers == nil {
+			block.GetProducerPeer()
+		} else {
+			fetchPeer = m.ConnectedPeers[0]
+		}
+
+		fetchedTxns, err := m.requestTxns(fetchPeer, block.GetProducerPeer(), needFetch)
 		if err != nil {
 			return err
 		}
 
-		logrus.Warnf("~~~~~~~~~~~ sub block is %s", blockHash.String())
-
-		for _, stxn := range allTxns {
-			logrus.Warnf("~~~~~~~~~~~ sub txn is %s", stxn.TxnHash.String())
-		}
-
-		fetchedTxns := make([]*SignedTxn, 0)
 		for _, txnHash := range needFetch {
-			stxn, exist := existTxnHash(txnHash, allTxns)
+			_, exist := existTxnHash(txnHash, fetchedTxns)
 			if !exist {
 				return NoTxnInP2P(txnHash)
 			}
-			fetchedTxns = append(fetchedTxns, stxn)
 		}
 
 		for _, fetchedTxn := range fetchedTxns {
@@ -332,7 +330,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 			}
 		}
 
-		return m.base.SetTxns(blockHash, fetchedTxns)
+		return m.base.SetTxns(block.GetHash(), fetchedTxns)
 	}
 
 	return nil

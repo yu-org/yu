@@ -63,7 +63,7 @@ func main() {
 	case common.LocalNode:
 		pool = txpool.LocalWithDefaultChecks(&txpoolCfg)
 	case common.MasterWorker:
-		pool = txpool.ServerWithDefaultChecks(&txpoolCfg)
+		logrus.Panic("no server txpool")
 	}
 
 	gin.SetMode(gin.ReleaseMode)

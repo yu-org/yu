@@ -4,6 +4,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/result"
 	. "github.com/Lawliet-Chan/yu/txn"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type IBlock interface {
@@ -19,6 +20,7 @@ type IBlock interface {
 	SetTxnRoot(hash Hash)
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
+	SetProducerPeer(peer.ID)
 
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
@@ -33,6 +35,7 @@ type IHeader interface {
 	GetTxnRoot() Hash
 	GetStateRoot() Hash
 	GetTimestamp() uint64
+	GetProducerPeer() peer.ID
 }
 
 // --------------- blockchain interface ----------------

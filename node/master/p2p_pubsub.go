@@ -2,17 +2,13 @@ package master
 
 import (
 	"context"
-	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/blockchain"
-	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/txn"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/sirupsen/logrus"
 )
 
 const (
 	BlockTopic        = "block"
-	PackedTxnsTopic   = "packed-txns"
 	UnpackedTxnsTopic = "unpacked-txns"
 )
 
@@ -21,16 +17,11 @@ func (m *Master) initTopics() error {
 	if err != nil {
 		return err
 	}
-	pkgTxnsTopic, err := m.ps.Join(PackedTxnsTopic)
-	if err != nil {
-		return err
-	}
 	unpkgTxnsTopic, err := m.ps.Join(UnpackedTxnsTopic)
 	if err != nil {
 		return err
 	}
 	m.blockTopic = blockTopic
-	m.packedTxnsTopic = pkgTxnsTopic
 	m.unpackedTxnsTopic = unpkgTxnsTopic
 	return nil
 }
@@ -51,32 +42,31 @@ func (m *Master) subBlock() (IBlock, error) {
 	return m.chain.NewEmptyBlock().Decode(byt)
 }
 
-func (m *Master) pubPackedTxns(blockHash Hash, txns SignedTxns) error {
-	pt, err := NewPackedTxns(blockHash, txns)
-	if err != nil {
-		return err
-	}
-	byt, err := json.Marshal(pt)
-	if err != nil {
-		return err
-	}
-	return m.pubToP2P(m.packedTxnsTopic, byt)
-}
-
-func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
-	byt, err := m.subFromP2P(m.packedTxnsTopic)
-	logrus.Warn("############## sub block  ")
-	if err != nil {
-		return NullHash, nil, err
-	}
-	var pt PackedTxns
-	err = json.Unmarshal(byt, &pt)
-	if err != nil {
-		return NullHash, nil, err
-	}
-
-	return pt.Resolve()
-}
+//func (m *Master) pubPackedTxns(blockHash Hash, txns SignedTxns) error {
+//	pt, err := NewPackedTxns(blockHash, txns)
+//	if err != nil {
+//		return err
+//	}
+//	byt, err := json.Marshal(pt)
+//	if err != nil {
+//		return err
+//	}
+//	return m.pubToP2P(m.packedTxnsTopic, byt)
+//}
+//
+//func (m *Master) subPackedTxns() (Hash, SignedTxns, error) {
+//	byt, err := m.subFromP2P(m.packedTxnsTopic)
+//	if err != nil {
+//		return NullHash, nil, err
+//	}
+//	var pt PackedTxns
+//	err = json.Unmarshal(byt, &pt)
+//	if err != nil {
+//		return NullHash, nil, err
+//	}
+//
+//	return pt.Resolve()
+//}
 
 func (m *Master) pubUnpackedTxns(txns SignedTxns) error {
 	byt, err := txns.Encode()

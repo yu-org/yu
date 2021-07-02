@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
@@ -14,12 +15,12 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/sirupsen/logrus"
 	"io"
 	"math/rand"
 	"os"
+	"strconv"
 )
 
 func makeP2pHost(ctx context.Context, cfg *config.MasterConf) (host.Host, error) {
@@ -65,15 +66,14 @@ func loadNodeKeyReader(cfg *config.MasterConf) (io.Reader, error) {
 }
 
 func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
-	pid := protocol.ID(cfg.ProtocolID)
-	m.host.SetStreamHandler(pid, func(s network.Stream) {
+	m.host.SetStreamHandler(m.protocolID, func(s network.Stream) {
 
 		go func() {
 			var oldErr error
 			for {
-				err := m.handleHsReq(s)
+				err := m.handleRequest(s)
 				if err != nil && err != oldErr {
-					logrus.Errorf("handle hand-shake request from node(%s) error: %s",
+					logrus.Errorf("handle request from node(%s) error: %s",
 						s.Conn().RemotePeer().Pretty(), err.Error(),
 					)
 					oldErr = err
@@ -103,25 +103,27 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 		// todo: we need make some strategy to choose the best node(s)
 		// sync history block from first connected P2P-node
 		if i == 0 {
-			s, err := m.host.NewStream(ctx, peer.ID, pid)
+			s, err := m.host.NewStream(ctx, peer.ID, m.protocolID)
 			if err != nil {
 				return err
 			}
-			err = m.SyncFromP2pNode(s)
+			err = m.SyncHistory(s)
 			if err != nil {
 				return err
 			}
 		}
+
+		m.ConnectedPeers = append(m.ConnectedPeers, peer.ID)
 	}
 	return nil
 }
 
 // Shake hand to the node of p2p network when starts up.
 // If we have missing history block, fetch them.
-func (m *Master) SyncFromP2pNode(s network.Stream) error {
+func (m *Master) SyncHistory(s network.Stream) error {
 	logrus.Info("start to sync history from other node")
 
-	resp, err := m.requestP2pNode(nil, s)
+	resp, err := m.requestBlocks(nil, s)
 	if err != nil {
 		return err
 	}
@@ -132,7 +134,7 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 	for resp.MissingRange != nil {
 		// todo: the missing range maybe very huge and we need fetch them multiple times
 		// the remote node will return new Missing blocks-range in this response.
-		resp, err = m.requestP2pNode(resp.MissingRange, s)
+		resp, err = m.requestBlocks(resp.MissingRange, s)
 		if err != nil {
 			return err
 		}
@@ -175,12 +177,66 @@ func (m *Master) SyncFromP2pNode(s network.Stream) error {
 	return nil
 }
 
-func (m *Master) handleHsReq(s network.Stream) error {
-
+func (m *Master) handleRequest(s network.Stream) error {
 	byt, err := readFromStream(s)
 	if err != nil {
 		return err
 	}
+	reqTypeByt := byt[:RequestTypeBytesLen]
+	reqType, err := strconv.Atoi(string(reqTypeByt))
+	if err != nil {
+		return err
+	}
+	switch reqType {
+	case HandshakeType:
+		return m.handleHsReq(byt, s)
+	case SyncTxnsType:
+		return m.handleSyncTxnsReq(byt, s)
+	default:
+		return errors.New("no request type")
+	}
+}
+
+func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
+	txnsReq, err := DecodeTxnsRequest(byt)
+	if err != nil {
+		return err
+	}
+	var (
+		txns             SignedTxns
+		missingTxnHashes []Hash
+	)
+	for _, hash := range txnsReq.Hashes {
+		stxn := m.txPool.GetTxn(hash)
+		if stxn != nil {
+			txns = append(txns, stxn)
+		} else {
+			missingTxnHashes = append(missingTxnHashes, hash)
+		}
+	}
+
+	// request the node of block-producer for missingTxnHashes
+	if txnsReq.BlockProducer != m.host.ID() {
+		stxns, err := m.requestTxns(txnsReq.BlockProducer, txnsReq.BlockProducer, missingTxnHashes)
+		if err != nil {
+			return err
+		}
+
+		txns = append(txns, stxns...)
+	}
+
+	var txnsByt []byte
+	if txns != nil {
+		txnsByt, err = txns.Encode()
+		if err != nil {
+			return err
+		}
+	}
+
+	return writeToStream(txnsByt, s)
+}
+
+func (m *Master) handleHsReq(byt []byte, s network.Stream) error {
 
 	remoteReq, err := DecodeHsRequest(byt)
 	if err != nil {
@@ -222,7 +278,7 @@ func (m *Master) handleHsReq(s network.Stream) error {
 	return writeToStream(byt, s)
 }
 
-func (m *Master) requestP2pNode(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
+func (m *Master) requestBlocks(fetchRange *BlocksRange, s network.Stream) (*HandShakeResp, error) {
 	hs, err := m.NewHsReq(fetchRange)
 	if err != nil {
 		return nil, err
@@ -313,4 +369,28 @@ func writeToStream(data []byte, s network.Stream) error {
 	data = append(data, '\n')
 	_, err := s.Write(data)
 	return err
+}
+
+func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (SignedTxns, error) {
+	s, err := m.host.NewStream(context.Background(), connectPeer, m.protocolID)
+	if err != nil {
+		return nil, err
+	}
+	txnsRequest := TxnsRequest{
+		Hashes:        txnHashes,
+		BlockProducer: blockProducer,
+	}
+	reqByt, err := txnsRequest.Encode()
+	if err != nil {
+		return nil, err
+	}
+	err = writeToStream(reqByt, s)
+	if err != nil {
+		return nil, err
+	}
+	respByt, err := readFromStream(s)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeSignedTxns(respByt)
 }

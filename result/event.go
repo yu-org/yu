@@ -21,8 +21,7 @@ func (e *Event) Encode() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	byt = append(EventTypeByt, byt...)
-	return byt, nil
+	return append(EventTypeByt, byt...), nil
 }
 
 func (e *Event) Decode(data []byte) error {

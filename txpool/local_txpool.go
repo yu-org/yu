@@ -4,9 +4,11 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	. "github.com/Lawliet-Chan/yu/txn"
+	ytime "github.com/Lawliet-Chan/yu/utils/time"
 	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 // This implementation only use for Local-Node mode.
@@ -16,9 +18,12 @@ type LocalTxPool struct {
 	poolSize   uint64
 	TxnMaxSize int
 
-	txnsHashes  map[Hash]bool
+	txnsMap     map[Hash]*SignedTxn
 	Txns        []*SignedTxn
 	packagedIdx int
+
+	blockTime uint64
+	timeout   time.Duration
 
 	baseChecks   []TxnCheck
 	tripodChecks []TxnCheck
@@ -28,9 +33,10 @@ func NewLocalTxPool(cfg *config.TxpoolConf) *LocalTxPool {
 	return &LocalTxPool{
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
-		txnsHashes:   make(map[Hash]bool),
+		txnsMap:      make(map[Hash]*SignedTxn),
 		Txns:         make([]*SignedTxn, 0),
 		packagedIdx:  0,
+		timeout:      time.Duration(cfg.Timeout),
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
 	}
@@ -82,7 +88,7 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
 	tp.Lock()
 	defer tp.Unlock()
 	for _, stxn := range txns {
-		if _, ok := tp.txnsHashes[stxn.TxnHash]; ok {
+		if _, ok := tp.txnsMap[stxn.TxnHash]; ok {
 			return
 		}
 		err = tp.BaseCheck(stxn)
@@ -95,7 +101,7 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
 		}
 
 		tp.Txns = append(tp.Txns, stxn)
-		tp.txnsHashes[stxn.TxnHash] = true
+		tp.txnsMap[stxn.TxnHash] = stxn
 	}
 	return
 }
@@ -126,23 +132,25 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 	return stxns, nil
 }
 
-// remove txns after execute all tripods
-func (tp *LocalTxPool) Flush() error {
-	tp.Lock()
-	tp.Txns = tp.Txns[tp.packagedIdx:]
-	tp.packagedIdx = 0
-	tp.txnsHashes = make(map[Hash]bool)
-	tp.Unlock()
-	return nil
+func (tp *LocalTxPool) GetTxn(hash Hash) *SignedTxn {
+	tp.RLock()
+	defer tp.RUnlock()
+	return tp.txnsMap[hash]
 }
 
-func existTxn(hash Hash, txns []*SignedTxn) bool {
-	for _, txn := range txns {
-		if txn.GetTxnHash() == hash {
-			return true
-		}
+// remove txns after execute all tripods
+func (tp *LocalTxPool) Flush() {
+	tp.Lock()
+	for _, stxn := range tp.Txns[:tp.packagedIdx] {
+		delete(tp.txnsMap, stxn.GetTxnHash())
 	}
-	return false
+	tp.Txns = tp.Txns[tp.packagedIdx:]
+	tp.packagedIdx = 0
+	tp.Unlock()
+}
+
+func (tp *LocalTxPool) Reset() {
+	tp.blockTime = ytime.NowNanoTsU64()
 }
 
 // --------- check txn ------
@@ -181,8 +189,4 @@ func (tp *LocalTxPool) checkTxnSize(stxn *SignedTxn) error {
 		return TxnTooLarge
 	}
 	return checkTxnSize(tp.TxnMaxSize, stxn)
-}
-
-func (tp *LocalTxPool) checkDuplicate(stxn *SignedTxn) error {
-	return checkDuplicate(tp.Txns, stxn)
 }

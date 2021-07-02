@@ -2,16 +2,18 @@ package blockchain
 
 import (
 	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type Header struct {
-	PrevHash  Hash
-	Hash      Hash
-	Height    BlockNum
-	TxnRoot   Hash
-	StateRoot Hash
-	Nonce     uint64
-	Timestamp uint64
+	PrevHash     Hash
+	Hash         Hash
+	Height       BlockNum
+	TxnRoot      Hash
+	StateRoot    Hash
+	Nonce        uint64
+	Timestamp    uint64
+	ProducerPeer peer.ID
 }
 
 func (h *Header) GetHeight() BlockNum {
@@ -36,4 +38,8 @@ func (h *Header) GetStateRoot() Hash {
 
 func (h *Header) GetTimestamp() uint64 {
 	return h.Timestamp
+}
+
+func (h *Header) GetProducerPeer() peer.ID {
+	return h.ProducerPeer
 }
