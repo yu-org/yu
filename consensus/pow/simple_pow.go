@@ -68,7 +68,7 @@ func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
 	data := bytes.Join(
 		[][]byte{
 			block.GetPrevHash().Bytes(),
-			block.GetStateRoot().Bytes(),
+			block.GetTxnRoot().Bytes(),
 			hex1,
 			hex2,
 			hex3,

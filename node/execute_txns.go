@@ -25,10 +25,13 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 		if err != nil {
 			return err
 		}
+
 		err = land.Execute(ecall, ctx, env)
 		if err != nil {
 			env.Discard()
 			ctx.EmitError(err)
+		} else {
+			env.NextTxn()
 		}
 
 		err = chain.UpdateBlock(block)

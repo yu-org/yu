@@ -32,3 +32,11 @@ func (ss *StateStore) Commit() (Hash, error) {
 func (ss *StateStore) Discard() {
 	ss.KVDB.Discard()
 }
+
+func (ss *StateStore) DiscardAll() {
+	ss.KVDB.DiscardAll()
+}
+
+func (ss *StateStore) NextTxn() {
+	ss.KVDB.NextTxn()
+}

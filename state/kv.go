@@ -24,7 +24,9 @@ type StateKV struct {
 
 	nowBlock     Hash
 	canReadBlock Hash
-	stashes      []*KvStash
+
+	nowStashes []*KvStash
+	stashes    []*KvStash
 }
 
 func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
@@ -39,15 +41,23 @@ func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
 	}
 
 	return &StateKV{
-		indexDB:  indexDB,
-		nodeBase: nodeBase,
-		nowBlock: NullHash,
-		stashes:  make([]*KvStash, 0),
+		indexDB:    indexDB,
+		nodeBase:   nodeBase,
+		nowBlock:   NullHash,
+		nowStashes: make([]*KvStash, 0),
+		stashes:    make([]*KvStash, 0),
 	}, nil
 }
 
+func (skv *StateKV) NextTxn() {
+	for _, stash := range skv.nowStashes {
+		skv.stashes = append(skv.stashes, stash)
+	}
+	skv.nowStashes = make([]*KvStash, 0)
+}
+
 func (skv *StateKV) Set(triName NameString, key, value []byte) {
-	skv.stashes = append(skv.stashes, &KvStash{
+	skv.nowStashes = append(skv.nowStashes, &KvStash{
 		ops:   SetOp,
 		Key:   makeKey(triName, key),
 		Value: value,
@@ -55,7 +65,7 @@ func (skv *StateKV) Set(triName NameString, key, value []byte) {
 }
 
 func (skv *StateKV) Delete(triName NameString, key []byte) {
-	skv.stashes = append(skv.stashes, &KvStash{
+	skv.nowStashes = append(skv.nowStashes, &KvStash{
 		ops:   DeleteOp,
 		Key:   makeKey(triName, key),
 		Value: nil,
@@ -87,7 +97,7 @@ func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Has
 func (skv *StateKV) Commit() (Hash, error) {
 	mpt, err := NewTrie(EmptyRoot, skv.nodeBase)
 	if err != nil {
-		skv.Discard()
+		skv.DiscardAll()
 		return NullHash, err
 	}
 	for _, stash := range skv.stashes {
@@ -95,13 +105,13 @@ func (skv *StateKV) Commit() (Hash, error) {
 		case SetOp:
 			err := mpt.TryUpdate(stash.Key, stash.Value)
 			if err != nil {
-				skv.Discard()
+				skv.DiscardAll()
 				return NullHash, err
 			}
 		case DeleteOp:
 			err := mpt.TryDelete(stash.Key)
 			if err != nil {
-				skv.Discard()
+				skv.DiscardAll()
 				return NullHash, err
 			}
 		}
@@ -109,34 +119,34 @@ func (skv *StateKV) Commit() (Hash, error) {
 
 	stateRoot, err := mpt.Commit(nil)
 	if err != nil {
-		skv.Discard()
+		skv.DiscardAll()
 		return NullHash, err
 	}
 
 	err = skv.setIndexDB(skv.nowBlock, stateRoot)
 	if err != nil {
-		skv.Discard()
+		skv.DiscardAll()
 		return NullHash, err
 	}
 
-	skv.flushStashes()
+	skv.stashes = nil
 	return stateRoot, nil
 }
 
 func (skv *StateKV) Discard() {
+	skv.nowStashes = nil
+}
+
+func (skv *StateKV) DiscardAll() {
 	stateRoot, err := skv.getIndexDB(skv.canReadBlock)
 	if err != nil {
-		logrus.Panicf("Discard: get stateRoot error: %s", err.Error())
+		logrus.Panicf("DiscardAll: get stateRoot error: %s", err.Error())
 	}
 	err = skv.setIndexDB(skv.nowBlock, stateRoot)
 	if err != nil {
-		logrus.Panicf("Discard: set stateRoot error: %s", err.Error())
+		logrus.Panicf("DiscardAll: set stateRoot error: %s", err.Error())
 	}
 
-	skv.flushStashes()
-}
-
-func (skv *StateKV) flushStashes() {
 	skv.stashes = nil
 }
 
@@ -172,7 +182,6 @@ const (
 	DeleteOp
 )
 
-// FIXME: need a txnhash
 type KvStash struct {
 	ops   Ops
 	Key   []byte
