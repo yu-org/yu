@@ -80,6 +80,25 @@ func (sts SignedTxns) Hashes() (hashes []Hash) {
 	return
 }
 
+func (sts SignedTxns) Remove(hash Hash) int {
+	for i, stxn := range sts {
+		if stxn.GetTxnHash() == hash {
+			if i == 0 {
+				sts = sts[1:]
+				return i
+			}
+			if i == len(sts)-1 {
+				sts = sts[:i]
+				return i
+			}
+
+			sts = append(sts[:i], sts[i+1:]...)
+			return i
+		}
+	}
+	return -1
+}
+
 func (sts SignedTxns) Encode() ([]byte, error) {
 	var msts MidSignedTxns
 	for _, st := range sts {

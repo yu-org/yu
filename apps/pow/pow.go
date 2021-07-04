@@ -161,17 +161,9 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	stateRoot, err := env.Commit()
-	if err != nil {
-		return err
-	}
-	env.SetCanRead(block.GetHash())
-	block.SetStateRoot(stateRoot)
-
 	logrus.Infof("append block(%d)", block.GetHeight())
 
-	pool.Flush()
-	return nil
+	return pool.Flush()
 }
 
 func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land) error {

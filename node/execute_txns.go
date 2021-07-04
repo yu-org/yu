@@ -10,7 +10,6 @@ import (
 )
 
 func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
-	chain := env.Chain
 	base := env.Base
 	sub := env.Sub
 
@@ -32,11 +31,6 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			ctx.EmitError(err)
 		} else {
 			env.NextTxn()
-		}
-
-		err = chain.UpdateBlock(block)
-		if err != nil {
-			return err
 		}
 
 		for _, event := range ctx.Events {
@@ -74,5 +68,13 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			return err
 		}
 	}
+
+	stateRoot, err := env.Commit()
+	if err != nil {
+		return err
+	}
+	env.SetCanRead(block.GetHash())
+	block.SetStateRoot(stateRoot)
+
 	return nil
 }

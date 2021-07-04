@@ -80,12 +80,6 @@ type IBlockChain interface {
 	GetRangeBlocks(startHeight, endHeight BlockNum) ([]IBlock, error)
 
 	Chain() (IChainStruct, error)
-	// return the longest children chains
-	LongestChains() ([]IChainStruct, error)
-	// return the heaviest children chains
-	HeaviestChains() ([]IChainStruct, error)
-	// return a finalized chain
-	FinalizedChain() (IChainStruct, error)
 }
 
 type IChainStruct interface {

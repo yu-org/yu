@@ -70,6 +70,10 @@ func (m *Master) LocalRun() error {
 		if err != nil {
 			return err
 		}
+		err = m.txPool.RemoveTxns(newBlock.GetTxnsHashes())
+		if err != nil {
+			return err
+		}
 	}
 
 	// end block and append to chain

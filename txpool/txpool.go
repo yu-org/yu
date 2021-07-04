@@ -27,9 +27,11 @@ type ItxPool interface {
 	// pacakge txns according to specific conditions
 	PackageFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 
-	GetTxn(hash Hash) *SignedTxn
+	GetTxn(hash Hash) (*SignedTxn, error)
+
+	RemoveTxns(hashes []Hash) error
 	// remove txns after execute all tripods
-	Flush()
+	Flush() error
 
 	Reset()
 }

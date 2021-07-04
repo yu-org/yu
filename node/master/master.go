@@ -295,7 +295,10 @@ func (m *Master) SyncTxns(block IBlock) error {
 
 	needFetch := make([]Hash, 0)
 	for _, txnHash := range txnsHashes {
-		stxn := m.txPool.GetTxn(txnHash)
+		stxn, err := m.txPool.GetTxn(txnHash)
+		if err != nil {
+			return err
+		}
 		if stxn == nil {
 			needFetch = append(needFetch, txnHash)
 		}

@@ -18,9 +18,9 @@ type LocalTxPool struct {
 	poolSize   uint64
 	TxnMaxSize int
 
-	txnsMap     map[Hash]*SignedTxn
-	Txns        []*SignedTxn
-	packagedIdx int
+	txnsMap      map[Hash]*SignedTxn
+	Txns         SignedTxns
+	startPackIdx int
 
 	blockTime uint64
 	timeout   time.Duration
@@ -35,7 +35,7 @@ func NewLocalTxPool(cfg *config.TxpoolConf) *LocalTxPool {
 		TxnMaxSize:   cfg.TxnMaxSize,
 		txnsMap:      make(map[Hash]*SignedTxn),
 		Txns:         make([]*SignedTxn, 0),
-		packagedIdx:  0,
+		startPackIdx: 0,
 		timeout:      time.Duration(cfg.Timeout),
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
@@ -127,26 +127,43 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 			return nil, err
 		}
 		stxns = append(stxns, tp.Txns[i])
-		tp.packagedIdx++
+		tp.startPackIdx++
 	}
 	return stxns, nil
 }
 
-func (tp *LocalTxPool) GetTxn(hash Hash) *SignedTxn {
+func (tp *LocalTxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
-	return tp.txnsMap[hash]
+	return tp.txnsMap[hash], nil
+}
+
+func (tp *LocalTxPool) RemoveTxns(hashes []Hash) error {
+	tp.Lock()
+	for _, hash := range hashes {
+		idx := tp.Txns.Remove(hash)
+		if idx == -1 {
+			continue
+		}
+		delete(tp.txnsMap, hash)
+		if idx < tp.startPackIdx {
+			tp.startPackIdx--
+		}
+	}
+	tp.Unlock()
+	return nil
 }
 
 // remove txns after execute all tripods
-func (tp *LocalTxPool) Flush() {
+func (tp *LocalTxPool) Flush() error {
 	tp.Lock()
-	for _, stxn := range tp.Txns[:tp.packagedIdx] {
+	for _, stxn := range tp.Txns[:tp.startPackIdx] {
 		delete(tp.txnsMap, stxn.GetTxnHash())
 	}
-	tp.Txns = tp.Txns[tp.packagedIdx:]
-	tp.packagedIdx = 0
+	tp.Txns = tp.Txns[tp.startPackIdx:]
+	tp.startPackIdx = 0
 	tp.Unlock()
+	return nil
 }
 
 func (tp *LocalTxPool) Reset() {

@@ -207,7 +207,11 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 		missingTxnHashes []Hash
 	)
 	for _, hash := range txnsReq.Hashes {
-		stxn := m.txPool.GetTxn(hash)
+		stxn, err := m.txPool.GetTxn(hash)
+		if err != nil {
+			return err
+		}
+
 		if stxn != nil {
 			txns = append(txns, stxn)
 		} else {
