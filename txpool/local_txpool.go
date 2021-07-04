@@ -141,7 +141,8 @@ func (tp *LocalTxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 func (tp *LocalTxPool) RemoveTxns(hashes []Hash) error {
 	tp.Lock()
 	for _, hash := range hashes {
-		idx := tp.Txns.Remove(hash)
+		var idx int
+		idx, tp.Txns = tp.Txns.Remove(hash)
 		if idx == -1 {
 			continue
 		}

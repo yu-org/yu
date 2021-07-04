@@ -80,23 +80,23 @@ func (sts SignedTxns) Hashes() (hashes []Hash) {
 	return
 }
 
-func (sts SignedTxns) Remove(hash Hash) int {
+func (sts SignedTxns) Remove(hash Hash) (int, SignedTxns) {
 	for i, stxn := range sts {
 		if stxn.GetTxnHash() == hash {
 			if i == 0 {
 				sts = sts[1:]
-				return i
+				return i, sts
 			}
 			if i == len(sts)-1 {
 				sts = sts[:i]
-				return i
+				return i, sts
 			}
 
 			sts = append(sts[:i], sts[i+1:]...)
-			return i
+			return i, sts
 		}
 	}
-	return -1
+	return -1, nil
 }
 
 func (sts SignedTxns) Encode() ([]byte, error) {
