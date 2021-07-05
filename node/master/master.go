@@ -294,6 +294,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 	txnsHashes := block.GetTxnsHashes()
 
 	needFetch := make([]Hash, 0)
+	txns := make(SignedTxns, 0)
 	for _, txnHash := range txnsHashes {
 		stxn, err := m.txPool.GetTxn(txnHash)
 		if err != nil {
@@ -301,6 +302,8 @@ func (m *Master) SyncTxns(block IBlock) error {
 		}
 		if stxn == nil {
 			needFetch = append(needFetch, txnHash)
+		} else {
+			txns = append(txns, stxn)
 		}
 	}
 
@@ -336,7 +339,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 		return m.base.SetTxns(block.GetHash(), fetchedTxns)
 	}
 
-	return nil
+	return m.base.SetTxns(block.GetHash(), txns)
 }
 
 func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
