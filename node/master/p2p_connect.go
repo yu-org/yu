@@ -288,7 +288,6 @@ func (m *Master) requestBlocks(fetchRange *BlocksRange, s network.Stream) (*Hand
 		return nil, err
 	}
 
-	logrus.Info("handshake info genesis-blockHash is   ", hs.Info.GenesisBlockHash.String())
 	logrus.Info("handshake info end-blockhash is    ", hs.Info.EndBlockHash.String())
 	logrus.Info("handshake fetch range request is     ", hs.FetchRange)
 

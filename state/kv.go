@@ -95,7 +95,14 @@ func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Has
 
 // return StateRoot or error
 func (skv *StateKV) Commit() (Hash, error) {
-	mpt, err := NewTrie(EmptyRoot, skv.nodeBase)
+	lastStateRoot, err := skv.getIndexDB(skv.canReadBlock)
+	if err != nil {
+		return NullHash, err
+	}
+	if lastStateRoot == NullHash {
+		lastStateRoot = EmptyRoot
+	}
+	mpt, err := NewTrie(lastStateRoot, skv.nodeBase)
 	if err != nil {
 		skv.DiscardAll()
 		return NullHash, err
