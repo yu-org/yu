@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/Lawliet-Chan/yu/apps/asset"
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/keypair"
 	. "github.com/Lawliet-Chan/yu/node"
@@ -9,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/url"
+	"time"
 )
 
 func main() {
@@ -26,11 +29,35 @@ func main() {
 	go subEvent()
 
 	createAccount(privkey, pubkey)
+	time.Sleep(4 * time.Second)
+	transfer(privkey, pubkey, toPubkey.Address())
+	time.Sleep(4 * time.Second)
 
 	transfer(privkey, pubkey, toPubkey.Address())
+	time.Sleep(6 * time.Second)
+
+	queryAccount(toPubkey)
 
 	select {}
+}
 
+type QryAccount struct {
+	Account []byte `json:"account"`
+}
+
+func queryAccount(pubkey PubKey) {
+	qa := &QryAccount{Account: pubkey.Address().Bytes()}
+	paramByt, err := json.Marshal(qa)
+	if err != nil {
+		panic("json encode qryAccount error: " + err.Error())
+	}
+	qcall := &Qcall{
+		TripodName: "asset",
+		QueryName:  "QueryBalance",
+		BlockHash:  Hash{},
+		Params:     JsonString(paramByt),
+	}
+	callChainByQry(pubkey.Address(), qcall)
 }
 
 type CreateAccountInfo struct {
@@ -49,7 +76,7 @@ func createAccount(privkey PrivKey, pubkey PubKey) {
 		ExecName:   "CreateAccount",
 		Params:     JsonString(paramsByt),
 	}
-	callChain(privkey, pubkey, ecall)
+	callChainByExec(privkey, pubkey, ecall)
 }
 
 type TransferInfo struct {
@@ -71,10 +98,40 @@ func transfer(privkey PrivKey, pubkey PubKey, to Address) {
 		ExecName:   "Transfer",
 		Params:     JsonString(paramsByt),
 	}
-	callChain(privkey, pubkey, ecall)
+	callChainByExec(privkey, pubkey, ecall)
 }
 
-func callChain(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
+func callChainByQry(addr Address, qcall *Qcall) {
+	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: QryApiPath}
+	q := u.Query()
+	q.Set(TripodNameKey, qcall.TripodName)
+	q.Set(CallNameKey, qcall.QueryName)
+	q.Set(BlockHashKey, qcall.BlockHash.String())
+
+	u.RawQuery = q.Encode()
+
+	//logrus.Info("qcall: ", u.String())
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		panic("qcall dial chain error: " + err.Error())
+	}
+	err = c.WriteMessage(websocket.TextMessage, []byte(qcall.Params))
+	if err != nil {
+		panic("write qcall message to chain error: " + err.Error())
+	}
+	_, resp, err := c.ReadMessage()
+	if err != nil {
+		fmt.Println("get qcall response error: " + err.Error())
+	}
+	var amount asset.Amount
+	err = json.Unmarshal(resp, &amount)
+	if err != nil {
+		panic("json decode response error: " + err.Error())
+	}
+	logrus.Infof("get account(%s) balance(%d)", addr.String(), amount)
+}
+
+func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	signByt, err := privkey.SignData(ecall.Bytes())
 	if err != nil {
 		panic("sign data error: " + err.Error())
@@ -91,16 +148,16 @@ func callChain(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 
 	u.RawQuery = q.Encode()
 
-	logrus.Info(u.String())
+	// logrus.Info("ecall: ", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		panic("dial chain error: " + err.Error())
+		panic("ecall dial chain error: " + err.Error())
 	}
 
 	err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
 	if err != nil {
-		panic("write message to chain error: " + err.Error())
+		panic("write ecall message to chain error: " + err.Error())
 	}
 }
 

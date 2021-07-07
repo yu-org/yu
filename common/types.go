@@ -126,7 +126,10 @@ type (
 	Address [AddressLen]byte
 )
 
-var NullHash Hash = [HashLen]byte{}
+var (
+	NullHash    Hash    = [HashLen]byte{}
+	NullAddress Address = [AddressLen]byte{}
+)
 
 func HashesToHex(hs []Hash) string {
 	var buffer bytes.Buffer

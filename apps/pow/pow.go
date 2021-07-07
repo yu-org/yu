@@ -163,6 +163,8 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 	logrus.Infof("append block(%d)", block.GetHeight())
 
+	env.SetCanRead(block.GetHash())
+
 	return pool.Flush()
 }
 

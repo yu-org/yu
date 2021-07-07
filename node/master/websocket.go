@@ -57,7 +57,7 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	case execution:
 		m.handleWsExec(w, req, JsonString(params))
 	case query:
-		m.handleWsQry(w, req, JsonString(params))
+		m.handleWsQry(c, w, req, JsonString(params))
 	}
 
 }
@@ -108,7 +108,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 	logrus.Info("publish unpacked txns to P2P")
 }
 
-func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params JsonString) {
+func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params JsonString) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Query info from websocket error: %v", err))
@@ -124,12 +124,7 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 		}
 		forwardQueryToWorker(ip, w, req)
 	case LocalNode:
-		pubkey, err := GetPubkey(req)
-		if err != nil {
-			BadReqHttpResp(w, fmt.Sprintf("get pubkey error: %s", err.Error()))
-			return
-		}
-		ctx, err := context.NewContext(pubkey.Address(), qcall.Params)
+		ctx, err := context.NewContext(NullAddress, qcall.Params)
 		if err != nil {
 			BadReqHttpResp(w, fmt.Sprintf("new context error: %s", err.Error()))
 			return
@@ -145,7 +140,7 @@ func (m *Master) handleWsQry(w http.ResponseWriter, req *http.Request, params Js
 			ServerErrorHttpResp(w, err.Error())
 			return
 		}
-		_, err = w.Write(respByt)
+		err = c.WriteMessage(websocket.BinaryMessage, respByt)
 		if err != nil {
 			logrus.Errorf("response Query result error: %s", err.Error())
 		}

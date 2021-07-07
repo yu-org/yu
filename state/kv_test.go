@@ -1,15 +1,16 @@
 package state
 
 import (
+	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	"testing"
 )
 
 var TestStateKvCfg = &config.StateKvConf{
-	IndexDB: config.KVconf{KvType: "bolt", Path: "./test_state_index.db", Hosts: nil},
+	IndexDB: config.KVconf{KvType: "bolt", Path: "./state_index.db", Hosts: nil},
 	NodeBase: config.KVconf{
 		KvType: "bolt",
-		Path:   "./test_state_nodebase.db",
+		Path:   "./state_base.db",
 		Hosts:  nil,
 	},
 }
@@ -37,11 +38,19 @@ func TestKvCommit(t *testing.T) {
 		t.Fatalf("commit state-kv error: %s", err.Error())
 	}
 
+	statekv.SetCanRead(NullHash)
+
 	t.Logf("state-root is %s", stateRoot.String())
 
 	value, err := statekv.Get(tri, []byte("dayu-key"))
 	if err != nil {
 		t.Fatalf("get state-kv error: %s", err.Error())
 	}
-	t.Logf("value is %s", string(value))
+	t.Logf("Get value is %s", string(value))
+
+	value, err = statekv.GetByBlockHash(tri, []byte("dayu-key"), NullHash)
+	if err != nil {
+		t.Fatalf("get state-kv by blockHash error: %s", err.Error())
+	}
+	t.Logf("Get value by blockHash is %s", string(value))
 }

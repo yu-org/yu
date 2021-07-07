@@ -73,7 +73,6 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 	if err != nil {
 		return err
 	}
-	env.SetCanRead(block.GetHash())
 	block.SetStateRoot(stateRoot)
 
 	return nil
