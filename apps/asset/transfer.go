@@ -25,14 +25,14 @@ func NewAsset(tokenName string) *Asset {
 }
 
 func (a *Asset) QueryBalance(ctx *context.Context, env *ChainEnv, _ Hash) (interface{}, error) {
-	account := HexToAddress(ctx.GetString("account"))
+	account := ctx.GetAddress("account")
 	amount := a.getBalance(env, account)
 	return amount, nil
 }
 
 func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 	from := ctx.Caller
-	to := HexToAddress(ctx.GetString("to"))
+	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
 
 	if !a.exsitAccount(env, from) {
