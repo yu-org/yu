@@ -25,14 +25,14 @@ func NewAsset(tokenName string) *Asset {
 }
 
 func (a *Asset) QueryBalance(ctx *context.Context, env *ChainEnv, _ Hash) (interface{}, error) {
-	account := BytesToAddress(ctx.GetBytes("account"))
+	account := HexToAddress(ctx.GetString("account"))
 	amount := a.getBalance(env, account)
 	return amount, nil
 }
 
 func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 	from := ctx.Caller
-	to := BytesToAddress(ctx.GetBytes("to"))
+	to := HexToAddress(ctx.GetString("to"))
 	amount := Amount(ctx.GetUint64("amount"))
 
 	if !a.exsitAccount(env, from) {
@@ -94,7 +94,6 @@ func (a *Asset) getBalance(env *ChainEnv, addr Address) Amount {
 }
 
 func (a *Asset) setBalance(env *ChainEnv, addr Address, amount Amount) {
-	logrus.Warnf("set balance: account(%s) balance(%d)", addr.String(), amount)
 	env.KVDB.Set(a, addr.Bytes(), amount.MustEncode())
 }
 

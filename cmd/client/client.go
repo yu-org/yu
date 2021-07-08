@@ -36,17 +36,18 @@ func main() {
 	transfer(privkey, pubkey, toPubkey.Address())
 	time.Sleep(6 * time.Second)
 
+	queryAccount(pubkey)
 	queryAccount(toPubkey)
 
 	select {}
 }
 
 type QryAccount struct {
-	Account []byte `json:"account"`
+	Account string `json:"account"`
 }
 
 func queryAccount(pubkey PubKey) {
-	qa := &QryAccount{Account: pubkey.Address().Bytes()}
+	qa := &QryAccount{Account: pubkey.Address().String()}
 	paramByt, err := json.Marshal(qa)
 	if err != nil {
 		panic("json encode qryAccount error: " + err.Error())
@@ -80,13 +81,13 @@ func createAccount(privkey PrivKey, pubkey PubKey) {
 }
 
 type TransferInfo struct {
-	To     []byte `json:"to"`
+	To     string `json:"to"`
 	Amount uint64 `json:"amount"`
 }
 
 func transfer(privkey PrivKey, pubkey PubKey, to Address) {
 	params := TransferInfo{
-		To:     to.Bytes(),
+		To:     to.String(),
 		Amount: 100,
 	}
 	paramsByt, err := json.Marshal(params)
