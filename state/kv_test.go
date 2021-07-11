@@ -3,6 +3,7 @@ package state
 import (
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
+	"os"
 	"testing"
 )
 
@@ -53,4 +54,11 @@ func TestKvCommit(t *testing.T) {
 		t.Fatalf("get state-kv by blockHash error: %s", err.Error())
 	}
 	t.Logf("Get value by blockHash is %s", string(value))
+
+	removeTestDB()
+}
+
+func removeTestDB() {
+	os.RemoveAll(TestStateKvCfg.NodeBase.Path)
+	os.RemoveAll(TestStateKvCfg.IndexDB.Path)
 }

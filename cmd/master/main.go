@@ -8,6 +8,7 @@ import (
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
 	"github.com/Lawliet-Chan/yu/state"
+	"github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
@@ -56,7 +57,8 @@ func main() {
 	if err != nil {
 		logrus.Panicf("load blockbase error: %s", err.Error())
 	}
-	land := apps.LoadLand()
+	land := tripod.NewLand()
+	apps.LoadLand(land)
 
 	var pool txpool.ItxPool
 	switch masterCfg.RunMode {

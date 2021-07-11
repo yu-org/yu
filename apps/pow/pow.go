@@ -54,7 +54,7 @@ func (*Pow) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) ValidateBlock(block IBlock, _ *ChainEnv) bool {
+func (p *Pow) VerifyBlock(block IBlock, _ *ChainEnv) bool {
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
@@ -116,7 +116,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	block.SetPreHash(prevHash)
 	block.SetHeight(height)
 
-	txns, err := pool.Package("", p.pkgTxnsLimit)
+	txns, err := pool.Pack("", p.pkgTxnsLimit)
 	if err != nil {
 		return
 	}

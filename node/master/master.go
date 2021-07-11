@@ -189,7 +189,7 @@ func (m *Master) AcceptBlocksFromP2P() error {
 		// todo: switch MasterWorker Mode
 	case LocalNode:
 		err = m.land.RangeList(func(tri Tripod) error {
-			if tri.ValidateBlock(block, m.GetEnv()) {
+			if tri.VerifyBlock(block, m.GetEnv()) {
 				return nil
 			}
 			return BlockIllegal(block.GetHash())
@@ -347,7 +347,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	case LocalNode:
 		for _, block := range blocks {
 			err := m.land.RangeList(func(tri Tripod) error {
-				if tri.ValidateBlock(block, m.GetEnv()) {
+				if tri.VerifyBlock(block, m.GetEnv()) {
 					return m.chain.AppendBlock(block)
 				}
 				return BlockIllegal(block.GetHash())

@@ -6,8 +6,7 @@ import (
 	"github.com/Lawliet-Chan/yu/tripod"
 )
 
-func LoadLand() *tripod.Land {
-	land := tripod.NewLand()
+func LoadLand(land *tripod.Land) *tripod.Land {
 	powTripod := pow.NewPow(1024)
 	land.SetTripods(powTripod)
 

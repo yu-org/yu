@@ -107,13 +107,13 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Package(_ string, numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackageFor("", numLimit, func(*SignedTxn) error {
+func (tp *LocalTxPool) Pack(_ string, numLimit uint64) ([]*SignedTxn, error) {
+	return tp.PackFor("", numLimit, func(*SignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
+func (tp *LocalTxPool) PackFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]*SignedTxn, 0)
@@ -121,7 +121,7 @@ func (tp *LocalTxPool) PackageFor(_ string, numLimit uint64, filter func(*Signed
 		if i >= len(tp.Txns) {
 			break
 		}
-		logrus.Info("********************** package txn: ", tp.Txns[i].GetTxnHash().String())
+		logrus.Info("********************** pack txn: ", tp.Txns[i].GetTxnHash().String())
 		err := filter(tp.Txns[i])
 		if err != nil {
 			return nil, err

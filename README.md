@@ -20,6 +20,8 @@ type (
 )
 ```
 - Define Your `blockchain lifecycle`, this function is in `Tripod` interface.  
+`CheckTxn` defines the rules for checking transactions(Executions) before inserting txpool.  
+`VerifyBlock` defines the rules for verifying blocks.   
 `InitChain` defines bussiness when the blockchain starts up. You should use it to define `Genesis Block`.  
 `StartBlock` defines bussiness when a new block starts. In this func, you can set some attributes( including package txns from txpool, mining ) in the block,
 then you should tell the framework whether broadcast the block to other nodes or not.    
@@ -29,15 +31,19 @@ then you should tell the framework whether broadcast the block to other nodes or
 ```
 type Tripod interface {
 
-	......
+    ......
+    
+    CheckTxn(*txn.SignedTxn)    
 
-	InitChain(env *ChainEnv, land *Land) error
+    VerifyBlock(block IBlock, env *ChainEnv) bool
 
-	StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error)
+    InitChain(env *ChainEnv, land *Land) error
 
-	EndBlock(block IBlock, env *ChainEnv, land *Land) error
+    StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error)
 
-	FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error
+    EndBlock(block IBlock, env *ChainEnv, land *Land) error
+
+    FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error
 }
 ```
 
@@ -84,7 +90,7 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 ```  
-And set `Tripods` into `land`.
+Finally set `Asset Tripod` into `land`. [load_land](https://github.com/Lawliet-Chan/yu/blob/master/apps/load.go)
 ```
     assetTripod := asset.NewAsset("YuCoin")
     land.SetTripods(assetTripod)
@@ -92,8 +98,82 @@ And set `Tripods` into `land`.
 
 [Pow Tripod](https://github.com/Lawliet-Chan/yu/blob/master/apps/pow/pow.go)  
 `Pow Tripod` imitates a Consensus algorithm for proof of work. It customizes the lower-level code.
+- Start a new block  
+If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
+```
+func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
+    ......
+
+    // get validated blocks from P2P network, if exists, use it and return.
+    pbsht, err := chain.TakeP2pBlocks(height)
+    if err != nil {
+   	logrus.Errorf("get p2p-blocks error: %s", err.Error())
+    }
+    if len(pbsht) > 0 {
+   	block.CopyFrom(pbsht[0])
+   	logrus.Infof("USE P2P block(%s)", block.GetHash().String())
+   	env.StartBlock(block.GetHash())
+   	return
+    }
+    
+    // if there are no validated blocks from P2P network, we need to mine a block.
+    needBroadcast = true
+
+    ......
+
+    // pack transactions(Executions) from txpool
+    txns, err := pool.Pack("", p.pkgTxnsLimit)
+    if err != nil {
+    	return
+    }
+
+    ......
+
+    // mine a hash for the new block
+    nonce, hash, err := spow.Run(block, p.target, p.targetBits)
+    if err != nil {
+        return
+    }
+
+    block.(*Block).SetNonce(uint64(nonce))
+    block.SetHash(hash)
+
+    ......
+
+    return 
+}
+```
+- End the block  
+We execute the txns of the block and append the block into the chain.
+```
+func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
+        ......
+
+        // execute the txns of the block
+	err := node.ExecuteTxns(block, env, land)
+	if err != nil {
+		return err
+	}
+
+        // append the block into chain
+	err = chain.AppendBlock(block)
+	if err != nil {
+		return err
+	}
+
+        ......
+        // flush the txpool to prepare for new txns of the next block   
+        return pool.Flush()   
+}
 ```
 
-```
+- Finalize the block  
+poW does not need `finalize` stage, so the `FinalizeBlock` has no implements.  
 
+
+Finally set `Pow Tripod` into `land`. [load_land](https://github.com/Lawliet-Chan/yu/blob/master/apps/load.go)   
+```
+	powTripod := pow.NewPow(1024)
+	land.SetTripods(powTripod)
+```
 ### Overall Structure

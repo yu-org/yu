@@ -13,7 +13,7 @@ type Tripod interface {
 
 	CheckTxn(*SignedTxn) error
 
-	ValidateBlock(block IBlock, env *ChainEnv) bool
+	VerifyBlock(block IBlock, env *ChainEnv) bool
 
 	InitChain(env *ChainEnv, land *Land) error
 

@@ -23,9 +23,9 @@ type ItxPool interface {
 	// batch insert into txpool
 	BatchInsert(workerName string, txns SignedTxns) error
 	// package some txns to send to tripods
-	Package(workerName string, numLimit uint64) ([]*SignedTxn, error)
+	Pack(workerName string, numLimit uint64) ([]*SignedTxn, error)
 	// pacakge txns according to specific conditions
-	PackageFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
+	PackFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 
 	GetTxn(hash Hash) (*SignedTxn, error)
 
