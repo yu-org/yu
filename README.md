@@ -90,10 +90,11 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 ```  
-Finally set `Asset Tripod` into `land`. [load_land](https://github.com/Lawliet-Chan/yu/blob/master/apps/load.go)
+Finally set `Asset Tripod` into `land` in `main func`. 
 ```
-    assetTripod := asset.NewAsset("YuCoin")
-    land.SetTripods(assetTripod)
+func main() {
+    startup.StartUp(pow.NewPow(1024), asset.NewAsset("YuCoin"))
+}
 ```
 
 [Pow Tripod](https://github.com/Lawliet-Chan/yu/blob/master/apps/pow/pow.go)  
@@ -171,9 +172,10 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 poW does not need `finalize` stage, so the `FinalizeBlock` has no implements.  
 
 
-Finally set `Pow Tripod` into `land`. [load_land](https://github.com/Lawliet-Chan/yu/blob/master/apps/load.go)   
+Same as `Asset Tripod` , finally set `Pow Tripod` into `land` in `main function`.    
 ```
-	powTripod := pow.NewPow(1024)
-	land.SetTripods(powTripod)
+func main() {
+	startup.StartUp(pow.NewPow(1024), asset.NewAsset("YuCoin"))
+}
 ```
 ### Overall Structure
