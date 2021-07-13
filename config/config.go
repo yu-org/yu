@@ -18,8 +18,6 @@ type MasterConf struct {
 	// when beyond 'Timeout', it means this nodekeeper is down.
 	// Unit is Second.
 	Timeout int `toml:"timeout"`
-	// number of broadcast txns every time
-	NumOfBcTxns int `toml:"num_of_bc_txns"`
 
 	//---------P2P config--------
 	// For listening from blockchain network.

@@ -69,6 +69,12 @@ func StartUp(tripods ...tripod.Tripod) {
 }
 
 func initCfgFromFlags() {
+	useDefaultCfg := flag.Bool("dc", false, "default config files")
+	if *useDefaultCfg {
+		initDefaultCfg()
+		return
+	}
+
 	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
 	config.LoadConf(masterCfgPath, &masterCfg)
 
@@ -92,4 +98,58 @@ func initLog() {
 	}
 	logrus.SetFormatter(formatter)
 	logrus.SetLevel(logrus.InfoLevel)
+}
+
+func initDefaultCfg() {
+	masterCfg = config.MasterConf{
+		RunMode:  0,
+		HttpPort: "7999",
+		WsPort:   "8999",
+		NkDB: config.KVconf{
+			KvType: "bolt",
+			Path:   "./nk_db.db",
+			Hosts:  nil,
+		},
+		Timeout:         60,
+		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},
+		ConnectAddrs:    nil,
+		ProtocolID:      "yu",
+		NodeKeyType:     1,
+		NodeKeyRandSeed: 1,
+		NodeKey:         "",
+		NodeKeyBits:     0,
+		NodeKeyFile:     "",
+	}
+	chainCfg = config.BlockchainConf{
+		ChainDB: config.SqlDbConf{
+			SqlDbType: "sqlite",
+			Dsn:       "chain.db",
+		},
+		BlocksFromP2pDB: config.SqlDbConf{
+			SqlDbType: "sqlite",
+			Dsn:       "blocks_from_p2p.db",
+		},
+	}
+	txpoolCfg = config.TxpoolConf{
+		PoolSize:   2048,
+		TxnMaxSize: 1024000,
+		Timeout:    10,
+		TxnsDB: config.SqlDbConf{
+			SqlDbType: "sqlite",
+			Dsn:       "./txpool.db",
+		},
+		WorkerIP: "",
+	}
+	stateCfg = config.StateConf{KV: config.StateKvConf{
+		IndexDB: config.KVconf{
+			KvType: "bolt",
+			Path:   "./state_index.db",
+			Hosts:  nil,
+		},
+		NodeBase: config.KVconf{
+			KvType: "bolt",
+			Path:   "./state_base.db",
+			Hosts:  nil,
+		},
+	}}
 }
