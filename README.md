@@ -3,7 +3,7 @@
 Yu is a highly customizable blockchain framework.
 
 ### Overall Structure
-![image](yu_flow_chart.jpg)
+![image](yu_flow_chart.png)
 
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
