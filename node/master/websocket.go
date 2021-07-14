@@ -63,7 +63,7 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 }
 
 func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params JsonString) {
-	tripodName, callName, stxn, err := getExecInfoFromReq(req, params)
+	_, _, stxn, err := getExecInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Execution info from websocket error: %v", err))
 		return
@@ -71,30 +71,30 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 
 	switch m.RunMode {
 	case MasterWorker:
-		ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
-		if err != nil {
-			BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
-			return
-		}
-
-		fmap := make(map[string]*TxnsAndWorkerName)
-		fmap[ip] = &TxnsAndWorkerName{
-			Txns:       FromArray(stxn),
-			WorkerName: name,
-		}
-		err = m.forwardTxnsForCheck(fmap)
-		if err != nil {
-			BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
-			return
-		}
-
-		err = m.txPool.Insert(name, stxn)
-		if err != nil {
-			ServerErrorHttpResp(w, err.Error())
-			return
-		}
+		//ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
+		//if err != nil {
+		//	BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
+		//	return
+		//}
+		//
+		//fmap := make(map[string]*TxnsAndWorkerName)
+		//fmap[ip] = &TxnsAndWorkerName{
+		//	Txns:       FromArray(stxn),
+		//	WorkerName: name,
+		//}
+		//err = m.forwardTxnsForCheck(fmap)
+		//if err != nil {
+		//	BadReqHttpResp(w, FindNoCallStr(tripodName, callName, err))
+		//	return
+		//}
+		//
+		//err = m.txPool.Insert(name, stxn)
+		//if err != nil {
+		//	ServerErrorHttpResp(w, err.Error())
+		//	return
+		//}
 	case LocalNode:
-		err = m.txPool.Insert("", stxn)
+		err = m.txPool.Insert(stxn)
 		if err != nil {
 			ServerErrorHttpResp(w, err.Error())
 			return

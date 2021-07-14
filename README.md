@@ -26,7 +26,7 @@ type (
 `CheckTxn` defines the rules for checking transactions(Executions) before inserting txpool.  
 `VerifyBlock` defines the rules for verifying blocks.   
 `InitChain` defines bussiness when the blockchain starts up. You should use it to define `Genesis Block`.  
-`StartBlock` defines bussiness when a new block starts. In this func, you can set some attributes( including package txns from txpool, mining ) in the block,
+`StartBlock` defines bussiness when a new block starts. In this func, you can set some attributes( including pack txns from txpool, mining ) in the block,
 then you should tell the framework whether broadcast the block to other nodes or not.    
 `EndBlock` defines bussiness when all nodes accept the new block, usually we execute the txns of new block and append  block into the chain.  
 `FinalizeBlock` defines bussiness when the block is finalized in the chain by all nodes.
@@ -126,7 +126,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
     ......
 
     // pack transactions(Executions) from txpool
-    txns, err := pool.Pack("", p.pkgTxnsLimit)
+    txns, err := pool.Pack(p.pkgTxnsLimit)
     if err != nil {
     	return
     }

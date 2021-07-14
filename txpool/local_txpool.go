@@ -79,12 +79,12 @@ func (tp *LocalTxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txpool
-func (tp *LocalTxPool) Insert(_ string, stxn *SignedTxn) error {
-	return tp.BatchInsert("", FromArray(stxn))
+func (tp *LocalTxPool) Insert(stxn *SignedTxn) error {
+	return tp.BatchInsert(FromArray(stxn))
 }
 
 // batch insert into txpool
-func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
+func (tp *LocalTxPool) BatchInsert(txns SignedTxns) (err error) {
 	tp.Lock()
 	defer tp.Unlock()
 	for _, stxn := range txns {
@@ -107,13 +107,13 @@ func (tp *LocalTxPool) BatchInsert(_ string, txns SignedTxns) (err error) {
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Pack(_ string, numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackFor("", numLimit, func(*SignedTxn) error {
+func (tp *LocalTxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
+	return tp.PackFor(numLimit, func(*SignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackFor(_ string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
+func (tp *LocalTxPool) PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	stxns := make([]*SignedTxn, 0)

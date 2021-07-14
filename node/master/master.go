@@ -211,37 +211,37 @@ func (m *Master) AcceptUnpkgTxns() error {
 
 	switch m.RunMode {
 	case MasterWorker:
-		// key: workerIP
-		forwardMap := make(map[string]*TxnsAndWorkerName)
-		for _, txn := range txns {
-			ecall := txn.GetRaw().GetEcall()
-			tripodName := ecall.TripodName
-			execName := ecall.ExecName
-			workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
-			if err != nil {
-				return err
-			}
-			oldTxns := forwardMap[workerIP].Txns
-			forwardMap[workerIP] = &TxnsAndWorkerName{
-				Txns:       append(oldTxns, txn),
-				WorkerName: workerName,
-			}
-		}
-
-		err := m.forwardTxnsForCheck(forwardMap)
-		if err != nil {
-			return err
-		}
-
-		for _, twn := range forwardMap {
-			err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
-			if err != nil {
-				return err
-			}
-		}
+		//// key: workerIP
+		//forwardMap := make(map[string]*TxnsAndWorkerName)
+		//for _, txn := range txns {
+		//	ecall := txn.GetRaw().GetEcall()
+		//	tripodName := ecall.TripodName
+		//	execName := ecall.ExecName
+		//	workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
+		//	if err != nil {
+		//		return err
+		//	}
+		//	oldTxns := forwardMap[workerIP].Txns
+		//	forwardMap[workerIP] = &TxnsAndWorkerName{
+		//		Txns:       append(oldTxns, txn),
+		//		WorkerName: workerName,
+		//	}
+		//}
+		//
+		//err := m.forwardTxnsForCheck(forwardMap)
+		//if err != nil {
+		//	return err
+		//}
+		//
+		//for _, twn := range forwardMap {
+		//	err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
+		//	if err != nil {
+		//		return err
+		//	}
+		//}
 
 	case LocalNode:
-		err = m.txPool.BatchInsert("", txns)
+		err = m.txPool.BatchInsert(txns)
 		if err != nil {
 			return err
 		}

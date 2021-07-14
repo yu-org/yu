@@ -65,7 +65,7 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	tripodName, callName, stxn, err := getExecInfoFromReq(c.Request, params)
+	_, _, stxn, err := getExecInfoFromReq(c.Request, params)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -73,33 +73,33 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 
 	switch m.RunMode {
 	case MasterWorker:
-		ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
-		if err != nil {
-			c.String(
-				http.StatusBadRequest,
-				FindNoCallStr(tripodName, callName, err),
-			)
-			return
-		}
-
-		fmap := make(map[string]*TxnsAndWorkerName)
-		fmap[ip] = &TxnsAndWorkerName{
-			Txns:       FromArray(stxn),
-			WorkerName: name,
-		}
-		err = m.forwardTxnsForCheck(fmap)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-
-		err = m.txPool.Insert(name, stxn)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
+		//ip, name, err := m.findWorkerIpAndName(tripodName, callName, ExecCall)
+		//if err != nil {
+		//	c.String(
+		//		http.StatusBadRequest,
+		//		FindNoCallStr(tripodName, callName, err),
+		//	)
+		//	return
+		//}
+		//
+		//fmap := make(map[string]*TxnsAndWorkerName)
+		//fmap[ip] = &TxnsAndWorkerName{
+		//	Txns:       FromArray(stxn),
+		//	WorkerName: name,
+		//}
+		//err = m.forwardTxnsForCheck(fmap)
+		//if err != nil {
+		//	c.AbortWithError(http.StatusInternalServerError, err)
+		//	return
+		//}
+		//
+		//err = m.txPool.Insert(name, stxn)
+		//if err != nil {
+		//	c.AbortWithError(http.StatusInternalServerError, err)
+		//	return
+		//}
 	case LocalNode:
-		err = m.txPool.Insert("", stxn)
+		err = m.txPool.Insert(stxn)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return

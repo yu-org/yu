@@ -19,13 +19,13 @@ type ItxPool interface {
 	// use for SyncTxns
 	NecessaryCheck(stxn *SignedTxn) error
 	// insert into txpool
-	Insert(workerName string, txn *SignedTxn) error
+	Insert(txn *SignedTxn) error
 	// batch insert into txpool
-	BatchInsert(workerName string, txns SignedTxns) error
+	BatchInsert(txns SignedTxns) error
 	// package some txns to send to tripods
-	Pack(workerName string, numLimit uint64) ([]*SignedTxn, error)
+	Pack(numLimit uint64) ([]*SignedTxn, error)
 	// pacakge txns according to specific conditions
-	PackFor(workerName string, numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
+	PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 
 	GetTxn(hash Hash) (*SignedTxn, error)
 

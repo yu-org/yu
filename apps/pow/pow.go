@@ -116,7 +116,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	block.SetPreHash(prevHash)
 	block.SetHeight(height)
 
-	txns, err := pool.Pack("", p.pkgTxnsLimit)
+	txns, err := pool.Pack(p.pkgTxnsLimit)
 	if err != nil {
 		return
 	}
