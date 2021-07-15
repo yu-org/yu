@@ -1,6 +1,8 @@
 # 禹
 
-Yu is a highly customizable blockchain framework.
+Yu is a highly customizable blockchain framework.  
+
+[中文文档](https://lawliet-chan.github.io/yu.github.io/zh/)
 
 ### Overall Structure
 ![image](yu_flow_chart.png)
