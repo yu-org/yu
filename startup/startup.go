@@ -70,24 +70,23 @@ func StartUp(tripods ...tripod.Tripod) {
 
 func initCfgFromFlags() {
 	useDefaultCfg := flag.Bool("dc", false, "default config files")
+
+	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
+	flag.StringVar(&chainCfgPath, "c", "yu_conf/blockchain.toml", "blockchain config file path")
+	flag.StringVar(&baseCfgPath, "b", "yu_conf/blockbase.toml", "blockbase config file path")
+	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
+	flag.StringVar(&stateCfgPath, "s", "yu_conf/state.toml", "state config file path")
+
+	flag.Parse()
 	if *useDefaultCfg {
 		initDefaultCfg()
 		return
 	}
 
-	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
 	config.LoadConf(masterCfgPath, &masterCfg)
-
-	flag.StringVar(&chainCfgPath, "c", "yu_conf/blockchain.toml", "blockchain config file path")
 	config.LoadConf(chainCfgPath, &chainCfg)
-
-	flag.StringVar(&baseCfgPath, "b", "yu_conf/blockbase.toml", "blockbase config file path")
 	config.LoadConf(baseCfgPath, &baseCfg)
-
-	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
 	config.LoadConf(txpoolCfgPath, &txpoolCfg)
-
-	flag.StringVar(&stateCfgPath, "s", "yu_conf/state.toml", "state config file path")
 	config.LoadConf(stateCfgPath, &stateCfg)
 }
 
@@ -130,6 +129,11 @@ func initDefaultCfg() {
 			Dsn:       "blocks_from_p2p.db",
 		},
 	}
+	baseCfg = config.BlockBaseConf{
+		BaseDB: config.SqlDbConf{
+			SqlDbType: "sqlite",
+			Dsn:       "blockbase.db",
+		}}
 	txpoolCfg = config.TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
