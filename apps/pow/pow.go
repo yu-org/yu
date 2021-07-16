@@ -60,8 +60,9 @@ func (p *Pow) VerifyBlock(block IBlock, _ *ChainEnv) bool {
 
 func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
-	gensisBlock := newDefaultBlock()
-	gensisBlock.SetHeight(0)
+	gensisBlock := &Block{
+		Header: &Header{},
+	}
 	return chain.SetGenesis(gensisBlock)
 }
 
