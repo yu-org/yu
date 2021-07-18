@@ -29,7 +29,7 @@ type MasterConf struct {
 	// For listening from blockchain network.
 	P2pListenAddrs []string `toml:"p2p_listen_addrs"`
 	// To connect other hosts as a p2p network.
-	ConnectAddrs []string `toml:"connect_addrs"`
+	Bootnodes []string `toml:"bootnodes"`
 
 	ProtocolID string `toml:"protocol_id"`
 	// 0: RSA
@@ -48,41 +48,41 @@ type MasterConf struct {
 	NodeKeyFile string `toml:"node_key_file"`
 }
 
-type WorkerConf struct {
-	Name           string `toml:"name"`
-	DB             KVconf `toml:"db"`
-	NodeKeeperPort string `toml:"node_keeper_port"`
-
-	// number of broadcast txns every time
-	NumOfBcTxns int `toml:"num_of_bc_txns"`
-
-	// serve http port
-	HttpPort string `toml:"http_port"`
-	// serve websocket port
-	WsPort string `toml:"ws_port"`
-	// the interval of heartbeat to NodeKeeper,
-	// the unit is Second
-	Interval int `toml:"interval"`
-
-	TxPoolSize int `toml:"tx_pool_size"`
-}
-
-type NodeKeeperConf struct {
-	ServesPort string `toml:"serves_port"`
-	// Direction used to keep executable file and others.
-	Dir string `toml:"dir"`
-	// It MUST be {Dir}/xx.db
-	// When you use {Dir}/path/to/xx.db, it will be trimmed as {Dir}/xx.db
-	RepoDbPath   string `toml:"repo_db_path"`
-	WorkerDbPath string `toml:"worker_db_path"`
-	// specify the os and arch of repo
-	// Usually you need not define it, it will get os and arch from local host.
-	// such as: linux-amd64, darwin-amd64, windows-amd64, wasm
-	OsArch string `toml:"os_arch"`
-
-	MasterAddr   string `toml:"master_addr"`
-	HeartbeatGap int    `toml:"heartbeat_gap"`
-}
+//type WorkerConf struct {
+//	Name           string `toml:"name"`
+//	DB             KVconf `toml:"db"`
+//	NodeKeeperPort string `toml:"node_keeper_port"`
+//
+//	// number of broadcast txns every time
+//	NumOfBcTxns int `toml:"num_of_bc_txns"`
+//
+//	// serve http port
+//	HttpPort string `toml:"http_port"`
+//	// serve websocket port
+//	WsPort string `toml:"ws_port"`
+//	// the interval of heartbeat to NodeKeeper,
+//	// the unit is Second
+//	Interval int `toml:"interval"`
+//
+//	TxPoolSize int `toml:"tx_pool_size"`
+//}
+//
+//type NodeKeeperConf struct {
+//	ServesPort string `toml:"serves_port"`
+//	// Direction used to keep executable file and others.
+//	Dir string `toml:"dir"`
+//	// It MUST be {Dir}/xx.db
+//	// When you use {Dir}/path/to/xx.db, it will be trimmed as {Dir}/xx.db
+//	RepoDbPath   string `toml:"repo_db_path"`
+//	WorkerDbPath string `toml:"worker_db_path"`
+//	// specify the os and arch of repo
+//	// Usually you need not define it, it will get os and arch from local host.
+//	// such as: linux-amd64, darwin-amd64, windows-amd64, wasm
+//	OsArch string `toml:"os_arch"`
+//
+//	MasterAddr   string `toml:"master_addr"`
+//	HeartbeatGap int    `toml:"heartbeat_gap"`
+//}
 
 type BlockchainConf struct {
 	ChainDB         SqlDbConf `toml:"chain_db"`

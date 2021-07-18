@@ -85,7 +85,7 @@ func (m *Master) ConnectP2PNetwork(cfg *config.MasterConf) error {
 
 	ctx := context.Background()
 
-	for i, addrStr := range cfg.ConnectAddrs {
+	for i, addrStr := range cfg.Bootnodes {
 		addr, err := maddr.NewMultiaddr(addrStr)
 		if err != nil {
 			return err

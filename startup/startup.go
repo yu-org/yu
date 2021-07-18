@@ -68,7 +68,7 @@ func initDefaultCfg() {
 		},
 		Timeout:         60,
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},
-		ConnectAddrs:    nil,
+		Bootnodes:    nil,
 		ProtocolID:      "yu",
 		NodeKeyType:     1,
 		NodeKeyRandSeed: 1,
