@@ -6,8 +6,9 @@ import (
 )
 
 type ItxPool interface {
-	NewEmptySignedTxn() *SignedTxn
-	NewEmptySignedTxns() SignedTxns
+	//NewEmptySignedTxn() *SignedTxn
+	//NewEmptySignedTxns() SignedTxns
+
 	// return pool size of txpool
 	PoolSize() uint64
 	// txpool with the check-functions

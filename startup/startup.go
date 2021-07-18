@@ -2,13 +2,9 @@ package startup
 
 import (
 	"flag"
-	"github.com/Lawliet-Chan/yu/blockchain"
-	"github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
-	"github.com/Lawliet-Chan/yu/state"
 	"github.com/Lawliet-Chan/yu/tripod"
-	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -16,16 +12,7 @@ import (
 
 var (
 	masterCfgPath string
-	chainCfgPath  string
-	baseCfgPath   string
-	txpoolCfgPath string
-	stateCfgPath  string
-
-	masterCfg config.MasterConf
-	chainCfg  config.BlockchainConf
-	baseCfg   config.BlockBaseConf
-	txpoolCfg config.TxpoolConf
-	stateCfg  config.StateConf
+	masterCfg     config.MasterConf
 )
 
 func StartUp(tripods ...tripod.Tripod) {
@@ -35,32 +22,10 @@ func StartUp(tripods ...tripod.Tripod) {
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
 
-	chain, err := blockchain.NewBlockChain(&chainCfg)
-	if err != nil {
-		logrus.Panicf("load blockchain error: %s", err.Error())
-	}
-	base, err := blockchain.NewBlockBase(&baseCfg)
-	if err != nil {
-		logrus.Panicf("load blockbase error: %s", err.Error())
-	}
-
-	var pool txpool.ItxPool
-	switch masterCfg.RunMode {
-	case common.LocalNode:
-		pool = txpool.LocalWithDefaultChecks(&txpoolCfg)
-	case common.MasterWorker:
-		logrus.Panic("no server txpool")
-	}
-
-	stateStore, err := state.NewStateStore(&stateCfg)
-	if err != nil {
-		logrus.Panicf("load stateKV error: %s", err.Error())
-	}
-
 	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	m, err := master.NewMaster(&masterCfg, chain, base, pool, stateStore, land)
+	m, err := master.NewMaster(&masterCfg, land)
 	if err != nil {
 		logrus.Panicf("load master error: %s", err.Error())
 	}
@@ -72,10 +37,6 @@ func initCfgFromFlags() {
 	useDefaultCfg := flag.Bool("dc", false, "default config files")
 
 	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
-	flag.StringVar(&chainCfgPath, "c", "yu_conf/blockchain.toml", "blockchain config file path")
-	flag.StringVar(&baseCfgPath, "b", "yu_conf/blockbase.toml", "blockbase config file path")
-	flag.StringVar(&txpoolCfgPath, "tp", "yu_conf/txpool.toml", "txpool config file path")
-	flag.StringVar(&stateCfgPath, "s", "yu_conf/state.toml", "state config file path")
 
 	flag.Parse()
 	if *useDefaultCfg {
@@ -84,10 +45,6 @@ func initCfgFromFlags() {
 	}
 
 	config.LoadConf(masterCfgPath, &masterCfg)
-	config.LoadConf(chainCfgPath, &chainCfg)
-	config.LoadConf(baseCfgPath, &baseCfg)
-	config.LoadConf(txpoolCfgPath, &txpoolCfg)
-	config.LoadConf(stateCfgPath, &stateCfg)
 }
 
 func initLog() {
@@ -119,7 +76,7 @@ func initDefaultCfg() {
 		NodeKeyBits:     0,
 		NodeKeyFile:     "",
 	}
-	chainCfg = config.BlockchainConf{
+	masterCfg.BlockChain = config.BlockchainConf{
 		ChainDB: config.SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       "chain.db",
@@ -129,12 +86,12 @@ func initDefaultCfg() {
 			Dsn:       "blocks_from_p2p.db",
 		},
 	}
-	baseCfg = config.BlockBaseConf{
+	masterCfg.BlockBase = config.BlockBaseConf{
 		BaseDB: config.SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       "blockbase.db",
 		}}
-	txpoolCfg = config.TxpoolConf{
+	masterCfg.Txpool = config.TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
 		Timeout:    10,
@@ -144,7 +101,7 @@ func initDefaultCfg() {
 		},
 		WorkerIP: "",
 	}
-	stateCfg = config.StateConf{KV: config.StateKvConf{
+	masterCfg.State = config.StateConf{KV: config.StateKvConf{
 		IndexDB: config.KVconf{
 			KvType: "bolt",
 			Path:   "./state_index.db",

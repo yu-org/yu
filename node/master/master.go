@@ -70,14 +70,9 @@ type Master struct {
 	unpackedTxnsTopic *pubsub.Topic
 }
 
-func NewMaster(
-	cfg *MasterConf,
-	chain IBlockChain,
-	base IBlockBase,
-	txPool ItxPool,
-	store *StateStore,
-	land *Land,
-) (*Master, error) {
+func NewMaster(cfg *MasterConf, land *Land) (*Master, error) {
+	chain, base, stateStore, txPool := loadComponents(cfg)
+
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
 		return nil, err
@@ -108,7 +103,7 @@ func NewMaster(
 		chain:      chain,
 		base:       base,
 		txPool:     txPool,
-		stateStore: store,
+		stateStore: stateStore,
 
 		land: land,
 		sub:  subscribe.NewSubscription(),

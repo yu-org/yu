@@ -19,6 +19,12 @@ type MasterConf struct {
 	// Unit is Second.
 	Timeout int `toml:"timeout"`
 
+	//---------component config---------
+	BlockChain BlockchainConf `toml:"block_chain"`
+	BlockBase  BlockBaseConf  `toml:"block_base"`
+	State      StateConf      `toml:"state"`
+	Txpool     TxpoolConf     `toml:"txpool"`
+
 	//---------P2P config--------
 	// For listening from blockchain network.
 	P2pListenAddrs []string `toml:"p2p_listen_addrs"`
