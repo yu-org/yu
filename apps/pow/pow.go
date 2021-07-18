@@ -73,12 +73,12 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	chain := env.Chain
 	pool := env.Pool
 
+	logrus.Info("start block...................")
+
 	prevBlock, err := chain.GetEndBlock()
 	if err != nil {
 		return
 	}
-
-	logrus.Info("start block...................")
 
 	prevHeight := prevBlock.GetHeight()
 	prevHash := prevBlock.GetHash()
@@ -86,6 +86,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	logrus.Infof("prev-block hash is (%s), height is (%d)", prevHash.String(), prevHeight)
 
 	height := prevHeight + 1
+	block.(*Block).SetChainLength(prevBlock.(*Block).ChainLength + 1)
 
 	pbMap, err := chain.TakeP2pBlocksBefore(height)
 	if err != nil {

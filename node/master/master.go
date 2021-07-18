@@ -296,6 +296,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 			return err
 		}
 		if stxn == nil {
+			logrus.Infof("need fetch packed-txn(%s)", txnHash.String())
 			needFetch = append(needFetch, txnHash)
 		} else {
 			txns = append(txns, stxn)
@@ -303,7 +304,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 	}
 
 	if len(needFetch) > 0 {
-		logrus.Warnf("!!!!!!!!!!!!! start sub packed txns")
+		logrus.Info(" start sub packed txns")
 
 		var fetchPeer peer.ID
 		if m.ConnectedPeers == nil {

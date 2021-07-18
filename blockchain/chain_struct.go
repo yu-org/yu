@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	. "github.com/Lawliet-Chan/yu/common"
+	"github.com/sirupsen/logrus"
 )
 
 // todo: consider use array instead of linklist
@@ -27,6 +28,7 @@ func MakeFinalizedChain(blocks []IBlock) IChainStruct {
 	return chain
 }
 
+// deprecated
 func MakeLongestChain(blocks []IBlock) []IChainStruct {
 	longestChains := make([]IChainStruct, 0)
 	allBlocks := make(map[Hash]IBlock)
@@ -59,12 +61,15 @@ func MakeLongestChain(blocks []IBlock) []IChainStruct {
 		}
 
 		longestChains = append(longestChains, chain)
+
 	}
+
+	logrus.Warn("end RANGE highest blocks------------")
 
 	return longestChains
 }
 
-// todo
+// // deprecated
 func MakeHeaviestChain(blocks []IBlock) []IChainStruct {
 	return nil
 }

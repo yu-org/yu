@@ -127,13 +127,12 @@ func (bc *BlockChain) AppendBlock(b IBlock) error {
 	if bc.ExistsBlock(b.GetHash()) {
 		return nil
 	}
-
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
 	}
-	bc.chain.Db().Create(&bs)
-	return nil
+
+	return bc.chain.Db().Create(bs).Error
 }
 
 func (bc *BlockChain) ExistsBlock(blockHash Hash) bool {
@@ -158,6 +157,7 @@ func (bc *BlockChain) UpdateBlock(b IBlock) error {
 	if err != nil {
 		return err
 	}
+
 	bc.chain.Db().Where(&BlocksScheme{
 		Hash: b.GetHash().String(),
 	}).Updates(bs)
@@ -205,12 +205,14 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 }
 
 func (bc *BlockChain) GetEndBlock() (IBlock, error) {
-	chain, err := bc.Chain()
-	if err != nil {
-		return nil, err
-	}
-
-	return chain.Last(), nil
+	//chain, err := bc.Chain()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return chain.Last(), nil
+	var bs BlocksScheme
+	bc.chain.Db().Raw("select * from blockchain where length = (select max(length) from blockchain)").First(&bs)
+	return bs.toBlock()
 }
 
 func (bc *BlockChain) GetAllBlocks() ([]IBlock, error) {

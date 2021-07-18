@@ -11,6 +11,8 @@ import (
 type Block struct {
 	Header     *Header
 	TxnsHashes []Hash
+
+	ChainLength uint64
 }
 
 func (b *Block) GetHeight() BlockNum {
@@ -83,6 +85,10 @@ func (b *Block) SetProducerPeer(peerID peer.ID) {
 
 func (b *Block) SetNonce(nonce uint64) {
 	b.Header.Nonce = nonce
+}
+
+func (b *Block) SetChainLength(len uint64) {
+	b.ChainLength = len
 }
 
 func (b *Block) Encode() ([]byte, error) {

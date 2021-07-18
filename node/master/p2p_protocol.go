@@ -3,7 +3,6 @@ package master
 import (
 	"encoding/json"
 	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/Lawliet-Chan/yu/yerror"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
@@ -152,7 +151,7 @@ type TxnsRequest struct {
 }
 
 func (tr TxnsRequest) Encode() ([]byte, error) {
-	byt, err := codec.GlobalCodec.EncodeToBytes(tr)
+	byt, err := json.Marshal(tr)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +159,6 @@ func (tr TxnsRequest) Encode() ([]byte, error) {
 }
 
 func DecodeTxnsRequest(data []byte) (tr TxnsRequest, err error) {
-	err = codec.GlobalCodec.DecodeBytes(data[RequestTypeBytesLen:], &tr)
+	err = json.Unmarshal(data[RequestTypeBytesLen:], &tr)
 	return
 }
