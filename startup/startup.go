@@ -2,9 +2,12 @@ package startup
 
 import (
 	"flag"
+	"github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
+	"github.com/Lawliet-Chan/yu/state"
 	"github.com/Lawliet-Chan/yu/tripod"
+	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -13,6 +16,13 @@ import (
 var (
 	masterCfgPath string
 	masterCfg     config.MasterConf
+)
+
+var (
+	Chain      blockchain.IBlockChain
+	Base       blockchain.IBlockBase
+	StateStore *state.StateStore
+	TxPool     txpool.ItxPool
 )
 
 func StartUp(tripods ...tripod.Tripod) {
@@ -25,7 +35,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	m, err := master.NewMaster(&masterCfg, land)
+	m, err := master.NewMaster(&masterCfg, Chain, Base, StateStore, TxPool, land)
 	if err != nil {
 		logrus.Panicf("load master error: %s", err.Error())
 	}

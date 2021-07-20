@@ -70,8 +70,36 @@ type Master struct {
 	unpackedTxnsTopic *pubsub.Topic
 }
 
-func NewMaster(cfg *MasterConf, land *Land) (*Master, error) {
-	chain, base, stateStore, txPool := loadComponents(cfg)
+func NewMaster(
+	cfg *MasterConf,
+	chain IBlockChain,
+	base IBlockBase,
+	stateStore *StateStore,
+	txPool ItxPool,
+	land *Land,
+) (*Master, error) {
+	var err error
+	if chain == nil {
+		chain, err = NewBlockChain(&cfg.BlockChain)
+		if err != nil {
+			logrus.Panicf("load blockchain error: %s", err.Error())
+		}
+	}
+	if base == nil {
+		base, err = NewBlockBase(&cfg.BlockBase)
+		if err != nil {
+			logrus.Panicf("load blockbase error: %s", err.Error())
+		}
+	}
+	if stateStore == nil {
+		stateStore, err = NewStateStore(&cfg.State)
+		if err != nil {
+			logrus.Panicf("load stateKV error: %s", err.Error())
+		}
+	}
+	if txPool == nil {
+		txPool = LocalWithDefaultChecks(&cfg.Txpool)
+	}
 
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
