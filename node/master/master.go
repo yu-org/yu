@@ -372,33 +372,31 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 		for _, block := range blocks {
 			err := m.land.RangeList(func(tri Tripod) error {
 				if tri.VerifyBlock(block, m.GetEnv()) {
-					return m.chain.AppendBlock(block)
+					return nil
 				}
 				return BlockIllegal(block.GetHash())
 			})
 			if err != nil {
 				return err
 			}
+
+			err = ExecuteTxns(block, m.GetEnv(), m.land)
+			if err != nil {
+				return err
+			}
+
+			err = m.chain.AppendBlock(block)
+			if err != nil {
+				return err
+			}
 		}
-
-		return m.executeChainTxns()
-
+		return nil
 	case MasterWorker:
 		// todo
 		return nil
 	default:
 		return NoRunMode
 	}
-}
-
-func (m *Master) executeChainTxns() error {
-	chain, err := m.chain.Chain()
-	if err != nil {
-		return err
-	}
-	return chain.Range(func(block IBlock) error {
-		return ExecuteTxns(block, m.GetEnv(), m.land)
-	})
 }
 
 func (m *Master) GetEnv() *ChainEnv {

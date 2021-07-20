@@ -5,7 +5,6 @@ import (
 	"github.com/Lawliet-Chan/yu/config"
 	ysql "github.com/Lawliet-Chan/yu/storage/sql"
 	. "github.com/Lawliet-Chan/yu/utils/codec"
-	"github.com/Lawliet-Chan/yu/yerror"
 )
 
 type BlockChain struct {
@@ -205,11 +204,6 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 }
 
 func (bc *BlockChain) GetEndBlock() (IBlock, error) {
-	//chain, err := bc.Chain()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return chain.Last(), nil
 	var bs BlocksScheme
 	bc.chain.Db().Raw("select * from blockchain where length = (select max(length) from blockchain)").First(&bs)
 	return bs.toBlock()
@@ -245,32 +239,25 @@ func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) ([]IBlock,
 }
 
 func (bc *BlockChain) Chain() (IChainStruct, error) {
-	switch bc.ConvergeType() {
-	case Longest:
-		chains, err := bc.LongestChains()
-		if err != nil {
-			return nil, err
-		}
-		return chains[0], nil
-	case Heaviest:
-		chains, err := bc.HeaviestChains()
-		if err != nil {
-			return nil, err
-		}
-		return chains[0], nil
-	case Finalize:
-		return bc.FinalizedChain()
-	default:
-		return nil, yerror.NoConvergeType
-	}
+	return bc.LongestChain()
 }
 
-func (bc *BlockChain) LongestChains() ([]IChainStruct, error) {
-	blocks, err := bc.GetAllBlocks()
+func (bc *BlockChain) LongestChain() (IChainStruct, error) {
+	block, err := bc.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
-	return MakeLongestChain(blocks), nil
+	prevHash := block.GetPrevHash()
+	chain := NewEmptyChain(block)
+	for block.GetHeight() > 0 {
+		prevBlock, err := bc.GetBlock(prevHash)
+		if err != nil {
+			return nil, err
+		}
+		chain.InsertPrev(prevBlock)
+		block = prevBlock
+	}
+	return chain, nil
 }
 
 func (bc *BlockChain) HeaviestChains() ([]IChainStruct, error) {
