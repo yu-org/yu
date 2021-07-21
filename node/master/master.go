@@ -74,7 +74,6 @@ func NewMaster(
 	cfg *MasterConf,
 	chain IBlockChain,
 	base IBlockBase,
-	stateStore *StateStore,
 	txPool ItxPool,
 	land *Land,
 ) (*Master, error) {
@@ -91,12 +90,11 @@ func NewMaster(
 			logrus.Panicf("load blockbase error: %s", err.Error())
 		}
 	}
-	if stateStore == nil {
-		stateStore, err = NewStateStore(&cfg.State)
-		if err != nil {
-			logrus.Panicf("load stateKV error: %s", err.Error())
-		}
+	stateStore, err := NewStateStore(&cfg.State)
+	if err != nil {
+		logrus.Panicf("load stateKV error: %s", err.Error())
 	}
+
 	if txPool == nil {
 		txPool = LocalWithDefaultChecks(&cfg.Txpool)
 	}
@@ -370,6 +368,8 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
+			logrus.Info("sync history block is ", block.GetHash().String())
+
 			err := m.SyncTxns(block)
 			if err != nil {
 				return err

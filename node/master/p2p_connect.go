@@ -149,8 +149,6 @@ func (m *Master) SyncHistory(s network.Stream) error {
 				return err
 			}
 
-			logrus.Info("fetch history blocks are: ", blocks)
-
 			err = m.SyncHistoryBlocks(blocks)
 			if err != nil {
 				return err
@@ -247,9 +245,7 @@ func (m *Master) handleHsReq(byt []byte, s network.Stream) error {
 		return err
 	}
 
-	logrus.Info("remote info genesis-block is: ", remoteReq.Info.GenesisBlockHash.String())
-	logrus.Info("remote info end-block hash is ", remoteReq.Info.EndBlockHash.String())
-	logrus.Info("remote request fetch range: ", remoteReq.FetchRange)
+	// logrus.Info("remote request fetch range: ", remoteReq.FetchRange)
 
 	var (
 		blocksByt []byte
@@ -288,8 +284,9 @@ func (m *Master) requestBlocks(fetchRange *BlocksRange, s network.Stream) (*Hand
 		return nil, err
 	}
 
-	logrus.Info("handshake info end-blockhash is    ", hs.Info.EndBlockHash.String())
-	logrus.Info("handshake fetch range request is     ", hs.FetchRange)
+	if hs.FetchRange != nil {
+		logrus.Infof("handshake fetch range request from (%d) to (%d)", hs.FetchRange.StartHeight, hs.FetchRange.EndHeight)
+	}
 
 	byt, err := hs.Encode()
 	if err != nil {

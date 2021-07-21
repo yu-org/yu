@@ -5,7 +5,6 @@ import (
 	"github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/Lawliet-Chan/yu/config"
 	"github.com/Lawliet-Chan/yu/node/master"
-	"github.com/Lawliet-Chan/yu/state"
 	"github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txpool"
 	"github.com/Lawliet-Chan/yu/utils/codec"
@@ -19,10 +18,9 @@ var (
 )
 
 var (
-	Chain      blockchain.IBlockChain
-	Base       blockchain.IBlockBase
-	StateStore *state.StateStore
-	TxPool     txpool.ItxPool
+	Chain  blockchain.IBlockChain
+	Base   blockchain.IBlockBase
+	TxPool txpool.ItxPool
 )
 
 func StartUp(tripods ...tripod.Tripod) {
@@ -35,7 +33,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	m, err := master.NewMaster(&masterCfg, Chain, Base, StateStore, TxPool, land)
+	m, err := master.NewMaster(&masterCfg, Chain, Base, TxPool, land)
 	if err != nil {
 		logrus.Panicf("load master error: %s", err.Error())
 	}
