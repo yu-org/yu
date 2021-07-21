@@ -370,7 +370,12 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
-			err := m.land.RangeList(func(tri Tripod) error {
+			err := m.SyncTxns(block)
+			if err != nil {
+				return err
+			}
+
+			err = m.land.RangeList(func(tri Tripod) error {
 				if tri.VerifyBlock(block, m.GetEnv()) {
 					return nil
 				}
@@ -380,6 +385,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				return err
 			}
 
+			// todo: sync history blockbase
 			err = ExecuteTxns(block, m.GetEnv(), m.land)
 			if err != nil {
 				return err
@@ -609,7 +615,6 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 
 func existTxnHash(txnHash Hash, txns []*SignedTxn) (*SignedTxn, bool) {
 	for _, stxn := range txns {
-		logrus.Infof("%%%%%%%%%%%%%% sync txn from p2p is %s", stxn.GetTxnHash().String())
 		if stxn.GetTxnHash() == txnHash {
 			return stxn, true
 		}
