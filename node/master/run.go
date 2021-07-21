@@ -5,6 +5,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/common"
 	. "github.com/Lawliet-Chan/yu/node"
 	. "github.com/Lawliet-Chan/yu/tripod"
+	ytime "github.com/Lawliet-Chan/yu/utils/time"
 	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
 )
@@ -34,9 +35,14 @@ func (m *Master) Run() {
 func (m *Master) LocalRun() error {
 
 	needBcBlock := false
-	var newBlock IBlock = m.chain.NewEmptyBlock()
+
+	newBlock, err := m.makeNewBasicBlock()
+	if err != nil {
+		return err
+	}
+
 	// start a new block
-	err := m.land.RangeList(func(tri Tripod) error {
+	err = m.land.RangeList(func(tri Tripod) error {
 		var (
 			need bool
 			err  error
@@ -84,6 +90,19 @@ func (m *Master) LocalRun() error {
 	return m.land.RangeList(func(tri Tripod) error {
 		return tri.FinalizeBlock(newBlock, m.GetEnv(), m.land)
 	})
+}
+
+func (m *Master) makeNewBasicBlock() (IBlock, error) {
+	var newBlock IBlock = m.chain.NewEmptyBlock()
+
+	newBlock.SetTimestamp(ytime.NowNanoTsU64())
+	prevBlock, err := m.chain.GetEndBlock()
+	if err != nil {
+		return nil, err
+	}
+	newBlock.SetPreHash(prevBlock.GetHash())
+	newBlock.SetHeight(prevBlock.GetHeight() + 1)
+	return newBlock, nil
 }
 
 func (m *Master) MasterWokrerRun() error {

@@ -43,7 +43,7 @@ func (bc *BlockChain) ConvergeType() ConvergeType {
 }
 
 func (bc *BlockChain) NewEmptyBlock() IBlock {
-	return &Block{}
+	return &Block{Header: &Header{}}
 }
 
 func (bc *BlockChain) EncodeBlocks(blocks []IBlock) ([]byte, error) {

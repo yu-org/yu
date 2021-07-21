@@ -20,6 +20,7 @@ type IBlock interface {
 	SetTxnRoot(hash Hash)
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
+	SetTimestamp(ts uint64)
 	SetProducerPeer(peer.ID)
 
 	Encode() ([]byte, error)

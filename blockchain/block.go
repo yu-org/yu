@@ -75,6 +75,10 @@ func (b *Block) SetStateRoot(hash Hash) {
 	b.Header.StateRoot = hash
 }
 
+func (b *Block) SetTimestamp(ts uint64) {
+	b.Header.Timestamp = ts
+}
+
 func (b *Block) GetProducerPeer() peer.ID {
 	return b.Header.ProducerPeer
 }

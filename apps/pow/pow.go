@@ -7,7 +7,6 @@ import (
 	"github.com/Lawliet-Chan/yu/node"
 	. "github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txn"
-	ytime "github.com/Lawliet-Chan/yu/utils/time"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"time"
@@ -31,14 +30,6 @@ func NewPow(pkgTxnsLimit uint64) *Pow {
 		target:       target,
 		targetBits:   targetBits,
 		pkgTxnsLimit: pkgTxnsLimit,
-	}
-}
-
-func newDefaultBlock() *Block {
-	return &Block{
-		Header: &Header{
-			Timestamp: ytime.NowNanoTsU64(),
-		},
 	}
 }
 
@@ -69,7 +60,6 @@ func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
 func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
 	time.Sleep(2 * time.Second)
 
-	block.CopyFrom(newDefaultBlock())
 	chain := env.Chain
 	pool := env.Pool
 
@@ -80,15 +70,11 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 		return
 	}
 
-	prevHeight := prevBlock.GetHeight()
-	prevHash := prevBlock.GetHash()
+	logrus.Infof("prev-block hash is (%s), height is (%d)", block.GetPrevHash().String(), block.GetHeight()-1)
 
-	logrus.Infof("prev-block hash is (%s), height is (%d)", prevHash.String(), prevHeight)
-
-	height := prevHeight + 1
 	block.(*Block).SetChainLength(prevBlock.(*Block).ChainLength + 1)
 
-	pbMap, err := chain.TakeP2pBlocksBefore(height)
+	pbMap, err := chain.TakeP2pBlocksBefore(block.GetHeight())
 	if err != nil {
 		logrus.Errorf("get p2p-blocks before error: %s", err.Error())
 	}
@@ -102,7 +88,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 		}
 	}
 
-	pbsht, err := chain.TakeP2pBlocks(height)
+	pbsht, err := chain.TakeP2pBlocks(block.GetHeight())
 	if err != nil {
 		logrus.Errorf("get p2p-blocks error: %s", err.Error())
 	}
@@ -114,9 +100,6 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	}
 
 	needBroadcast = true
-
-	block.SetPreHash(prevHash)
-	block.SetHeight(height)
 
 	txns, err := pool.Pack(p.pkgTxnsLimit)
 	if err != nil {

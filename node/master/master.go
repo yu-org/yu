@@ -385,7 +385,6 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				return err
 			}
 
-			// todo: sync history blockbase
 			err = ExecuteTxns(block, m.GetEnv(), m.land)
 			if err != nil {
 				return err
