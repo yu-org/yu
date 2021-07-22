@@ -11,7 +11,7 @@ import (
 type TripodMeta struct {
 	name string
 	// Key: Execution Name
-	execs map[string]Execution
+	execs map[string]ExecAndEnergy
 	// Key: Query Name
 	queries map[string]Query
 }
@@ -19,7 +19,7 @@ type TripodMeta struct {
 func NewTripodMeta(name string) *TripodMeta {
 	return &TripodMeta{
 		name:    name,
-		execs:   make(map[string]Execution),
+		execs:   make(map[string]ExecAndEnergy),
 		queries: make(map[string]Query),
 	}
 }
@@ -28,13 +28,23 @@ func (t *TripodMeta) Name() string {
 	return t.name
 }
 
-func (t *TripodMeta) SetExecs(fns ...Execution) {
-	for _, fn := range fns {
-		name := getFuncName(fn)
-		t.execs[name] = fn
-		logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
+func (t *TripodMeta) SetExec(fn Execution, energy uint64) *TripodMeta {
+	name := getFuncName(fn)
+	t.execs[name] = ExecAndEnergy{
+		exec:   fn,
+		energy: energy,
 	}
+	logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
+	return t
 }
+
+//func (t *TripodMeta) SetExecs(fns ...Execution) {
+//	for _, fn := range fns {
+//		name := getFuncName(fn)
+//		t.execs[name] = fn
+//		logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
+//	}
+//}
 
 func (t *TripodMeta) SetQueries(queries ...Query) {
 	for _, q := range queries {
@@ -57,8 +67,12 @@ func (t *TripodMeta) ExistExec(execName string) bool {
 	return ok
 }
 
-func (t *TripodMeta) GetExec(name string) Execution {
-	return t.execs[name]
+func (t *TripodMeta) GetExec(name string) (Execution, uint64) {
+	execEne, ok := t.execs[name]
+	if ok {
+		return execEne.exec, execEne.energy
+	}
+	return nil, 0
 }
 
 func (t *TripodMeta) GetQuery(name string) Query {
@@ -79,4 +93,9 @@ func (t *TripodMeta) AllExecNames() []string {
 		allNames = append(allNames, name)
 	}
 	return allNames
+}
+
+type ExecAndEnergy struct {
+	exec   Execution
+	energy uint64
 }

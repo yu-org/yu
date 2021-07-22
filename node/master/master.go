@@ -38,10 +38,12 @@ type Master struct {
 
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
-	nkDB     kv.KV
-	httpPort string
-	wsPort   string
-	timeout  time.Duration
+	nkDB        kv.KV
+	httpPort    string
+	wsPort      string
+	energyLimit uint64
+
+	timeout time.Duration
 
 	chain      IBlockChain
 	base       IBlockBase
@@ -118,18 +120,19 @@ func NewMaster(
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	m := &Master{
-		host:       p2pHost,
-		ps:         ps,
-		protocolID: pid,
-		RunMode:    cfg.RunMode,
-		nkDB:       nkDB,
-		timeout:    timeout,
-		httpPort:   MakePort(cfg.HttpPort),
-		wsPort:     MakePort(cfg.WsPort),
-		chain:      chain,
-		base:       base,
-		txPool:     txPool,
-		stateStore: stateStore,
+		host:        p2pHost,
+		ps:          ps,
+		protocolID:  pid,
+		RunMode:     cfg.RunMode,
+		energyLimit: cfg.EnergyLimit,
+		nkDB:        nkDB,
+		timeout:     timeout,
+		httpPort:    MakePort(cfg.HttpPort),
+		wsPort:      MakePort(cfg.WsPort),
+		chain:       chain,
+		base:        base,
+		txPool:      txPool,
+		stateStore:  stateStore,
 
 		land: land,
 		sub:  subscribe.NewSubscription(),
@@ -368,7 +371,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
-			logrus.Info("sync history block is ", block.GetHash().String())
+			logrus.Trace("sync history block is ", block.GetHash().String())
 
 			err := m.SyncTxns(block)
 			if err != nil {

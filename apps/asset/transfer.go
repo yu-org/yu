@@ -18,7 +18,7 @@ func NewAsset(tokenName string) *Asset {
 	df := NewDefaultTripod("asset")
 
 	a := &Asset{df, tokenName}
-	a.SetExecs(a.Transfer, a.CreateAccount)
+	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
 	a.SetQueries(a.QueryBalance)
 
 	return a

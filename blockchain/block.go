@@ -87,6 +87,22 @@ func (b *Block) SetProducerPeer(peerID peer.ID) {
 	b.Header.ProducerPeer = peerID
 }
 
+func (b *Block) GetEnergyLimit() uint64 {
+	return b.Header.EnergyLimit
+}
+
+func (b *Block) SetEnergyLimit(e uint64) {
+	b.Header.EnergyLimit = e
+}
+
+func (b *Block) GetEnergyUsed() uint64 {
+	return b.Header.EnergyUsed
+}
+
+func (b *Block) UseEnergy(e uint64) {
+	b.Header.EnergyUsed += e
+}
+
 func (b *Block) SetNonce(nonce uint64) {
 	b.Header.Nonce = nonce
 }
@@ -108,6 +124,10 @@ func (b *Block) Decode(data []byte) (IBlock, error) {
 func (b *Block) CopyFrom(other IBlock) {
 	otherBlock := other.(*Block)
 	*b = *otherBlock
+}
+
+func IfEnergyOut(energy uint64, block IBlock) bool {
+	return energy+block.GetEnergyUsed() > block.GetEnergyLimit()
 }
 
 func MakeTxnRoot(txns []*txn.SignedTxn) (Hash, error) {

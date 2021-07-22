@@ -5,7 +5,10 @@ import (
 	"github.com/Lawliet-Chan/yu/chain_env"
 	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/Lawliet-Chan/yu/context"
+	. "github.com/Lawliet-Chan/yu/subscribe"
 	. "github.com/Lawliet-Chan/yu/tripod"
+	"github.com/Lawliet-Chan/yu/txn"
+	"github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,8 +16,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 	base := env.Base
 	sub := env.Sub
 
-	blockHash := block.GetHash()
-	stxns, err := base.GetTxns(blockHash)
+	stxns, err := base.GetTxns(block.GetHash())
 	if err != nil {
 		return err
 	}
@@ -25,39 +27,28 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			return err
 		}
 
-		err = land.Execute(ecall, ctx, env)
+		exec, energy, err := land.GetExecEnergy(ecall)
+		if err != nil {
+			handleError(err, ctx, block, stxn, sub)
+			continue
+		}
+
+		if IfEnergyOut(energy, block) {
+			handleError(yerror.OutOfEnergy, ctx, block, stxn, sub)
+			break
+		}
+
+		err = exec(ctx, env)
 		if err != nil {
 			env.Discard()
-			ctx.EmitError(err)
+			handleError(err, ctx, block, stxn, sub)
 		} else {
 			env.NextTxn()
 		}
 
-		for _, event := range ctx.Events {
-			event.Height = block.GetHeight()
-			event.BlockHash = blockHash
-			event.ExecName = ecall.ExecName
-			event.TripodName = ecall.TripodName
-			event.BlockStage = ExecuteTxnsStage
-			event.Caller = stxn.GetRaw().GetCaller()
+		block.UseEnergy(energy)
 
-			if sub != nil {
-				sub.Push(event)
-			}
-		}
-		if ctx.Error != nil {
-			ctx.Error.Caller = stxn.GetRaw().GetCaller()
-			ctx.Error.BlockStage = ExecuteTxnsStage
-			ctx.Error.TripodName = ecall.TripodName
-			ctx.Error.ExecName = ecall.ExecName
-			ctx.Error.BlockHash = blockHash
-			ctx.Error.Height = block.GetHeight()
-
-			logrus.Error("start to push error: ", ctx.Error.Error())
-			if sub != nil {
-				sub.Push(ctx.Error)
-			}
-		}
+		handleEvent(ctx, block, stxn, sub)
 
 		err = base.SetEvents(ctx.Events)
 		if err != nil {
@@ -76,4 +67,39 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 	block.SetStateRoot(stateRoot)
 
 	return nil
+}
+
+func handleError(err error, ctx *context.Context, block IBlock, stxn *txn.SignedTxn, sub *Subscription) {
+	ctx.EmitError(err)
+	ecall := stxn.GetRaw().GetEcall()
+
+	ctx.Error.Caller = stxn.GetRaw().GetCaller()
+	ctx.Error.BlockStage = ExecuteTxnsStage
+	ctx.Error.TripodName = ecall.TripodName
+	ctx.Error.ExecName = ecall.ExecName
+	ctx.Error.BlockHash = block.GetHash()
+	ctx.Error.Height = block.GetHeight()
+
+	logrus.Error("push error: ", ctx.Error.Error())
+	if sub != nil {
+		sub.Push(ctx.Error)
+	}
+
+}
+
+func handleEvent(ctx *context.Context, block IBlock, stxn *txn.SignedTxn, sub *Subscription) {
+	for _, event := range ctx.Events {
+		ecall := stxn.GetRaw().GetEcall()
+
+		event.Height = block.GetHeight()
+		event.BlockHash = block.GetHash()
+		event.ExecName = ecall.ExecName
+		event.TripodName = ecall.TripodName
+		event.BlockStage = ExecuteTxnsStage
+		event.Caller = stxn.GetRaw().GetCaller()
+
+		if sub != nil {
+			sub.Push(event)
+		}
+	}
 }

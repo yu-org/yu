@@ -23,6 +23,9 @@ type IBlock interface {
 	SetTimestamp(ts uint64)
 	SetProducerPeer(peer.ID)
 
+	SetEnergyLimit(e uint64)
+	UseEnergy(e uint64)
+
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
 
@@ -37,6 +40,8 @@ type IHeader interface {
 	GetStateRoot() Hash
 	GetTimestamp() uint64
 	GetProducerPeer() peer.ID
+	GetEnergyLimit() uint64
+	GetEnergyUsed() uint64
 }
 
 // --------------- blockchain interface ----------------

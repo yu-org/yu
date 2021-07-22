@@ -102,6 +102,7 @@ func (m *Master) makeNewBasicBlock() (IBlock, error) {
 	}
 	newBlock.SetPreHash(prevBlock.GetHash())
 	newBlock.SetHeight(prevBlock.GetHeight() + 1)
+	newBlock.SetEnergyLimit(m.energyLimit)
 	return newBlock, nil
 }
 

@@ -22,8 +22,9 @@ var (
 	PoolOverflow    error = errors.New("pool size is full")
 	TxnSignatureErr error = errors.New("the signature of Txn illegal")
 	TxnTooLarge     error = errors.New("the size of txn is too large")
-	TxnDuplicate    error = errors.New("txn is duplicate")
 )
+
+var OutOfEnergy = errors.New("energy out")
 
 type ErrBlockIllegal struct {
 	BlockHash string
@@ -84,6 +85,22 @@ func QryNotFound(name string) ErrQryNotFound {
 func (q ErrQryNotFound) Error() string {
 	return errors.Errorf("Query(%s) NOT Found", q.QryName).Error()
 }
+
+//type ErrOutOfEnergy struct {
+//	txnsHashes []string
+//}
+//
+//func OutOfEnergy(txnsHashes []Hash) ErrOutOfEnergy {
+//	hashes := make([]string, 0)
+//	for _, txnHash := range txnsHashes {
+//		hashes = append(hashes, txnHash.String())
+//	}
+//	return ErrOutOfEnergy{txnsHashes: hashes}
+//}
+//
+//func (oe ErrOutOfEnergy) Error() string {
+//	return errors.Errorf("Energy out! txns(%v) ")
+//}
 
 type ErrNodeKeeperDead struct {
 	IP string

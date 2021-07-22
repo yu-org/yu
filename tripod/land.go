@@ -29,18 +29,26 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 	}
 }
 
-func (l *Land) Execute(c *Ecall, ctx *Context, env *ChainEnv) error {
-	Tripod, ok := l.tripodsMap[c.TripodName]
+func (l *Land) GetExecEnergy(c *Ecall) (Execution, uint64, error) {
+	tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
-		return TripodNotFound(c.TripodName)
+		return nil, 0, TripodNotFound(c.TripodName)
 	}
-	ph := Tripod.GetTripodMeta()
-	fn := ph.GetExec(c.ExecName)
+	ph := tripod.GetTripodMeta()
+	fn, energy := ph.GetExec(c.ExecName)
 	if fn == nil {
-		return ExecNotFound(c.ExecName)
+		return nil, 0, ExecNotFound(c.ExecName)
 	}
-	return fn(ctx, env)
+	return fn, energy, nil
 }
+
+//func (l *Land) Execute(c *Ecall, ctx *Context, env *ChainEnv) (uint64, error) {
+//	fn, energy, err := l.GetExecEnergy(c)
+//	if err != nil {
+//		return 0, err
+//	}
+//	return energy, fn(ctx, env)
+//}
 
 func (l *Land) Query(c *Qcall, ctx *Context, env *ChainEnv) (interface{}, error) {
 	Tripod, ok := l.tripodsMap[c.TripodName]

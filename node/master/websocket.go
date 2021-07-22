@@ -94,6 +94,10 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		//	return
 		//}
 	case LocalNode:
+		_, _, err = m.land.GetExecEnergy(stxn.GetRaw().GetEcall())
+		if err != nil {
+			return
+		}
 		err = m.txPool.Insert(stxn)
 		if err != nil {
 			ServerErrorHttpResp(w, err.Error())
