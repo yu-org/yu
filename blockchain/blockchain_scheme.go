@@ -16,8 +16,8 @@ type BlocksScheme struct {
 	TxnsHashes string
 	PeerID     string
 
-	EnergyLimit uint64
-	EnergyUsed  uint64
+	LeiLimit uint64
+	LeiUsed  uint64
 
 	Length   uint64
 	Finalize bool
@@ -39,8 +39,8 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
 		PeerID:     b.GetProducerPeer().String(),
 
-		EnergyLimit: b.GetEnergyLimit(),
-		EnergyUsed:  b.GetEnergyUsed(),
+		LeiLimit: b.GetLeiLimit(),
+		LeiUsed:  b.GetLeiUsed(),
 
 		Length:   b.(*Block).ChainLength,
 		Finalize: false,
@@ -71,8 +71,8 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		Nonce:        b.Nonce,
 		Timestamp:    b.Timestamp,
 		ProducerPeer: peerID,
-		EnergyLimit:  b.EnergyLimit,
-		EnergyUsed:   b.EnergyUsed,
+		LeiLimit:     b.LeiLimit,
+		LeiUsed:      b.LeiUsed,
 	}
 	block := &Block{
 		Header:      header,

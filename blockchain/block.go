@@ -87,20 +87,20 @@ func (b *Block) SetProducerPeer(peerID peer.ID) {
 	b.Header.ProducerPeer = peerID
 }
 
-func (b *Block) GetEnergyLimit() uint64 {
-	return b.Header.EnergyLimit
+func (b *Block) GetLeiLimit() uint64 {
+	return b.Header.LeiLimit
 }
 
-func (b *Block) SetEnergyLimit(e uint64) {
-	b.Header.EnergyLimit = e
+func (b *Block) SetLeiLimit(e uint64) {
+	b.Header.LeiLimit = e
 }
 
-func (b *Block) GetEnergyUsed() uint64 {
-	return b.Header.EnergyUsed
+func (b *Block) GetLeiUsed() uint64 {
+	return b.Header.LeiUsed
 }
 
-func (b *Block) UseEnergy(e uint64) {
-	b.Header.EnergyUsed += e
+func (b *Block) UseLei(e uint64) {
+	b.Header.LeiUsed += e
 }
 
 func (b *Block) SetNonce(nonce uint64) {
@@ -126,8 +126,8 @@ func (b *Block) CopyFrom(other IBlock) {
 	*b = *otherBlock
 }
 
-func IfEnergyOut(energy uint64, block IBlock) bool {
-	return energy+block.GetEnergyUsed() > block.GetEnergyLimit()
+func IfLeiOut(Lei uint64, block IBlock) bool {
+	return Lei+block.GetLeiUsed() > block.GetLeiLimit()
 }
 
 func MakeTxnRoot(txns []*txn.SignedTxn) (Hash, error) {

@@ -27,13 +27,13 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			return err
 		}
 
-		exec, energy, err := land.GetExecEnergy(ecall)
+		exec, lei, err := land.GetExecLei(ecall)
 		if err != nil {
 			handleError(err, ctx, block, stxn, sub)
 			continue
 		}
 
-		if IfEnergyOut(energy, block) {
+		if IfLeiOut(lei, block) {
 			handleError(yerror.OutOfEnergy, ctx, block, stxn, sub)
 			break
 		}
@@ -46,7 +46,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			env.NextTxn()
 		}
 
-		block.UseEnergy(energy)
+		block.UseLei(lei)
 
 		handleEvent(ctx, block, stxn, sub)
 

@@ -38,10 +38,10 @@ type Master struct {
 
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
-	nkDB        kv.KV
-	httpPort    string
-	wsPort      string
-	energyLimit uint64
+	nkDB     kv.KV
+	httpPort string
+	wsPort   string
+	leiLimit uint64
 
 	timeout time.Duration
 
@@ -120,19 +120,19 @@ func NewMaster(
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	m := &Master{
-		host:        p2pHost,
-		ps:          ps,
-		protocolID:  pid,
-		RunMode:     cfg.RunMode,
-		energyLimit: cfg.EnergyLimit,
-		nkDB:        nkDB,
-		timeout:     timeout,
-		httpPort:    MakePort(cfg.HttpPort),
-		wsPort:      MakePort(cfg.WsPort),
-		chain:       chain,
-		base:        base,
-		txPool:      txPool,
-		stateStore:  stateStore,
+		host:       p2pHost,
+		ps:         ps,
+		protocolID: pid,
+		RunMode:    cfg.RunMode,
+		leiLimit:   cfg.LeiLimit,
+		nkDB:       nkDB,
+		timeout:    timeout,
+		httpPort:   MakePort(cfg.HttpPort),
+		wsPort:     MakePort(cfg.WsPort),
+		chain:      chain,
+		base:       base,
+		txPool:     txPool,
+		stateStore: stateStore,
 
 		land: land,
 		sub:  subscribe.NewSubscription(),

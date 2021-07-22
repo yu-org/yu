@@ -66,10 +66,10 @@ func initLog() {
 
 func initDefaultCfg() {
 	masterCfg = config.MasterConf{
-		RunMode:     0,
-		HttpPort:    "7999",
-		WsPort:      "8999",
-		EnergyLimit: 50000,
+		RunMode:  0,
+		HttpPort: "7999",
+		WsPort:   "8999",
+		LeiLimit: 50000,
 		NkDB: config.KVconf{
 			KvType: "bolt",
 			Path:   "./nk_db.db",

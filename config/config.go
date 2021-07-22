@@ -15,7 +15,7 @@ type MasterConf struct {
 	// serve websocket port
 	WsPort string `toml:"ws_port"`
 
-	EnergyLimit uint64 `toml:"energy_limit"`
+	LeiLimit uint64 `toml:"lei_limit"`
 
 	NkDB KVconf `toml:"nk_db"`
 	// when beyond 'Timeout', it means this nodekeeper is down.

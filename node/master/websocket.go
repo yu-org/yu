@@ -94,7 +94,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		//	return
 		//}
 	case LocalNode:
-		_, _, err = m.land.GetExecEnergy(stxn.GetRaw().GetEcall())
+		_, _, err = m.land.GetExecLei(stxn.GetRaw().GetEcall())
 		if err != nil {
 			return
 		}

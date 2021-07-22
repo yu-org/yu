@@ -15,8 +15,8 @@ type Header struct {
 	Timestamp    uint64
 	ProducerPeer peer.ID
 
-	EnergyLimit uint64
-	EnergyUsed  uint64
+	LeiLimit uint64
+	LeiUsed  uint64
 }
 
 func (h *Header) GetHeight() BlockNum {
@@ -47,10 +47,10 @@ func (h *Header) GetProducerPeer() peer.ID {
 	return h.ProducerPeer
 }
 
-func (h *Header) GetEnergyLimit() uint64 {
-	return h.EnergyLimit
+func (h *Header) GetLeiLimit() uint64 {
+	return h.LeiLimit
 }
 
-func (h *Header) GetEnergyUsed() uint64 {
-	return h.EnergyUsed
+func (h *Header) GetLeiUsed() uint64 {
+	return h.LeiUsed
 }
