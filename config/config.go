@@ -100,7 +100,6 @@ type TxpoolConf struct {
 	PoolSize   uint64    `toml:"pool_size"`
 	TxnMaxSize int       `toml:"txn_max_size"`
 	Timeout    int       `toml:"timeout"`
-	TxnsDB     SqlDbConf `toml:"txns_db"`
 	// In local-node mode, this will be null.
 	WorkerIP string `toml:"worker_ip"`
 }

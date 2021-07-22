@@ -104,10 +104,6 @@ func initDefaultCfg() {
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
 		Timeout:    10,
-		TxnsDB: config.SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       "./txpool.db",
-		},
 		WorkerIP: "",
 	}
 	masterCfg.State = config.StateConf{KV: config.StateKvConf{
