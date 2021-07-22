@@ -83,13 +83,14 @@ func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
 }
 ```  
 
-We need use `SetExecs` and `SetQueries` to set `Execution` and `Query` into `Asset Tripod`.
+We need use `SetExec` and `SetQueries` to set `Execution` and `Query` into `Asset Tripod`.  
+When we set a `Execution`, we need declare how much `energy`( the same as `gas` in `ethereum` ) it consume.
 ```
 func NewAsset(tokenName string) *Asset {
 	df := NewDefaultTripod("asset")
 
 	a := &Asset{df, tokenName}
-	a.SetExecs(a.Transfer, a.CreateAccount)
+	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
 	a.SetQueries(a.QueryBalance)
 
 	return a
