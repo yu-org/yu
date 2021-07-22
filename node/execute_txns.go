@@ -38,7 +38,7 @@ func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {
 			break
 		}
 
-		err = exec(ctx, env)
+		err = exec(ctx, block, env)
 		if err != nil {
 			env.Discard()
 			handleError(err, ctx, block, stxn, sub)

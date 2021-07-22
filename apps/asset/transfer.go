@@ -1,9 +1,10 @@
 package asset
 
 import (
+	. "github.com/Lawliet-Chan/yu/blockchain"
 	. "github.com/Lawliet-Chan/yu/chain_env"
 	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/context"
+	. "github.com/Lawliet-Chan/yu/context"
 	. "github.com/Lawliet-Chan/yu/tripod"
 	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
@@ -24,13 +25,13 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
-func (a *Asset) QueryBalance(ctx *context.Context, env *ChainEnv, _ Hash) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *Context, env *ChainEnv, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
 	amount := a.getBalance(env, account)
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
+func (a *Asset) Transfer(ctx *Context, _ IBlock, env *ChainEnv) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
@@ -67,7 +68,7 @@ func (a *Asset) Transfer(ctx *context.Context, env *ChainEnv) (err error) {
 	return
 }
 
-func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
+func (a *Asset) CreateAccount(ctx *Context, _ IBlock, env *ChainEnv) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 

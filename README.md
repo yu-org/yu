@@ -17,11 +17,11 @@ Third level is define `basic components`, such as `block data structures`, `bloc
 `Execution` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
 `Query` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
 
-```
+```go
 type (
-	Execution func(*context.Context, *chain_env.ChainEnv) error
+	Execution func(*context.Context, currentBlock IBlock, *chain_env.ChainEnv) error
 	
-	Query func(*context.Context, *chain_env.ChainEnv, common.Hash) (respObj interface{}, err error)
+	Query func(ctx *context.Context, env *chain_env.ChainEnv, blockHash common.Hash) (respObj interface{}, err error)
 )
 ```
 - Define Your `blockchain lifecycle`, this function is in `Tripod` interface.  
@@ -33,7 +33,7 @@ then you should tell the framework whether broadcast the block to other nodes or
 `EndBlock` defines bussiness when all nodes accept the new block, usually we execute the txns of new block and append  block into the chain.  
 `FinalizeBlock` defines bussiness when the block is finalized in the chain by all nodes.
  
-```
+```go
 type Tripod interface {
 
     ......
@@ -57,7 +57,7 @@ type Tripod interface {
 [Asset Tripod](https://github.com/Lawliet-Chan/yu/blob/master/apps/asset)  
 `Asset Tripod` imitates an Asset function, it has `transfer accounts`, `create accounts`.  
 `QueryBalance` queries someone's account balance. It implements type func `Query`.
-```
+```go
 func (a *Asset) QueryBalance(ctx *context.Context, env *ChainEnv, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
 	amount := a.getBalance(env, account)
@@ -67,8 +67,8 @@ func (a *Asset) QueryBalance(ctx *context.Context, env *ChainEnv, _ Hash) (inter
 `CreateAccount` creates an account. It implements type func `Execution`.  
 `EmitEvent` will emit an event out of the chain.  
 The error returned will emit out of the chain.
-```
-func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
+```go
+func (a *Asset) CreateAccount(ctx *context.Context, _ IBlock, env *ChainEnv) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 
@@ -85,7 +85,7 @@ func (a *Asset) CreateAccount(ctx *context.Context, env *ChainEnv) error {
 
 We need use `SetExec` and `SetQueries` to set `Execution` and `Query` into `Asset Tripod`.  
 When we set a `Execution`, we need declare how much `Lei`(耜) it consumes. (`Lei` is the same as `gas` in `ethereum` )
-```
+```go
 func NewAsset(tokenName string) *Asset {
 	df := NewDefaultTripod("asset")
 
@@ -97,7 +97,7 @@ func NewAsset(tokenName string) *Asset {
 }
 ```  
 Finally set `Asset Tripod` into `land` in `main func`. 
-```
+```go
 func main() {
     startup.StartUp(pow.NewPow(1024), asset.NewAsset("YuCoin"))
 }
@@ -107,7 +107,7 @@ func main() {
 `Pow Tripod` imitates a Consensus algorithm for proof of work. It customizes the lower-level code.
 - Start a new block  
 If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
-```
+```go
 func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bool, err error) {
     ......
 
@@ -152,7 +152,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 ```
 - End the block  
 We execute the txns of the block and append the block into the chain.
-```
+```go
 func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
         ......
 
@@ -179,7 +179,7 @@ poW does not need `finalize` stage, so the `FinalizeBlock` has no implements.
 
 
 Same as `Asset Tripod` , finally set `Pow Tripod` into `land` in `main function`.    
-```
+```go
 func main() {
 	startup.StartUp(pow.NewPow(1024), asset.NewAsset("YuCoin"))
 }

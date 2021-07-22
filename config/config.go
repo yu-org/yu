@@ -97,9 +97,9 @@ type BlockBaseConf struct {
 }
 
 type TxpoolConf struct {
-	PoolSize   uint64    `toml:"pool_size"`
-	TxnMaxSize int       `toml:"txn_max_size"`
-	Timeout    int       `toml:"timeout"`
+	PoolSize   uint64 `toml:"pool_size"`
+	TxnMaxSize int    `toml:"txn_max_size"`
+	Timeout    int    `toml:"timeout"`
 	// In local-node mode, this will be null.
 	WorkerIP string `toml:"worker_ip"`
 }
