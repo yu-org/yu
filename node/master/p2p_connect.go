@@ -245,8 +245,6 @@ func (m *Master) handleHsReq(byt []byte, s network.Stream) error {
 		return err
 	}
 
-	// logrus.Info("remote request fetch range: ", remoteReq.FetchRange)
-
 	var (
 		blocksByt []byte
 		txnsByt   map[Hash][]byte
@@ -261,7 +259,7 @@ func (m *Master) handleHsReq(byt []byte, s network.Stream) error {
 	missingRange, err := m.compareMissingRange(remoteReq.Info)
 
 	if missingRange != nil {
-		logrus.Infof("missing range start-height is %d,  end-height is %d", missingRange.StartHeight, missingRange.EndHeight)
+		logrus.Debugf("missing range start-height is %d,  end-height is %d", missingRange.StartHeight, missingRange.EndHeight)
 	}
 
 	hsResp := &HandShakeResp{
@@ -285,7 +283,7 @@ func (m *Master) requestBlocks(fetchRange *BlocksRange, s network.Stream) (*Hand
 	}
 
 	if hs.FetchRange != nil {
-		logrus.Infof("handshake fetch range request from (%d) to (%d)", hs.FetchRange.StartHeight, hs.FetchRange.EndHeight)
+		logrus.Infof("fetch history blocks from (%d) to (%d)", hs.FetchRange.StartHeight, hs.FetchRange.EndHeight)
 	}
 
 	byt, err := hs.Encode()

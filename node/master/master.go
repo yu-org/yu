@@ -223,7 +223,7 @@ func (m *Master) AcceptBlocksFromP2P() error {
 		}
 	}
 
-	logrus.Infof("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
+	logrus.Debugf("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
 	return m.chain.InsertBlockFromP2P(block)
 }
 
