@@ -25,7 +25,7 @@ var (
 
 func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
-	initLog()
+	initLog(masterCfg.LogLevel)
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
@@ -55,13 +55,18 @@ func initCfgFromFlags() {
 	config.LoadConf(masterCfgPath, &masterCfg)
 }
 
-func initLog() {
+func initLog(level string) {
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
 	}
 	logrus.SetFormatter(formatter)
-	logrus.SetLevel(logrus.InfoLevel)
+	lvl, err := logrus.ParseLevel(level)
+	if err != nil {
+		panic("parse log level error: " + err.Error())
+	}
+
+	logrus.SetLevel(lvl)
 }
 
 func initDefaultCfg() {
@@ -69,6 +74,7 @@ func initDefaultCfg() {
 		RunMode:  0,
 		HttpPort: "7999",
 		WsPort:   "8999",
+		LogLevel: "info",
 		LeiLimit: 50000,
 		NkDB: config.KVconf{
 			KvType: "bolt",

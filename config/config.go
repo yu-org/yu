@@ -14,6 +14,9 @@ type MasterConf struct {
 	HttpPort string `toml:"http_port"`
 	// serve websocket port
 	WsPort string `toml:"ws_port"`
+	// log out level:
+	// panic, fatal, error, warn, info, debug, trace
+	LogLevel string `toml:"log_level"`
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
