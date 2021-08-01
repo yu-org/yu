@@ -18,3 +18,9 @@ func (an ErrAccountNotFound) Error() string {
 func AccountNotFound(addr common.Address) ErrAccountNotFound {
 	return ErrAccountNotFound{account: addr.String()}
 }
+
+// hotstuff errors
+var (
+	NoValidQC       = errors.New("Target QC is empty.")
+	NoValidParentId = errors.New("ParentId is empty.")
+)
