@@ -125,7 +125,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
-	block.SetProducerPeer(env.Peer.ID())
+	block.SetProposer(env.Peer.ID())
 
 	env.StartBlock(hash)
 	err = env.Base.SetTxns(block.GetHash(), txns)

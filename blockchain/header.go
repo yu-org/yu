@@ -6,14 +6,14 @@ import (
 )
 
 type Header struct {
-	PrevHash     Hash
-	Hash         Hash
-	Height       BlockNum
-	TxnRoot      Hash
-	StateRoot    Hash
-	Nonce        uint64
-	Timestamp    uint64
-	ProducerPeer peer.ID
+	PrevHash  Hash
+	Hash      Hash
+	Height    BlockNum
+	TxnRoot   Hash
+	StateRoot Hash
+	Nonce     uint64
+	Timestamp uint64
+	Proposer  peer.ID
 
 	LeiLimit uint64
 	LeiUsed  uint64
@@ -43,8 +43,8 @@ func (h *Header) GetTimestamp() uint64 {
 	return h.Timestamp
 }
 
-func (h *Header) GetProducerPeer() peer.ID {
-	return h.ProducerPeer
+func (h *Header) GetProposer() peer.ID {
+	return h.Proposer
 }
 
 func (h *Header) GetLeiLimit() uint64 {
