@@ -4,6 +4,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/blockchain"
 	. "github.com/Lawliet-Chan/yu/chain_env"
 	spow "github.com/Lawliet-Chan/yu/consensus/pow"
+	. "github.com/Lawliet-Chan/yu/keypair"
 	"github.com/Lawliet-Chan/yu/node"
 	. "github.com/Lawliet-Chan/yu/tripod"
 	"github.com/Lawliet-Chan/yu/txn"
@@ -17,6 +18,9 @@ type Pow struct {
 	target     *big.Int
 	targetBits int64
 
+	myPrivKey PrivKey
+	myPubkey  PubKey
+
 	pkgTxnsLimit uint64
 }
 
@@ -25,10 +29,19 @@ func NewPow(pkgTxnsLimit uint64) *Pow {
 	var targetBits int64 = 16
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
+
+	pubkey, privkey, err := GenKeyPair(Sr25519)
+	if err != nil {
+		logrus.Fatalf("generate my keypair error: %s", err.Error())
+	}
+
 	return &Pow{
-		meta:         meta,
-		target:       target,
-		targetBits:   targetBits,
+		meta:       meta,
+		target:     target,
+		targetBits: targetBits,
+		myPrivKey:  privkey,
+		myPubkey:   pubkey,
+
 		pkgTxnsLimit: pkgTxnsLimit,
 	}
 }
@@ -49,7 +62,7 @@ func (p *Pow) VerifyBlock(block IBlock, _ *ChainEnv) bool {
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
-func (*Pow) InitChain(env *ChainEnv, _ *Land) error {
+func (p *Pow) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
 	gensisBlock := &Block{
 		Header: &Header{},

@@ -21,7 +21,7 @@ func TestEdKey(t *testing.T) {
 		panic("sign data error: " + err.Error())
 	}
 
-	genPubkey, err := PubKeyFromBytes(Ed25519, pubkey.Bytes())
+	genPubkey, err := PubKeyFromBytes(pubkey.BytesWithType())
 	if err != nil {
 		panic("gen pubkey error: " + err.Error())
 	}

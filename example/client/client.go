@@ -144,8 +144,7 @@ func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	q.Set(CallNameKey, ecall.ExecName)
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
-	q.Set(KeyTypeKey, Sr25519)
-	q.Set(PubkeyKey, pubkey.String())
+	q.Set(PubkeyKey, pubkey.StringWithType())
 
 	u.RawQuery = q.Encode()
 

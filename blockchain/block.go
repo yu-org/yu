@@ -103,6 +103,23 @@ func (b *Block) UseLei(e uint64) {
 	b.Header.LeiUsed += e
 }
 
+//
+//func (b *Block) SetSign(sign []byte) {
+//	b.Header.Signature = sign
+//}
+//
+//func (b *Block) GetSign() []byte {
+//	return b.Header.GetSign()
+//}
+//
+//func (b *Block) SetPubkey(key PubKey) {
+//	b.Header.Pubkey = key.BytesWithType()
+//}
+//
+//func (b *Block) GetPubkey() PubKey {
+//	return b.Header.GetPubkey()
+//}
+
 func (b *Block) SetNonce(nonce uint64) {
 	b.Header.Nonce = nonce
 }
@@ -139,3 +156,20 @@ func MakeTxnRoot(txns []*txn.SignedTxn) (Hash, error) {
 	mTree := trie.NewMerkleTree(txnsBytes)
 	return mTree.RootNode.Data, nil
 }
+
+//func getPubkeyStrOrNil(b IBlock) (pubkeyStr string) {
+//	pubkey := b.GetPubkey()
+//	if pubkey == nil {
+//		return
+//	}
+//	return pubkey.StringWithType()
+//}
+
+//
+//func (b *Block) getSignStr() (signStr string) {
+//	sign := b.GetSign()
+//	if sign == nil {
+//		return
+//	}
+//	return ToHex(sign)
+//}

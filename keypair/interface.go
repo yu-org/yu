@@ -8,7 +8,12 @@ import (
 const (
 	Sr25519 = "sr25519"
 	Ed25519 = "ed25519"
+
+	Sr25519Idx = "1"
+	Ed25519Idx = "2"
 )
+
+var KeyTypeBytLen = 1
 
 func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	switch keyType {
@@ -23,15 +28,22 @@ func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	}
 }
 
-func PubKeyFromBytes(keyType string, data []byte) (PubKey, error) {
-	switch keyType {
-	case Sr25519:
-		return srPubKeyFromBytes(data), nil
-	case Ed25519:
-		return edPubKeyFromBytes(data), nil
+// data: (keyTypeBytes + keyBytes)
+func PubKeyFromBytes(data []byte) (PubKey, error) {
+	keyTypeByt := data[:KeyTypeBytLen]
+	switch string(keyTypeByt) {
+	case Sr25519Idx:
+		return SrPubKeyFromBytes(data[KeyTypeBytLen:]), nil
+	case Ed25519Idx:
+		return EdPubKeyFromBytes(data[KeyTypeBytLen:]), nil
 	default:
 		return nil, NoKeyType
 	}
+}
+
+func PubkeyFromStr(data string) (PubKey, error) {
+	byt := common.FromHex(data)
+	return PubKeyFromBytes(byt)
 }
 
 type Key interface {
@@ -39,6 +51,9 @@ type Key interface {
 	Equals(key Key) bool
 	Bytes() []byte
 	String() string
+
+	BytesWithType() []byte
+	StringWithType() string
 }
 
 type PubKey interface {

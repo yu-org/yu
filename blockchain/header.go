@@ -15,6 +15,9 @@ type Header struct {
 	Timestamp uint64
 	Proposer  peer.ID
 
+	Pubkey    []byte
+	Signature []byte
+
 	LeiLimit uint64
 	LeiUsed  uint64
 }
@@ -54,3 +57,19 @@ func (h *Header) GetLeiLimit() uint64 {
 func (h *Header) GetLeiUsed() uint64 {
 	return h.LeiUsed
 }
+
+//
+//func (h *Header) GetSign() []byte {
+//	return h.Signature
+//}
+//
+//func (h *Header) GetPubkey() PubKey {
+//	if h.Pubkey == nil {
+//		return nil
+//	}
+//	pubkey, err := PubKeyFromBytes(h.Pubkey)
+//	if err != nil {
+//		logrus.Panic("get pubkey from block-header error: ", err.Error())
+//	}
+//	return pubkey
+//}

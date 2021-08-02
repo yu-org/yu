@@ -11,7 +11,6 @@ import (
 type TxnScheme struct {
 	TxnHash   string `gorm:"primaryKey"`
 	Pubkey    string
-	KeyType   string
 	Signature string
 	RawTxn    string
 
@@ -38,8 +37,7 @@ func toTxnScheme(stxn *SignedTxn) (TxnScheme, error) {
 	}
 	return TxnScheme{
 		TxnHash:   stxn.GetTxnHash().String(),
-		Pubkey:    stxn.GetPubkey().String(),
-		KeyType:   stxn.GetPubkey().Type(),
+		Pubkey:    stxn.GetPubkey().StringWithType(),
 		Signature: ToHex(stxn.GetSignature()),
 		RawTxn:    ToHex(rawTxnByt),
 		BlockHash: "",
@@ -52,7 +50,7 @@ func (t TxnScheme) toTxn() (*SignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
-	pubkey, err := keypair.PubKeyFromBytes(t.KeyType, FromHex(t.Pubkey))
+	pubkey, err := keypair.PubkeyFromStr(t.Pubkey)
 	if err != nil {
 		return nil, err
 	}

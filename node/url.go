@@ -38,7 +38,6 @@ const (
 	CallNameKey   = "call_name"
 	AddressKey    = "address"
 	BlockHashKey  = "block_hash"
-	KeyTypeKey    = "key_type"
 	PubkeyKey     = "pubkey"
 	SignatureKey  = "signature"
 )
@@ -65,9 +64,8 @@ func GetBlockHash(req *http.Request) Hash {
 }
 
 func GetPubkey(req *http.Request) (keypair.PubKey, error) {
-	keyType := req.URL.Query().Get(KeyTypeKey)
 	pubkeyStr := req.URL.Query().Get(PubkeyKey)
-	return keypair.PubKeyFromBytes(keyType, FromHex(pubkeyStr))
+	return keypair.PubkeyFromStr(pubkeyStr)
 }
 
 func GetSignature(req *http.Request) []byte {

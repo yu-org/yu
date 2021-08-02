@@ -11,7 +11,7 @@ type EdPubkey struct {
 	pubkey ed25519.PubKey
 }
 
-func edPubKeyFromBytes(data []byte) *EdPubkey {
+func EdPubKeyFromBytes(data []byte) *EdPubkey {
 	return &EdPubkey{pubkey: data}
 }
 
@@ -44,6 +44,14 @@ func (epb *EdPubkey) String() string {
 	return ToHex(epb.Bytes())
 }
 
+func (epb *EdPubkey) BytesWithType() []byte {
+	return append([]byte(Ed25519Idx), epb.pubkey.Bytes()...)
+}
+
+func (epb *EdPubkey) StringWithType() string {
+	return ToHex(epb.BytesWithType())
+}
+
 // ------ Private Key -------
 
 type EdPrivkey struct {
@@ -72,6 +80,14 @@ func (epr *EdPrivkey) Bytes() []byte {
 
 func (epr *EdPrivkey) String() string {
 	return ToHex(epr.Bytes())
+}
+
+func (epr *EdPrivkey) BytesWithType() []byte {
+	return append([]byte(Ed25519Idx), epr.privkey.Bytes()...)
+}
+
+func (epr *EdPrivkey) StringWithType() string {
+	return ToHex(epr.BytesWithType())
 }
 
 func genEd25519() (*EdPubkey, *EdPrivkey) {

@@ -11,7 +11,7 @@ type SrPubkey struct {
 	pubkey sr25519.PubKey
 }
 
-func srPubKeyFromBytes(data []byte) *SrPubkey {
+func SrPubKeyFromBytes(data []byte) *SrPubkey {
 	return &SrPubkey{pubkey: data}
 }
 
@@ -44,6 +44,14 @@ func (spb *SrPubkey) String() string {
 	return ToHex(spb.Bytes())
 }
 
+func (spb *SrPubkey) BytesWithType() []byte {
+	return append([]byte(Sr25519Idx), spb.pubkey.Bytes()...)
+}
+
+func (spb *SrPubkey) StringWithType() string {
+	return ToHex(spb.BytesWithType())
+}
+
 // ----- Private Key ------
 
 type SrPrivkey struct {
@@ -72,6 +80,14 @@ func (spr *SrPrivkey) Bytes() []byte {
 
 func (spr *SrPrivkey) String() string {
 	return ToHex(spr.Bytes())
+}
+
+func (spr *SrPrivkey) BytesWithType() []byte {
+	return append([]byte(Sr25519Idx), spr.privkey.Bytes()...)
+}
+
+func (spr *SrPrivkey) StringWithType() string {
+	return ToHex(spr.BytesWithType())
 }
 
 func genSr25519() (*SrPubkey, *SrPrivkey) {
