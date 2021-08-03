@@ -14,7 +14,7 @@ type BlocksScheme struct {
 	Nonce      uint64
 	Timestamp  uint64
 	TxnsHashes string
-	Proposer   string
+	PeerID     string
 
 	LeiLimit uint64
 	LeiUsed  uint64
@@ -37,7 +37,7 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		Nonce:      b.GetHeader().(*Header).Nonce,
 		Timestamp:  b.GetTimestamp(),
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
-		Proposer:   b.GetProposer().String(),
+		PeerID:     b.GetPeerID().String(),
 
 		LeiLimit: b.GetLeiLimit(),
 		LeiUsed:  b.GetLeiUsed(),
@@ -50,13 +50,13 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 
 func (b *BlocksScheme) toBlock() (IBlock, error) {
 	var (
-		Proposer peer.ID
-		err      error
+		PeerID peer.ID
+		err    error
 	)
-	if b.Proposer == "" {
-		Proposer = peer.ID("")
+	if b.PeerID == "" {
+		PeerID = peer.ID("")
 	} else {
-		Proposer, err = peer.Decode(b.Proposer)
+		PeerID, err = peer.Decode(b.PeerID)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		StateRoot: HexToHash(b.StateRoot),
 		Nonce:     b.Nonce,
 		Timestamp: b.Timestamp,
-		Proposer:  Proposer,
+		PeerID:    PeerID,
 		LeiLimit:  b.LeiLimit,
 		LeiUsed:   b.LeiUsed,
 	}

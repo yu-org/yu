@@ -21,7 +21,7 @@ type IBlock interface {
 	SetStateRoot(hash Hash)
 	SetHeight(BlockNum)
 	SetTimestamp(ts uint64)
-	SetProposer(peer.ID)
+	SetPeerID(peer.ID)
 
 	SetLeiLimit(e uint64)
 	UseLei(e uint64)
@@ -39,7 +39,7 @@ type IHeader interface {
 	GetTxnRoot() Hash
 	GetStateRoot() Hash
 	GetTimestamp() uint64
-	GetProposer() peer.ID
+	GetPeerID() peer.ID
 	GetLeiLimit() uint64
 	GetLeiUsed() uint64
 }

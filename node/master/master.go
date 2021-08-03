@@ -337,12 +337,12 @@ func (m *Master) SyncTxns(block IBlock) error {
 
 		var fetchPeer peer.ID
 		if m.ConnectedPeers == nil {
-			block.GetProposer()
+			block.GetPeerID()
 		} else {
 			fetchPeer = m.ConnectedPeers[0]
 		}
 
-		fetchedTxns, err := m.requestTxns(fetchPeer, block.GetProposer(), needFetch)
+		fetchedTxns, err := m.requestTxns(fetchPeer, block.GetPeerID(), needFetch)
 		if err != nil {
 			return err
 		}

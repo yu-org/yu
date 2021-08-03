@@ -79,12 +79,12 @@ func (b *Block) SetTimestamp(ts uint64) {
 	b.Header.Timestamp = ts
 }
 
-func (b *Block) GetProposer() peer.ID {
-	return b.Header.Proposer
+func (b *Block) GetPeerID() peer.ID {
+	return b.Header.PeerID
 }
 
-func (b *Block) SetProposer(peerID peer.ID) {
-	b.Header.Proposer = peerID
+func (b *Block) SetPeerID(peerID peer.ID) {
+	b.Header.PeerID = peerID
 }
 
 func (b *Block) GetLeiLimit() uint64 {

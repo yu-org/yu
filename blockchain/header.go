@@ -13,7 +13,7 @@ type Header struct {
 	StateRoot Hash
 	Nonce     uint64
 	Timestamp uint64
-	Proposer  peer.ID
+	PeerID    peer.ID
 
 	Pubkey    []byte
 	Signature []byte
@@ -46,8 +46,8 @@ func (h *Header) GetTimestamp() uint64 {
 	return h.Timestamp
 }
 
-func (h *Header) GetProposer() peer.ID {
-	return h.Proposer
+func (h *Header) GetPeerID() peer.ID {
+	return h.PeerID
 }
 
 func (h *Header) GetLeiLimit() uint64 {
