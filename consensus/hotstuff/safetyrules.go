@@ -26,7 +26,7 @@ var (
 type iSaftyRules interface {
 	UpdatePreferredRound(round int64) bool
 	VoteProposal(proposalId []byte, proposalRound int64, parentQc IQuorumCert) bool
-	CheckVote(qc IQuorumCert, logid string, validators []string) error
+	CheckVote(qc IQuorumCert, validators []string) error
 	CalVotesThreshold(input, sum int) bool
 	CheckProposal(proposal, parent IQuorumCert, justifyValidators []string) error
 	CheckPacemaker(pending, local int64) bool
@@ -70,7 +70,7 @@ func (s *DefaultSaftyRules) VoteProposal(proposalId []byte, proposalRound int64,
 }
 
 // CheckVote 检查logid、voteInfoHash是否正确
-func (s *DefaultSaftyRules) CheckVote(qc IQuorumCert, logid string, validators []string) error {
+func (s *DefaultSaftyRules) CheckVote(qc IQuorumCert, validators []string) error {
 	// 检查签名, vote目前为单个签名，因此只需要验证第一个即可，验证的内容为签名信息是否在合法的validators里面
 	signs := qc.GetSignsInfo()
 	if len(signs) == 0 {
