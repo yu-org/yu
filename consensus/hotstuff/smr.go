@@ -127,19 +127,9 @@ func (s *Smr) reloadJustifyQC() (*QuorumCert, error) {
 	return parentQuorumCert, nil
 }
 
-// handleReceivedProposal 该阶段在收到一个ProposalMsg后触发，与LibraBFT的process_proposal阶段类似
-// 该阶段分两个角色，一个是认为自己是currentRound的Leader，一个是Replica
-// 0. 查看ProposalMsg消息的合法性
-// 1. 检查新的view是否符合账本状态要求
-// 2. 比较本地pacemaker是否需要AdvanceRound
-// 3. 检查qcTree是否需要更新CommitQC
-// 4. 查看收到的view是否符合要求
-// 5. 向本地PendingTree插入该QC，即更新QC
-// 6. 发送一个vote消息给下一个Leader
-// 注意：该过程删除了当前round的leader是否符合计算，将该步骤后置到上层共识CheckMinerMatch，原因：需要支持上层基于时间调度而不是基于round调度，减小耦合
-func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.VoteMsg, error) {
+func (s *Smr) GetVoteAndParentQC(msg *chainedBftPb.ProposalMsg) (*VoteInfo, *QuorumCert, error) {
 	if _, ok := s.localProposal.LoadOrStore(utils.F(msg.GetProposalId()), true); ok {
-		return nil, nil
+		return nil, nil, nil
 	}
 	logrus.Debug("smr::handleReceivedProposal::received a proposal",
 		"newView", msg.GetProposalView(), "newProposalId", utils.F(msg.GetProposalId()))
@@ -147,15 +137,23 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.V
 	parentQC := &QuorumCert{}
 	err := json.Unmarshal(parentQCBytes, parentQC)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-
 	newVote := &VoteInfo{
 		ProposalId:   msg.GetProposalId(),
 		ProposalView: msg.GetProposalView(),
 		ParentId:     parentQC.GetProposalId(),
 		ParentView:   parentQC.GetProposalView(),
 	}
+	return newVote, parentQC, nil
+}
+
+// CheckViewAndRound 和 HandleReceivedProposal 阶段在收到一个ProposalMsg后触发，与LibraBFT的process_proposal阶段类似
+// 该阶段分两个角色，一个是认为自己是currentRound的Leader，一个是Replica
+// 0. 查看ProposalMsg消息的合法性
+// 1. 检查新的view是否符合账本状态要求
+// 2. 比较本地pacemaker是否需要AdvanceRound
+func (s *Smr) CheckViewAndRound(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo, parentQC *QuorumCert) (needSendMsg bool, err error) {
 	isFirstJustify := bytes.Equal(s.qcTree.Genesis.In.GetProposalId(), parentQC.GetProposalId())
 	if !isFirstJustify {
 		if err := s.saftyrules.CheckProposal(&QuorumCert{
@@ -164,7 +162,7 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.V
 		}, parentQC, s.Election.GetValidators(parentQC.GetProposalView())); err != nil {
 			logrus.Debug("smr::handleReceivedProposal::CheckProposal error", "error", err,
 				"parentView", parentQC.GetProposalView(), "parentId", utils.F(parentQC.GetProposalId()))
-			return nil, nil
+			return
 		}
 	}
 	/*
@@ -175,15 +173,22 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.V
 	// 1.检查账本状态和收到新round是否符合要求
 	if s.ledgerState+3 < newVote.ProposalView {
 		logrus.Error("smr::handleReceivedProposal::local ledger hasn't been updated.", "LedgerState", s.ledgerState, "ProposalView", newVote.ProposalView)
-		return nil, nil
+		return
 	}
 	// 2.本地pacemaker试图更新currentView, 并返回一个是否需要将新消息通知该轮Leader, 是该轮不是下轮！主要解决P2PIP端口不能通知Loop的问题
-	sendMsg, _ := s.pacemaker.AdvanceView(parentQC)
+	needSendMsg, _ = s.pacemaker.AdvanceView(parentQC)
 	logrus.Debug("smr::handleReceivedProposal::pacemaker update", "view", s.pacemaker.GetCurrentView())
 	// 通知current Leader
+	return
+}
 
+// 3. 检查qcTree是否需要更新CommitQC
+// 4. 查看收到的view是否符合要求
+// 5. 向本地PendingTree插入该QC，即更新QC
+// 6. 发送一个vote消息给下一个Leader
+// 注意：该过程删除了当前round的leader是否符合计算，将该步骤后置到上层共识CheckMinerMatch，原因：需要支持上层基于时间调度而不是基于round调度，减小耦合
+func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo, parentQC *QuorumCert) (*chainedBftPb.VoteMsg, error) {
 
-	
 	// 3.本地safetyrules更新, 如有可以commit的QC，执行commit操作并更新本地rootQC
 	if parentQC.LedgerCommitInfo != nil && parentQC.LedgerCommitInfo.CommitStateId != nil &&
 		s.saftyrules.UpdatePreferredRound(parentQC.GetProposalView()) {
@@ -214,7 +219,7 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.V
 		},
 	}
 	// 5.与proposal.ParentId相比，更新本地qcTree，insert新节点, 包括更新CommitQC等等
-	err = s.qcTree.updateQcStatus(newNode)
+	err := s.qcTree.updateQcStatus(newNode)
 	if err != nil {
 		return nil, err
 	}
