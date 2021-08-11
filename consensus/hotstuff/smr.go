@@ -8,6 +8,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
+	"github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/sirupsen/logrus"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
@@ -56,6 +57,23 @@ type Smr struct {
 	localProposal *sync.Map
 	// votes of QC in mem, key: voteId, value: []*QuorumCertSign
 	qcVoteMsgs *sync.Map
+}
+
+func NewSmr(address string, pacemaker IPacemaker, saftyrules iSaftyRules,
+	elec IProposerElection, qcTree *QCPendingTree) *Smr {
+	s := &Smr{
+		address:       address,
+		subscribeList: list.New(),
+		QuitCh:        make(chan bool, 1),
+		pacemaker:     pacemaker,
+		saftyrules:    saftyrules,
+		Election:      elec,
+		qcTree:        qcTree,
+		localProposal: &sync.Map{},
+		qcVoteMsgs:    &sync.Map{},
+	}
+	s.localProposal.Store(utils.F(qcTree.Root.In.GetProposalId()), true)
+	return s
 }
 
 func (s *Smr) DoProposal(viewNumber int64, proposalID []byte, validatesIpInfo []string) (*chainedBftPb.ProposalMsg, error) {
@@ -245,7 +263,7 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInf
 	return &chainedBftPb.VoteMsg{
 		VoteInfo:         voteBytes,
 		LedgerCommitInfo: ledgerBytes,
-		Signature:        []*chainedBftPb.QuorumCertSign{ /* newSign */ },
+		Signature:        []*chainedBftPb.QuorumCertSign{ /* nextSign */ },
 	}, nil
 }
 
@@ -361,6 +379,25 @@ func (s *Smr) GetGenericQC() IQuorumCert {
 
 func (s *Smr) EnforceUpdateHighQC(inProposalId []byte) error {
 	return s.qcTree.enforceUpdateHighQC(inProposalId)
+}
+
+func (s *Smr) BlockToProposalNode(block blockchain.IBlock) *ProposalNode {
+	blockHash := block.GetHash()
+	node := s.qcTree.DFSQueryNode(blockHash.Bytes())
+	if node != nil {
+		return node
+	}
+	height := int64(block.GetHeight())
+	return &ProposalNode{
+		In: &QuorumCert{
+			VoteInfo: &VoteInfo{
+				ProposalId:   blockHash.Bytes(),
+				ProposalView: height,
+				ParentId:     block.GetPrevHash().Bytes(),
+				ParentView:   height - 1,
+			},
+		},
+	}
 }
 
 func VoteMsgToQC(msg *chainedBftPb.VoteMsg) (*QuorumCert, error) {

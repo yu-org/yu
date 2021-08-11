@@ -414,7 +414,7 @@ func (m *Master) GetEnv() *ChainEnv {
 		Chain:      m.chain,
 		Base:       m.base,
 		Pool:       m.txPool,
-		Peer:       m.host,
+		P2pID:      m.host.ID(),
 		Sub:        m.sub,
 	}
 }

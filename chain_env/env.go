@@ -6,7 +6,7 @@ import (
 	. "github.com/Lawliet-Chan/yu/state"
 	. "github.com/Lawliet-Chan/yu/subscribe"
 	. "github.com/Lawliet-Chan/yu/txpool"
-	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 type ChainEnv struct {
@@ -16,7 +16,7 @@ type ChainEnv struct {
 	Base    IBlockBase
 	Pool    ItxPool
 
-	Peer host.Host
+	P2pID peer.ID
 
 	Sub *Subscription
 }
