@@ -3,18 +3,31 @@ package poa
 import (
 	. "github.com/Lawliet-Chan/yu/blockchain"
 	. "github.com/Lawliet-Chan/yu/chain_env"
+	. "github.com/Lawliet-Chan/yu/consensus/hotstuff"
 	. "github.com/Lawliet-Chan/yu/tripod"
 	. "github.com/Lawliet-Chan/yu/txn"
 )
 
 type Poa struct {
 	meta *TripodMeta
+
+	smr *Smr
 }
 
-func NewPoa() *Poa {
+func NewPoa(addr string, addrs []string) *Poa {
 	meta := NewTripodMeta("poa")
 
-	return &Poa{meta: meta}
+	q := InitQcTee()
+	saftyrules := &DefaultSaftyRules{
+		QcTree: q,
+	}
+	elec := NewSimpleElection(addrs)
+	smr := NewSmr(addr, &DefaultPaceMaker{}, saftyrules, elec, q)
+
+	return &Poa{
+		meta: meta,
+		smr:  smr,
+	}
 }
 
 func (p *Poa) GetTripodMeta() *TripodMeta {
@@ -51,4 +64,25 @@ func (p *Poa) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 func (p *Poa) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
+}
+
+func InitQcTee() *QCPendingTree {
+	initQC := &QuorumCert{
+		VoteInfo: &VoteInfo{
+			ProposalId:   []byte{0},
+			ProposalView: 0,
+		},
+		LedgerCommitInfo: &LedgerCommitInfo{
+			CommitStateId: []byte{0},
+		},
+	}
+	rootNode := &ProposalNode{
+		In: initQC,
+	}
+	return &QCPendingTree{
+		Genesis:  rootNode,
+		Root:     rootNode,
+		HighQC:   rootNode,
+		CommitQC: rootNode,
+	}
 }
