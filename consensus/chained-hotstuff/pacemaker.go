@@ -1,7 +1,7 @@
 // Copyright Xuperchain Authors
 // link: https://github.com/xuperchain/xupercore
 
-package hotstuff
+package chained_hotstuff
 
 // IPacemaker is the interface of Pacemaker. It responsible for generating a new round.
 // We assume Pacemaker in all correct replicas will have synchronized leadership after GST.

@@ -1,7 +1,7 @@
 // Copyright Xuperchain Authors
 // link: https://github.com/xuperchain/xupercore
 
-package hotstuff
+package chained_hotstuff
 
 import (
 	"errors"

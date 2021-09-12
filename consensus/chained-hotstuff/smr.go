@@ -1,7 +1,7 @@
 // Copyright Xuperchain Authors
 // link: https://github.com/xuperchain/xupercore
 
-package hotstuff
+package chained_hotstuff
 
 import (
 	"bytes"
@@ -41,9 +41,6 @@ type Smr struct {
 	// subscribeList is the Subscriber list of the srm instance
 	subscribeList *list.List
 
-	// quitCh stop channel
-	QuitCh chan bool
-
 	pacemaker  IPacemaker
 	saftyrules iSaftyRules
 	Election   IProposerElection
@@ -64,7 +61,6 @@ func NewSmr(address string, pacemaker IPacemaker, saftyrules iSaftyRules,
 	s := &Smr{
 		address:       address,
 		subscribeList: list.New(),
-		QuitCh:        make(chan bool, 1),
 		pacemaker:     pacemaker,
 		saftyrules:    saftyrules,
 		Election:      elec,
@@ -82,7 +78,7 @@ func (s *Smr) DoProposal(viewNumber int64, proposalID []byte, validatesIpInfo []
 	}
 	if s.pacemaker.GetCurrentView() != s.qcTree.Genesis.In.GetProposalView()+1 &&
 		s.qcTree.GetLockedQC() != nil && s.pacemaker.GetCurrentView() < s.qcTree.GetLockedQC().In.GetProposalView() {
-		logrus.Debug("smr::ProcessProposal error", "error", TooLowNewProposal, "pacemaker view", s.pacemaker.GetCurrentView(), "lockQC view",
+		logrus.Debug("smr::ProcessProposal error: ", TooLowNewProposal, "pacemaker view", s.pacemaker.GetCurrentView(), "lockQC view",
 			s.qcTree.GetLockedQC().In.GetProposalView())
 		return nil, TooLowNewProposal
 	}

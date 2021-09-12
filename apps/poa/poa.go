@@ -3,7 +3,7 @@ package poa
 import (
 	. "github.com/Lawliet-Chan/yu/blockchain"
 	. "github.com/Lawliet-Chan/yu/chain_env"
-	. "github.com/Lawliet-Chan/yu/consensus/hotstuff"
+	. "github.com/Lawliet-Chan/yu/consensus/chained-hotstuff"
 	. "github.com/Lawliet-Chan/yu/tripod"
 	. "github.com/Lawliet-Chan/yu/txn"
 )
@@ -43,7 +43,7 @@ func (p *Poa) CheckTxn(txn *SignedTxn) error {
 }
 
 func (p *Poa) VerifyBlock(block IBlock, env *ChainEnv) bool {
-	panic("implement me")
+	return true
 }
 
 func (p *Poa) InitChain(env *ChainEnv, _ *Land) error {

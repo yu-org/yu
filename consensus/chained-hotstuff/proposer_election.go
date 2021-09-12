@@ -1,7 +1,7 @@
 // Copyright Xuperchain Authors
 // link: https://github.com/xuperchain/xupercore
 
-package hotstuff
+package chained_hotstuff
 
 type IProposerElection interface {
 	// 获取指定round的主节点Address, 注意, 若存在validators变更, 则需要在此处进行addrToIntAddr的更新操作
