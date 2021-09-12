@@ -18,7 +18,7 @@ package mpt
 
 import (
 	"github.com/HyperService-Consortium/go-rlp"
-	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/yu-altar/yu/common"
 	"golang.org/x/crypto/sha3"
 	"hash"
 	"sync"

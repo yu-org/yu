@@ -3,13 +3,13 @@ package master
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/context"
-	. "github.com/Lawliet-Chan/yu/node"
-	. "github.com/Lawliet-Chan/yu/txn"
-	. "github.com/Lawliet-Chan/yu/utils/error_handle"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/context"
+	. "github.com/yu-altar/yu/node"
+	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-altar/yu/utils/error_handle"
 	"net/http"
 )
 

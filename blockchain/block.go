@@ -1,11 +1,11 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/trie"
-	"github.com/Lawliet-Chan/yu/txn"
-	. "github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/libp2p/go-libp2p-core/peer"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/trie"
+	"github.com/yu-altar/yu/txn"
+	. "github.com/yu-altar/yu/utils/codec"
 )
 
 type Block struct {

@@ -1,8 +1,8 @@
 package node
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/keypair"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/keypair"
 	"net/http"
 	"path/filepath"
 )

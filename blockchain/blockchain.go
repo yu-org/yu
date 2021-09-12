@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/config"
-	ysql "github.com/Lawliet-Chan/yu/storage/sql"
-	. "github.com/Lawliet-Chan/yu/utils/codec"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/config"
+	ysql "github.com/yu-altar/yu/storage/sql"
+	. "github.com/yu-altar/yu/utils/codec"
 )
 
 type BlockChain struct {

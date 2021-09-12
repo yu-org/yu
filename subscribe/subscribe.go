@@ -1,9 +1,9 @@
 package subscribe
 
 import (
-	. "github.com/Lawliet-Chan/yu/result"
 	. "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/result"
 	"sync"
 )
 

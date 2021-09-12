@@ -2,8 +2,8 @@ package node
 
 import (
 	"bytes"
-	. "github.com/Lawliet-Chan/yu/blockchain"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/blockchain"
 	"io"
 	"io/ioutil"
 	"net/http"

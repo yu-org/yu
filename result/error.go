@@ -3,7 +3,7 @@ package result
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/Lawliet-Chan/yu/common"
+	. "github.com/yu-altar/yu/common"
 )
 
 type Error struct {

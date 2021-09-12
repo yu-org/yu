@@ -2,7 +2,7 @@ package mpt
 
 import (
 	"bytes"
-	"github.com/Lawliet-Chan/yu/config"
+	"github.com/yu-altar/yu/config"
 	"testing"
 )
 

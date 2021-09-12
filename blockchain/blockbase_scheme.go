@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/keypair"
-	. "github.com/Lawliet-Chan/yu/result"
-	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/keypair"
+	. "github.com/yu-altar/yu/result"
+	. "github.com/yu-altar/yu/txn"
 	"gorm.io/gorm"
 )
 

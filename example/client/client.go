@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Lawliet-Chan/yu/apps/asset"
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/keypair"
-	. "github.com/Lawliet-Chan/yu/node"
-	. "github.com/Lawliet-Chan/yu/result"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-altar/yu/apps/asset"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/keypair"
+	. "github.com/yu-altar/yu/node"
+	. "github.com/yu-altar/yu/result"
 	"net/url"
 	"time"
 )

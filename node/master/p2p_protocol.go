@@ -2,9 +2,9 @@ package master
 
 import (
 	"encoding/json"
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/yerror"
 	"github.com/libp2p/go-libp2p-core/peer"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/yerror"
 	"strconv"
 )
 

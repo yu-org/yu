@@ -2,14 +2,14 @@ package startup
 
 import (
 	"flag"
-	"github.com/Lawliet-Chan/yu/blockchain"
-	"github.com/Lawliet-Chan/yu/config"
-	"github.com/Lawliet-Chan/yu/node/master"
-	"github.com/Lawliet-Chan/yu/tripod"
-	"github.com/Lawliet-Chan/yu/txpool"
-	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-altar/yu/blockchain"
+	"github.com/yu-altar/yu/config"
+	"github.com/yu-altar/yu/node/master"
+	"github.com/yu-altar/yu/tripod"
+	"github.com/yu-altar/yu/txpool"
+	"github.com/yu-altar/yu/utils/codec"
 )
 
 var (

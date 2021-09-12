@@ -1,11 +1,11 @@
 package state
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/config"
-	. "github.com/Lawliet-Chan/yu/storage/kv"
-	. "github.com/Lawliet-Chan/yu/trie/mpt"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/config"
+	. "github.com/yu-altar/yu/storage/kv"
+	. "github.com/yu-altar/yu/trie/mpt"
 )
 
 //                         Merkle Patricia Trie

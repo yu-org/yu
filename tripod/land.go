@@ -1,10 +1,10 @@
 package tripod
 
 import (
-	. "github.com/Lawliet-Chan/yu/chain_env"
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/context"
-	. "github.com/Lawliet-Chan/yu/yerror"
+	. "github.com/yu-altar/yu/chain_env"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/context"
+	. "github.com/yu-altar/yu/yerror"
 )
 
 type Land struct {

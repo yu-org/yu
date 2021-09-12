@@ -3,9 +3,9 @@ package context
 import (
 	"bytes"
 	"encoding/json"
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/yerror"
 	"strconv"
 )
 

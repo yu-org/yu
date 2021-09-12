@@ -1,8 +1,8 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/libp2p/go-libp2p-core/peer"
+	. "github.com/yu-altar/yu/common"
 )
 
 type BlocksScheme struct {

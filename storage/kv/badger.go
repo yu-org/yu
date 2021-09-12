@@ -1,8 +1,8 @@
 package kv
 
 import (
-	"github.com/Lawliet-Chan/yu/storage"
 	"github.com/dgraph-io/badger"
+	"github.com/yu-altar/yu/storage"
 )
 
 type badgerKV struct {

@@ -3,10 +3,10 @@ package context
 import (
 	"bytes"
 	"encoding/json"
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/result"
-	"github.com/Lawliet-Chan/yu/utils/codec"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/result"
+	"github.com/yu-altar/yu/utils/codec"
 )
 
 type Context struct {

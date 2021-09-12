@@ -1,11 +1,11 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/config"
-	. "github.com/Lawliet-Chan/yu/result"
-	ysql "github.com/Lawliet-Chan/yu/storage/sql"
-	. "github.com/Lawliet-Chan/yu/txn"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/config"
+	. "github.com/yu-altar/yu/result"
+	ysql "github.com/yu-altar/yu/storage/sql"
+	. "github.com/yu-altar/yu/txn"
 )
 
 type BlockBase struct {

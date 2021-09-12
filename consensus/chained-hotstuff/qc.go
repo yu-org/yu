@@ -10,8 +10,8 @@ import (
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
 
-	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/yerror"
 )
 
 var _ IQuorumCert = (*QuorumCert)(nil)

@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/result"
-	. "github.com/Lawliet-Chan/yu/txn"
 	"github.com/libp2p/go-libp2p-core/peer"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/result"
+	. "github.com/yu-altar/yu/txn"
 )
 
 type IBlock interface {

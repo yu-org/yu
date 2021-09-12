@@ -1,12 +1,12 @@
 package txpool
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/config"
-	. "github.com/Lawliet-Chan/yu/txn"
-	ytime "github.com/Lawliet-Chan/yu/utils/time"
-	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/config"
+	. "github.com/yu-altar/yu/txn"
+	ytime "github.com/yu-altar/yu/utils/time"
+	. "github.com/yu-altar/yu/yerror"
 	"sync"
 	"time"
 )

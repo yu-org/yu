@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
-	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/common"
 )
 
 type MasterConf struct {

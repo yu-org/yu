@@ -1,9 +1,9 @@
 package mpt
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	"github.com/Lawliet-Chan/yu/config"
-	"github.com/Lawliet-Chan/yu/storage/kv"
+	. "github.com/yu-altar/yu/common"
+	"github.com/yu-altar/yu/config"
+	"github.com/yu-altar/yu/storage/kv"
 	"sync"
 )
 

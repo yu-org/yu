@@ -1,4 +1,4 @@
-module github.com/Lawliet-Chan/yu
+module github.com/yu-altar/yu
 
 go 1.15
 

@@ -1,9 +1,9 @@
 package sql
 
 import (
-	"github.com/Lawliet-Chan/yu/config"
-	"github.com/Lawliet-Chan/yu/storage"
-	"github.com/Lawliet-Chan/yu/yerror"
+	"github.com/yu-altar/yu/config"
+	"github.com/yu-altar/yu/storage"
+	"github.com/yu-altar/yu/yerror"
 	"gorm.io/gorm"
 )
 

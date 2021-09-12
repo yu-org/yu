@@ -1,13 +1,13 @@
 package asset
 
 import (
-	. "github.com/Lawliet-Chan/yu/blockchain"
-	. "github.com/Lawliet-Chan/yu/chain_env"
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/context"
-	. "github.com/Lawliet-Chan/yu/tripod"
-	. "github.com/Lawliet-Chan/yu/yerror"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/blockchain"
+	. "github.com/yu-altar/yu/chain_env"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/context"
+	. "github.com/yu-altar/yu/tripod"
+	. "github.com/yu-altar/yu/yerror"
 )
 
 type Asset struct {

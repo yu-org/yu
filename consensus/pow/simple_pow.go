@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
-	. "github.com/Lawliet-Chan/yu/blockchain"
-	"github.com/Lawliet-Chan/yu/common"
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-altar/yu/blockchain"
+	"github.com/yu-altar/yu/common"
 	"math"
 	"math/big"
 )

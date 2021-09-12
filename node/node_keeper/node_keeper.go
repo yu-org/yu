@@ -2,13 +2,13 @@ package node_keeper
 
 import (
 	"fmt"
-	"github.com/Lawliet-Chan/yu/config"
-	. "github.com/Lawliet-Chan/yu/node"
-	"github.com/Lawliet-Chan/yu/storage/kv"
-	"github.com/Lawliet-Chan/yu/utils/compress"
-	. "github.com/Lawliet-Chan/yu/utils/ip"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-altar/yu/config"
+	. "github.com/yu-altar/yu/node"
+	"github.com/yu-altar/yu/storage/kv"
+	"github.com/yu-altar/yu/utils/compress"
+	. "github.com/yu-altar/yu/utils/ip"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -203,13 +203,13 @@ func (n *NodeKeeper) downloadUpdatedPkg(c *gin.Context) {
 	c.String(http.StatusOK, "download file succeed")
 }
 
-// zipFilePath just like: path/to/github.com/Lawliet-Chan/yuRepo_linux-amd64_3.zip
-// 'github.com/Lawliet-Chan/yuRepo' is the name of repo
+// zipFilePath just like: path/to/github.com/yu-altar/yuRepo_linux-amd64_3.zip
+// 'github.com/yu-altar/yuRepo' is the name of repo
 // 'linux-amd64' is the arch of repo
 // '3' is the version of repo
 func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 
-	// repoVDir: path/to/github.com/Lawliet-Chan/yuRepo_linux-amd64_3
+	// repoVDir: path/to/github.com/yu-altar/yuRepo_linux-amd64_3
 	repoVDir := strings.TrimSuffix(zipFilePath, CompressedFileType)
 
 	arr := strings.Split(repoVDir, "_")
@@ -222,10 +222,10 @@ func (n *NodeKeeper) convertToRepo(zipFilePath, fname string) error {
 	// repoArch: linux-amd64
 	repoArch := arr[len(arr)-2]
 
-	// repoName: github.com/Lawliet-Chan/yuRepo
+	// repoName: github.com/yu-altar/yuRepo
 	repoName := strings.TrimSuffix(fname, "_"+repoArch+"_"+repoVersionStr+CompressedFileType)
 
-	// repoDir: path/to/github.com/Lawliet-Chan/yuRepo/3/linux-amd64
+	// repoDir: path/to/github.com/yu-altar/yuRepo/3/linux-amd64
 	repoDir := filepath.Join(n.dir, repoName, repoVersionStr, repoArch)
 	err = os.MkdirAll(repoDir, os.ModePerm)
 	if err != nil {

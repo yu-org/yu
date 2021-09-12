@@ -1,8 +1,8 @@
 package state
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/config"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/config"
 )
 
 type StateStore struct {

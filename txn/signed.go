@@ -1,9 +1,9 @@
 package txn
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/keypair"
-	. "github.com/Lawliet-Chan/yu/utils/codec"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/keypair"
+	. "github.com/yu-altar/yu/utils/codec"
 	"unsafe"
 )
 

@@ -2,9 +2,9 @@ package master
 
 import (
 	"context"
-	. "github.com/Lawliet-Chan/yu/blockchain"
-	. "github.com/Lawliet-Chan/yu/txn"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	. "github.com/yu-altar/yu/blockchain"
+	. "github.com/yu-altar/yu/txn"
 )
 
 const (

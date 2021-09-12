@@ -1,8 +1,8 @@
 package keypair
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
 	"github.com/tendermint/tendermint/crypto/sr25519"
+	. "github.com/yu-altar/yu/common"
 )
 
 // ------ Public Key ------

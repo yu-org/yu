@@ -1,10 +1,10 @@
 package master
 
 import (
-	. "github.com/Lawliet-Chan/yu/common"
-	. "github.com/Lawliet-Chan/yu/node"
-	. "github.com/Lawliet-Chan/yu/txn"
 	"github.com/gin-gonic/gin"
+	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-altar/yu/node"
+	. "github.com/yu-altar/yu/txn"
 	"net/http"
 	"net/http/httputil"
 )

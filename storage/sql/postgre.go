@@ -1,7 +1,7 @@
 package sql
 
 import (
-	"github.com/Lawliet-Chan/yu/storage"
+	"github.com/yu-altar/yu/storage"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

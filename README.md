@@ -54,7 +54,7 @@ type Tripod interface {
 
 #### Examples
 
-[Asset Tripod](https://github.com/Lawliet-Chan/yu/blob/master/apps/asset)  
+[Asset Tripod](https://github.com/yu-altar/yu/blob/master/apps/asset)  
 `Asset Tripod` imitates an Asset function, it has `transfer accounts`, `create accounts`.  
 `QueryBalance` queries someone's account balance. It implements type func `Query`.
 ```go
@@ -103,7 +103,7 @@ func main() {
 }
 ```
 
-[Pow Tripod](https://github.com/Lawliet-Chan/yu/blob/master/apps/pow/pow.go)  
+[Pow Tripod](https://github.com/yu-altar/yu/blob/master/apps/pow/pow.go)  
 `Pow Tripod` imitates a Consensus algorithm for proof of work. It customizes the lower-level code.
 - Start a new block  
 If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
