@@ -12,7 +12,7 @@ type Block struct {
 	Header     *Header
 	TxnsHashes []Hash
 
-	ChainLength uint64
+	ChainLen uint64
 }
 
 func (b *Block) GetHeight() BlockNum {
@@ -124,8 +124,8 @@ func (b *Block) SetNonce(nonce uint64) {
 	b.Header.Nonce = nonce
 }
 
-func (b *Block) SetChainLength(len uint64) {
-	b.ChainLength = len
+func (b *Block) SetChainLen(len uint64) {
+	b.ChainLen = len
 }
 
 func (b *Block) Encode() ([]byte, error) {

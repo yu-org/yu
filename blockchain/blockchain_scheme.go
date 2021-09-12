@@ -42,7 +42,7 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		LeiLimit: b.GetLeiLimit(),
 		LeiUsed:  b.GetLeiUsed(),
 
-		Length:   b.(*Block).ChainLength,
+		Length:   b.(*Block).ChainLen,
 		Finalize: false,
 	}
 	return bs, nil
@@ -75,9 +75,9 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		LeiUsed:   b.LeiUsed,
 	}
 	block := &Block{
-		Header:      header,
-		TxnsHashes:  HexToHashes(b.TxnsHashes),
-		ChainLength: b.Length,
+		Header:     header,
+		TxnsHashes: HexToHashes(b.TxnsHashes),
+		ChainLen:   b.Length,
 	}
 
 	return block, nil
