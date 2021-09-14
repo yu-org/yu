@@ -1,32 +1,36 @@
 package poa
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-altar/yu/blockchain"
 	. "github.com/yu-altar/yu/chain_env"
+	. "github.com/yu-altar/yu/common"
 	. "github.com/yu-altar/yu/consensus/chained-hotstuff"
 	. "github.com/yu-altar/yu/tripod"
 	. "github.com/yu-altar/yu/txn"
 )
 
 type Poa struct {
-	meta *TripodMeta
+	meta         *TripodMeta
+	validatorsIP []string
 
 	smr *Smr
 }
 
-func NewPoa(addr string, addrs []string) *Poa {
+func NewPoa(addr string, validatorsIP []string) *Poa {
 	meta := NewTripodMeta("poa")
 
 	q := InitQcTee()
 	saftyrules := &DefaultSaftyRules{
 		QcTree: q,
 	}
-	elec := NewSimpleElection(addrs)
+	elec := NewSimpleElection(validatorsIP)
 	smr := NewSmr(addr, &DefaultPaceMaker{}, saftyrules, elec, q)
 
 	return &Poa{
-		meta: meta,
-		smr:  smr,
+		meta:         meta,
+		validatorsIP: validatorsIP,
+		smr:          smr,
 	}
 }
 
@@ -85,4 +89,24 @@ func InitQcTee() *QCPendingTree {
 		HighQC:   rootNode,
 		CommitQC: rootNode,
 	}
+}
+
+func (p *Poa) CompeteLeader() string {
+	if p.smr.GetCurrentView() == 0 {
+		return p.validatorsIP[0]
+	}
+	return p.smr.Election.GetLeader(p.smr.GetCurrentView())
+}
+
+func (p *Poa) CompeteBlock(block IBlock) error {
+	miner := p.CompeteLeader()
+	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, p.smr.GetAddress(), p.smr.GetCurrentView())
+	if miner != p.smr.GetAddress() {
+		return nil
+	}
+	proposal, err := p.smr.DoProposal(int64(block.GetHeight()), block.GetHash().Bytes(), p.validatorsIP)
+	if err != nil {
+		return err
+	}
+
 }
