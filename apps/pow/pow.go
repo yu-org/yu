@@ -156,7 +156,6 @@ func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land, _ <-chan []byte) ([]by
 // return TRUE if we use the p2p-block
 func (*Pow) UseBlocksFromP2P(block IBlock, msgChan <-chan []byte, env *ChainEnv, land *Land) (useIt bool) {
 	for i := 0; i < len(msgChan); i++ {
-
 		msg := <-msgChan
 		p2pBlock, err := env.Chain.NewEmptyBlock().Decode(msg)
 		if err != nil {

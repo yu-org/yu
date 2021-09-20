@@ -119,7 +119,7 @@ func (m *Master) LocalRun() (err error) {
 func (m *Master) subMsgs() {
 	go func() {
 		for {
-			msg, err := m.subFromP2P(m.startBlockTopic)
+			msg, err := m.subFromP2P(m.startBlockSub)
 			if err != nil {
 				logrus.Error("subscribe message from P2P on [Start block] error: ", err)
 			}
@@ -129,7 +129,7 @@ func (m *Master) subMsgs() {
 
 	go func() {
 		for {
-			msg, err := m.subFromP2P(m.endBlockTopic)
+			msg, err := m.subFromP2P(m.endBlockSub)
 			if err != nil {
 				logrus.Error("subscribe message from P2P on [End block] error: ", err)
 			}
@@ -139,7 +139,7 @@ func (m *Master) subMsgs() {
 
 	go func() {
 		for {
-			msg, err := m.subFromP2P(m.finalizeBlockTopic)
+			msg, err := m.subFromP2P(m.finalizeBlockSub)
 			if err != nil {
 				logrus.Error("subscribe message from P2P on [Finalize block] error: ", err)
 			}

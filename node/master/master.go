@@ -52,27 +52,20 @@ type Master struct {
 
 	land *Land
 
-	// blocks to broadcast into P2P network
-	// blockBcChan chan *TransferBody
-
-	// ready to package a batch of txns to broadcast
-	// readyBcTxnsChan -> txnsBcChan -> P2P network
-	// readyBcTxnsChan chan *SignedTxn
-	// number of broadcast txns every time
-	// NumOfBcTxns int
-
-	// txns to broadcast into P2P network
-	// txnsBcChan chan *TransferBody
-
 	// event subscription
 	sub *subscribe.Subscription
 
-	// p2p topics
-	//blockTopic        *pubsub.Topic
+	// P2P topic
 	startBlockTopic    *pubsub.Topic
 	endBlockTopic      *pubsub.Topic
 	finalizeBlockTopic *pubsub.Topic
-	unpackedTxnsTopic  *pubsub.Topic
+	unpkgTxnsTopic     *pubsub.Topic
+
+	// P2P topic subscribe
+	startBlockSub    *pubsub.Subscription
+	endBlockSub      *pubsub.Subscription
+	finalizeBlockSub *pubsub.Subscription
+	unpackedTxnsSub  *pubsub.Subscription
 
 	msgOnStart    chan []byte
 	msgOnEnd      chan []byte
