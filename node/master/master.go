@@ -68,8 +68,15 @@ type Master struct {
 	sub *subscribe.Subscription
 
 	// p2p topics
-	blockTopic        *pubsub.Topic
-	unpackedTxnsTopic *pubsub.Topic
+	//blockTopic        *pubsub.Topic
+	startBlockTopic    *pubsub.Topic
+	endBlockTopic      *pubsub.Topic
+	finalizeBlockTopic *pubsub.Topic
+	unpackedTxnsTopic  *pubsub.Topic
+
+	msgOnStart    chan []byte
+	msgOnEnd      chan []byte
+	msgOnFinalize chan []byte
 }
 
 func NewMaster(
@@ -136,6 +143,10 @@ func NewMaster(
 
 		land: land,
 		sub:  subscribe.NewSubscription(),
+
+		msgOnStart:    make(chan []byte, 10),
+		msgOnEnd:      make(chan []byte, 10),
+		msgOnFinalize: make(chan []byte, 10),
 	}
 
 	err = m.InitChain()
@@ -164,15 +175,15 @@ func (m *Master) Startup() {
 	go m.HandleHttp()
 	go m.HandleWS()
 
-	go func() {
-		for {
-			err := m.AcceptBlocksFromP2P()
-			if err != nil {
-				logrus.Errorf("accept blocks error: %s", err.Error())
-			}
-		}
-
-	}()
+	//go func() {
+	//	for {
+	//		err := m.AcceptBlocksFromP2P()
+	//		if err != nil {
+	//			logrus.Errorf("accept blocks error: %s", err.Error())
+	//		}
+	//	}
+	//
+	//}()
 
 	go func() {
 		for {
@@ -202,30 +213,30 @@ func (m *Master) InitChain() error {
 	}
 }
 
-func (m *Master) AcceptBlocksFromP2P() error {
-	block, err := m.subBlock()
-	if err != nil {
-		return err
-	}
-
-	switch m.RunMode {
-	case MasterWorker:
-		// todo: switch MasterWorker Mode
-	case LocalNode:
-		err = m.land.RangeList(func(tri Tripod) error {
-			if tri.VerifyBlock(block, m.GetEnv()) {
-				return nil
-			}
-			return BlockIllegal(block.GetHash())
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	logrus.Debugf("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
-	return m.chain.InsertBlockFromP2P(block)
-}
+//func (m *Master) AcceptBlocksFromP2P() error {
+//	block, err := m.subBlock()
+//	if err != nil {
+//		return err
+//	}
+//
+//	switch m.RunMode {
+//	case MasterWorker:
+//		// todo: switch MasterWorker Mode
+//	case LocalNode:
+//		err = m.land.RangeList(func(tri Tripod) error {
+//			if tri.VerifyBlock(block, m.GetEnv()) {
+//				return nil
+//			}
+//			return BlockIllegal(block.GetHash())
+//		})
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	logrus.Debugf("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
+//	return m.chain.InsertBlockFromP2P(block)
+//}
 
 func (m *Master) AcceptUnpkgTxns() error {
 	txns, err := m.subUnpackedTxns()

@@ -3,17 +3,27 @@ package master
 import (
 	"context"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	. "github.com/yu-altar/yu/blockchain"
 	. "github.com/yu-altar/yu/txn"
 )
 
 const (
-	BlockTopic        = "block"
-	UnpackedTxnsTopic = "unpacked-txns"
+	//BlockTopic        = "block"
+	StartBlockTopic    = "start-block"
+	EndBlockTopic      = "end-block"
+	FinalizeBlockTopic = "finalize-block"
+	UnpackedTxnsTopic  = "unpacked-txns"
 )
 
 func (m *Master) initTopics() error {
-	blockTopic, err := m.ps.Join(BlockTopic)
+	startBlockTopic, err := m.ps.Join(StartBlockTopic)
+	if err != nil {
+		return err
+	}
+	endBlockTopic, err := m.ps.Join(EndBlockTopic)
+	if err != nil {
+		return err
+	}
+	finalizeBlockTopic, err := m.ps.Join(FinalizeBlockTopic)
 	if err != nil {
 		return err
 	}
@@ -21,26 +31,29 @@ func (m *Master) initTopics() error {
 	if err != nil {
 		return err
 	}
-	m.blockTopic = blockTopic
+
+	m.startBlockTopic = startBlockTopic
+	m.endBlockTopic = endBlockTopic
+	m.finalizeBlockTopic = finalizeBlockTopic
 	m.unpackedTxnsTopic = unpkgTxnsTopic
 	return nil
 }
 
-func (m *Master) pubBlock(block IBlock) error {
-	byt, err := block.Encode()
-	if err != nil {
-		return err
-	}
-	return m.pubToP2P(m.blockTopic, byt)
-}
-
-func (m *Master) subBlock() (IBlock, error) {
-	byt, err := m.subFromP2P(m.blockTopic)
-	if err != nil {
-		return nil, err
-	}
-	return m.chain.NewEmptyBlock().Decode(byt)
-}
+//func (m *Master) pubBlock(block IBlock) error {
+//	byt, err := block.Encode()
+//	if err != nil {
+//		return err
+//	}
+//	return m.pubToP2P(m.blockTopic, byt)
+//}
+//
+//func (m *Master) subBlock() (IBlock, error) {
+//	byt, err := m.subFromP2P(m.blockTopic)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return m.chain.NewEmptyBlock().Decode(byt)
+//}
 
 //func (m *Master) pubPackedTxns(blockHash Hash, txns SignedTxns) error {
 //	pt, err := NewPackedTxns(blockHash, txns)
