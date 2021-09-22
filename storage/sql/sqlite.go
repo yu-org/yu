@@ -1,7 +1,7 @@
 package sql
 
 import (
-	"github.com/yu-altar/yu/storage"
+	"github.com/yu-org/yu/storage"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

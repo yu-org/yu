@@ -2,11 +2,11 @@ package txpool
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/config"
-	. "github.com/yu-altar/yu/txn"
-	ytime "github.com/yu-altar/yu/utils/time"
-	. "github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/config"
+	. "github.com/yu-org/yu/txn"
+	ytime "github.com/yu-org/yu/utils/time"
+	. "github.com/yu-org/yu/yerror"
 	"sync"
 	"time"
 )

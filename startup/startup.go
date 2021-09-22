@@ -4,12 +4,12 @@ import (
 	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-altar/yu/blockchain"
-	"github.com/yu-altar/yu/config"
-	"github.com/yu-altar/yu/node/master"
-	"github.com/yu-altar/yu/tripod"
-	"github.com/yu-altar/yu/txpool"
-	"github.com/yu-altar/yu/utils/codec"
+	"github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/node/master"
+	"github.com/yu-org/yu/tripod"
+	"github.com/yu-org/yu/txpool"
+	"github.com/yu-org/yu/utils/codec"
 )
 
 var (

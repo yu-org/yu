@@ -3,7 +3,7 @@ package node
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/blockchain"
+	. "github.com/yu-org/yu/blockchain"
 	"io"
 	"io/ioutil"
 	"net/http"

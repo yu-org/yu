@@ -2,14 +2,14 @@ package node
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/blockchain"
-	"github.com/yu-altar/yu/chain_env"
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/context"
-	. "github.com/yu-altar/yu/subscribe"
-	. "github.com/yu-altar/yu/tripod"
-	"github.com/yu-altar/yu/txn"
-	"github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/chain_env"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/context"
+	. "github.com/yu-org/yu/subscribe"
+	. "github.com/yu-org/yu/tripod"
+	"github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/yerror"
 )
 
 func ExecuteTxns(block IBlock, env *chain_env.ChainEnv, land *Land) error {

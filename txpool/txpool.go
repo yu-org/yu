@@ -1,8 +1,8 @@
 package txpool
 
 import (
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/txn"
 )
 
 type ItxPool interface {

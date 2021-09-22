@@ -2,11 +2,11 @@ package chain_env
 
 import (
 	"github.com/libp2p/go-libp2p-core/peer"
-	. "github.com/yu-altar/yu/blockchain"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/state"
-	. "github.com/yu-altar/yu/subscribe"
-	. "github.com/yu-altar/yu/txpool"
+	. "github.com/yu-org/yu/blockchain"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/state"
+	. "github.com/yu-org/yu/subscribe"
+	. "github.com/yu-org/yu/txpool"
 )
 
 type ChainEnv struct {

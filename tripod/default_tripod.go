@@ -1,9 +1,9 @@
 package tripod
 
 import (
-	. "github.com/yu-altar/yu/blockchain"
-	. "github.com/yu-altar/yu/chain_env"
-	"github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/blockchain"
+	. "github.com/yu-org/yu/chain_env"
+	"github.com/yu-org/yu/txn"
 )
 
 type DefaultTripod struct {

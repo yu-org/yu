@@ -2,10 +2,10 @@ package blockchain
 
 import (
 	"github.com/libp2p/go-libp2p-core/peer"
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/trie"
-	"github.com/yu-altar/yu/txn"
-	. "github.com/yu-altar/yu/utils/codec"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/trie"
+	"github.com/yu-org/yu/txn"
+	. "github.com/yu-org/yu/utils/codec"
 )
 
 type Block struct {

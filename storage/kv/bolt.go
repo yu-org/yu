@@ -2,7 +2,7 @@ package kv
 
 import (
 	"bytes"
-	"github.com/yu-altar/yu/storage"
+	"github.com/yu-org/yu/storage"
 	"go.etcd.io/bbolt"
 )
 
@@ -10,7 +10,7 @@ type boltKV struct {
 	db *bbolt.DB
 }
 
-var bucket = []byte("github.com/yu-altar/yu")
+var bucket = []byte("github.com/yu-org/yu")
 
 func NewBolt(fpath string) (*boltKV, error) {
 	db, err := bbolt.Open(fpath, 0666, nil)

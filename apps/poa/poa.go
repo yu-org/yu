@@ -2,12 +2,12 @@ package poa
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/blockchain"
-	. "github.com/yu-altar/yu/chain_env"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/consensus/chained-hotstuff"
-	. "github.com/yu-altar/yu/tripod"
-	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/blockchain"
+	. "github.com/yu-org/yu/chain_env"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/consensus/chained-hotstuff"
+	. "github.com/yu-org/yu/tripod"
+	. "github.com/yu-org/yu/txn"
 )
 
 type Poa struct {

@@ -2,7 +2,7 @@ package keypair
 
 import (
 	"github.com/tendermint/tendermint/crypto/sr25519"
-	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-org/yu/common"
 )
 
 // ------ Public Key ------

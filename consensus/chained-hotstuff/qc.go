@@ -11,7 +11,7 @@ import (
 	"github.com/xuperchain/xupercore/lib/utils"
 
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/yerror"
 )
 
 var _ IQuorumCert = (*QuorumCert)(nil)

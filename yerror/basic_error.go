@@ -2,7 +2,7 @@ package yerror
 
 import (
 	"github.com/pkg/errors"
-	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-org/yu/common"
 )
 
 var TypeErr = errors.New("the type of params error")

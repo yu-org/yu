@@ -2,7 +2,7 @@ package queue
 
 import (
 	"github.com/nats-io/nats.go"
-	"github.com/yu-altar/yu/storage"
+	"github.com/yu-org/yu/storage"
 )
 
 type NatsQueue struct {

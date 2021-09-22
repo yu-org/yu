@@ -2,7 +2,7 @@ package yerror
 
 import (
 	"github.com/pkg/errors"
-	"github.com/yu-altar/yu/common"
+	"github.com/yu-org/yu/common"
 )
 
 var InsufficientFunds = errors.New("Insufficient Funds")

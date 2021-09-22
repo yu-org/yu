@@ -5,8 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/blockchain"
-	"github.com/yu-altar/yu/common"
+	. "github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/common"
 	"math"
 	"math/big"
 )

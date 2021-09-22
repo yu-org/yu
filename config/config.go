@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/BurntSushi/toml"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-org/yu/common"
 )
 
 type MasterConf struct {

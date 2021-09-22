@@ -2,8 +2,8 @@ package mpt
 
 import (
 	"bytes"
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/storage/kv"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/storage/kv"
 	"testing"
 )
 

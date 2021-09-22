@@ -1,8 +1,8 @@
 package keypair
 
 import (
-	"github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/yerror"
+	"github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/yerror"
 )
 
 const (

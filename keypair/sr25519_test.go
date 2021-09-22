@@ -1,7 +1,7 @@
 package keypair
 
 import (
-	. "github.com/yu-altar/yu/common"
+	. "github.com/yu-org/yu/common"
 	"testing"
 )
 

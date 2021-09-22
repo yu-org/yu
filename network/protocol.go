@@ -2,10 +2,10 @@ package network
 
 import (
 	"encoding/json"
-	. "github.com/yu-altar/yu/blockchain"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/txn"
-	"github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/blockchain"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/yerror"
 )
 
 type HandShakeRequest struct {

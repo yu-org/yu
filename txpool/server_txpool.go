@@ -2,11 +2,11 @@ package txpool
 
 //
 //import (
-//	. "github.com/yu-altar/yu/common"
-//	"github.com/yu-altar/yu/config"
-//	. "github.com/yu-altar/yu/storage/kv"
-//	. "github.com/yu-altar/yu/txn"
-//	. "github.com/yu-altar/yu/yerror"
+//	. "github.com/yu-org/yu/common"
+//	"github.com/yu-org/yu/config"
+//	. "github.com/yu-org/yu/storage/kv"
+//	. "github.com/yu-org/yu/txn"
+//	. "github.com/yu-org/yu/yerror"
 //	"github.com/sirupsen/logrus"
 //	"sync"
 //	"time"

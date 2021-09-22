@@ -1,4 +1,4 @@
-module github.com/yu-altar/yu
+module github.com/yu-org/yu
 
 go 1.15
 

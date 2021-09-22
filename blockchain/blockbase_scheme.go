@@ -1,10 +1,10 @@
 package blockchain
 
 import (
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/keypair"
-	. "github.com/yu-altar/yu/result"
-	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/keypair"
+	. "github.com/yu-org/yu/result"
+	. "github.com/yu-org/yu/txn"
 	"gorm.io/gorm"
 )
 

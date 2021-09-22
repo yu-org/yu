@@ -1,8 +1,8 @@
 package state
 
 import (
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/config"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/config"
 	"os"
 	"testing"
 )

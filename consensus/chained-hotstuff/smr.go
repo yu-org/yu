@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
-	"github.com/yu-altar/yu/blockchain"
+	"github.com/yu-org/yu/blockchain"
 	"sync"
 	"time"
 )

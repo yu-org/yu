@@ -1,9 +1,9 @@
 package txn
 
 import (
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/keypair"
-	"github.com/yu-altar/yu/utils/codec"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/keypair"
+	"github.com/yu-org/yu/utils/codec"
 	"strconv"
 	"testing"
 )

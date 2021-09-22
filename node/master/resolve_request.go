@@ -2,9 +2,9 @@ package master
 
 import (
 	"github.com/gin-gonic/gin"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/node"
-	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/node"
+	. "github.com/yu-org/yu/txn"
 	"net/http"
 	"net/http/httputil"
 )

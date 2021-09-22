@@ -1,9 +1,9 @@
 package queue
 
 import (
-	"github.com/yu-altar/yu/config"
-	"github.com/yu-altar/yu/storage"
-	. "github.com/yu-altar/yu/yerror"
+	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/storage"
+	. "github.com/yu-org/yu/yerror"
 )
 
 type Queue interface {

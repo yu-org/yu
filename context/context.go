@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/result"
-	"github.com/yu-altar/yu/utils/codec"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/result"
+	"github.com/yu-org/yu/utils/codec"
 )
 
 type Context struct {

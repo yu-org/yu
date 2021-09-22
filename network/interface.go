@@ -1,7 +1,7 @@
 package network
 
 import (
-	. "github.com/yu-altar/yu/chain_env"
+	. "github.com/yu-org/yu/chain_env"
 	"io"
 )
 

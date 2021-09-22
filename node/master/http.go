@@ -2,11 +2,11 @@ package master
 
 import (
 	"github.com/gin-gonic/gin"
-	. "github.com/yu-altar/yu/common"
-	"github.com/yu-altar/yu/context"
-	. "github.com/yu-altar/yu/node"
-	. "github.com/yu-altar/yu/txn"
-	. "github.com/yu-altar/yu/utils/error_handle"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/context"
+	. "github.com/yu-org/yu/node"
+	. "github.com/yu-org/yu/txn"
+	. "github.com/yu-org/yu/utils/error_handle"
 	"io"
 	"io/ioutil"
 	"net/http"

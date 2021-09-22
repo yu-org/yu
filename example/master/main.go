@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/yu-altar/yu/apps/asset"
-	"github.com/yu-altar/yu/apps/pow"
-	"github.com/yu-altar/yu/startup"
+	"github.com/yu-org/yu/apps/asset"
+	"github.com/yu-org/yu/apps/pow"
+	"github.com/yu-org/yu/startup"
 )
 
 func main() {

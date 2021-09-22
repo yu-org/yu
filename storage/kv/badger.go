@@ -2,7 +2,7 @@ package kv
 
 import (
 	"github.com/dgraph-io/badger"
-	"github.com/yu-altar/yu/storage"
+	"github.com/yu-org/yu/storage"
 )
 
 type badgerKV struct {

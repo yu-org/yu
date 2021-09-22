@@ -2,10 +2,10 @@ package state
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/config"
-	. "github.com/yu-altar/yu/storage/kv"
-	. "github.com/yu-altar/yu/trie/mpt"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/config"
+	. "github.com/yu-org/yu/storage/kv"
+	. "github.com/yu-org/yu/trie/mpt"
 )
 
 //                         Merkle Patricia Trie

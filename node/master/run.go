@@ -2,12 +2,12 @@ package master
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-altar/yu/blockchain"
-	. "github.com/yu-altar/yu/common"
-	. "github.com/yu-altar/yu/node"
-	. "github.com/yu-altar/yu/tripod"
-	ytime "github.com/yu-altar/yu/utils/time"
-	. "github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/blockchain"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/node"
+	. "github.com/yu-org/yu/tripod"
+	ytime "github.com/yu-org/yu/utils/time"
+	. "github.com/yu-org/yu/yerror"
 )
 
 func (m *Master) Run() {

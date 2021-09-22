@@ -1,8 +1,8 @@
 package txpool
 
 import (
-	. "github.com/yu-altar/yu/txn"
-	. "github.com/yu-altar/yu/yerror"
+	. "github.com/yu-org/yu/txn"
+	. "github.com/yu-org/yu/yerror"
 )
 
 type TxnCheck func(*SignedTxn) error

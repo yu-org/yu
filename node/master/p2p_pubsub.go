@@ -3,7 +3,7 @@ package master
 import (
 	"context"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	. "github.com/yu-altar/yu/txn"
+	. "github.com/yu-org/yu/txn"
 )
 
 const (
