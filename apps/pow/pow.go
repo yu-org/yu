@@ -82,7 +82,7 @@ func (p *Pow) InitChain(env *ChainEnv, _ *Land) error {
 			// TODO: need subscribe all msgs.
 			msg, err := env.SubP2P(StartBlockTopic)
 			if err != nil {
-				logrus.Error("subscribe message from P2P on [Start block] error: ", err)
+				logrus.Error("subscribe message from P2P error: ", err)
 				continue
 			}
 			p.msgChan <- msg

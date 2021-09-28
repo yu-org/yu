@@ -143,17 +143,16 @@ func NewMaster(
 		PubP2P: PubToP2P,
 		SubP2P: SubFromP2P,
 	}
-
+	err = m.initTopics()
+	if err != nil {
+		return nil, err
+	}
 	err = m.InitChain()
 	if err != nil {
 		return nil, err
 	}
 
 	err = m.ConnectP2PNetwork(cfg)
-	if err != nil {
-		return nil, err
-	}
-	err = m.initTopics()
 	return m, err
 }
 
