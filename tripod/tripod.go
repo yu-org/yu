@@ -17,9 +17,9 @@ type Tripod interface {
 
 	InitChain(env *ChainEnv, land *Land) error
 
-	StartBlock(block IBlock, env *ChainEnv, land *Land, msgChan <-chan []byte) ([]byte, error)
+	StartBlock(block IBlock, env *ChainEnv, land *Land) error
 
-	EndBlock(block IBlock, env *ChainEnv, land *Land, msgChan <-chan []byte) ([]byte, error)
+	EndBlock(block IBlock, env *ChainEnv, land *Land) error
 
-	FinalizeBlock(block IBlock, env *ChainEnv, land *Land, msgChan <-chan []byte) ([]byte, error)
+	FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error
 }

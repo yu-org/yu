@@ -8,6 +8,8 @@ import (
 var TypeErr = errors.New("the type of params error")
 var IntegerOverflow = errors.New("integer overflow")
 
+var NoP2PTopic = errors.New("no p2p topic")
+
 var NoRunMode = errors.New("no run mode")
 var NoKeyType = errors.New("no key type")
 var NoConvergeType = errors.New("no converge type")

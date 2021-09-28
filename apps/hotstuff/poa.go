@@ -1,4 +1,4 @@
-package poa
+package hotstuff
 
 import (
 	"github.com/sirupsen/logrus"

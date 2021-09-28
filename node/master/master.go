@@ -55,21 +55,24 @@ type Master struct {
 	// event subscription
 	sub *subscribe.Subscription
 
+	PubP2P func(topic string, msg []byte) error
+	SubP2P func(topic string) ([]byte, error)
+
 	// P2P topic
-	startBlockTopic    *pubsub.Topic
-	endBlockTopic      *pubsub.Topic
-	finalizeBlockTopic *pubsub.Topic
-	unpkgTxnsTopic     *pubsub.Topic
-
-	// P2P topic subscribe
-	startBlockSub    *pubsub.Subscription
-	endBlockSub      *pubsub.Subscription
-	finalizeBlockSub *pubsub.Subscription
-	unpackedTxnsSub  *pubsub.Subscription
-
-	msgOnStart    chan []byte
-	msgOnEnd      chan []byte
-	msgOnFinalize chan []byte
+	//startBlockTopic    *pubsub.Topic
+	//endBlockTopic      *pubsub.Topic
+	//finalizeBlockTopic *pubsub.Topic
+	//unpkgTxnsTopic     *pubsub.Topic
+	//
+	//// P2P topic subscribe
+	//startBlockSub    *pubsub.Subscription
+	//endBlockSub      *pubsub.Subscription
+	//finalizeBlockSub *pubsub.Subscription
+	//unpackedTxnsSub  *pubsub.Subscription
+	//
+	//msgOnStart    chan []byte
+	//msgOnEnd      chan []byte
+	//msgOnFinalize chan []byte
 }
 
 func NewMaster(
@@ -137,9 +140,8 @@ func NewMaster(
 		land: land,
 		sub:  subscribe.NewSubscription(),
 
-		msgOnStart:    make(chan []byte, 10),
-		msgOnEnd:      make(chan []byte, 10),
-		msgOnFinalize: make(chan []byte, 10),
+		PubP2P: PubToP2P,
+		SubP2P: SubFromP2P,
 	}
 
 	err = m.InitChain()
@@ -420,6 +422,8 @@ func (m *Master) GetEnv() *ChainEnv {
 		Pool:       m.txPool,
 		P2pID:      m.host.ID(),
 		Sub:        m.sub,
+		PubP2P:     PubToP2P,
+		SubP2P:     SubFromP2P,
 	}
 }
 

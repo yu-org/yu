@@ -19,4 +19,7 @@ type ChainEnv struct {
 	P2pID peer.ID
 
 	Sub *Subscription
+
+	PubP2P func(topic string, msg []byte) error
+	SubP2P func(topic string) ([]byte, error)
 }

@@ -1,4 +1,4 @@
-package poa
+package hotstuff
 
 type SimpleElection struct {
 	addrs []string

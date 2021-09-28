@@ -34,9 +34,7 @@ func (m *Master) Run() {
 
 func (m *Master) LocalRun() (err error) {
 
-	m.subMsgs()
-
-	var broadcastMsg []byte
+	//m.subMsgs()
 
 	newBlock, err := m.makeNewBasicBlock()
 	if err != nil {
@@ -45,108 +43,75 @@ func (m *Master) LocalRun() (err error) {
 
 	// start a new block
 	err = m.land.RangeList(func(tri Tripod) error {
-		msgByt, err := tri.StartBlock(newBlock, m.GetEnv(), m.land, m.msgOnStart)
-		if err != nil {
-			return err
-		}
-
-		if msgByt != nil {
-			broadcastMsg = msgByt
-		}
-		return nil
+		return tri.StartBlock(newBlock, m.GetEnv(), m.land)
 	})
 	if err != nil {
 		return err
 	}
 
-	if broadcastMsg != nil {
-		go func(msg []byte) {
-			err := m.pubToP2P(m.startBlockTopic, msg)
-			if err != nil {
-				logrus.Errorf("broadcast message on Start Block error: %s", newBlock.GetHash().String(), err.Error())
-			}
-		}(broadcastMsg)
-	} else {
-		err = m.SyncTxns(newBlock)
-		if err != nil {
-			return err
-		}
-		err = m.txPool.RemoveTxns(newBlock.GetTxnsHashes())
-		if err != nil {
-			return err
-		}
-	}
+	//if broadcastMsg != nil {
+	//	go func(msg []byte) {
+	//		err := m.pubToP2P(m.startBlockTopic, msg)
+	//		if err != nil {
+	//			logrus.Errorf("broadcast message on Start Block error: %s", newBlock.GetHash().String(), err.Error())
+	//		}
+	//	}(broadcastMsg)
+	//} else {
+	//	err = m.SyncTxns(newBlock)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	err = m.txPool.RemoveTxns(newBlock.GetTxnsHashes())
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
-		broadcastMsg, err = tri.EndBlock(newBlock, m.GetEnv(), m.land, m.msgOnEnd)
-		return err
+		return tri.EndBlock(newBlock, m.GetEnv(), m.land)
 	})
 	if err != nil {
 		return err
-	}
-
-	if broadcastMsg != nil {
-		go func(msg []byte) {
-			err := m.pubToP2P(m.endBlockTopic, msg)
-			if err != nil {
-				logrus.Errorf("broadcast message on End Block error: %s", newBlock.GetHash().String(), err.Error())
-			}
-		}(broadcastMsg)
 	}
 
 	// finalize this block
-	err = m.land.RangeList(func(tri Tripod) error {
-		broadcastMsg, err = tri.FinalizeBlock(newBlock, m.GetEnv(), m.land, m.msgOnFinalize)
-		return err
+	return m.land.RangeList(func(tri Tripod) error {
+		return tri.FinalizeBlock(newBlock, m.GetEnv(), m.land)
 	})
-	if err != nil {
-		return err
-	}
-
-	if broadcastMsg != nil {
-		go func(msg []byte) {
-			err := m.pubToP2P(m.finalizeBlockTopic, msg)
-			if err != nil {
-				logrus.Errorf("broadcast message on Finalize Block error: %s", newBlock.GetHash().String(), err.Error())
-			}
-		}(broadcastMsg)
-	}
-
-	return
 }
 
-func (m *Master) subMsgs() {
-	go func() {
-		for {
-			msg, err := m.subFromP2P(m.startBlockSub)
-			if err != nil {
-				logrus.Error("subscribe message from P2P on [Start block] error: ", err)
-			}
-			m.msgOnStart <- msg
-		}
-	}()
-
-	go func() {
-		for {
-			msg, err := m.subFromP2P(m.endBlockSub)
-			if err != nil {
-				logrus.Error("subscribe message from P2P on [End block] error: ", err)
-			}
-			m.msgOnEnd <- msg
-		}
-	}()
-
-	go func() {
-		for {
-			msg, err := m.subFromP2P(m.finalizeBlockSub)
-			if err != nil {
-				logrus.Error("subscribe message from P2P on [Finalize block] error: ", err)
-			}
-			m.msgOnFinalize <- msg
-		}
-	}()
-}
+//func (m *Master) subMsgs() {
+//	go func() {
+//		for {
+//			msg, err := m.subFromP2P(m.startBlockSub)
+//			if err != nil {
+//				logrus.Error("subscribe message from P2P on [Start block] error: ", err)
+//			}
+//			m.msgOnStart <- msg
+//		}
+//	}()
+//
+//	go func() {
+//		for {
+//			msg, err := m.subFromP2P(m.endBlockSub)
+//			if err != nil {
+//				logrus.Error("subscribe message from P2P on [End block] error: ", err)
+//			}
+//			m.msgOnEnd <- msg
+//		}
+//	}()
+//
+//	go func() {
+//		for {
+//			msg, err := m.subFromP2P(m.finalizeBlockSub)
+//			if err != nil {
+//				logrus.Error("subscribe message from P2P on [Finalize block] error: ", err)
+//			}
+//			m.msgOnFinalize <- msg
+//		}
+//	}()
+//}
 
 func (m *Master) makeNewBasicBlock() (IBlock, error) {
 	var newBlock IBlock = m.chain.NewEmptyBlock()
