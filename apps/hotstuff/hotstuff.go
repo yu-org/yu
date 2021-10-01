@@ -4,21 +4,20 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
-	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
 	. "github.com/yu-org/yu/tripod"
 	. "github.com/yu-org/yu/txn"
 )
 
-type Poa struct {
+type Hotstuff struct {
 	meta         *TripodMeta
 	validatorsIP []string
 
 	smr *Smr
 }
 
-func NewPoa(addr string, validatorsIP []string) *Poa {
-	meta := NewTripodMeta("poa")
+func NewHotstuff(addr string, validatorsIP []string) *Hotstuff {
+	meta := NewTripodMeta("hotstuff")
 
 	q := InitQcTee()
 	saftyrules := &DefaultSaftyRules{
@@ -27,30 +26,30 @@ func NewPoa(addr string, validatorsIP []string) *Poa {
 	elec := NewSimpleElection(validatorsIP)
 	smr := NewSmr(addr, &DefaultPaceMaker{}, saftyrules, elec, q)
 
-	return &Poa{
+	return &Hotstuff{
 		meta:         meta,
 		validatorsIP: validatorsIP,
 		smr:          smr,
 	}
 }
 
-func (p *Poa) GetTripodMeta() *TripodMeta {
+func (p *Hotstuff) GetTripodMeta() *TripodMeta {
 	return p.meta
 }
 
-func (p *Poa) Name() string {
+func (p *Hotstuff) Name() string {
 	return p.meta.Name()
 }
 
-func (p *Poa) CheckTxn(txn *SignedTxn) error {
+func (p *Hotstuff) CheckTxn(txn *SignedTxn) error {
 	return nil
 }
 
-func (p *Poa) VerifyBlock(block IBlock, env *ChainEnv) bool {
+func (p *Hotstuff) VerifyBlock(block IBlock, env *ChainEnv) bool {
 	return true
 }
 
-func (p *Poa) InitChain(env *ChainEnv, _ *Land) error {
+func (p *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
 	gensisBlock := &Block{
 		Header: &Header{},
@@ -58,15 +57,15 @@ func (p *Poa) InitChain(env *ChainEnv, _ *Land) error {
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error) {
+func (p *Hotstuff) StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error) {
 	panic("implement me")
 }
 
-func (p *Poa) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (p *Hotstuff) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (p *Poa) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (p *Hotstuff) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
@@ -91,14 +90,14 @@ func InitQcTee() *QCPendingTree {
 	}
 }
 
-func (p *Poa) CompeteLeader() string {
+func (p *Hotstuff) CompeteLeader() string {
 	if p.smr.GetCurrentView() == 0 {
 		return p.validatorsIP[0]
 	}
 	return p.smr.Election.GetLeader(p.smr.GetCurrentView())
 }
 
-func (p *Poa) CompeteBlock(block IBlock) error {
+func (p *Hotstuff) CompeteBlock(block IBlock) error {
 	miner := p.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, p.smr.GetAddress(), p.smr.GetCurrentView())
 	if miner != p.smr.GetAddress() {

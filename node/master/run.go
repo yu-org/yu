@@ -33,9 +33,6 @@ func (m *Master) Run() {
 }
 
 func (m *Master) LocalRun() (err error) {
-
-	//m.subMsgs()
-
 	newBlock, err := m.makeNewBasicBlock()
 	if err != nil {
 		return err
@@ -48,24 +45,6 @@ func (m *Master) LocalRun() (err error) {
 	if err != nil {
 		return err
 	}
-
-	//if broadcastMsg != nil {
-	//	go func(msg []byte) {
-	//		err := m.pubToP2P(m.startBlockTopic, msg)
-	//		if err != nil {
-	//			logrus.Errorf("broadcast message on Start Block error: %s", newBlock.GetHash().String(), err.Error())
-	//		}
-	//	}(broadcastMsg)
-	//} else {
-	//	err = m.SyncTxns(newBlock)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	err = m.txPool.RemoveTxns(newBlock.GetTxnsHashes())
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
@@ -81,38 +60,6 @@ func (m *Master) LocalRun() (err error) {
 	})
 }
 
-//func (m *Master) subMsgs() {
-//	go func() {
-//		for {
-//			msg, err := m.subFromP2P(m.startBlockSub)
-//			if err != nil {
-//				logrus.Error("subscribe message from P2P on [Start block] error: ", err)
-//			}
-//			m.msgOnStart <- msg
-//		}
-//	}()
-//
-//	go func() {
-//		for {
-//			msg, err := m.subFromP2P(m.endBlockSub)
-//			if err != nil {
-//				logrus.Error("subscribe message from P2P on [End block] error: ", err)
-//			}
-//			m.msgOnEnd <- msg
-//		}
-//	}()
-//
-//	go func() {
-//		for {
-//			msg, err := m.subFromP2P(m.finalizeBlockSub)
-//			if err != nil {
-//				logrus.Error("subscribe message from P2P on [Finalize block] error: ", err)
-//			}
-//			m.msgOnFinalize <- msg
-//		}
-//	}()
-//}
-
 func (m *Master) makeNewBasicBlock() (IBlock, error) {
 	var newBlock IBlock = m.chain.NewEmptyBlock()
 
@@ -122,6 +69,7 @@ func (m *Master) makeNewBasicBlock() (IBlock, error) {
 		return nil, err
 	}
 	newBlock.SetPreHash(prevBlock.GetHash())
+	newBlock.SetPeerID(m.host.ID())
 	newBlock.SetHeight(prevBlock.GetHeight() + 1)
 	newBlock.SetLeiLimit(m.leiLimit)
 	return newBlock, nil

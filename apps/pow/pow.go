@@ -24,7 +24,8 @@ type Pow struct {
 	myPubkey  PubKey
 
 	pkgTxnsLimit uint64
-	tick         *time.Ticker
+	blockTick    *time.Ticker
+	p2pTick      *time.Ticker
 	msgChan      chan []byte
 }
 
@@ -47,8 +48,9 @@ func NewPow(pkgTxnsLimit uint64) *Pow {
 		myPubkey:   pubkey,
 
 		pkgTxnsLimit: pkgTxnsLimit,
-		tick:         time.NewTicker(time.Second),
-		msgChan:      make(chan []byte),
+		blockTick:    time.NewTicker(time.Second * 2),
+		p2pTick:      time.NewTicker(time.Second),
+		msgChan:      make(chan []byte, 100),
 	}
 }
 
@@ -79,7 +81,6 @@ func (p *Pow) InitChain(env *ChainEnv, _ *Land) error {
 	}
 	go func() {
 		for {
-			// TODO: need subscribe all msgs.
 			msg, err := env.SubP2P(StartBlockTopic)
 			if err != nil {
 				logrus.Error("subscribe message from P2P error: ", err)
@@ -110,7 +111,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	block.(*Block).SetChainLen(prevBlock.(*Block).ChainLen + 1)
 
 	if p.UseBlocksFromP2P(block, env, land) {
-		logrus.Infof("USE P2P block(%s)", block.GetHash().String())
+		logrus.Infof("--------USE P2P block(%s)", block.GetHash().String())
 		return nil
 	}
 
@@ -138,8 +139,6 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
-	block.SetPeerID(env.P2pID)
-
 	env.StartBlock(hash)
 	err = env.Base.SetTxns(block.GetHash(), txns)
 	if err != nil {
@@ -154,6 +153,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	if err != nil {
 		return err
 	}
+
 	return env.PubP2P(StartBlockTopic, rawBlockByt)
 }
 
@@ -171,7 +171,7 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	logrus.Infof("append block(%d)", block.GetHeight())
+	logrus.Infof("append block(%d) (%s)", block.GetHeight(), block.GetHash().String())
 
 	env.SetCanRead(block.GetHash())
 
@@ -184,17 +184,23 @@ func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land) error {
 
 // return TRUE if we use the p2p-block
 func (p *Pow) UseBlocksFromP2P(block IBlock, env *ChainEnv, land *Land) bool {
-	select {
-	case <-p.tick.C:
-		return false
-	case msg := <-p.msgChan:
-		return p.dealP2pBlock(msg, block, env, land)
+	msgCount := len(p.msgChan)
+	if msgCount > 0 {
+		for i := 0; i < msgCount; i++ {
+			msg := <-p.msgChan
+			if p.useP2pBlock(msg, block, env, land) {
+				return true
+			}
+		}
 	}
+	return false
 }
 
-func (p *Pow) dealP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) bool {
+func (p *Pow) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) bool {
+
 	p2pRawBlock, err := DecodeRawBlock(msg)
 	if err != nil {
+		logrus.Error("decode p2p-raw-block error: ", err)
 		return false
 	}
 
@@ -204,18 +210,24 @@ func (p *Pow) dealP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) 
 		return false
 	}
 
-	err = land.RangeList(func(tri Tripod) error {
-		if tri.VerifyBlock(p2pBlock, env) {
-			return nil
-		}
-		return yerror.BlockIllegal(p2pBlock.GetHash())
-	})
-	if err != nil {
-		logrus.Error("verify p2p-block error: ", err)
+	if p2pBlock.GetPeerID() == block.GetPeerID() {
 		return false
 	}
 
+	logrus.Infof("Accept [P2P] block(%s) height(%d)", p2pBlock.GetHash().String(), p2pBlock.GetHeight())
+
 	if p2pBlock.GetHeight() == block.GetHeight() {
+		err = land.RangeList(func(tri Tripod) error {
+			if tri.VerifyBlock(p2pBlock, env) {
+				return nil
+			}
+			return yerror.BlockIllegal(p2pBlock.GetHash())
+		})
+		if err != nil {
+			logrus.Error("verify p2p-block error: ", err)
+			return false
+		}
+
 		block.CopyFrom(p2pBlock)
 		stxns, err := txn.DecodeSignedTxns(p2pRawBlock.TxnsByt)
 		if err != nil {

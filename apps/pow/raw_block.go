@@ -39,7 +39,7 @@ func (r *RawBlock) Encode() ([]byte, error) {
 
 func DecodeRawBlock(data []byte) (*RawBlock, error) {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	var rb *RawBlock
-	err := decoder.Decode(rb)
-	return rb, err
+	var val RawBlock
+	err := decoder.Decode(&val)
+	return &val, err
 }
