@@ -211,6 +211,7 @@ func (p *Pow) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) b
 	}
 
 	if p2pBlock.GetPeerID() == block.GetPeerID() {
+		logrus.Infof("Accept [LOCAL-P2P] block(%s) height(%d)", p2pBlock.GetHash().String(), p2pBlock.GetHeight())
 		return false
 	}
 
