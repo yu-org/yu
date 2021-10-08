@@ -10,6 +10,8 @@ func TestSrKey(t *testing.T) {
 	if err != nil {
 		panic("generate key error: " + err.Error())
 	}
+	t.Logf("public key is %s", pubkey.String())
+	t.Logf("private key is %s", privkey.String())
 	ecall := &Ecall{
 		TripodName: "asset",
 		ExecName:   "Transfer",

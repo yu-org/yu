@@ -6,7 +6,7 @@ import (
 	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/keypair"
+	. "github.com/yu-org/yu/keypair"
 	"github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/txn"
@@ -15,19 +15,25 @@ import (
 )
 
 type Poa struct {
-	meta        *TripodMeta
-	authPool    []keypair.PubKey
-	localPubkey keypair.PubKey
+	meta     *TripodMeta
+	authPool []PubKey
+
+	localPubkey PubKey
+	privKey     PrivKey
+	packLimit   uint64
 
 	msgChan chan []byte
 }
 
-func NewPoa(authPool []keypair.PubKey) *Poa {
+func NewPoa(packLimit uint64, localPubkey PubKey, privKey PrivKey, authPool []PubKey) *Poa {
 
 	return &Poa{
-		meta:     NewTripodMeta("poa"),
-		authPool: authPool,
-		msgChan:  make(chan []byte, 10),
+		meta:        NewTripodMeta("poa"),
+		authPool:    authPool,
+		packLimit:   packLimit,
+		localPubkey: localPubkey,
+		privKey:     privKey,
+		msgChan:     make(chan []byte, 10),
 	}
 }
 
@@ -82,7 +88,7 @@ func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 	pool := env.Pool
 
-	txns, err := pool.Pack(1024)
+	txns, err := pool.Pack(p.packLimit)
 	if err != nil {
 		return err
 	}
@@ -95,6 +101,12 @@ func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	}
 	block.SetTxnRoot(txnRoot)
 	block.SetHash(txnRoot)
+
+	sig, err := p.privKey.SignData(txnRoot.Bytes())
+	if err != nil {
+		return err
+	}
+	block.SetSignature(sig)
 
 	pool.Reset()
 	err = env.Base.SetTxns(block.GetHash(), txns)
@@ -209,7 +221,7 @@ func (p *Poa) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) b
 	return false
 }
 
-func (p *Poa) turnProposer(block IBlock) keypair.PubKey {
+func (p *Poa) turnProposer(block IBlock) PubKey {
 	idx := block.GetHeight() % BlockNum(len(p.authPool))
 	return p.authPool[idx]
 }

@@ -90,6 +90,13 @@ func (epr *EdPrivkey) StringWithType() string {
 	return ToHex(epr.BytesWithType())
 }
 
+func GenEdKey(secret []byte) (PubKey, PrivKey) {
+	edPrivKey := ed25519.GenPrivKeyFromSecret(secret)
+	privkey := &EdPrivkey{edPrivKey}
+	pubkey := &EdPubkey{edPrivKey.PubKey().(ed25519.PubKey)}
+	return pubkey, privkey
+}
+
 func genEd25519() (*EdPubkey, *EdPrivkey) {
 	edPrivKey := ed25519.GenPrivKey()
 	privkey := &EdPrivkey{edPrivKey}

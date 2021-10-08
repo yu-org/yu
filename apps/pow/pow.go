@@ -24,13 +24,13 @@ type Pow struct {
 	myPrivKey PrivKey
 	myPubkey  PubKey
 
-	pkgTxnsLimit uint64
-	blockTick    *time.Ticker
-	p2pTick      *time.Ticker
-	msgChan      chan []byte
+	packLimit uint64
+	blockTick *time.Ticker
+	p2pTick   *time.Ticker
+	msgChan   chan []byte
 }
 
-func NewPow(pkgTxnsLimit uint64) *Pow {
+func NewPow(packLimit uint64) *Pow {
 	meta := NewTripodMeta("pow")
 	var targetBits int64 = 16
 	target := big.NewInt(1)
@@ -48,10 +48,10 @@ func NewPow(pkgTxnsLimit uint64) *Pow {
 		myPrivKey:  privkey,
 		myPubkey:   pubkey,
 
-		pkgTxnsLimit: pkgTxnsLimit,
-		blockTick:    time.NewTicker(time.Second * 2),
-		p2pTick:      time.NewTicker(time.Second),
-		msgChan:      make(chan []byte, 100),
+		packLimit: packLimit,
+		blockTick: time.NewTicker(time.Second * 2),
+		p2pTick:   time.NewTicker(time.Second),
+		msgChan:   make(chan []byte, 100),
 	}
 }
 
@@ -116,7 +116,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return nil
 	}
 
-	txns, err := pool.Pack(p.pkgTxnsLimit)
+	txns, err := pool.Pack(p.packLimit)
 	if err != nil {
 		return err
 	}
