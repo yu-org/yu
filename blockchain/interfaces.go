@@ -26,6 +26,8 @@ type IBlock interface {
 	SetLeiLimit(e uint64)
 	UseLei(e uint64)
 
+	SetSignature([]byte)
+
 	Encode() ([]byte, error)
 	Decode(data []byte) (IBlock, error)
 
@@ -42,6 +44,8 @@ type IHeader interface {
 	GetPeerID() peer.ID
 	GetLeiLimit() uint64
 	GetLeiUsed() uint64
+
+	GetSignature() []byte
 }
 
 // --------------- blockchain interface ----------------

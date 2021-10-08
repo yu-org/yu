@@ -14,6 +14,8 @@ type Hotstuff struct {
 	validatorsIP []string
 
 	smr *Smr
+
+	msgChan chan []byte
 }
 
 func NewHotstuff(addr string, validatorsIP []string) *Hotstuff {
@@ -30,26 +32,27 @@ func NewHotstuff(addr string, validatorsIP []string) *Hotstuff {
 		meta:         meta,
 		validatorsIP: validatorsIP,
 		smr:          smr,
+		msgChan:      make(chan []byte, 10),
 	}
 }
 
-func (p *Hotstuff) GetTripodMeta() *TripodMeta {
-	return p.meta
+func (h *Hotstuff) GetTripodMeta() *TripodMeta {
+	return h.meta
 }
 
-func (p *Hotstuff) Name() string {
-	return p.meta.Name()
+func (h *Hotstuff) Name() string {
+	return h.meta.Name()
 }
 
-func (p *Hotstuff) CheckTxn(txn *SignedTxn) error {
+func (h *Hotstuff) CheckTxn(txn *SignedTxn) error {
 	return nil
 }
 
-func (p *Hotstuff) VerifyBlock(block IBlock, env *ChainEnv) bool {
+func (h *Hotstuff) VerifyBlock(block IBlock, env *ChainEnv) bool {
 	return true
 }
 
-func (p *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
+func (h *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
 	gensisBlock := &Block{
 		Header: &Header{},
@@ -57,15 +60,15 @@ func (p *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (p *Hotstuff) StartBlock(block IBlock, env *ChainEnv, land *Land) (needBroadcast bool, err error) {
+func (h *Hotstuff) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (p *Hotstuff) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (p *Hotstuff) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
@@ -90,20 +93,20 @@ func InitQcTee() *QCPendingTree {
 	}
 }
 
-func (p *Hotstuff) CompeteLeader() string {
-	if p.smr.GetCurrentView() == 0 {
-		return p.validatorsIP[0]
+func (h *Hotstuff) CompeteLeader() string {
+	if h.smr.GetCurrentView() == 0 {
+		return h.validatorsIP[0]
 	}
-	return p.smr.Election.GetLeader(p.smr.GetCurrentView())
+	return h.smr.Election.GetLeader(h.smr.GetCurrentView())
 }
 
-func (p *Hotstuff) CompeteBlock(block IBlock) error {
-	miner := p.CompeteLeader()
-	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, p.smr.GetAddress(), p.smr.GetCurrentView())
-	if miner != p.smr.GetAddress() {
+func (h *Hotstuff) CompeteBlock(block IBlock) error {
+	miner := h.CompeteLeader()
+	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
+	if miner != h.smr.GetAddress() {
 		return nil
 	}
-	proposal, err := p.smr.DoProposal(int64(block.GetHeight()), block.GetHash().Bytes(), p.validatorsIP)
+	proposal, err := h.smr.DoProposal(int64(block.GetHeight()), block.GetHash().Bytes(), h.validatorsIP)
 	if err != nil {
 		return err
 	}

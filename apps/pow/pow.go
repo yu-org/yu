@@ -2,6 +2,7 @@ package pow
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/apps/rawblock"
 	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
@@ -134,7 +135,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	env.Pool.Reset()
+	pool.Reset()
 
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
@@ -145,7 +146,7 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	rawBlock, err := NewRawBlock(block, txns)
+	rawBlock, err := rawblock.NewRawBlock(block, txns)
 	if err != nil {
 		return err
 	}
@@ -198,7 +199,7 @@ func (p *Pow) UseBlocksFromP2P(block IBlock, env *ChainEnv, land *Land) bool {
 
 func (p *Pow) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) bool {
 
-	p2pRawBlock, err := DecodeRawBlock(msg)
+	p2pRawBlock, err := rawblock.DecodeRawBlock(msg)
 	if err != nil {
 		logrus.Error("decode p2p-raw-block error: ", err)
 		return false

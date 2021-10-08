@@ -103,14 +103,14 @@ func (b *Block) UseLei(e uint64) {
 	b.Header.LeiUsed += e
 }
 
-//
-//func (b *Block) SetSign(sign []byte) {
-//	b.Header.Signature = sign
-//}
-//
-//func (b *Block) GetSign() []byte {
-//	return b.Header.GetSign()
-//}
+func (b *Block) SetSignature(sign []byte) {
+	b.Header.Signature = sign
+}
+
+func (b *Block) GetSignature() []byte {
+	return b.Header.GetSignature()
+}
+
 //
 //func (b *Block) SetPubkey(key PubKey) {
 //	b.Header.Pubkey = key.BytesWithType()

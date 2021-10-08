@@ -1,4 +1,4 @@
-package pow
+package rawblock
 
 import (
 	"bytes"

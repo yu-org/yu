@@ -11,7 +11,6 @@ type BlocksScheme struct {
 	Height     BlockNum
 	TxnRoot    string
 	StateRoot  string
-	Nonce      uint64
 	Timestamp  uint64
 	TxnsHashes string
 	PeerID     string
@@ -21,6 +20,9 @@ type BlocksScheme struct {
 
 	Length   uint64
 	Finalize bool
+
+	Nonce     uint64
+	Signature string
 }
 
 func (BlocksScheme) TableName() string {
@@ -44,6 +46,8 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 
 		Length:   b.(*Block).ChainLen,
 		Finalize: false,
+
+		Signature: ToHex(b.GetSignature()),
 	}
 	return bs, nil
 }
@@ -73,6 +77,7 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		PeerID:    PeerID,
 		LeiLimit:  b.LeiLimit,
 		LeiUsed:   b.LeiUsed,
+		Signature: FromHex(b.Signature),
 	}
 	block := &Block{
 		Header:     header,

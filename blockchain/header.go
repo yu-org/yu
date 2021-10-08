@@ -58,6 +58,10 @@ func (h *Header) GetLeiUsed() uint64 {
 	return h.LeiUsed
 }
 
+func (h *Header) GetSignature() []byte {
+	return h.Signature
+}
+
 //
 //func (h *Header) GetSign() []byte {
 //	return h.Signature
