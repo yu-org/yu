@@ -18,7 +18,6 @@ type BlocksScheme struct {
 	LeiLimit uint64
 	LeiUsed  uint64
 
-	Length   uint64
 	Finalize bool
 
 	Nonce     uint64
@@ -44,7 +43,6 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 		LeiLimit: b.GetLeiLimit(),
 		LeiUsed:  b.GetLeiUsed(),
 
-		Length:   b.(*Block).ChainLen,
 		Finalize: false,
 
 		Signature: ToHex(b.GetSignature()),
@@ -82,7 +80,6 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 	block := &Block{
 		Header:     header,
 		TxnsHashes: HexToHashes(b.TxnsHashes),
-		ChainLen:   b.Length,
 	}
 
 	return block, nil

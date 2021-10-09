@@ -1,6 +1,7 @@
 package poa
 
 import (
+	"crypto/sha256"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/rawblock"
 	. "github.com/yu-org/yu/blockchain"
@@ -10,6 +11,7 @@ import (
 	"github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/txn"
+	ytime "github.com/yu-org/yu/utils/time"
 	"github.com/yu-org/yu/yerror"
 	"time"
 )
@@ -82,9 +84,12 @@ func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	time.Sleep(2 * time.Second)
 
 	proposer := p.turnProposer(block)
+	logrus.Info("proposer pubkey is ", proposer.String())
 	if !proposer.Equals(p.localPubkey) {
 		return nil
 	}
+
+	logrus.Info("start block ...........")
 
 	pool := env.Pool
 
@@ -100,7 +105,8 @@ func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 	block.SetTxnRoot(txnRoot)
-	block.SetHash(txnRoot)
+
+	block.SetHash(makeBlockHash())
 
 	sig, err := p.privKey.SignData(txnRoot.Bytes())
 	if err != nil {
@@ -224,4 +230,9 @@ func (p *Poa) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) b
 func (p *Poa) turnProposer(block IBlock) PubKey {
 	idx := block.GetHeight() % BlockNum(len(p.authPool))
 	return p.authPool[idx]
+}
+
+func makeBlockHash() Hash {
+	str := string(ytime.NowNanoTsU64())
+	return sha256.Sum256([]byte(str))
 }

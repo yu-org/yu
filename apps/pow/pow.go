@@ -97,19 +97,11 @@ func (p *Pow) InitChain(env *ChainEnv, _ *Land) error {
 func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	time.Sleep(2 * time.Second)
 
-	chain := env.Chain
 	pool := env.Pool
 
 	logrus.Info("start block...................")
 
-	prevBlock, err := chain.GetEndBlock()
-	if err != nil {
-		return err
-	}
-
 	logrus.Infof("prev-block hash is (%s), height is (%d)", block.GetPrevHash().String(), block.GetHeight()-1)
-
-	block.(*Block).SetChainLen(prevBlock.(*Block).ChainLen + 1)
 
 	if p.UseBlocksFromP2P(block, env, land) {
 		logrus.Infof("--------USE P2P block(%s)", block.GetHash().String())

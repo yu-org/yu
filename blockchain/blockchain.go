@@ -205,7 +205,7 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 
 func (bc *BlockChain) GetEndBlock() (IBlock, error) {
 	var bs BlocksScheme
-	bc.chain.Db().Raw("select * from blockchain where length = (select max(length) from blockchain)").First(&bs)
+	bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs)
 	return bs.toBlock()
 }
 
