@@ -2,6 +2,7 @@ package poa
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/rawblock"
 	. "github.com/yu-org/yu/blockchain"
@@ -52,9 +53,18 @@ func (p *Poa) CheckTxn(txn *txn.SignedTxn) error {
 }
 
 func (p *Poa) VerifyBlock(block IBlock, env *ChainEnv) bool {
-	proposerPubkey := p.turnProposer(block)
+	idx, proposerPubkey := p.turnProposer(block)
 	sig := block.GetSignature()
-	return proposerPubkey.VerifySignature(block.GetHash().Bytes(), sig)
+	if proposerPubkey.VerifySignature(block.GetHash().Bytes(), sig) {
+		return true
+	}
+	replicaPool := append(p.authPool[:idx], p.authPool[idx+1:]...)
+	for _, pubkey := range replicaPool {
+		if pubkey.VerifySignature(block.GetHash().Bytes(), sig) {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *Poa) InitChain(env *ChainEnv, land *Land) error {
@@ -83,10 +93,12 @@ func (p *Poa) InitChain(env *ChainEnv, land *Land) error {
 func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 	time.Sleep(2 * time.Second)
 
-	proposer := p.turnProposer(block)
-	logrus.Info("proposer pubkey is ", proposer.String())
+	_, proposer := p.turnProposer(block)
+
 	if !proposer.Equals(p.localPubkey) {
-		return nil
+		if p.UseBlocksFromP2P(block, env, land) {
+			return nil
+		}
 	}
 
 	logrus.Info("start block ...........")
@@ -108,7 +120,7 @@ func (p *Poa) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 	block.SetHash(makeBlockHash())
 
-	sig, err := p.privKey.SignData(txnRoot.Bytes())
+	sig, err := p.privKey.SignData(block.GetHash().Bytes())
 	if err != nil {
 		return err
 	}
@@ -163,7 +175,7 @@ func (p *Poa) UseBlocksFromP2P(block IBlock, env *ChainEnv, land *Land) bool {
 	if msgCount > 0 {
 		for i := 0; i < msgCount; i++ {
 			msg := <-p.msgChan
-			if p.useP2pBlock(msg, block, env, land) {
+			if useP2pBlock(msg, block, env, land) {
 				return true
 			}
 		}
@@ -171,7 +183,7 @@ func (p *Poa) UseBlocksFromP2P(block IBlock, env *ChainEnv, land *Land) bool {
 	return false
 }
 
-func (p *Poa) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) bool {
+func useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) bool {
 
 	p2pRawBlock, err := rawblock.DecodeRawBlock(msg)
 	if err != nil {
@@ -223,16 +235,16 @@ func (p *Poa) useP2pBlock(msg []byte, block IBlock, env *ChainEnv, land *Land) b
 		}
 		return true
 	}
-
 	return false
 }
 
-func (p *Poa) turnProposer(block IBlock) PubKey {
+func (p *Poa) turnProposer(block IBlock) (int, PubKey) {
 	idx := block.GetHeight() % BlockNum(len(p.authPool))
-	return p.authPool[idx]
+	return int(idx), p.authPool[idx]
 }
 
 func makeBlockHash() Hash {
-	str := string(ytime.NowNanoTsU64())
-	return sha256.Sum256([]byte(str))
+	var buf = make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, ytime.NowNanoTsU64())
+	return sha256.Sum256(buf)
 }
