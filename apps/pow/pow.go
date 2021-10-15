@@ -127,8 +127,6 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
 		return err
 	}
 
-	pool.Reset()
-
 	block.(*Block).SetNonce(uint64(nonce))
 	block.SetHash(hash)
 
@@ -168,7 +166,7 @@ func (*Pow) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
 
 	env.SetCanRead(block.GetHash())
 
-	return pool.Flush()
+	return pool.Reset()
 }
 
 func (*Pow) FinalizeBlock(_ IBlock, _ *ChainEnv, _ *Land) error {

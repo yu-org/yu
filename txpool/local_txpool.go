@@ -5,7 +5,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/txn"
-	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 	"sync"
 	"time"
@@ -156,7 +155,7 @@ func (tp *LocalTxPool) RemoveTxns(hashes []Hash) error {
 }
 
 // remove txns after execute all tripods
-func (tp *LocalTxPool) Flush() error {
+func (tp *LocalTxPool) Reset() error {
 	tp.Lock()
 	for _, stxn := range tp.Txns[:tp.startPackIdx] {
 		delete(tp.txnsMap, stxn.GetTxnHash())
@@ -165,10 +164,6 @@ func (tp *LocalTxPool) Flush() error {
 	tp.startPackIdx = 0
 	tp.Unlock()
 	return nil
-}
-
-func (tp *LocalTxPool) Reset() {
-	tp.blockTime = ytime.NowNanoTsU64()
 }
 
 // --------- check txn ------

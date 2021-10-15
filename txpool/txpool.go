@@ -32,7 +32,5 @@ type ItxPool interface {
 
 	RemoveTxns(hashes []Hash) error
 	// remove txns after execute all tripods
-	Flush() error
-
-	Reset()
+	Reset() error
 }
