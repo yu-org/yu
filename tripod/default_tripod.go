@@ -34,18 +34,18 @@ func (*DefaultTripod) VerifyBlock(IBlock) bool {
 	return true
 }
 
-func (*DefaultTripod) InitChain(*Land) error {
+func (*DefaultTripod) InitChain() error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlock, *Land) error {
+func (*DefaultTripod) StartBlock(IBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(IBlock, *Land) error {
+func (*DefaultTripod) EndBlock(IBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(IBlock, *Land) error {
+func (*DefaultTripod) FinalizeBlock(IBlock) error {
 	return nil
 }

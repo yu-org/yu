@@ -148,7 +148,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 			return
 		}
 
-		respObj, err := m.land.Query(qcall, ctx, m.GetEnv())
+		respObj, err := m.land.Query(qcall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,

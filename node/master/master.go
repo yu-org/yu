@@ -54,22 +54,6 @@ type Master struct {
 
 	// event subscription
 	sub *subscribe.Subscription
-
-	// P2P topic
-	//startBlockTopic    *pubsub.Topic
-	//endBlockTopic      *pubsub.Topic
-	//finalizeBlockTopic *pubsub.Topic
-	//unpkgTxnsTopic     *pubsub.Topic
-	//
-	//// P2P topic subscribe
-	//startBlockSub    *pubsub.Subscription
-	//endBlockSub      *pubsub.Subscription
-	//finalizeBlockSub *pubsub.Subscription
-	//unpackedTxnsSub  *pubsub.Subscription
-	//
-	//msgOnStart    chan []byte
-	//msgOnEnd      chan []byte
-	//msgOnFinalize chan []byte
 }
 
 func NewMaster(
@@ -114,6 +98,9 @@ func NewMaster(
 
 		land: land,
 	}
+
+	env.Execute = m.ExecuteTxns
+
 	err = m.initTopics()
 	if err != nil {
 		return nil, err
@@ -167,7 +154,7 @@ func (m *Master) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.land)
+			return tri.InitChain()
 		})
 	case MasterWorker:
 		// todo: init chain
@@ -364,7 +351,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				return err
 			}
 
-			err = ExecuteTxns(block, m.GetEnv(), m.land)
+			err = m.ExecuteTxns(block)
 			if err != nil {
 				return err
 			}

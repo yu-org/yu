@@ -25,35 +25,35 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
-func (a *Asset) QueryBalance(ctx *Context, env *ChainEnv, _ Hash) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
-	amount := a.getBalance(env, account)
+	amount := a.getBalance(a.ChainEnv, account)
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context, _ IBlock, env *ChainEnv) (err error) {
+func (a *Asset) Transfer(ctx *Context, _ IBlock) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
 
-	if !a.exsitAccount(env, from) {
+	if !a.exsitAccount(a.ChainEnv, from) {
 		return AccountNotFound(from)
 	}
 
-	fromBalance := a.getBalance(env, from)
+	fromBalance := a.getBalance(a.ChainEnv, from)
 	if fromBalance < amount {
 		return InsufficientFunds
 	}
 
-	if !a.exsitAccount(env, to) {
-		a.setBalance(env, to, amount)
+	if !a.exsitAccount(a.ChainEnv, to) {
+		a.setBalance(a.ChainEnv, to, amount)
 	} else {
-		toBalance := a.getBalance(env, to)
+		toBalance := a.getBalance(a.ChainEnv, to)
 		toBalance, err = checkAdd(toBalance, amount)
 		if err != nil {
 			return
 		}
-		a.setBalance(env, to, toBalance)
+		a.setBalance(a.ChainEnv, to, toBalance)
 	}
 
 	fromBalance, err = checkSub(fromBalance, amount)
@@ -61,23 +61,23 @@ func (a *Asset) Transfer(ctx *Context, _ IBlock, env *ChainEnv) (err error) {
 		return
 	}
 
-	a.setBalance(env, from, fromBalance)
+	a.setBalance(a.ChainEnv, from, fromBalance)
 
 	_ = ctx.EmitEvent("Transfer Completed!")
 
 	return
 }
 
-func (a *Asset) CreateAccount(ctx *Context, _ IBlock, env *ChainEnv) error {
+func (a *Asset) CreateAccount(ctx *Context, _ IBlock) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 
-	if a.exsitAccount(env, addr) {
+	if a.exsitAccount(a.ChainEnv, addr) {
 		_ = ctx.EmitEvent("Account Exists!")
 		return nil
 	}
 
-	a.setBalance(env, addr, Amount(amount))
+	a.setBalance(a.ChainEnv, addr, Amount(amount))
 	_ = ctx.EmitEvent("Account Created Success!")
 	return nil
 }

@@ -1,7 +1,6 @@
 package tripod
 
 import (
-	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/yerror"
@@ -42,7 +41,7 @@ func (l *Land) GetExecLei(c *Ecall) (Execution, uint64, error) {
 	return fn, lei, nil
 }
 
-func (l *Land) Query(c *Qcall, ctx *Context, env *ChainEnv) (interface{}, error) {
+func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
 	Tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
@@ -52,7 +51,7 @@ func (l *Land) Query(c *Qcall, ctx *Context, env *ChainEnv) (interface{}, error)
 	if qry == nil {
 		return nil, QryNotFound(c.QueryName)
 	}
-	return qry(ctx, env, c.BlockHash)
+	return qry(ctx, c.BlockHash)
 }
 
 func (l *Land) RangeMap(fn func(string, Tripod) error) error {

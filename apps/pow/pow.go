@@ -8,10 +8,8 @@ import (
 	. "github.com/yu-org/yu/common"
 	spow "github.com/yu-org/yu/consensus/pow"
 	. "github.com/yu-org/yu/keypair"
-	"github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/txn"
-	"github.com/yu-org/yu/yerror"
 	"math/big"
 	"time"
 )
@@ -77,7 +75,7 @@ func (p *Pow) VerifyBlock(block IBlock) bool {
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
-func (p *Pow) InitChain(_ *Land) error {
+func (p *Pow) InitChain() error {
 	chain := p.env.Chain
 	gensisBlock := &Block{
 		Header: &Header{},
@@ -100,7 +98,7 @@ func (p *Pow) InitChain(_ *Land) error {
 	return nil
 }
 
-func (p *Pow) StartBlock(block IBlock, land *Land) error {
+func (p *Pow) StartBlock(block IBlock) error {
 	time.Sleep(2 * time.Second)
 
 	pool := p.env.Pool
@@ -109,7 +107,7 @@ func (p *Pow) StartBlock(block IBlock, land *Land) error {
 
 	logrus.Infof("prev-block hash is (%s), height is (%d)", block.GetPrevHash().String(), block.GetHeight()-1)
 
-	if p.UseBlocksFromP2P(block, land) {
+	if p.UseBlocksFromP2P(block) {
 		logrus.Infof("--------USE P2P block(%s)", block.GetHash().String())
 		return nil
 	}
@@ -154,11 +152,11 @@ func (p *Pow) StartBlock(block IBlock, land *Land) error {
 	return p.env.PubP2P(StartBlockTopic, rawBlockByt)
 }
 
-func (p *Pow) EndBlock(block IBlock, land *Land) error {
+func (p *Pow) EndBlock(block IBlock) error {
 	chain := p.env.Chain
 	pool := p.env.Pool
 
-	err := node.ExecuteTxns(block, p.env, land)
+	err := p.env.Execute(block)
 	if err != nil {
 		return err
 	}
@@ -175,17 +173,17 @@ func (p *Pow) EndBlock(block IBlock, land *Land) error {
 	return pool.Reset()
 }
 
-func (*Pow) FinalizeBlock(_ IBlock, _ *Land) error {
+func (*Pow) FinalizeBlock(_ IBlock) error {
 	return nil
 }
 
 // return TRUE if we use the p2p-block
-func (p *Pow) UseBlocksFromP2P(block IBlock, land *Land) bool {
+func (p *Pow) UseBlocksFromP2P(block IBlock) bool {
 	msgCount := len(p.msgChan)
 	if msgCount > 0 {
 		for i := 0; i < msgCount; i++ {
 			msg := <-p.msgChan
-			if p.useP2pBlock(msg, block, land) {
+			if p.useP2pBlock(msg, block) {
 				return true
 			}
 		}
@@ -193,7 +191,7 @@ func (p *Pow) UseBlocksFromP2P(block IBlock, land *Land) bool {
 	return false
 }
 
-func (p *Pow) useP2pBlock(msg []byte, block IBlock, land *Land) bool {
+func (p *Pow) useP2pBlock(msg []byte, block IBlock) bool {
 
 	p2pRawBlock, err := rawblock.DecodeRawBlock(msg)
 	if err != nil {
@@ -215,13 +213,7 @@ func (p *Pow) useP2pBlock(msg []byte, block IBlock, land *Land) bool {
 	logrus.Infof("Accept [P2P] block(%s) height(%d)", p2pBlock.GetHash().String(), p2pBlock.GetHeight())
 
 	if p2pBlock.GetHeight() == block.GetHeight() {
-		err = land.RangeList(func(tri Tripod) error {
-			if tri.VerifyBlock(p2pBlock) {
-				return nil
-			}
-			return yerror.BlockIllegal(p2pBlock.GetHash())
-		})
-		if err != nil {
+		if !p.VerifyBlock(p2pBlock) {
 			logrus.Error("verify p2p-block error: ", err)
 			return false
 		}

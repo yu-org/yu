@@ -134,7 +134,7 @@ func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http
 			return
 		}
 
-		respObj, err := m.land.Query(qcall, ctx, m.GetEnv())
+		respObj, err := m.land.Query(qcall, ctx)
 		if err != nil {
 			ServerErrorHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return

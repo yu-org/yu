@@ -4,8 +4,10 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
+	"github.com/yu-org/yu/txn"
 	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -40,7 +42,7 @@ func (m *Master) LocalRun() (err error) {
 
 	// start a new block
 	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.StartBlock(newBlock, m.land)
+		return tri.StartBlock(newBlock)
 	})
 	if err != nil {
 		return err
@@ -48,7 +50,7 @@ func (m *Master) LocalRun() (err error) {
 
 	// end block and append to chain
 	err = m.land.RangeList(func(tri Tripod) error {
-		return tri.EndBlock(newBlock, m.land)
+		return tri.EndBlock(newBlock)
 	})
 	if err != nil {
 		return err
@@ -56,7 +58,7 @@ func (m *Master) LocalRun() (err error) {
 
 	// finalize this block
 	return m.land.RangeList(func(tri Tripod) error {
-		return tri.FinalizeBlock(newBlock, m.land)
+		return tri.FinalizeBlock(newBlock)
 	})
 }
 
@@ -73,6 +75,60 @@ func (m *Master) makeNewBasicBlock() (IBlock, error) {
 	newBlock.SetHeight(prevBlock.GetHeight() + 1)
 	newBlock.SetLeiLimit(m.leiLimit)
 	return newBlock, nil
+}
+
+func (m *Master) ExecuteTxns(block IBlock) error {
+	stxns, err := m.base.GetTxns(block.GetHash())
+	if err != nil {
+		return err
+	}
+	for _, stxn := range stxns {
+		ecall := stxn.GetRaw().GetEcall()
+		ctx, err := context.NewContext(stxn.GetPubkey().Address(), ecall.Params)
+		if err != nil {
+			return err
+		}
+
+		exec, lei, err := m.land.GetExecLei(ecall)
+		if err != nil {
+			m.handleError(err, ctx, block, stxn)
+			continue
+		}
+
+		if IfLeiOut(lei, block) {
+			m.handleError(OutOfEnergy, ctx, block, stxn)
+			break
+		}
+
+		err = exec(ctx, block)
+		if err != nil {
+			m.stateStore.Discard()
+			m.handleError(err, ctx, block, stxn)
+		} else {
+			m.stateStore.NextTxn()
+		}
+
+		block.UseLei(lei)
+
+		m.handleEvent(ctx, block, stxn)
+
+		err = m.base.SetEvents(ctx.Events)
+		if err != nil {
+			return err
+		}
+		err = m.base.SetError(ctx.Error)
+		if err != nil {
+			return err
+		}
+	}
+
+	stateRoot, err := m.stateStore.Commit()
+	if err != nil {
+		return err
+	}
+	block.SetStateRoot(stateRoot)
+
+	return nil
 }
 
 func (m *Master) MasterWokrerRun() error {
@@ -132,26 +188,37 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 	return nil
 }
 
-//func (m *Master) broadcastBlockAndTxns(b IBlock) error {
-//	err := m.pubBlock(b)
-//	if err != nil {
-//		return err
-//	}
-//
-//	blockHash := b.GetHash()
-//	txns, err := m.base.GetTxns(blockHash)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if len(txns) == 0 {
-//		return nil
-//	}
-//
-//	logrus.Warnf("=== pub block(%s) to P2P ===", blockHash.String())
-//	for _, stxn := range txns {
-//		logrus.Warnf("============== pub stxn(%s) to P2P ============", stxn.TxnHash.String())
-//	}
-//
-//	return m.pubPackedTxns(blockHash, txns)
-//}
+func (m *Master) handleError(err error, ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+	ctx.EmitError(err)
+	ecall := stxn.GetRaw().GetEcall()
+
+	ctx.Error.Caller = stxn.GetRaw().GetCaller()
+	ctx.Error.BlockStage = ExecuteTxnsStage
+	ctx.Error.TripodName = ecall.TripodName
+	ctx.Error.ExecName = ecall.ExecName
+	ctx.Error.BlockHash = block.GetHash()
+	ctx.Error.Height = block.GetHeight()
+
+	logrus.Error("push error: ", ctx.Error.Error())
+	if m.sub != nil {
+		m.sub.Push(ctx.Error)
+	}
+
+}
+
+func (m *Master) handleEvent(ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+	for _, event := range ctx.Events {
+		ecall := stxn.GetRaw().GetEcall()
+
+		event.Height = block.GetHeight()
+		event.BlockHash = block.GetHash()
+		event.ExecName = ecall.ExecName
+		event.TripodName = ecall.TripodName
+		event.BlockStage = ExecuteTxnsStage
+		event.Caller = stxn.GetRaw().GetCaller()
+
+		if m.sub != nil {
+			m.sub.Push(event)
+		}
+	}
+}

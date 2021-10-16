@@ -17,11 +17,11 @@ type Tripod interface {
 
 	VerifyBlock(block IBlock) bool
 
-	InitChain(land *Land) error
+	InitChain() error
 
-	StartBlock(block IBlock, land *Land) error
+	StartBlock(block IBlock) error
 
-	EndBlock(block IBlock, land *Land) error
+	EndBlock(block IBlock) error
 
-	FinalizeBlock(block IBlock, land *Land) error
+	FinalizeBlock(block IBlock) error
 }
