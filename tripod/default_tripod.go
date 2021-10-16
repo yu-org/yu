@@ -8,6 +8,7 @@ import (
 
 type DefaultTripod struct {
 	*TripodMeta
+	*ChainEnv
 }
 
 func NewDefaultTripod(name string) *DefaultTripod {
@@ -21,26 +22,30 @@ func (dt *DefaultTripod) GetTripodMeta() *TripodMeta {
 	return dt.TripodMeta
 }
 
+func (dt *DefaultTripod) SetChainEnv(env *ChainEnv) {
+	dt.ChainEnv = env
+}
+
 func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) VerifyBlock(IBlock, *ChainEnv) bool {
+func (*DefaultTripod) VerifyBlock(IBlock) bool {
 	return true
 }
 
-func (*DefaultTripod) InitChain(*ChainEnv, *Land) error {
+func (*DefaultTripod) InitChain(*Land) error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlock, *ChainEnv, *Land) error {
+func (*DefaultTripod) StartBlock(IBlock, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(IBlock, *ChainEnv, *Land) error {
+func (*DefaultTripod) EndBlock(IBlock, *Land) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(IBlock, *ChainEnv, *Land) error {
+func (*DefaultTripod) FinalizeBlock(IBlock, *Land) error {
 	return nil
 }

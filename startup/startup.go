@@ -5,8 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/chain_env"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/node/master"
+	"github.com/yu-org/yu/state"
+	"github.com/yu-org/yu/subscribe"
 	"github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/txpool"
 	"github.com/yu-org/yu/utils/codec"
@@ -17,11 +20,11 @@ var (
 	masterCfg     config.MasterConf
 )
 
-var (
-	Chain  blockchain.IBlockChain
-	Base   blockchain.IBlockBase
-	TxPool txpool.ItxPool
-)
+//var (
+//	Chain  blockchain.IBlockChain
+//	Base   blockchain.IBlockBase
+//	TxPool txpool.ItxPool
+//)
 
 func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
@@ -33,7 +36,36 @@ func StartUp(tripods ...tripod.Tripod) {
 	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	m, err := master.NewMaster(&masterCfg, Chain, Base, TxPool, land)
+	chain, err := blockchain.NewBlockChain(&masterCfg.BlockChain)
+	if err != nil {
+		logrus.Panicf("load blockchain error: %s", err.Error())
+	}
+
+	base, err := blockchain.NewBlockBase(&masterCfg.BlockBase)
+	if err != nil {
+		logrus.Panicf("load blockbase error: %s", err.Error())
+	}
+
+	stateStore, err := state.NewStateStore(&masterCfg.State)
+	if err != nil {
+		logrus.Panicf("load stateKV error: %s", err.Error())
+	}
+
+	env := &chain_env.ChainEnv{
+		StateStore: stateStore,
+		Chain:      chain,
+		Base:       base,
+		Pool:       txpool.LocalWithDefaultChecks(&masterCfg.Txpool),
+		Sub:        subscribe.NewSubscription(),
+		PubP2P:     master.PubToP2P,
+		SubP2P:     master.SubFromP2P,
+	}
+
+	for _, t := range tripods {
+		t.SetChainEnv(env)
+	}
+
+	m, err := master.NewMaster(&masterCfg, env, land)
 	if err != nil {
 		logrus.Panicf("load master error: %s", err.Error())
 	}

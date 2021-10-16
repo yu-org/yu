@@ -11,15 +11,17 @@ type Tripod interface {
 
 	Name() string
 
+	SetChainEnv(env *ChainEnv)
+
 	CheckTxn(*SignedTxn) error
 
-	VerifyBlock(block IBlock, env *ChainEnv) bool
+	VerifyBlock(block IBlock) bool
 
-	InitChain(env *ChainEnv, land *Land) error
+	InitChain(land *Land) error
 
-	StartBlock(block IBlock, env *ChainEnv, land *Land) error
+	StartBlock(block IBlock, land *Land) error
 
-	EndBlock(block IBlock, env *ChainEnv, land *Land) error
+	EndBlock(block IBlock, land *Land) error
 
-	FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error
+	FinalizeBlock(block IBlock, land *Land) error
 }

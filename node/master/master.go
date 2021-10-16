@@ -55,9 +55,6 @@ type Master struct {
 	// event subscription
 	sub *subscribe.Subscription
 
-	PubP2P func(topic string, msg []byte) error
-	SubP2P func(topic string) ([]byte, error)
-
 	// P2P topic
 	//startBlockTopic    *pubsub.Topic
 	//endBlockTopic      *pubsub.Topic
@@ -77,32 +74,9 @@ type Master struct {
 
 func NewMaster(
 	cfg *MasterConf,
-	chain IBlockChain,
-	base IBlockBase,
-	txPool ItxPool,
+	env *ChainEnv,
 	land *Land,
 ) (*Master, error) {
-	var err error
-	if chain == nil {
-		chain, err = NewBlockChain(&cfg.BlockChain)
-		if err != nil {
-			logrus.Panicf("load blockchain error: %s", err.Error())
-		}
-	}
-	if base == nil {
-		base, err = NewBlockBase(&cfg.BlockBase)
-		if err != nil {
-			logrus.Panicf("load blockbase error: %s", err.Error())
-		}
-	}
-	stateStore, err := NewStateStore(&cfg.State)
-	if err != nil {
-		logrus.Panicf("load stateKV error: %s", err.Error())
-	}
-
-	if txPool == nil {
-		txPool = LocalWithDefaultChecks(&cfg.Txpool)
-	}
 
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
@@ -132,16 +106,13 @@ func NewMaster(
 		timeout:    timeout,
 		httpPort:   MakePort(cfg.HttpPort),
 		wsPort:     MakePort(cfg.WsPort),
-		chain:      chain,
-		base:       base,
-		txPool:     txPool,
-		stateStore: stateStore,
+		chain:      env.Chain,
+		base:       env.Base,
+		txPool:     env.Pool,
+		stateStore: env.StateStore,
+		sub:        env.Sub,
 
 		land: land,
-		sub:  subscribe.NewSubscription(),
-
-		PubP2P: PubToP2P,
-		SubP2P: SubFromP2P,
 	}
 	err = m.initTopics()
 	if err != nil {
@@ -196,7 +167,7 @@ func (m *Master) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain(m.GetEnv(), m.land)
+			return tri.InitChain(m.land)
 		})
 	case MasterWorker:
 		// todo: init chain
@@ -384,7 +355,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 			}
 
 			err = m.land.RangeList(func(tri Tripod) error {
-				if tri.VerifyBlock(block, m.GetEnv()) {
+				if tri.VerifyBlock(block) {
 					return nil
 				}
 				return BlockIllegal(block.GetHash())
@@ -415,11 +386,9 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 func (m *Master) GetEnv() *ChainEnv {
 	return &ChainEnv{
 		StateStore: m.stateStore,
-		RunMode:    m.RunMode,
 		Chain:      m.chain,
 		Base:       m.base,
 		Pool:       m.txPool,
-		P2pID:      m.host.ID(),
 		Sub:        m.sub,
 		PubP2P:     PubToP2P,
 		SubP2P:     SubFromP2P,
