@@ -1,10 +1,9 @@
-package blockchain
+package types
 
 import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/result"
-	. "github.com/yu-org/yu/txn"
 )
 
 type IBlock interface {

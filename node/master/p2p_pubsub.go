@@ -4,7 +4,7 @@ import (
 	"context"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	"github.com/yu-org/yu/yerror"
 )
 
@@ -82,7 +82,7 @@ func SubFromP2P(topic string) ([]byte, error) {
 	return msg.Data, nil
 }
 
-func (m *Master) pubUnpackedTxns(txns SignedTxns) error {
+func (m *Master) pubUnpackedTxns(txns types.SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
@@ -90,12 +90,12 @@ func (m *Master) pubUnpackedTxns(txns SignedTxns) error {
 	return PubToP2P(UnpackedTxnsTopic, byt)
 }
 
-func (m *Master) subUnpackedTxns() (SignedTxns, error) {
+func (m *Master) subUnpackedTxns() (types.SignedTxns, error) {
 	byt, err := SubFromP2P(UnpackedTxnsTopic)
 	if err != nil {
 		return nil, err
 	}
-	return DecodeSignedTxns(byt)
+	return types.DecodeSignedTxns(byt)
 }
 
 func (m *Master) pubToP2P(topic *pubsub.Topic, msg []byte) error {

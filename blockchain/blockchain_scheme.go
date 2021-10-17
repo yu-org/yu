@@ -3,6 +3,7 @@ package blockchain
 import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/types"
 )
 
 type BlocksScheme struct {
@@ -28,14 +29,14 @@ func (BlocksScheme) TableName() string {
 	return "blockchain"
 }
 
-func toBlocksScheme(b IBlock) (BlocksScheme, error) {
+func toBlocksScheme(b types.IBlock) (BlocksScheme, error) {
 	bs := BlocksScheme{
 		Hash:       b.GetHash().String(),
 		PrevHash:   b.GetPrevHash().String(),
 		Height:     b.GetHeight(),
 		TxnRoot:    b.GetTxnRoot().String(),
 		StateRoot:  b.GetStateRoot().String(),
-		Nonce:      b.GetHeader().(*Header).Nonce,
+		Nonce:      b.GetHeader().(*types.Header).Nonce,
 		Timestamp:  b.GetTimestamp(),
 		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
 		PeerID:     b.GetPeerID().String(),
@@ -50,7 +51,7 @@ func toBlocksScheme(b IBlock) (BlocksScheme, error) {
 	return bs, nil
 }
 
-func (b *BlocksScheme) toBlock() (IBlock, error) {
+func (b *BlocksScheme) toBlock() (types.IBlock, error) {
 	var (
 		PeerID peer.ID
 		err    error
@@ -64,7 +65,7 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		}
 	}
 
-	header := &Header{
+	header := &types.Header{
 		PrevHash:  HexToHash(b.PrevHash),
 		Hash:      HexToHash(b.Hash),
 		Height:    b.Height,
@@ -77,7 +78,7 @@ func (b *BlocksScheme) toBlock() (IBlock, error) {
 		LeiUsed:   b.LeiUsed,
 		Signature: FromHex(b.Signature),
 	}
-	block := &Block{
+	block := &types.CompactBlock{
 		Header:     header,
 		TxnsHashes: HexToHashes(b.TxnsHashes),
 	}
@@ -96,7 +97,7 @@ func (BlocksFromP2pScheme) TableName() string {
 	return "blocks_from_p2p"
 }
 
-func toBlocksFromP2pScheme(b IBlock) (BlocksFromP2pScheme, error) {
+func toBlocksFromP2pScheme(b types.IBlock) (BlocksFromP2pScheme, error) {
 	byt, err := b.Encode()
 	if err != nil {
 		return BlocksFromP2pScheme{}, err
@@ -108,14 +109,14 @@ func toBlocksFromP2pScheme(b IBlock) (BlocksFromP2pScheme, error) {
 	}, nil
 }
 
-func (bs BlocksFromP2pScheme) toBlock() (IBlock, error) {
+func (bs BlocksFromP2pScheme) toBlock() (types.IBlock, error) {
 	byt := FromHex(bs.BlockContent)
-	b := &Block{}
+	b := &types.CompactBlock{}
 	return b.Decode(byt)
 }
 
-func bssToBlocks(bss []BlocksScheme) []IBlock {
-	blocks := make([]IBlock, 0)
+func bssToBlocks(bss []BlocksScheme) []types.IBlock {
+	blocks := make([]types.IBlock, 0)
 	for _, bs := range bss {
 		b, err := bs.toBlock()
 		if err != nil {
@@ -126,8 +127,8 @@ func bssToBlocks(bss []BlocksScheme) []IBlock {
 	return blocks
 }
 
-func bspToBlocks(bsp []BlocksFromP2pScheme) []IBlock {
-	blocks := make([]IBlock, 0)
+func bspToBlocks(bsp []BlocksFromP2pScheme) []types.IBlock {
+	blocks := make([]types.IBlock, 0)
 	for _, bs := range bsp {
 		b, err := bs.toBlock()
 		if err != nil {

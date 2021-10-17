@@ -4,7 +4,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/result"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +21,7 @@ func (TxnScheme) TableName() string {
 	return "txns"
 }
 
-func newTxnScheme(blockHash Hash, stxn *SignedTxn) (TxnScheme, error) {
+func newTxnScheme(blockHash Hash, stxn *types.SignedTxn) (TxnScheme, error) {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return TxnScheme{}, err
@@ -30,7 +30,7 @@ func newTxnScheme(blockHash Hash, stxn *SignedTxn) (TxnScheme, error) {
 	return txnSm, nil
 }
 
-func toTxnScheme(stxn *SignedTxn) (TxnScheme, error) {
+func toTxnScheme(stxn *types.SignedTxn) (TxnScheme, error) {
 	rawTxnByt, err := stxn.GetRaw().Encode()
 	if err != nil {
 		return TxnScheme{}, err
@@ -44,8 +44,8 @@ func toTxnScheme(stxn *SignedTxn) (TxnScheme, error) {
 	}, nil
 }
 
-func (t TxnScheme) toTxn() (*SignedTxn, error) {
-	ut := &UnsignedTxn{}
+func (t TxnScheme) toTxn() (*types.SignedTxn, error) {
+	ut := &types.UnsignedTxn{}
 	rawTxn, err := ut.Decode(FromHex(t.RawTxn))
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (t TxnScheme) toTxn() (*SignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &SignedTxn{
+	return &types.SignedTxn{
 		Raw:       rawTxn,
 		TxnHash:   HexToHash(t.TxnHash),
 		Pubkey:    pubkey,

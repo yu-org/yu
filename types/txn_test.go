@@ -1,4 +1,4 @@
-package txn
+package types
 
 import (
 	. "github.com/yu-org/yu/common"

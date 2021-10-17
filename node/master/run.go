@@ -2,12 +2,11 @@ package master
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
-	"github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -62,8 +61,8 @@ func (m *Master) LocalRun() (err error) {
 	})
 }
 
-func (m *Master) makeNewBasicBlock() (IBlock, error) {
-	var newBlock IBlock = m.chain.NewEmptyBlock()
+func (m *Master) makeNewBasicBlock() (types.IBlock, error) {
+	var newBlock types.IBlock = m.chain.NewEmptyBlock()
 
 	newBlock.SetTimestamp(ytime.NowNanoTsU64())
 	prevBlock, err := m.chain.GetEndBlock()
@@ -77,7 +76,7 @@ func (m *Master) makeNewBasicBlock() (IBlock, error) {
 	return newBlock, nil
 }
 
-func (m *Master) ExecuteTxns(block IBlock) error {
+func (m *Master) ExecuteTxns(block types.IBlock) error {
 	stxns, err := m.base.GetTxns(block.GetHash())
 	if err != nil {
 		return err
@@ -95,7 +94,7 @@ func (m *Master) ExecuteTxns(block IBlock) error {
 			continue
 		}
 
-		if IfLeiOut(lei, block) {
+		if types.IfLeiOut(lei, block) {
 			m.handleError(OutOfEnergy, ctx, block, stxn)
 			break
 		}
@@ -168,7 +167,7 @@ func (m *Master) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
+func (m *Master) nortifyWorker(workersIps []string, path string, newBlock types.IBlock) error {
 	blockByt, err := newBlock.Encode()
 	if err != nil {
 		return err
@@ -188,7 +187,7 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 	return nil
 }
 
-func (m *Master) handleError(err error, ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+func (m *Master) handleError(err error, ctx *context.Context, block types.IBlock, stxn *types.SignedTxn) {
 	ctx.EmitError(err)
 	ecall := stxn.GetRaw().GetEcall()
 
@@ -206,7 +205,7 @@ func (m *Master) handleError(err error, ctx *context.Context, block IBlock, stxn
 
 }
 
-func (m *Master) handleEvent(ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+func (m *Master) handleEvent(ctx *context.Context, block types.IBlock, stxn *types.SignedTxn) {
 	for _, event := range ctx.Events {
 		ecall := stxn.GetRaw().GetEcall()
 

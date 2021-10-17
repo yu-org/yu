@@ -3,7 +3,7 @@ package node
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/types"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -38,7 +38,7 @@ func PostRequest(url string, body []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func DecodeBlockFromHttp(body io.ReadCloser, chain IBlockChain) (IBlock, error) {
+func DecodeBlockFromHttp(body io.ReadCloser, chain types.IBlockChain) (types.IBlock, error) {
 	byt, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err

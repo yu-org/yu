@@ -1,13 +1,13 @@
 package txpool
 
 import (
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/yerror"
 )
 
-type TxnCheck func(*SignedTxn) error
+type TxnCheck func(*types.SignedTxn) error
 
-func Check(checks []TxnCheck, stxn *SignedTxn) error {
+func Check(checks []TxnCheck, stxn *types.SignedTxn) error {
 	for _, check := range checks {
 		err := check(stxn)
 		if err != nil {
@@ -23,14 +23,14 @@ func Check(checks []TxnCheck, stxn *SignedTxn) error {
 //	})
 //}
 
-func checkPoolLimit(txnsInPool []*SignedTxn, poolsize uint64) error {
+func checkPoolLimit(txnsInPool []*types.SignedTxn, poolsize uint64) error {
 	if uint64(len(txnsInPool)) >= poolsize {
 		return PoolOverflow
 	}
 	return nil
 }
 
-func checkSignature(stxn *SignedTxn) error {
+func checkSignature(stxn *types.SignedTxn) error {
 	sig := stxn.GetSignature()
 	ecall := stxn.GetRaw().GetEcall()
 	if !stxn.GetPubkey().VerifySignature(ecall.Bytes(), sig) {
@@ -39,7 +39,7 @@ func checkSignature(stxn *SignedTxn) error {
 	return nil
 }
 
-func checkTxnSize(txnMaxSize int, stxn *SignedTxn) error {
+func checkTxnSize(txnMaxSize int, stxn *types.SignedTxn) error {
 	if stxn.Size() > txnMaxSize {
 		return TxnTooLarge
 	}

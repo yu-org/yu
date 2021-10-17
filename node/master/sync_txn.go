@@ -5,7 +5,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
@@ -14,7 +14,7 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 		return err
 	}
 	var (
-		txns             SignedTxns
+		txns             types.SignedTxns
 		missingTxnHashes []Hash
 	)
 	for _, hash := range txnsReq.Hashes {
@@ -51,7 +51,7 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 	return writeToStream(txnsByt, s)
 }
 
-func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (SignedTxns, error) {
+func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (types.SignedTxns, error) {
 	s, err := m.host.NewStream(context.Background(), connectPeer, m.protocolID)
 	if err != nil {
 		return nil, err
@@ -72,5 +72,5 @@ func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes 
 	if err != nil {
 		return nil, err
 	}
-	return DecodeSignedTxns(respByt)
+	return types.DecodeSignedTxns(respByt)
 }

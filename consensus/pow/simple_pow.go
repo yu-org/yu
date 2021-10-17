@@ -5,17 +5,17 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/types"
 	"math"
 	"math/big"
 )
 
-func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {
+func Run(block types.IBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {
 	var hashInt big.Int
 	nonce = 0
 
-	logrus.Info("[[[Mining a new Block!!!]]]")
+	logrus.Info("[[[Mining a new CompactBlock!!!]]]")
 	for nonce < math.MaxInt64 {
 		var data []byte
 		data, err = prepareData(block, nonce, targetBits)
@@ -37,10 +37,10 @@ func Run(block IBlock, target *big.Int, targetBits int64) (nonce int64, hash com
 	return
 }
 
-func Validate(block IBlock, target *big.Int, targetBits int64) bool {
+func Validate(block types.IBlock, target *big.Int, targetBits int64) bool {
 	var hashInt big.Int
 
-	var nonce uint64 = block.GetHeader().(*Header).Nonce
+	var nonce uint64 = block.GetHeader().(*types.Header).Nonce
 	data, err := prepareData(block, int64(nonce), targetBits)
 	if err != nil {
 		return false
@@ -51,7 +51,7 @@ func Validate(block IBlock, target *big.Int, targetBits int64) bool {
 	return hashInt.Cmp(target) == -1
 }
 
-func prepareData(block IBlock, nonce, targetBits int64) ([]byte, error) {
+func prepareData(block types.IBlock, nonce, targetBits int64) ([]byte, error) {
 	num := block.GetTimestamp()
 	hex1, err := intToHex(int64(num))
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/error_handle"
 	"io"
 	"io/ioutil"
@@ -106,7 +106,7 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 		}
 	}
 
-	err = m.pubUnpackedTxns(FromArray(stxn))
+	err = m.pubUnpackedTxns(types.FromArray(stxn))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}

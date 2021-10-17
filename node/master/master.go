@@ -9,7 +9,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
@@ -18,8 +17,8 @@ import (
 	"github.com/yu-org/yu/storage/kv"
 	"github.com/yu-org/yu/subscribe"
 	. "github.com/yu-org/yu/tripod"
-	. "github.com/yu-org/yu/txn"
 	. "github.com/yu-org/yu/txpool"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/ip"
 	. "github.com/yu-org/yu/yerror"
 	"math/rand"
@@ -45,8 +44,8 @@ type Master struct {
 
 	timeout time.Duration
 
-	chain      IBlockChain
-	base       IBlockBase
+	chain      types.IBlockChain
+	base       types.IBlockBase
 	txPool     ItxPool
 	stateStore *StateStore
 
@@ -277,11 +276,11 @@ func (m *Master) CheckHealth() {
 //}
 
 // sync txns of P2P-network
-func (m *Master) SyncTxns(block IBlock) error {
+func (m *Master) SyncTxns(block types.IBlock) error {
 	txnsHashes := block.GetTxnsHashes()
 
 	needFetch := make([]Hash, 0)
-	txns := make(SignedTxns, 0)
+	txns := make(types.SignedTxns, 0)
 	for _, txnHash := range txnsHashes {
 		stxn, err := m.txPool.GetTxn(txnHash)
 		if err != nil {
@@ -330,7 +329,7 @@ func (m *Master) SyncTxns(block IBlock) error {
 	return m.base.SetTxns(block.GetHash(), txns)
 }
 
-func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
+func (m *Master) SyncHistoryBlocks(blocks []types.IBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
@@ -578,7 +577,7 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 	return txn.Set([]byte(ip), infoByt)
 }
 
-func existTxnHash(txnHash Hash, txns []*SignedTxn) (*SignedTxn, bool) {
+func existTxnHash(txnHash Hash, txns []*types.SignedTxn) (*types.SignedTxn, bool) {
 	for _, stxn := range txns {
 		if stxn.GetTxnHash() == txnHash {
 			return stxn, true

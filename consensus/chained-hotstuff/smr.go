@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
-	"github.com/yu-org/yu/blockchain"
+	"github.com/yu-org/yu/types"
 	"sync"
 	"time"
 )
@@ -377,7 +377,7 @@ func (s *Smr) EnforceUpdateHighQC(inProposalId []byte) error {
 	return s.qcTree.enforceUpdateHighQC(inProposalId)
 }
 
-func (s *Smr) BlockToProposalNode(block blockchain.IBlock) *ProposalNode {
+func (s *Smr) BlockToProposalNode(block types.IBlock) *ProposalNode {
 	blockHash := block.GetHash()
 	node := s.qcTree.DFSQueryNode(blockHash.Bytes())
 	if node != nil {

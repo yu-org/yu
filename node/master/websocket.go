@@ -8,7 +8,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/error_handle"
 	"net/http"
 )
@@ -105,7 +105,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		}
 	}
 
-	err = m.pubUnpackedTxns(FromArray(stxn))
+	err = m.pubUnpackedTxns(types.FromArray(stxn))
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.GetTxnHash().String(), err))
 	}

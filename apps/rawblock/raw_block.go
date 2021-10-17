@@ -3,8 +3,7 @@ package rawblock
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/yu-org/yu/blockchain"
-	"github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 type RawBlock struct {
@@ -12,7 +11,7 @@ type RawBlock struct {
 	TxnsByt  []byte
 }
 
-func NewRawBlock(block blockchain.IBlock, txns txn.SignedTxns) (*RawBlock, error) {
+func NewRawBlock(block types.IBlock, txns types.SignedTxns) (*RawBlock, error) {
 	blockByt, err := block.Encode()
 	if err != nil {
 		return nil, err

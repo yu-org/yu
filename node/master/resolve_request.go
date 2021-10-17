@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/node"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	"net/http"
 	"net/http/httputil"
 )
@@ -21,7 +21,7 @@ func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err 
 	return
 }
 
-func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn *SignedTxn, err error) {
+func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn *types.SignedTxn, err error) {
 	tripodName, execName = GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
@@ -34,7 +34,7 @@ func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execN
 	if err != nil {
 		return
 	}
-	stxn, err = NewSignedTxn(caller, ecall, pubkey, sig)
+	stxn, err = types.NewSignedTxn(caller, ecall, pubkey, sig)
 	return
 }
 
