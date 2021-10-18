@@ -200,7 +200,7 @@ func (m *Master) handleError(err error, ctx *context.Context, block *types.Compa
 
 	logrus.Error("push error: ", ctx.Error.Error())
 	if m.sub != nil {
-		m.sub.Push(ctx.Error)
+		m.sub.Emit(ctx.Error)
 	}
 
 }
@@ -217,7 +217,7 @@ func (m *Master) handleEvent(ctx *context.Context, block *types.CompactBlock, st
 		event.Caller = stxn.GetRaw().GetCaller()
 
 		if m.sub != nil {
-			m.sub.Push(event)
+			m.sub.Emit(event)
 		}
 	}
 }
