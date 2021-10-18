@@ -59,22 +59,22 @@ func NewMaster(
 	cfg *MasterConf,
 	env *ChainEnv,
 	land *Land,
-) (*Master, error) {
+) *Master {
 
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init nkDB error: ", err)
 	}
 	pid := protocol.ID(cfg.ProtocolID)
 	ctx := context.Background()
 	p2pHost, err := makeP2pHost(ctx, cfg)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init P2P host error: ", err)
 	}
 
 	ps, err := pubsub.NewGossipSub(ctx, p2pHost)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init p2p gossip error: ", err)
 	}
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
@@ -102,15 +102,18 @@ func NewMaster(
 
 	err = m.initTopics()
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init p2p topics error: ", err)
 	}
 	err = m.InitChain()
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init chain error: ", err)
 	}
 
 	err = m.ConnectP2PNetwork(cfg)
-	return m, err
+	if err != nil {
+		logrus.Fatal("connect to P2P error: ", err)
+	}
+	return m
 }
 
 func (m *Master) P2pID() string {

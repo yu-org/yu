@@ -9,16 +9,11 @@ import (
 )
 
 type BlockChain struct {
-	chain         ysql.SqlDB
-	blocksFromP2p ysql.SqlDB
+	chain ysql.SqlDB
 }
 
 func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
-	if err != nil {
-		return nil, err
-	}
-	blocksFromP2pDB, err := ysql.NewSqlDB(&cfg.BlocksFromP2pDB)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +24,7 @@ func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 	}
 
 	return &BlockChain{
-		chain:         chain,
-		blocksFromP2p: blocksFromP2pDB,
+		chain: chain,
 	}, nil
 }
 

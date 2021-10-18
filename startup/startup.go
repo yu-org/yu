@@ -65,10 +65,7 @@ func StartUp(tripods ...tripod.Tripod) {
 		t.SetChainEnv(env)
 	}
 
-	m, err := master.NewMaster(&masterCfg, env, land)
-	if err != nil {
-		logrus.Panicf("load master error: %s", err.Error())
-	}
+	m := master.NewMaster(&masterCfg, env, land)
 
 	m.Startup()
 }

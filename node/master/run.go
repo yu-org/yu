@@ -7,6 +7,7 @@ import (
 	. "github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -18,7 +19,7 @@ func (m *Master) Run() {
 		for {
 			err := m.LocalRun()
 			if err != nil {
-				logrus.Errorf("local-run blockchain error: %s", err.Error())
+				logrus.Panicf("local-run blockchain error: %s", err.Error())
 			}
 		}
 	case MasterWorker:
@@ -73,6 +74,7 @@ func (m *Master) makeNewBasicBlock() (*types.CompactBlock, error) {
 	newBlock.PeerID = m.host.ID()
 	newBlock.Height = prevBlock.Height + 1
 	newBlock.LeiLimit = m.leiLimit
+	newBlock.Validators = &goproto.Validators{}
 	return newBlock, nil
 }
 

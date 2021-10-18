@@ -35,6 +35,8 @@ type BlocksScheme struct {
 	ProofBlock  string
 	ProofHeight BlockNum
 	VrfProof    string
+
+	Extra string
 }
 
 func (BlocksScheme) TableName() string {
@@ -46,7 +48,7 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 	if err != nil {
 		return BlocksScheme{}, err
 	}
-	bs := BlocksScheme{
+	return BlocksScheme{
 		Hash:       b.Hash.String(),
 		PrevHash:   b.PrevHash.String(),
 		Height:     b.Height,
@@ -64,14 +66,15 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 
 		Validators: validators,
 
-		Nonce:      b.PowInfo.Nonce,
-		Difficulty: b.PowInfo.Difficulty,
+		Nonce:      b.Nonce,
+		Difficulty: b.Difficulty,
 
-		ProofBlock:  b.Proof.BlockHash.String(),
-		ProofHeight: b.Proof.Height,
-		VrfProof:    ToHex(b.Proof.VrfProof),
-	}
-	return bs, nil
+		ProofBlock:  b.ProofBlockHash.String(),
+		ProofHeight: b.ProofHeight,
+		VrfProof:    ToHex(b.VrfProof),
+
+		Extra: string(b.Extra),
+	}, nil
 }
 
 func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
@@ -110,15 +113,14 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 		Signature: FromHex(b.Signature),
 
 		Validators: &validators,
-		PowInfo: &goproto.PowInfo{
-			Nonce:      b.Nonce,
-			Difficulty: b.Difficulty,
-		},
-		Proof: &Proof{
-			BlockHash: HexToHash(b.ProofBlock),
-			Height:    b.ProofHeight,
-			VrfProof:  FromHex(b.VrfProof),
-		},
+		Nonce:      b.Nonce,
+		Difficulty: b.Difficulty,
+
+		ProofBlockHash: HexToHash(b.ProofBlock),
+		ProofHeight:    b.ProofHeight,
+		VrfProof:       FromHex(b.VrfProof),
+
+		Extra: []byte(b.Extra),
 	}
 	block := &CompactBlock{
 		Header:     header,
