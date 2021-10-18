@@ -9,7 +9,7 @@ import (
 type (
 	// Developers define the 'Execution' in the pod to let clients call.
 	// Just like transactions in ETH, extrinsic in Substrate
-	Execution func(ctx *Context, currentBlock types.IBlock) error
+	Execution func(ctx *Context, currentBlock *types.CompactBlock) error
 	// Developers define the 'Query' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.
 	// respObj is a json object

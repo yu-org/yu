@@ -14,13 +14,13 @@ type Tripod interface {
 
 	CheckTxn(*types.SignedTxn) error
 
-	VerifyBlock(block types.IBlock) bool
+	VerifyBlock(block *types.CompactBlock) bool
 
 	InitChain() error
 
-	StartBlock(block types.IBlock) error
+	StartBlock(block *types.CompactBlock) error
 
-	EndBlock(block types.IBlock) error
+	EndBlock(block *types.CompactBlock) error
 
-	FinalizeBlock(block types.IBlock) error
+	FinalizeBlock(block *types.CompactBlock) error
 }

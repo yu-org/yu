@@ -11,7 +11,7 @@ type RawBlock struct {
 	TxnsByt  []byte
 }
 
-func NewRawBlock(block types.IBlock, txns types.SignedTxns) (*RawBlock, error) {
+func NewRawBlock(block *types.CompactBlock, txns types.SignedTxns) (*RawBlock, error) {
 	blockByt, err := block.Encode()
 	if err != nil {
 		return nil, err

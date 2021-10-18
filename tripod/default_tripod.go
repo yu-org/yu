@@ -29,7 +29,7 @@ func (*DefaultTripod) CheckTxn(*types.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) VerifyBlock(types.IBlock) bool {
+func (*DefaultTripod) VerifyBlock(*types.CompactBlock) bool {
 	return true
 }
 
@@ -37,14 +37,14 @@ func (*DefaultTripod) InitChain() error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(types.IBlock) error {
+func (*DefaultTripod) StartBlock(*types.CompactBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(types.IBlock) error {
+func (*DefaultTripod) EndBlock(*types.CompactBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(types.IBlock) error {
+func (*DefaultTripod) FinalizeBlock(*types.CompactBlock) error {
 	return nil
 }

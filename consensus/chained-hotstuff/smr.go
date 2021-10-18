@@ -377,13 +377,13 @@ func (s *Smr) EnforceUpdateHighQC(inProposalId []byte) error {
 	return s.qcTree.enforceUpdateHighQC(inProposalId)
 }
 
-func (s *Smr) BlockToProposalNode(block types.IBlock) *ProposalNode {
-	blockHash := block.GetHash()
+func (s *Smr) BlockToProposalNode(block *types.CompactBlock) *ProposalNode {
+	blockHash := block.Hash
 	node := s.qcTree.DFSQueryNode(blockHash.Bytes())
 	if node != nil {
 		return node
 	}
-	height := int64(block.GetHeight())
+	height := int64(block.Height)
 	return &ProposalNode{
 		In: &QuorumCert{
 			VoteInfo: &VoteInfo{

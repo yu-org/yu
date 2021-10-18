@@ -178,14 +178,14 @@ func (m *Master) InitChain() error {
 //			if tri.VerifyBlock(block, m.GetEnv()) {
 //				return nil
 //			}
-//			return BlockIllegal(block.GetHash())
+//			return BlockIllegal(block.Hash)
 //		})
 //		if err != nil {
 //			return err
 //		}
 //	}
 //
-//	logrus.Debugf("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
+//	logrus.Debugf("accept block(%s) height(%d) from p2p", block.Hash.String(), block.Height)
 //	return m.chain.InsertBlockFromP2P(block)
 //}
 
@@ -276,8 +276,8 @@ func (m *Master) CheckHealth() {
 //}
 
 // sync txns of P2P-network
-func (m *Master) SyncTxns(block types.IBlock) error {
-	txnsHashes := block.GetTxnsHashes()
+func (m *Master) SyncTxns(block *types.CompactBlock) error {
+	txnsHashes := block.TxnsHashes
 
 	needFetch := make([]Hash, 0)
 	txns := make(types.SignedTxns, 0)
@@ -299,12 +299,12 @@ func (m *Master) SyncTxns(block types.IBlock) error {
 
 		var fetchPeer peer.ID
 		if m.ConnectedPeers == nil {
-			fetchPeer = block.GetPeerID()
+			fetchPeer = block.PeerID
 		} else {
 			fetchPeer = m.ConnectedPeers[0]
 		}
 
-		fetchedTxns, err := m.requestTxns(fetchPeer, block.GetPeerID(), needFetch)
+		fetchedTxns, err := m.requestTxns(fetchPeer, block.PeerID, needFetch)
 		if err != nil {
 			return err
 		}
@@ -323,17 +323,17 @@ func (m *Master) SyncTxns(block types.IBlock) error {
 			}
 		}
 
-		return m.base.SetTxns(block.GetHash(), fetchedTxns)
+		return m.base.SetTxns(block.Hash, fetchedTxns)
 	}
 
-	return m.base.SetTxns(block.GetHash(), txns)
+	return m.base.SetTxns(block.Hash, txns)
 }
 
-func (m *Master) SyncHistoryBlocks(blocks []types.IBlock) error {
+func (m *Master) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
-			logrus.Trace("sync history block is ", block.GetHash().String())
+			logrus.Trace("sync history block is ", block.Hash.String())
 
 			err := m.SyncTxns(block)
 			if err != nil {
@@ -344,7 +344,7 @@ func (m *Master) SyncHistoryBlocks(blocks []types.IBlock) error {
 				if tri.VerifyBlock(block) {
 					return nil
 				}
-				return BlockIllegal(block.GetHash())
+				return BlockIllegal(block.Hash)
 			})
 			if err != nil {
 				return err

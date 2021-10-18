@@ -38,10 +38,10 @@ func PostRequest(url string, body []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func DecodeBlockFromHttp(body io.ReadCloser, chain types.IBlockChain) (types.IBlock, error) {
+func DecodeBlockFromHttp(body io.ReadCloser, chain types.IBlockChain) (*types.CompactBlock, error) {
 	byt, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}
-	return chain.NewEmptyBlock().Decode(byt)
+	return types.DecodeCompactBlock(byt)
 }

@@ -15,7 +15,7 @@ type ChainEnv struct {
 
 	Sub *Subscription
 
-	Execute func(block types.IBlock) error
+	Execute func(block *types.CompactBlock) error
 
 	PubP2P func(topic string, msg []byte) error
 	SubP2P func(topic string) ([]byte, error)

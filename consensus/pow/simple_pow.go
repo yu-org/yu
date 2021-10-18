@@ -11,7 +11,7 @@ import (
 	"math/big"
 )
 
-func Run(block types.IBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {
+func Run(block *types.CompactBlock, target *big.Int, targetBits int64) (nonce int64, hash common.Hash, err error) {
 	var hashInt big.Int
 	nonce = 0
 
@@ -37,7 +37,7 @@ func Run(block types.IBlock, target *big.Int, targetBits int64) (nonce int64, ha
 	return
 }
 
-func Validate(block types.IBlock, target *big.Int, targetBits int64) bool {
+func Validate(block *types.CompactBlock, target *big.Int, targetBits int64) bool {
 	var hashInt big.Int
 
 	var nonce uint64 = block.GetHeader().(*types.Header).Nonce
@@ -51,7 +51,7 @@ func Validate(block types.IBlock, target *big.Int, targetBits int64) bool {
 	return hashInt.Cmp(target) == -1
 }
 
-func prepareData(block types.IBlock, nonce, targetBits int64) ([]byte, error) {
+func prepareData(block *types.CompactBlock, nonce, targetBits int64) ([]byte, error) {
 	num := block.GetTimestamp()
 	hex1, err := intToHex(int64(num))
 	if err != nil {

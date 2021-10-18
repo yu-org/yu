@@ -154,3 +154,17 @@ func HashesToBytes(hs []Hash) []byte {
 func BytesToHashes(data []byte) []Hash {
 	return HexToHashes(string(data))
 }
+
+func HashesToTwoBytes(hs []Hash) (byts [][]byte) {
+	for _, h := range hs {
+		byts = append(byts, h.Bytes())
+	}
+	return
+}
+
+func TwoBytesToHashes(byts [][]byte) (hs []Hash) {
+	for _, byt := range byts {
+		hs = append(hs, BytesToHash(byt))
+	}
+	return
+}

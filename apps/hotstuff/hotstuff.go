@@ -47,7 +47,7 @@ func (h *Hotstuff) CheckTxn(txn *types.SignedTxn) error {
 	return nil
 }
 
-func (h *Hotstuff) VerifyBlock(block types.IBlock, env *ChainEnv) bool {
+func (h *Hotstuff) VerifyBlock(block *types.CompactBlock, env *ChainEnv) bool {
 	return true
 }
 
@@ -59,15 +59,15 @@ func (h *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (h *Hotstuff) StartBlock(block types.IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) StartBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) EndBlock(block types.IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) EndBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) FinalizeBlock(block types.IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) FinalizeBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
@@ -99,13 +99,13 @@ func (h *Hotstuff) CompeteLeader() string {
 	return h.smr.Election.GetLeader(h.smr.GetCurrentView())
 }
 
-func (h *Hotstuff) CompeteBlock(block types.IBlock) error {
+func (h *Hotstuff) CompeteBlock(block *types.CompactBlock) error {
 	miner := h.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
 	if miner != h.smr.GetAddress() {
 		return nil
 	}
-	proposal, err := h.smr.DoProposal(int64(block.GetHeight()), block.GetHash().Bytes(), h.validatorsIP)
+	proposal, err := h.smr.DoProposal(int64(block.Height), block.Hash.Bytes(), h.validatorsIP)
 	if err != nil {
 		return err
 	}

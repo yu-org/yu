@@ -31,7 +31,7 @@ func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context, _ types.IBlock) (err error) {
+func (a *Asset) Transfer(ctx *Context, _ *types.CompactBlock) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
@@ -68,7 +68,7 @@ func (a *Asset) Transfer(ctx *Context, _ types.IBlock) (err error) {
 	return
 }
 
-func (a *Asset) CreateAccount(ctx *Context, _ types.IBlock) error {
+func (a *Asset) CreateAccount(ctx *Context, _ *types.CompactBlock) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 

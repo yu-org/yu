@@ -281,7 +281,7 @@ func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[
 
 	txnsByt := make(map[Hash][]byte)
 	for _, block := range blocks {
-		blockHash := block.GetHash()
+		blockHash := block.Hash
 		txns, err := m.base.GetTxns(blockHash)
 		if err != nil {
 			return nil, nil, err

@@ -1,11 +1,11 @@
 package types
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/trie"
 	"github.com/yu-org/yu/types/goproto"
-	. "github.com/yu-org/yu/yerror"
 )
 
 type Block struct {
@@ -14,12 +14,51 @@ type Block struct {
 }
 
 type CompactBlock struct {
-	Header     *Header
+	*Header
 	TxnsHashes []Hash
 }
 
-func IfLeiOut(Lei uint64, block IBlock) bool {
-	return Lei+block.GetLeiUsed() > block.GetLeiLimit()
+func (b *CompactBlock) CopyFrom(other *CompactBlock) {
+	*b = *other
+}
+
+func (b *CompactBlock) UseLei(lei uint64) {
+	b.Header.LeiUsed += lei
+}
+
+func (b *CompactBlock) Encode() ([]byte, error) {
+	return proto.Marshal(b.ToPb())
+}
+
+func DecodeCompactBlock(byt []byte) (*CompactBlock, error) {
+	var b goproto.CompactBlock
+	err := proto.Unmarshal(byt, &b)
+	if err != nil {
+		return nil, err
+	}
+	return CompactBlockFromPb(&b)
+}
+
+func (b *CompactBlock) ToPb() *goproto.CompactBlock {
+	return &goproto.CompactBlock{
+		Header:     b.Header.ToPb(),
+		TxnsHashes: HashesToTwoBytes(b.TxnsHashes),
+	}
+}
+
+func CompactBlockFromPb(pb *goproto.CompactBlock) (*CompactBlock, error) {
+	header, err := HeaderFromPb(pb.Header)
+	if err != nil {
+		return nil, err
+	}
+	return &CompactBlock{
+		Header:     header,
+		TxnsHashes: TwoBytesToHashes(pb.TxnsHashes),
+	}, nil
+}
+
+func IfLeiOut(Lei uint64, block *CompactBlock) bool {
+	return Lei+block.LeiUsed > block.LeiLimit
 }
 
 func MakeTxnRoot(txns []*SignedTxn) (Hash, error) {
@@ -47,7 +86,10 @@ type Header struct {
 	LeiLimit uint64
 	LeiUsed  uint64
 
-	Validators []*goproto.Validator
+	Pubkey    []byte
+	Signature []byte
+
+	Validators *goproto.Validators
 	Proof      *Proof
 	PowInfo    *goproto.PowInfo
 }
@@ -97,8 +139,6 @@ func HeaderFromPb(pb *goproto.Header) (*Header, error) {
 type Proof struct {
 	BlockHash Hash
 	Height    BlockNum
-	Pubkey    []byte
-	Signature []byte
 	VrfProof  []byte
 }
 
@@ -106,8 +146,6 @@ func (p *Proof) ToPb() *goproto.Proof {
 	return &goproto.Proof{
 		BlockHash: p.BlockHash.Bytes(),
 		Height:    uint64(p.Height),
-		PubKey:    p.Pubkey,
-		Signature: p.Signature,
 		VrfProof:  p.VrfProof,
 	}
 }
@@ -116,8 +154,6 @@ func ProofFromPb(pb *goproto.Proof) *Proof {
 	return &Proof{
 		BlockHash: BytesToHash(pb.BlockHash),
 		Height:    BlockNum(pb.Height),
-		Pubkey:    pb.PubKey,
-		Signature: pb.Signature,
 		VrfProof:  pb.VrfProof,
 	}
 }

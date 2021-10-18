@@ -1,9 +1,12 @@
 package blockchain
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/types"
+	. "github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/types/goproto"
 )
 
 type BlocksScheme struct {
@@ -21,37 +24,57 @@ type BlocksScheme struct {
 
 	Finalize bool
 
-	Nonce     uint64
+	Pubkey    string
 	Signature string
+
+	Validators []byte
+
+	Nonce      uint64
+	Difficulty uint64
+
+	ProofBlock  string
+	ProofHeight BlockNum
+	VrfProof    string
 }
 
 func (BlocksScheme) TableName() string {
 	return "blockchain"
 }
 
-func toBlocksScheme(b types.IBlock) (BlocksScheme, error) {
+func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
+	validators, err := proto.Marshal(b.Validators)
+	if err != nil {
+		return BlocksScheme{}, err
+	}
 	bs := BlocksScheme{
-		Hash:       b.GetHash().String(),
-		PrevHash:   b.GetPrevHash().String(),
-		Height:     b.GetHeight(),
-		TxnRoot:    b.GetTxnRoot().String(),
-		StateRoot:  b.GetStateRoot().String(),
-		Nonce:      b.GetHeader().(*types.Header).Nonce,
-		Timestamp:  b.GetTimestamp(),
-		TxnsHashes: HashesToHex(b.GetTxnsHashes()),
-		PeerID:     b.GetPeerID().String(),
+		Hash:       b.Hash.String(),
+		PrevHash:   b.PrevHash.String(),
+		Height:     b.Height,
+		TxnRoot:    b.TxnRoot.String(),
+		StateRoot:  b.StateRoot.String(),
+		Timestamp:  b.Timestamp,
+		TxnsHashes: HashesToHex(b.TxnsHashes),
+		PeerID:     b.PeerID.String(),
+		Finalize:   false,
+		LeiLimit:   b.LeiLimit,
+		LeiUsed:    b.LeiUsed,
 
-		LeiLimit: b.GetLeiLimit(),
-		LeiUsed:  b.GetLeiUsed(),
+		Pubkey:    ToHex(b.Pubkey),
+		Signature: ToHex(b.Signature),
 
-		Finalize: false,
+		Validators: validators,
 
-		Signature: ToHex(b.GetSignature()),
+		Nonce:      b.PowInfo.Nonce,
+		Difficulty: b.PowInfo.Difficulty,
+
+		ProofBlock:  b.Proof.BlockHash.String(),
+		ProofHeight: b.Proof.Height,
+		VrfProof:    ToHex(b.Proof.VrfProof),
 	}
 	return bs, nil
 }
 
-func (b *BlocksScheme) toBlock() (types.IBlock, error) {
+func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 	var (
 		PeerID peer.ID
 		err    error
@@ -65,20 +88,39 @@ func (b *BlocksScheme) toBlock() (types.IBlock, error) {
 		}
 	}
 
-	header := &types.Header{
+	var validators goproto.Validators
+	err = proto.Unmarshal(b.Validators, &validators)
+	if err != nil {
+		return nil, err
+	}
+
+	header := &Header{
 		PrevHash:  HexToHash(b.PrevHash),
 		Hash:      HexToHash(b.Hash),
 		Height:    b.Height,
 		TxnRoot:   HexToHash(b.TxnRoot),
 		StateRoot: HexToHash(b.StateRoot),
-		Nonce:     b.Nonce,
 		Timestamp: b.Timestamp,
 		PeerID:    PeerID,
-		LeiLimit:  b.LeiLimit,
-		LeiUsed:   b.LeiUsed,
+
+		LeiLimit: b.LeiLimit,
+		LeiUsed:  b.LeiUsed,
+
+		Pubkey:    FromHex(b.Pubkey),
 		Signature: FromHex(b.Signature),
+
+		Validators: &validators,
+		PowInfo: &goproto.PowInfo{
+			Nonce:      b.Nonce,
+			Difficulty: b.Difficulty,
+		},
+		Proof: &Proof{
+			BlockHash: HexToHash(b.ProofBlock),
+			Height:    b.ProofHeight,
+			VrfProof:  FromHex(b.VrfProof),
+		},
 	}
-	block := &types.CompactBlock{
+	block := &CompactBlock{
 		Header:     header,
 		TxnsHashes: HexToHashes(b.TxnsHashes),
 	}
@@ -86,55 +128,50 @@ func (b *BlocksScheme) toBlock() (types.IBlock, error) {
 	return block, nil
 }
 
-type BlocksFromP2pScheme struct {
-	BlockHash     string `gorm:"primaryKey"`
-	Height        BlockNum
-	BlockContent  string
-	BlockProducer string
-}
-
-func (BlocksFromP2pScheme) TableName() string {
-	return "blocks_from_p2p"
-}
-
-func toBlocksFromP2pScheme(b types.IBlock) (BlocksFromP2pScheme, error) {
-	byt, err := b.Encode()
-	if err != nil {
-		return BlocksFromP2pScheme{}, err
-	}
-	return BlocksFromP2pScheme{
-		BlockHash:    b.GetHash().String(),
-		Height:       b.GetHeight(),
-		BlockContent: ToHex(byt),
-	}, nil
-}
-
-func (bs BlocksFromP2pScheme) toBlock() (types.IBlock, error) {
-	byt := FromHex(bs.BlockContent)
-	b := &types.CompactBlock{}
-	return b.Decode(byt)
-}
-
-func bssToBlocks(bss []BlocksScheme) []types.IBlock {
-	blocks := make([]types.IBlock, 0)
+func bssToBlocks(bss []BlocksScheme) []*CompactBlock {
+	blocks := make([]*CompactBlock, 0)
 	for _, bs := range bss {
 		b, err := bs.toBlock()
 		if err != nil {
-			return nil
+			logrus.Panic("blockscheme to CompactBlock error: ", err)
 		}
 		blocks = append(blocks, b)
 	}
 	return blocks
 }
 
-func bspToBlocks(bsp []BlocksFromP2pScheme) []types.IBlock {
-	blocks := make([]types.IBlock, 0)
-	for _, bs := range bsp {
-		b, err := bs.toBlock()
-		if err != nil {
-			return nil
-		}
-		blocks = append(blocks, b)
-	}
-	return blocks
-}
+//type ValidatorScheme struct {
+//	BlockHash     string
+//	Pubkey        string
+//	ProposeWeight uint64
+//	VoteWeight    uint64
+//}
+//
+//func (ValidatorScheme) TableName() string {
+//	return "blockchain"
+//}
+//
+//func toValidatorScheme(pb *goproto.Validator) ValidatorScheme {
+//	return ValidatorScheme{
+//		BlockHash:     "",
+//		Pubkey:        pb.String(),
+//		ProposeWeight: pb.ProposeWeight,
+//		VoteWeight:    pb.VoteWeight,
+//	}
+//}
+//
+//func (v *ValidatorScheme) toValidator() *goproto.Validator {
+//	return &goproto.Validator{
+//		PubKey:        FromHex(v.Pubkey),
+//		ProposeWeight: v.ProposeWeight,
+//		VoteWeight:    v.VoteWeight,
+//	}
+//}
+//
+//func vssToValidators(vss []ValidatorScheme) []*goproto.Validator {
+//	validators := make([]*goproto.Validator, 0)
+//	for _, vs := range vss {
+//		validators = append(validators, vs.toValidator())
+//	}
+//	return validators
+//}

@@ -73,9 +73,9 @@ func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
 	}
 
 	return &HandShakeInfo{
-		GenesisBlockHash: gBlock.GetHash(),
-		EndHeight:        eBlock.GetHeight(),
-		EndBlockHash:     eBlock.GetHash(),
+		GenesisBlockHash: gBlock.Hash,
+		EndHeight:        eBlock.Height,
+		EndBlockHash:     eBlock.Hash,
 	}, nil
 }
 
