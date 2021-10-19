@@ -84,8 +84,8 @@ func (m *Master) ExecuteTxns(block *types.CompactBlock) error {
 		return err
 	}
 	for _, stxn := range stxns {
-		ecall := stxn.GetRaw().GetEcall()
-		ctx, err := context.NewContext(stxn.GetPubkey().Address(), ecall.Params)
+		ecall := stxn.Raw.Ecall
+		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params)
 		if err != nil {
 			return err
 		}
@@ -191,9 +191,9 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock *types
 
 func (m *Master) handleError(err error, ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	ctx.EmitError(err)
-	ecall := stxn.GetRaw().GetEcall()
+	ecall := stxn.Raw.Ecall
 
-	ctx.Error.Caller = stxn.GetRaw().GetCaller()
+	ctx.Error.Caller = stxn.Raw.Caller
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = ecall.TripodName
 	ctx.Error.ExecName = ecall.ExecName
@@ -209,14 +209,14 @@ func (m *Master) handleError(err error, ctx *context.Context, block *types.Compa
 
 func (m *Master) handleEvent(ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	for _, event := range ctx.Events {
-		ecall := stxn.GetRaw().GetEcall()
+		ecall := stxn.Raw.Ecall
 
 		event.Height = block.Height
 		event.BlockHash = block.Hash
 		event.ExecName = ecall.ExecName
 		event.TripodName = ecall.TripodName
 		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.GetRaw().GetCaller()
+		event.Caller = stxn.Raw.Caller
 
 		if m.sub != nil {
 			m.sub.Emit(event)

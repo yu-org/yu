@@ -31,22 +31,21 @@ func newTxnScheme(blockHash Hash, stxn *SignedTxn) (TxnScheme, error) {
 }
 
 func toTxnScheme(stxn *SignedTxn) (TxnScheme, error) {
-	rawTxnByt, err := stxn.GetRaw().Encode()
+	rawTxnByt, err := stxn.Raw.Encode()
 	if err != nil {
 		return TxnScheme{}, err
 	}
 	return TxnScheme{
-		TxnHash:   stxn.GetTxnHash().String(),
-		Pubkey:    stxn.GetPubkey().StringWithType(),
-		Signature: ToHex(stxn.GetSignature()),
+		TxnHash:   stxn.TxnHash.String(),
+		Pubkey:    stxn.Pubkey.StringWithType(),
+		Signature: ToHex(stxn.Signature),
 		RawTxn:    ToHex(rawTxnByt),
 		BlockHash: "",
 	}, nil
 }
 
 func (t TxnScheme) toTxn() (*SignedTxn, error) {
-	ut := &UnsignedTxn{}
-	rawTxn, err := ut.Decode(FromHex(t.RawTxn))
+	rawTxn, err := DecodeUnsignedTxn(FromHex(t.RawTxn))
 	if err != nil {
 		return nil, err
 	}

@@ -93,7 +93,7 @@ func IfLeiOut(Lei uint64, block *CompactBlock) bool {
 func MakeTxnRoot(txns []*SignedTxn) (Hash, error) {
 	txnsBytes := make([]Hash, 0)
 	for _, tx := range txns {
-		hash := tx.GetTxnHash()
+		hash := tx.TxnHash
 		txnsBytes = append(txnsBytes, hash)
 	}
 	mTree := trie.NewMerkleTree(txnsBytes)

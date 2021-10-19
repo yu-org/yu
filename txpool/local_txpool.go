@@ -120,7 +120,7 @@ func (tp *LocalTxPool) PackFor(numLimit uint64, filter func(*types.SignedTxn) er
 		if i >= len(tp.Txns) {
 			break
 		}
-		logrus.Info("********************** pack txn: ", tp.Txns[i].GetTxnHash().String())
+		logrus.Info("********************** pack txn: ", tp.Txns[i].TxnHash.String())
 		err := filter(tp.Txns[i])
 		if err != nil {
 			return nil, err
@@ -158,7 +158,7 @@ func (tp *LocalTxPool) RemoveTxns(hashes []Hash) error {
 func (tp *LocalTxPool) Reset() error {
 	tp.Lock()
 	for _, stxn := range tp.Txns[:tp.startPackIdx] {
-		delete(tp.txnsMap, stxn.GetTxnHash())
+		delete(tp.txnsMap, stxn.TxnHash)
 	}
 	tp.Txns = tp.Txns[tp.startPackIdx:]
 	tp.startPackIdx = 0

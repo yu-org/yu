@@ -6,7 +6,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/keypair"
 	"github.com/yu-org/yu/types/goproto"
-	. "github.com/yu-org/yu/utils/codec"
 	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
 )
@@ -55,22 +54,6 @@ func SignedTxFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
 		Pubkey:    pubkey,
 		Signature: pb.Signature,
 	}, nil
-}
-
-func (st *SignedTxn) GetRaw() *UnsignedTxn {
-	return st.Raw
-}
-
-func (st *SignedTxn) GetTxnHash() Hash {
-	return st.TxnHash
-}
-
-func (st *SignedTxn) GetPubkey() PubKey {
-	return st.Pubkey
-}
-
-func (st *SignedTxn) GetSignature() []byte {
-	return st.Signature
 }
 
 func (st *SignedTxn) Encode() ([]byte, error) {
@@ -128,7 +111,7 @@ func (sts SignedTxns) Hashes() (hashes []Hash) {
 
 func (sts SignedTxns) Remove(hash Hash) (int, SignedTxns) {
 	for i, stxn := range sts {
-		if stxn.GetTxnHash() == hash {
+		if stxn.TxnHash == hash {
 			if i == 0 {
 				sts = sts[1:]
 				return i, sts
@@ -146,47 +129,16 @@ func (sts SignedTxns) Remove(hash Hash) (int, SignedTxns) {
 }
 
 func (sts SignedTxns) Encode() ([]byte, error) {
-	var msts extSignedTxns
-	for _, st := range sts {
-		msts = append(msts, &extSignedTxn{
-			Raw:       st.Raw,
-			TxnHash:   st.TxnHash,
-			Pubkey:    st.Pubkey.BytesWithType(),
-			Signature: st.Signature,
-		})
-	}
-	return GlobalCodec.EncodeToBytes(msts)
+	return proto.Marshal(sts.ToPb())
 }
 
 func DecodeSignedTxns(data []byte) (SignedTxns, error) {
-	mtxns := extSignedTxns{}
-	err := GlobalCodec.DecodeBytes(data, &mtxns)
+	var pb goproto.SignedTxns
+	err := proto.Unmarshal(data, &pb)
 	if err != nil {
 		return nil, err
 	}
-	var sts SignedTxns
-	for _, mtxn := range mtxns {
-		pubKey, err := PubKeyFromBytes(mtxn.Pubkey)
-		if err != nil {
-			return nil, err
-		}
-		sts = append(sts, &SignedTxn{
-			Raw:       mtxn.Raw,
-			TxnHash:   mtxn.TxnHash,
-			Pubkey:    pubKey,
-			Signature: mtxn.Signature,
-		})
-	}
-	return sts, err
-}
-
-type extSignedTxns []*extSignedTxn
-
-type extSignedTxn struct {
-	Raw       *UnsignedTxn
-	TxnHash   Hash
-	Pubkey    []byte
-	Signature []byte
+	return SignedTxnsFromPb(&pb)
 }
 
 type UnsignedTxn struct {
@@ -236,22 +188,6 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	}
 }
 
-func (ut *UnsignedTxn) ID() Hash {
-	return ut.Id
-}
-
-func (ut *UnsignedTxn) GetCaller() Address {
-	return ut.Caller
-}
-
-func (ut *UnsignedTxn) GetEcall() *Ecall {
-	return ut.Ecall
-}
-
-func (ut *UnsignedTxn) GetTimestamp() uint64 {
-	return ut.Timestamp
-}
-
 func (ut *UnsignedTxn) Hash() (Hash, error) {
 	var hash Hash
 	byt, err := ut.Encode()
@@ -263,10 +199,14 @@ func (ut *UnsignedTxn) Hash() (Hash, error) {
 }
 
 func (ut *UnsignedTxn) Encode() ([]byte, error) {
-	return GlobalCodec.EncodeToBytes(ut)
+	return proto.Marshal(ut.ToPb())
 }
 
-func (ut *UnsignedTxn) Decode(data []byte) (*UnsignedTxn, error) {
-	err := GlobalCodec.DecodeBytes(data, ut)
-	return ut, err
+func DecodeUnsignedTxn(data []byte) (*UnsignedTxn, error) {
+	var pb goproto.UnsignedTxn
+	err := proto.Unmarshal(data, &pb)
+	if err != nil {
+		return nil, err
+	}
+	return UnsignedTxnFromPb(&pb), nil
 }

@@ -203,7 +203,7 @@ func (m *Master) AcceptUnpkgTxns() error {
 		//// key: workerIP
 		//forwardMap := make(map[string]*TxnsAndWorkerName)
 		//for _, txn := range txns {
-		//	ecall := txn.GetRaw().GetEcall()
+		//	ecall := txn.GetRaw().Ecall
 		//	tripodName := ecall.TripodName
 		//	execName := ecall.ExecName
 		//	workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
@@ -582,7 +582,7 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 
 func existTxnHash(txnHash Hash, txns []*types.SignedTxn) (*types.SignedTxn, bool) {
 	for _, stxn := range txns {
-		if stxn.GetTxnHash() == txnHash {
+		if stxn.TxnHash == txnHash {
 			return stxn, true
 		}
 	}

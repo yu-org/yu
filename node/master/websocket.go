@@ -94,7 +94,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params s
 		//	return
 		//}
 	case LocalNode:
-		_, _, err = m.land.GetExecLei(stxn.GetRaw().GetEcall())
+		_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
 		if err != nil {
 			return
 		}
@@ -107,7 +107,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params s
 
 	err = m.pubUnpackedTxns(types.FromArray(stxn))
 	if err != nil {
-		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.GetTxnHash().String(), err))
+		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
 	}
 	logrus.Info("publish unpacked txns to P2P")
 }
