@@ -161,7 +161,7 @@ func (m *Master) handleHttpQry(c *gin.Context) {
 
 }
 
-func readPostBody(body io.ReadCloser) (JsonString, error) {
+func readPostBody(body io.ReadCloser) (string, error) {
 	byt, err := ioutil.ReadAll(body)
-	return JsonString(byt), err
+	return string(byt), err
 }

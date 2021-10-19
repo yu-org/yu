@@ -14,6 +14,37 @@ type Block struct {
 	Txns SignedTxns
 }
 
+func (b *Block) Encode() ([]byte, error) {
+	return proto.Marshal(b.ToPb())
+}
+
+func DecodeBlock(data []byte) (*Block, error) {
+	var b goproto.Block
+	err := proto.Unmarshal(data, &b)
+	if err != nil {
+		return nil, err
+	}
+	return BlockFromPb(&b)
+}
+
+func (b *Block) ToPb() *goproto.Block {
+	return &goproto.Block{
+		CompactBlock: b.CompactBlock.ToPb(),
+		Txns:         b.Txns.ToPb(),
+	}
+}
+
+func BlockFromPb(pb *goproto.Block) (*Block, error) {
+	txns, err := SignedTxnsFromPb(pb.Txns)
+	if err != nil {
+		return nil, err
+	}
+	return &Block{
+		CompactBlock: CompactBlockFromPb(pb.CompactBlock),
+		Txns:         txns,
+	}, nil
+}
+
 type CompactBlock struct {
 	*Header
 	TxnsHashes []Hash
@@ -27,8 +58,8 @@ func (b *CompactBlock) UseLei(lei uint64) {
 	b.Header.LeiUsed += lei
 }
 
-func (b *CompactBlock) Encode() ([]byte, error) {
-	return proto.Marshal(b.ToPb())
+func (cb *CompactBlock) Encode() ([]byte, error) {
+	return proto.Marshal(cb.ToPb())
 }
 
 func DecodeCompactBlock(byt []byte) (*CompactBlock, error) {
@@ -40,10 +71,10 @@ func DecodeCompactBlock(byt []byte) (*CompactBlock, error) {
 	return CompactBlockFromPb(&b), nil
 }
 
-func (b *CompactBlock) ToPb() *goproto.CompactBlock {
+func (cb *CompactBlock) ToPb() *goproto.CompactBlock {
 	return &goproto.CompactBlock{
-		Header:     b.Header.ToPb(),
-		TxnsHashes: HashesToTwoBytes(b.TxnsHashes),
+		Header:     cb.Header.ToPb(),
+		TxnsHashes: HashesToTwoBytes(cb.TxnsHashes),
 	}
 }
 

@@ -2,8 +2,10 @@ package types
 
 import (
 	"crypto/sha256"
+	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/keypair"
+	"github.com/yu-org/yu/types/goproto"
 	. "github.com/yu-org/yu/utils/codec"
 	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
@@ -33,6 +35,28 @@ func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*Sig
 	}, nil
 }
 
+func (st *SignedTxn) ToPb() *goproto.SignedTxn {
+	return &goproto.SignedTxn{
+		Raw:       st.Raw.ToPb(),
+		TxnHash:   st.TxnHash.Bytes(),
+		Pubkey:    st.Pubkey.BytesWithType(),
+		Signature: st.Signature,
+	}
+}
+
+func SignedTxFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
+	pubkey, err := PubKeyFromBytes(pb.Pubkey)
+	if err != nil {
+		return nil, err
+	}
+	return &SignedTxn{
+		Raw:       UnsignedTxnFromPb(pb.Raw),
+		TxnHash:   BytesToHash(pb.TxnHash),
+		Pubkey:    pubkey,
+		Signature: pb.Signature,
+	}, nil
+}
+
 func (st *SignedTxn) GetRaw() *UnsignedTxn {
 	return st.Raw
 }
@@ -50,7 +74,7 @@ func (st *SignedTxn) GetSignature() []byte {
 }
 
 func (st *SignedTxn) Encode() ([]byte, error) {
-	return GlobalCodec.EncodeToBytes(st)
+	return proto.Marshal(st.ToPb())
 }
 
 func (st *SignedTxn) Size() int {
@@ -64,6 +88,26 @@ func (st *SignedTxn) Size() int {
 //}
 
 type SignedTxns []*SignedTxn
+
+func (sts SignedTxns) ToPb() *goproto.SignedTxns {
+	var pbTxns []*goproto.SignedTxn
+	for _, st := range sts {
+		pbTxns = append(pbTxns, st.ToPb())
+	}
+	return &goproto.SignedTxns{Txns: pbTxns}
+}
+
+func SignedTxnsFromPb(pb *goproto.SignedTxns) (SignedTxns, error) {
+	var sts SignedTxns
+	for _, tx := range pb.Txns {
+		txn, err := SignedTxFromPb(tx)
+		if err != nil {
+			return nil, err
+		}
+		sts = append(sts, txn)
+	}
+	return sts, nil
+}
 
 func FromArray(txns ...*SignedTxn) SignedTxns {
 	var stxns SignedTxns
@@ -164,6 +208,32 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 	}
 	utxn.Id = id
 	return utxn, nil
+}
+
+func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
+	return &goproto.UnsignedTxn{
+		ID:     ut.Id.Bytes(),
+		Caller: ut.Caller.Bytes(),
+		Ecall: &goproto.Ecall{
+			TripodName: ut.Ecall.TripodName,
+			ExecName:   ut.Ecall.ExecName,
+			Params:     ut.Ecall.Params,
+		},
+		Timestamp: ut.Timestamp,
+	}
+}
+
+func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
+	return &UnsignedTxn{
+		Id:     BytesToHash(pb.ID),
+		Caller: BytesToAddress(pb.Caller),
+		Ecall: &Ecall{
+			TripodName: pb.Ecall.TripodName,
+			ExecName:   pb.Ecall.ExecName,
+			Params:     pb.Ecall.Params,
+		},
+		Timestamp: 0,
+	}
 }
 
 func (ut *UnsignedTxn) ID() Hash {

@@ -28,13 +28,11 @@ type (
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
 
-	JsonString = string
-
 	// The Call from clients, it is an instance of an 'Execution'.
 	Ecall struct {
 		TripodName string
 		ExecName   string
-		Params     JsonString
+		Params     string
 	}
 
 	// The Call from clients, it is an instance of an 'Query'.
@@ -42,7 +40,7 @@ type (
 		TripodName string
 		QueryName  string
 		BlockHash  Hash
-		Params     JsonString
+		Params     string
 	}
 	// Execution or Query
 	CallType int

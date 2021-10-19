@@ -9,7 +9,7 @@ import (
 	"net/http/httputil"
 )
 
-func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err error) {
+func getQryInfoFromReq(req *http.Request, params string) (qcall *Qcall, err error) {
 	tripodName, qryName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
 	qcall = &Qcall{
@@ -21,7 +21,7 @@ func getQryInfoFromReq(req *http.Request, params JsonString) (qcall *Qcall, err 
 	return
 }
 
-func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execName string, stxn *types.SignedTxn, err error) {
+func getExecInfoFromReq(req *http.Request, params string) (tripodName, execName string, stxn *types.SignedTxn, err error) {
 	tripodName, execName = GetTripodCallName(req)
 	ecall := &Ecall{
 		TripodName: tripodName,
@@ -38,7 +38,7 @@ func getExecInfoFromReq(req *http.Request, params JsonString) (tripodName, execN
 	return
 }
 
-func getHttpJsonParams(c *gin.Context) (params JsonString, err error) {
+func getHttpJsonParams(c *gin.Context) (params string, err error) {
 	if c.Request.Method == http.MethodPost {
 		params, err = readPostBody(c.Request.Body)
 		if err != nil {

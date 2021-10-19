@@ -27,7 +27,7 @@ func TestSignedTxns_Remove(t *testing.T) {
 		ecall := &Ecall{
 			TripodName: istr,
 			ExecName:   istr,
-			Params:     JsonString(istr),
+			Params:     string(istr),
 		}
 		sig, err := privKey.SignData(ecall.Bytes())
 		if err != nil {

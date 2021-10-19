@@ -2,7 +2,6 @@ package pow
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/apps/rawblock"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	spow "github.com/yu-org/yu/consensus/pow"
@@ -142,10 +141,11 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 		return err
 	}
 
-	rawBlock, err := rawblock.NewRawBlock(block, txns)
-	if err != nil {
-		return err
+	rawBlock := &types.Block{
+		CompactBlock: block,
+		Txns:         txns,
 	}
+
 	rawBlockByt, err := rawBlock.Encode()
 	if err != nil {
 		return err
@@ -195,17 +195,13 @@ func (p *Pow) UseBlocksFromP2P(block *types.CompactBlock) bool {
 
 func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
 
-	p2pRawBlock, err := rawblock.DecodeRawBlock(msg)
+	p2pRawBlock, err := types.DecodeBlock(msg)
 	if err != nil {
 		logrus.Error("decode p2p-raw-block error: ", err)
 		return false
 	}
 
-	p2pBlock, err := types.DecodeCompactBlock(p2pRawBlock.BlockByt)
-	if err != nil {
-		logrus.Error("decode p2p-block error: ", err)
-		return false
-	}
+	p2pBlock := p2pRawBlock.CompactBlock
 
 	if p2pBlock.PeerID == block.PeerID {
 		logrus.Infof("Accept [LOCAL-P2P] block(%s) height(%d)", p2pBlock.Hash.String(), p2pBlock.Height)
@@ -221,11 +217,7 @@ func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
 		}
 
 		block.CopyFrom(p2pBlock)
-		stxns, err := types.DecodeSignedTxns(p2pRawBlock.TxnsByt)
-		if err != nil {
-			logrus.Error("decode txns of p2p-block error: ", err)
-			return false
-		}
+		stxns := p2pRawBlock.Txns
 		err = p.env.Base.SetTxns(block.Hash, stxns)
 		if err != nil {
 			logrus.Error("set txns of p2p-block into base error: ", err)

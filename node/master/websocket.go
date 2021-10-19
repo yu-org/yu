@@ -55,14 +55,14 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	}
 	switch typ {
 	case execution:
-		m.handleWsExec(w, req, JsonString(params))
+		m.handleWsExec(w, req, string(params))
 	case query:
-		m.handleWsQry(c, w, req, JsonString(params))
+		m.handleWsQry(c, w, req, string(params))
 	}
 
 }
 
-func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params JsonString) {
+func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params string) {
 	_, _, stxn, err := getExecInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Execution info from websocket error: %v", err))
@@ -112,7 +112,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 	logrus.Info("publish unpacked txns to P2P")
 }
 
-func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params JsonString) {
+func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params string) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Query info from websocket error: %v", err))

@@ -12,12 +12,12 @@ import (
 type Context struct {
 	Caller    Address
 	paramsMap map[string]interface{}
-	paramsStr JsonString
+	paramsStr string
 	Events    []*Event
 	Error     *Error
 }
 
-func NewContext(caller Address, paramsStr JsonString) (*Context, error) {
+func NewContext(caller Address, paramsStr string) (*Context, error) {
 	var i interface{}
 	d := json.NewDecoder(bytes.NewReader([]byte(paramsStr)))
 	d.UseNumber()
