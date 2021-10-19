@@ -2,11 +2,10 @@ package hotstuff
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
 	. "github.com/yu-org/yu/tripod"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 type Hotstuff struct {
@@ -44,31 +43,31 @@ func (h *Hotstuff) Name() string {
 	return h.meta.Name()
 }
 
-func (h *Hotstuff) CheckTxn(txn *SignedTxn) error {
+func (h *Hotstuff) CheckTxn(txn *types.SignedTxn) error {
 	return nil
 }
 
-func (h *Hotstuff) VerifyBlock(block IBlock, env *ChainEnv) bool {
+func (h *Hotstuff) VerifyBlock(block *types.CompactBlock, env *ChainEnv) bool {
 	return true
 }
 
 func (h *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
 	chain := env.Chain
-	gensisBlock := &Block{
-		Header: &Header{},
+	gensisBlock := &types.CompactBlock{
+		Header: &types.Header{},
 	}
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (h *Hotstuff) StartBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) StartBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) EndBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) EndBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) FinalizeBlock(block IBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) FinalizeBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
 	panic("implement me")
 }
 
@@ -100,13 +99,13 @@ func (h *Hotstuff) CompeteLeader() string {
 	return h.smr.Election.GetLeader(h.smr.GetCurrentView())
 }
 
-func (h *Hotstuff) CompeteBlock(block IBlock) error {
+func (h *Hotstuff) CompeteBlock(block *types.CompactBlock) error {
 	miner := h.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
 	if miner != h.smr.GetAddress() {
 		return nil
 	}
-	proposal, err := h.smr.DoProposal(int64(block.GetHeight()), block.GetHash().Bytes(), h.validatorsIP)
+	proposal, err := h.smr.DoProposal(int64(block.Height), block.Hash.Bytes(), h.validatorsIP)
 	if err != nil {
 		return err
 	}

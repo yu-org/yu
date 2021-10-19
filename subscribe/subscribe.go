@@ -30,7 +30,7 @@ func (s *Subscription) Register(c *Conn) {
 	s.subscribers.Store(c, true)
 }
 
-func (s *Subscription) Push(result Result) {
+func (s *Subscription) Emit(result Result) {
 	s.resultChan <- result
 }
 

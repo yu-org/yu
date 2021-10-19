@@ -8,7 +8,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/error_handle"
 	"net/http"
 )
@@ -55,14 +55,14 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	}
 	switch typ {
 	case execution:
-		m.handleWsExec(w, req, JsonString(params))
+		m.handleWsExec(w, req, string(params))
 	case query:
-		m.handleWsQry(c, w, req, JsonString(params))
+		m.handleWsQry(c, w, req, string(params))
 	}
 
 }
 
-func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params JsonString) {
+func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params string) {
 	_, _, stxn, err := getExecInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Execution info from websocket error: %v", err))
@@ -94,7 +94,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		//	return
 		//}
 	case LocalNode:
-		_, _, err = m.land.GetExecLei(stxn.GetRaw().GetEcall())
+		_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
 		if err != nil {
 			return
 		}
@@ -105,14 +105,14 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params J
 		}
 	}
 
-	err = m.pubUnpackedTxns(FromArray(stxn))
+	err = m.pubUnpackedTxns(types.FromArray(stxn))
 	if err != nil {
-		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.GetTxnHash().String(), err))
+		BadReqHttpResp(w, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
 	}
 	logrus.Info("publish unpacked txns to P2P")
 }
 
-func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params JsonString) {
+func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params string) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Query info from websocket error: %v", err))

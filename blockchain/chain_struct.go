@@ -1,18 +1,20 @@
 package blockchain
 
+import "github.com/yu-org/yu/types"
+
 // todo: consider use array instead of linklist
 type ChainStruct struct {
 	//root *ChainNode
-	chainArr []IBlock
+	chainArr []*types.CompactBlock
 }
 
-func NewEmptyChain(block IBlock) *ChainStruct {
+func NewEmptyChain(block *types.CompactBlock) *ChainStruct {
 	return &ChainStruct{
-		chainArr: []IBlock{block},
+		chainArr: []*types.CompactBlock{block},
 	}
 }
 
-func MakeFinalizedChain(blocks []IBlock) IChainStruct {
+func MakeFinalizedChain(blocks []*types.CompactBlock) types.IChainStruct {
 	chain := NewEmptyChain(blocks[0])
 	for i := 1; i < len(blocks); i++ {
 		chain.Append(blocks[i])
@@ -24,7 +26,7 @@ func MakeFinalizedChain(blocks []IBlock) IChainStruct {
 //	longestChains := make([]IChainStruct, 0)
 //	allChains := make([][]IBlock, 0)
 //	for _, block := range blocks {
-//		h := int(block.GetHeight())
+//		h := int(block.Height)
 //
 //	}
 //allBlocks := make(map[Hash]IBlock)
@@ -33,7 +35,7 @@ func MakeFinalizedChain(blocks []IBlock) IChainStruct {
 //
 //var longestHeight BlockNum = 0
 //for _, block := range blocks {
-//	bh := block.GetHeight()
+//	bh := block.Height
 //	if bh > longestHeight {
 //		longestHeight = bh
 //		highestBlocks = nil
@@ -43,7 +45,7 @@ func MakeFinalizedChain(blocks []IBlock) IChainStruct {
 //		highestBlocks = append(highestBlocks, block)
 //	}
 //
-//	allBlocks[block.GetHash()] = block
+//	allBlocks[block.Hash] = block
 //}
 //
 //for _, hblock := range highestBlocks {
@@ -66,11 +68,11 @@ func MakeFinalizedChain(blocks []IBlock) IChainStruct {
 //}
 
 // // deprecated
-func MakeHeaviestChain(blocks []IBlock) []IChainStruct {
+func MakeHeaviestChain(blocks []*types.CompactBlock) []types.IChainStruct {
 	return nil
 }
 
-func (c *ChainStruct) Append(block IBlock) {
+func (c *ChainStruct) Append(block *types.CompactBlock) {
 	//cursor := c.root
 	//for cursor.Next != nil {
 	//	cursor = cursor.Next
@@ -83,21 +85,21 @@ func (c *ChainStruct) Append(block IBlock) {
 	c.chainArr = append(c.chainArr, block)
 }
 
-func (c *ChainStruct) InsertPrev(block IBlock) {
+func (c *ChainStruct) InsertPrev(block *types.CompactBlock) {
 	//c.root.Prev = &ChainNode{
 	//	Prev:    nil,
 	//	Current: block,
 	//	Next:    c.root,
 	//}
 	//c.root = c.root.Prev
-	c.chainArr = append([]IBlock{block}, c.chainArr...)
+	c.chainArr = append([]*types.CompactBlock{block}, c.chainArr...)
 }
 
-func (c *ChainStruct) First() IBlock {
+func (c *ChainStruct) First() *types.CompactBlock {
 	return c.chainArr[0]
 }
 
-func (c *ChainStruct) Range(fn func(block IBlock) error) error {
+func (c *ChainStruct) Range(fn func(block *types.CompactBlock) error) error {
 	//for cursor := c.root; cursor.Next != nil; cursor = cursor.Next {
 	//	err := fn(cursor.Current)
 	//	if err != nil {
@@ -113,7 +115,7 @@ func (c *ChainStruct) Range(fn func(block IBlock) error) error {
 	return nil
 }
 
-func (c *ChainStruct) Last() IBlock {
+func (c *ChainStruct) Last() *types.CompactBlock {
 	//cursor := c.root
 	//for cursor.Next != nil {
 	//	cursor = cursor.Next

@@ -1,4 +1,4 @@
-package txn
+package types
 
 import (
 	. "github.com/yu-org/yu/common"
@@ -27,7 +27,7 @@ func TestSignedTxns_Remove(t *testing.T) {
 		ecall := &Ecall{
 			TripodName: istr,
 			ExecName:   istr,
-			Params:     JsonString(istr),
+			Params:     string(istr),
 		}
 		sig, err := privKey.SignData(ecall.Bytes())
 		if err != nil {
@@ -40,7 +40,7 @@ func TestSignedTxns_Remove(t *testing.T) {
 
 		txns = append(txns, stxn)
 
-		hashes = append(hashes, stxn.GetTxnHash())
+		hashes = append(hashes, stxn.TxnHash)
 	}
 
 	copy(txns1, txns[:])
@@ -49,19 +49,19 @@ func TestSignedTxns_Remove(t *testing.T) {
 	removeIdx, restTxns := txns.Remove(hashes[0])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns {
-		t.Logf("After removed 0, txn  %s", stxn.GetRaw().Ecall)
+		t.Logf("After removed 0, txn  %s", stxn.Raw.Ecall)
 	}
 
 	removeIdx, restTxns1 := txns1.Remove(hashes[1])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns1 {
-		t.Logf("After removed 1, txn  %s", stxn.GetRaw().Ecall)
+		t.Logf("After removed 1, txn  %s", stxn.Raw.Ecall)
 	}
 
 	removeIdx, restTxns2 := txns2.Remove(hashes[2])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns2 {
-		t.Logf("After removed 2, txn  %s", stxn.GetRaw().Ecall)
+		t.Logf("After removed 2, txn  %s", stxn.Raw.Ecall)
 	}
 
 }

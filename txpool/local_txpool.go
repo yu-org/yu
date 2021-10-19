@@ -4,7 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/yerror"
 	"sync"
 	"time"
@@ -17,8 +17,8 @@ type LocalTxPool struct {
 	poolSize   uint64
 	TxnMaxSize int
 
-	txnsMap      map[Hash]*SignedTxn
-	Txns         SignedTxns
+	txnsMap      map[Hash]*types.SignedTxn
+	Txns         types.SignedTxns
 	startPackIdx int
 
 	blockTime uint64
@@ -32,8 +32,8 @@ func NewLocalTxPool(cfg *config.TxpoolConf) *LocalTxPool {
 	return &LocalTxPool{
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
-		txnsMap:      make(map[Hash]*SignedTxn),
-		Txns:         make([]*SignedTxn, 0),
+		txnsMap:      make(map[Hash]*types.SignedTxn),
+		Txns:         make([]*types.SignedTxn, 0),
 		startPackIdx: 0,
 		timeout:      time.Duration(cfg.Timeout),
 		baseChecks:   make([]TxnCheck, 0),
@@ -55,12 +55,12 @@ func (tp *LocalTxPool) withDefaultBaseChecks() *LocalTxPool {
 	return tp
 }
 
-func (tp *LocalTxPool) NewEmptySignedTxn() *SignedTxn {
-	return &SignedTxn{}
+func (tp *LocalTxPool) NewEmptySignedTxn() *types.SignedTxn {
+	return &types.SignedTxn{}
 }
 
-func (tp *LocalTxPool) NewEmptySignedTxns() SignedTxns {
-	return make([]*SignedTxn, 0)
+func (tp *LocalTxPool) NewEmptySignedTxns() types.SignedTxns {
+	return make([]*types.SignedTxn, 0)
 }
 
 func (tp *LocalTxPool) PoolSize() uint64 {
@@ -78,12 +78,12 @@ func (tp *LocalTxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
 }
 
 // insert into txpool
-func (tp *LocalTxPool) Insert(stxn *SignedTxn) error {
-	return tp.BatchInsert(FromArray(stxn))
+func (tp *LocalTxPool) Insert(stxn *types.SignedTxn) error {
+	return tp.BatchInsert(types.FromArray(stxn))
 }
 
 // batch insert into txpool
-func (tp *LocalTxPool) BatchInsert(txns SignedTxns) (err error) {
+func (tp *LocalTxPool) BatchInsert(txns types.SignedTxns) (err error) {
 	tp.Lock()
 	defer tp.Unlock()
 	for _, stxn := range txns {
@@ -106,21 +106,21 @@ func (tp *LocalTxPool) BatchInsert(txns SignedTxns) (err error) {
 }
 
 // package some txns to send to tripods
-func (tp *LocalTxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackFor(numLimit, func(*SignedTxn) error {
+func (tp *LocalTxPool) Pack(numLimit uint64) ([]*types.SignedTxn, error) {
+	return tp.PackFor(numLimit, func(*types.SignedTxn) error {
 		return nil
 	})
 }
 
-func (tp *LocalTxPool) PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error) {
+func (tp *LocalTxPool) PackFor(numLimit uint64, filter func(*types.SignedTxn) error) ([]*types.SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
-	stxns := make([]*SignedTxn, 0)
+	stxns := make([]*types.SignedTxn, 0)
 	for i := 0; i < int(numLimit); i++ {
 		if i >= len(tp.Txns) {
 			break
 		}
-		logrus.Info("********************** pack txn: ", tp.Txns[i].GetTxnHash().String())
+		logrus.Info("********************** pack txn: ", tp.Txns[i].TxnHash.String())
 		err := filter(tp.Txns[i])
 		if err != nil {
 			return nil, err
@@ -131,7 +131,7 @@ func (tp *LocalTxPool) PackFor(numLimit uint64, filter func(*SignedTxn) error) (
 	return stxns, nil
 }
 
-func (tp *LocalTxPool) GetTxn(hash Hash) (*SignedTxn, error) {
+func (tp *LocalTxPool) GetTxn(hash Hash) (*types.SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
 	return tp.txnsMap[hash], nil
@@ -158,7 +158,7 @@ func (tp *LocalTxPool) RemoveTxns(hashes []Hash) error {
 func (tp *LocalTxPool) Reset() error {
 	tp.Lock()
 	for _, stxn := range tp.Txns[:tp.startPackIdx] {
-		delete(tp.txnsMap, stxn.GetTxnHash())
+		delete(tp.txnsMap, stxn.TxnHash)
 	}
 	tp.Txns = tp.Txns[tp.startPackIdx:]
 	tp.startPackIdx = 0
@@ -168,15 +168,15 @@ func (tp *LocalTxPool) Reset() error {
 
 // --------- check txn ------
 
-func (tp *LocalTxPool) BaseCheck(stxn *SignedTxn) error {
+func (tp *LocalTxPool) BaseCheck(stxn *types.SignedTxn) error {
 	return Check(tp.baseChecks, stxn)
 }
 
-func (tp *LocalTxPool) TripodsCheck(stxn *SignedTxn) error {
+func (tp *LocalTxPool) TripodsCheck(stxn *types.SignedTxn) error {
 	return Check(tp.tripodChecks, stxn)
 }
 
-func (tp *LocalTxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
+func (tp *LocalTxPool) NecessaryCheck(stxn *types.SignedTxn) (err error) {
 	err = tp.checkTxnSize(stxn)
 	if err != nil {
 		return
@@ -189,15 +189,15 @@ func (tp *LocalTxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 	return tp.TripodsCheck(stxn)
 }
 
-func (tp *LocalTxPool) checkPoolLimit(*SignedTxn) error {
+func (tp *LocalTxPool) checkPoolLimit(*types.SignedTxn) error {
 	return checkPoolLimit(tp.Txns, tp.poolSize)
 }
 
-func (tp *LocalTxPool) checkSignature(stxn *SignedTxn) error {
+func (tp *LocalTxPool) checkSignature(stxn *types.SignedTxn) error {
 	return checkSignature(stxn)
 }
 
-func (tp *LocalTxPool) checkTxnSize(stxn *SignedTxn) error {
+func (tp *LocalTxPool) checkTxnSize(stxn *types.SignedTxn) error {
 	if stxn.Size() > tp.TxnMaxSize {
 		return TxnTooLarge
 	}

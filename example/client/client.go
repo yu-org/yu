@@ -56,7 +56,7 @@ func queryAccount(pubkey PubKey) {
 		TripodName: "asset",
 		QueryName:  "QueryBalance",
 		BlockHash:  Hash{},
-		Params:     JsonString(paramByt),
+		Params:     string(paramByt),
 	}
 	callChainByQry(pubkey.Address(), qcall)
 }
@@ -75,7 +75,7 @@ func createAccount(privkey PrivKey, pubkey PubKey) {
 	ecall := &Ecall{
 		TripodName: "asset",
 		ExecName:   "CreateAccount",
-		Params:     JsonString(paramsByt),
+		Params:     string(paramsByt),
 	}
 	callChainByExec(privkey, pubkey, ecall)
 }
@@ -97,7 +97,7 @@ func transfer(privkey PrivKey, pubkey PubKey, to Address) {
 	ecall := &Ecall{
 		TripodName: "asset",
 		ExecName:   "Transfer",
-		Params:     JsonString(paramsByt),
+		Params:     string(paramsByt),
 	}
 	callChainByExec(privkey, pubkey, ecall)
 }

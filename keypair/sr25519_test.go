@@ -15,7 +15,7 @@ func TestSrKey(t *testing.T) {
 	ecall := &Ecall{
 		TripodName: "asset",
 		ExecName:   "Transfer",
-		Params:     JsonString("params"),
+		Params:     string("params"),
 	}
 
 	signByt, err := privkey.SignData(ecall.Bytes())

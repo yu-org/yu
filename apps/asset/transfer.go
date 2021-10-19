@@ -2,11 +2,11 @@ package asset
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/tripod"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/yerror"
 )
 
@@ -31,7 +31,7 @@ func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context, _ IBlock) (err error) {
+func (a *Asset) Transfer(ctx *Context, _ *types.CompactBlock) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
@@ -68,7 +68,7 @@ func (a *Asset) Transfer(ctx *Context, _ IBlock) (err error) {
 	return
 }
 
-func (a *Asset) CreateAccount(ctx *Context, _ IBlock) error {
+func (a *Asset) CreateAccount(ctx *Context, _ *types.CompactBlock) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 

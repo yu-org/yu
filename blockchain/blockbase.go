@@ -5,7 +5,7 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/result"
 	ysql "github.com/yu-org/yu/storage/sql"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 type BlockBase struct {
@@ -38,13 +38,13 @@ func NewBlockBase(cfg *config.BlockBaseConf) (*BlockBase, error) {
 	}, nil
 }
 
-func (bb *BlockBase) GetTxn(txnHash Hash) (*SignedTxn, error) {
+func (bb *BlockBase) GetTxn(txnHash Hash) (*types.SignedTxn, error) {
 	var ts TxnScheme
 	bb.db.Db().Where(&TxnScheme{TxnHash: txnHash.String()}).First(&ts)
 	return ts.toTxn()
 }
 
-func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
+func (bb *BlockBase) SetTxn(stxn *types.SignedTxn) error {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return err
@@ -53,10 +53,10 @@ func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
+func (bb *BlockBase) GetTxns(blockHash Hash) ([]*types.SignedTxn, error) {
 	var tss []TxnScheme
 	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
-	itxns := make([]*SignedTxn, 0)
+	itxns := make([]*types.SignedTxn, 0)
 	for _, ts := range tss {
 		stxn, err := ts.toTxn()
 		if err != nil {
@@ -67,7 +67,7 @@ func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
 	return itxns, nil
 }
 
-func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
+func (bb *BlockBase) SetTxns(blockHash Hash, txns []*types.SignedTxn) error {
 	txnSms := make([]TxnScheme, 0)
 	for _, stxn := range txns {
 		txnSm, err := newTxnScheme(blockHash, stxn)

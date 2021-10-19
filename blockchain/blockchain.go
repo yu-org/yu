@@ -4,20 +4,16 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	ysql "github.com/yu-org/yu/storage/sql"
+	. "github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/codec"
 )
 
 type BlockChain struct {
-	chain         ysql.SqlDB
-	blocksFromP2p ysql.SqlDB
+	chain ysql.SqlDB
 }
 
 func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
-	if err != nil {
-		return nil, err
-	}
-	blocksFromP2pDB, err := ysql.NewSqlDB(&cfg.BlocksFromP2pDB)
 	if err != nil {
 		return nil, err
 	}
@@ -27,14 +23,8 @@ func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
 		return nil, err
 	}
 
-	err = blocksFromP2pDB.CreateIfNotExist(BlocksFromP2pScheme{})
-	if err != nil {
-		return nil, err
-	}
-
 	return &BlockChain{
-		chain:         chain,
-		blocksFromP2p: blocksFromP2pDB,
+		chain: chain,
 	}, nil
 }
 
@@ -42,38 +32,38 @@ func (bc *BlockChain) ConvergeType() ConvergeType {
 	return Longest
 }
 
-func (bc *BlockChain) NewEmptyBlock() IBlock {
-	return &Block{Header: &Header{}}
+func (bc *BlockChain) NewEmptyBlock() *CompactBlock {
+	return &CompactBlock{Header: &Header{}}
 }
 
-func (bc *BlockChain) EncodeBlocks(blocks []IBlock) ([]byte, error) {
-	var bs []*Block
+func (bc *BlockChain) EncodeBlocks(blocks []*CompactBlock) ([]byte, error) {
+	var bs []*CompactBlock
 	for _, b := range blocks {
-		bs = append(bs, b.(*Block))
+		bs = append(bs, b)
 	}
 	return GlobalCodec.EncodeToBytes(bs)
 }
 
-func (bc *BlockChain) DecodeBlocks(data []byte) ([]IBlock, error) {
-	var bs []*Block
+func (bc *BlockChain) DecodeBlocks(data []byte) ([]*CompactBlock, error) {
+	var bs []*CompactBlock
 	err := GlobalCodec.DecodeBytes(data, &bs)
 	if err != nil {
 		return nil, err
 	}
-	var blocks []IBlock
+	var blocks []*CompactBlock
 	for _, b := range bs {
 		blocks = append(blocks, b)
 	}
 	return blocks, nil
 }
 
-func (bc *BlockChain) GetGenesis() (IBlock, error) {
+func (bc *BlockChain) GetGenesis() (*CompactBlock, error) {
 	var block BlocksScheme
 	bc.chain.Db().Where("height = ?", 0).First(&block)
 	return block.toBlock()
 }
 
-func (bc *BlockChain) SetGenesis(b IBlock) error {
+func (bc *BlockChain) SetGenesis(b *CompactBlock) error {
 	var blocks []BlocksScheme
 	bc.chain.Db().Where("height = ?", 0).Find(&blocks)
 
@@ -83,49 +73,7 @@ func (bc *BlockChain) SetGenesis(b IBlock) error {
 	return nil
 }
 
-// pending a block from other BlockChain-node for validating
-func (bc *BlockChain) InsertBlockFromP2P(b IBlock) error {
-	if bc.ExistsBlock(b.GetHash()) {
-		return nil
-	}
-	bs, err := toBlocksFromP2pScheme(b)
-	if err != nil {
-		return err
-	}
-	bc.blocksFromP2p.Db().Create(&bs)
-	return nil
-}
-
-func (bc *BlockChain) TakeP2pBlocksBefore(height BlockNum) (map[BlockNum][]IBlock, error) {
-	var bsp []BlocksFromP2pScheme
-	bc.blocksFromP2p.Db().Where("height < ?", height).Order("height").Find(&bsp)
-	blocks := bspToBlocks(bsp)
-	hBlocks := make(map[BlockNum][]IBlock, 0)
-	for _, block := range blocks {
-		height := block.GetHeight()
-		hBlocks[height] = append(hBlocks[height], block)
-	}
-
-	for _, b := range blocks {
-		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: b.GetHash().String()})
-	}
-	return hBlocks, nil
-}
-
-func (bc *BlockChain) TakeP2pBlocks(height BlockNum) ([]IBlock, error) {
-	var bsp []BlocksFromP2pScheme
-	bc.blocksFromP2p.Db().Where("height = ?", height).Find(&bsp)
-
-	for _, bs := range bsp {
-		bc.blocksFromP2p.Db().Delete(&BlocksFromP2pScheme{BlockHash: bs.BlockHash})
-	}
-	return bspToBlocks(bsp), nil
-}
-
-func (bc *BlockChain) AppendBlock(b IBlock) error {
-	if bc.ExistsBlock(b.GetHash()) {
-		return nil
-	}
+func (bc *BlockChain) AppendBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
@@ -143,7 +91,7 @@ func (bc *BlockChain) ExistsBlock(blockHash Hash) bool {
 	return len(bss) > 0
 }
 
-func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
+func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
 	var bs BlocksScheme
 	bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
@@ -151,19 +99,19 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (IBlock, error) {
 	return bs.toBlock()
 }
 
-func (bc *BlockChain) UpdateBlock(b IBlock) error {
+func (bc *BlockChain) UpdateBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
 	}
 
 	bc.chain.Db().Where(&BlocksScheme{
-		Hash: b.GetHash().String(),
+		Hash: b.Hash.String(),
 	}).Updates(bs)
 	return nil
 }
 
-func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
+func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
 	rows, err := bc.chain.Db().Where(&BlocksScheme{
 		PrevHash: prevBlockHash.String(),
 	}).Rows()
@@ -172,7 +120,7 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]IBlock, error) {
 	}
 	defer rows.Close()
 
-	var blocks []IBlock
+	var blocks []*CompactBlock
 	for rows.Next() {
 		var bs BlocksScheme
 		err = bc.chain.Db().ScanRows(rows, &bs)
@@ -195,7 +143,7 @@ func (bc *BlockChain) Finalize(blockHash Hash) error {
 	return nil
 }
 
-func (bc *BlockChain) LastFinalized() (IBlock, error) {
+func (bc *BlockChain) LastFinalized() (*CompactBlock, error) {
 	var bs BlocksScheme
 	bc.chain.Db().Where(&BlocksScheme{
 		Finalize: true,
@@ -203,20 +151,20 @@ func (bc *BlockChain) LastFinalized() (IBlock, error) {
 	return bs.toBlock()
 }
 
-func (bc *BlockChain) GetEndBlock() (IBlock, error) {
+func (bc *BlockChain) GetEndBlock() (*CompactBlock, error) {
 	var bs BlocksScheme
 	bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs)
 	return bs.toBlock()
 }
 
-func (bc *BlockChain) GetAllBlocks() ([]IBlock, error) {
+func (bc *BlockChain) GetAllBlocks() ([]*CompactBlock, error) {
 	rows, err := bc.chain.Db().Model(&BlocksScheme{}).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var blocks []IBlock
+	var blocks []*CompactBlock
 	for rows.Next() {
 		var bs BlocksScheme
 		err = bc.chain.Db().ScanRows(rows, &bs)
@@ -232,7 +180,7 @@ func (bc *BlockChain) GetAllBlocks() ([]IBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) ([]IBlock, error) {
+func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) ([]*CompactBlock, error) {
 	var bss []BlocksScheme
 	bc.chain.Db().Where("height BETWEEN ? AND ?", startHeight, endHeight).Find(&bss)
 	return bssToBlocks(bss), nil
@@ -247,9 +195,9 @@ func (bc *BlockChain) LongestChain() (IChainStruct, error) {
 	if err != nil {
 		return nil, err
 	}
-	prevHash := block.GetPrevHash()
+	prevHash := block.PrevHash
 	chain := NewEmptyChain(block)
-	for block.GetHeight() > 0 {
+	for block.Height > 0 {
 		prevBlock, err := bc.GetBlock(prevHash)
 		if err != nil {
 			return nil, err

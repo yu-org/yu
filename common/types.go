@@ -28,13 +28,11 @@ type (
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
 
-	JsonString = string
-
 	// The Call from clients, it is an instance of an 'Execution'.
 	Ecall struct {
 		TripodName string
 		ExecName   string
-		Params     JsonString
+		Params     string
 	}
 
 	// The Call from clients, it is an instance of an 'Query'.
@@ -42,7 +40,7 @@ type (
 		TripodName string
 		QueryName  string
 		BlockHash  Hash
-		Params     JsonString
+		Params     string
 	}
 	// Execution or Query
 	CallType int
@@ -153,4 +151,18 @@ func HashesToBytes(hs []Hash) []byte {
 
 func BytesToHashes(data []byte) []Hash {
 	return HexToHashes(string(data))
+}
+
+func HashesToTwoBytes(hs []Hash) (byts [][]byte) {
+	for _, h := range hs {
+		byts = append(byts, h.Bytes())
+	}
+	return
+}
+
+func TwoBytesToHashes(byts [][]byte) (hs []Hash) {
+	for _, byt := range byts {
+		hs = append(hs, BytesToHash(byt))
+	}
+	return
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
@@ -18,8 +17,8 @@ import (
 	"github.com/yu-org/yu/storage/kv"
 	"github.com/yu-org/yu/subscribe"
 	. "github.com/yu-org/yu/tripod"
-	. "github.com/yu-org/yu/txn"
 	. "github.com/yu-org/yu/txpool"
+	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/ip"
 	. "github.com/yu-org/yu/yerror"
 	"math/rand"
@@ -45,8 +44,8 @@ type Master struct {
 
 	timeout time.Duration
 
-	chain      IBlockChain
-	base       IBlockBase
+	chain      types.IBlockChain
+	base       types.IBlockBase
 	txPool     ItxPool
 	stateStore *StateStore
 
@@ -60,22 +59,22 @@ func NewMaster(
 	cfg *MasterConf,
 	env *ChainEnv,
 	land *Land,
-) (*Master, error) {
+) *Master {
 
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init nkDB error: ", err)
 	}
 	pid := protocol.ID(cfg.ProtocolID)
 	ctx := context.Background()
 	p2pHost, err := makeP2pHost(ctx, cfg)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init P2P host error: ", err)
 	}
 
 	ps, err := pubsub.NewGossipSub(ctx, p2pHost)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init p2p gossip error: ", err)
 	}
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
@@ -103,15 +102,18 @@ func NewMaster(
 
 	err = m.initTopics()
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init p2p topics error: ", err)
 	}
 	err = m.InitChain()
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init chain error: ", err)
 	}
 
 	err = m.ConnectP2PNetwork(cfg)
-	return m, err
+	if err != nil {
+		logrus.Fatal("connect to P2P error: ", err)
+	}
+	return m
 }
 
 func (m *Master) P2pID() string {
@@ -179,14 +181,14 @@ func (m *Master) InitChain() error {
 //			if tri.VerifyBlock(block, m.GetEnv()) {
 //				return nil
 //			}
-//			return BlockIllegal(block.GetHash())
+//			return BlockIllegal(block.Hash)
 //		})
 //		if err != nil {
 //			return err
 //		}
 //	}
 //
-//	logrus.Debugf("accept block(%s) height(%d) from p2p", block.GetHash().String(), block.GetHeight())
+//	logrus.Debugf("accept block(%s) height(%d) from p2p", block.Hash.String(), block.Height)
 //	return m.chain.InsertBlockFromP2P(block)
 //}
 
@@ -201,7 +203,7 @@ func (m *Master) AcceptUnpkgTxns() error {
 		//// key: workerIP
 		//forwardMap := make(map[string]*TxnsAndWorkerName)
 		//for _, txn := range txns {
-		//	ecall := txn.GetRaw().GetEcall()
+		//	ecall := txn.GetRaw().Ecall
 		//	tripodName := ecall.TripodName
 		//	execName := ecall.ExecName
 		//	workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
@@ -277,11 +279,11 @@ func (m *Master) CheckHealth() {
 //}
 
 // sync txns of P2P-network
-func (m *Master) SyncTxns(block IBlock) error {
-	txnsHashes := block.GetTxnsHashes()
+func (m *Master) SyncTxns(block *types.CompactBlock) error {
+	txnsHashes := block.TxnsHashes
 
 	needFetch := make([]Hash, 0)
-	txns := make(SignedTxns, 0)
+	txns := make(types.SignedTxns, 0)
 	for _, txnHash := range txnsHashes {
 		stxn, err := m.txPool.GetTxn(txnHash)
 		if err != nil {
@@ -300,12 +302,12 @@ func (m *Master) SyncTxns(block IBlock) error {
 
 		var fetchPeer peer.ID
 		if m.ConnectedPeers == nil {
-			fetchPeer = block.GetPeerID()
+			fetchPeer = block.PeerID
 		} else {
 			fetchPeer = m.ConnectedPeers[0]
 		}
 
-		fetchedTxns, err := m.requestTxns(fetchPeer, block.GetPeerID(), needFetch)
+		fetchedTxns, err := m.requestTxns(fetchPeer, block.PeerID, needFetch)
 		if err != nil {
 			return err
 		}
@@ -324,17 +326,17 @@ func (m *Master) SyncTxns(block IBlock) error {
 			}
 		}
 
-		return m.base.SetTxns(block.GetHash(), fetchedTxns)
+		return m.base.SetTxns(block.Hash, fetchedTxns)
 	}
 
-	return m.base.SetTxns(block.GetHash(), txns)
+	return m.base.SetTxns(block.Hash, txns)
 }
 
-func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
+func (m *Master) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
-			logrus.Trace("sync history block is ", block.GetHash().String())
+			logrus.Trace("sync history block is ", block.Hash.String())
 
 			err := m.SyncTxns(block)
 			if err != nil {
@@ -345,7 +347,7 @@ func (m *Master) SyncHistoryBlocks(blocks []IBlock) error {
 				if tri.VerifyBlock(block) {
 					return nil
 				}
-				return BlockIllegal(block.GetHash())
+				return BlockIllegal(block.Hash)
 			})
 			if err != nil {
 				return err
@@ -578,9 +580,9 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 	return txn.Set([]byte(ip), infoByt)
 }
 
-func existTxnHash(txnHash Hash, txns []*SignedTxn) (*SignedTxn, bool) {
+func existTxnHash(txnHash Hash, txns []*types.SignedTxn) (*types.SignedTxn, bool) {
 	for _, stxn := range txns {
-		if stxn.GetTxnHash() == txnHash {
+		if stxn.TxnHash == txnHash {
 			return stxn, true
 		}
 	}

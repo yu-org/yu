@@ -2,12 +2,12 @@ package master
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/context"
 	. "github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
-	"github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -19,7 +19,7 @@ func (m *Master) Run() {
 		for {
 			err := m.LocalRun()
 			if err != nil {
-				logrus.Errorf("local-run blockchain error: %s", err.Error())
+				logrus.Panicf("local-run blockchain error: %s", err.Error())
 			}
 		}
 	case MasterWorker:
@@ -62,29 +62,30 @@ func (m *Master) LocalRun() (err error) {
 	})
 }
 
-func (m *Master) makeNewBasicBlock() (IBlock, error) {
-	var newBlock IBlock = m.chain.NewEmptyBlock()
+func (m *Master) makeNewBasicBlock() (*types.CompactBlock, error) {
+	var newBlock *types.CompactBlock = m.chain.NewEmptyBlock()
 
-	newBlock.SetTimestamp(ytime.NowNanoTsU64())
+	newBlock.Timestamp = ytime.NowNanoTsU64()
 	prevBlock, err := m.chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
-	newBlock.SetPreHash(prevBlock.GetHash())
-	newBlock.SetPeerID(m.host.ID())
-	newBlock.SetHeight(prevBlock.GetHeight() + 1)
-	newBlock.SetLeiLimit(m.leiLimit)
+	newBlock.PrevHash = prevBlock.Hash
+	newBlock.PeerID = m.host.ID()
+	newBlock.Height = prevBlock.Height + 1
+	newBlock.LeiLimit = m.leiLimit
+	newBlock.Validators = &goproto.Validators{}
 	return newBlock, nil
 }
 
-func (m *Master) ExecuteTxns(block IBlock) error {
-	stxns, err := m.base.GetTxns(block.GetHash())
+func (m *Master) ExecuteTxns(block *types.CompactBlock) error {
+	stxns, err := m.base.GetTxns(block.Hash)
 	if err != nil {
 		return err
 	}
 	for _, stxn := range stxns {
-		ecall := stxn.GetRaw().GetEcall()
-		ctx, err := context.NewContext(stxn.GetPubkey().Address(), ecall.Params)
+		ecall := stxn.Raw.Ecall
+		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params)
 		if err != nil {
 			return err
 		}
@@ -95,7 +96,7 @@ func (m *Master) ExecuteTxns(block IBlock) error {
 			continue
 		}
 
-		if IfLeiOut(lei, block) {
+		if types.IfLeiOut(lei, block) {
 			m.handleError(OutOfEnergy, ctx, block, stxn)
 			break
 		}
@@ -126,7 +127,7 @@ func (m *Master) ExecuteTxns(block IBlock) error {
 	if err != nil {
 		return err
 	}
-	block.SetStateRoot(stateRoot)
+	block.StateRoot = stateRoot
 
 	return nil
 }
@@ -168,7 +169,7 @@ func (m *Master) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock) error {
+func (m *Master) nortifyWorker(workersIps []string, path string, newBlock *types.CompactBlock) error {
 	blockByt, err := newBlock.Encode()
 	if err != nil {
 		return err
@@ -188,37 +189,37 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock IBlock
 	return nil
 }
 
-func (m *Master) handleError(err error, ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+func (m *Master) handleError(err error, ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	ctx.EmitError(err)
-	ecall := stxn.GetRaw().GetEcall()
+	ecall := stxn.Raw.Ecall
 
-	ctx.Error.Caller = stxn.GetRaw().GetCaller()
+	ctx.Error.Caller = stxn.Raw.Caller
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = ecall.TripodName
 	ctx.Error.ExecName = ecall.ExecName
-	ctx.Error.BlockHash = block.GetHash()
-	ctx.Error.Height = block.GetHeight()
+	ctx.Error.BlockHash = block.Hash
+	ctx.Error.Height = block.Height
 
 	logrus.Error("push error: ", ctx.Error.Error())
 	if m.sub != nil {
-		m.sub.Push(ctx.Error)
+		m.sub.Emit(ctx.Error)
 	}
 
 }
 
-func (m *Master) handleEvent(ctx *context.Context, block IBlock, stxn *txn.SignedTxn) {
+func (m *Master) handleEvent(ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	for _, event := range ctx.Events {
-		ecall := stxn.GetRaw().GetEcall()
+		ecall := stxn.Raw.Ecall
 
-		event.Height = block.GetHeight()
-		event.BlockHash = block.GetHash()
+		event.Height = block.Height
+		event.BlockHash = block.Hash
 		event.ExecName = ecall.ExecName
 		event.TripodName = ecall.TripodName
 		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.GetRaw().GetCaller()
+		event.Caller = stxn.Raw.Caller
 
 		if m.sub != nil {
-			m.sub.Push(event)
+			m.sub.Emit(event)
 		}
 	}
 }

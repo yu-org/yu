@@ -2,7 +2,7 @@ package txpool
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 type ItxPool interface {
@@ -15,20 +15,20 @@ type ItxPool interface {
 	WithBaseChecks(checkFns []TxnCheck) ItxPool
 	WithTripodChecks(checkFns []TxnCheck) ItxPool
 	// base check txn
-	BaseCheck(*SignedTxn) error
-	TripodsCheck(stxn *SignedTxn) error
+	BaseCheck(*types.SignedTxn) error
+	TripodsCheck(stxn *types.SignedTxn) error
 	// use for SyncTxns
-	NecessaryCheck(stxn *SignedTxn) error
+	NecessaryCheck(stxn *types.SignedTxn) error
 	// insert into txpool
-	Insert(txn *SignedTxn) error
+	Insert(txn *types.SignedTxn) error
 	// batch insert into txpool
-	BatchInsert(txns SignedTxns) error
+	BatchInsert(txns types.SignedTxns) error
 	// package some txns to send to tripods
-	Pack(numLimit uint64) ([]*SignedTxn, error)
+	Pack(numLimit uint64) ([]*types.SignedTxn, error)
 	// pacakge txns according to specific conditions
-	PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
+	PackFor(numLimit uint64, filter func(*types.SignedTxn) error) ([]*types.SignedTxn, error)
 
-	GetTxn(hash Hash) (*SignedTxn, error)
+	GetTxn(hash Hash) (*types.SignedTxn, error)
 
 	RemoveTxns(hashes []Hash) error
 	// remove txns after execute all tripods

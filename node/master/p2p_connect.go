@@ -16,7 +16,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/node"
-	. "github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 	"io"
 	"math/rand"
 	"os"
@@ -159,7 +159,7 @@ func (m *Master) SyncHistory(s network.Stream) error {
 
 		if resp.TxnsByt != nil {
 			for blockHash, byt := range resp.TxnsByt {
-				txns, err := DecodeSignedTxns(byt)
+				txns, err := types.DecodeSignedTxns(byt)
 				if err != nil {
 					return err
 				}
@@ -281,12 +281,12 @@ func (m *Master) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[
 
 	txnsByt := make(map[Hash][]byte)
 	for _, block := range blocks {
-		blockHash := block.GetHash()
+		blockHash := block.Hash
 		txns, err := m.base.GetTxns(blockHash)
 		if err != nil {
 			return nil, nil, err
 		}
-		byt, err := FromArray(txns...).Encode()
+		byt, err := types.FromArray(txns...).Encode()
 		if err != nil {
 			return nil, nil, err
 		}
@@ -312,7 +312,7 @@ func (m *Master) forwardTxnsForCheck(forwardMap map[string]*TxnsAndWorkerName) e
 }
 
 type TxnsAndWorkerName struct {
-	Txns       SignedTxns
+	Txns       types.SignedTxns
 	WorkerName string
 }
 

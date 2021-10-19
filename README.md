@@ -118,8 +118,8 @@ func (p *Pow) StartBlock(block IBlock, env *ChainEnv, _ *Land) (needBroadcast bo
     }
     if len(pbsht) > 0 {
    	block.CopyFrom(pbsht[0])
-   	logrus.Infof("USE P2P block(%s)", block.GetHash().String())
-   	env.StartBlock(block.GetHash())
+   	logrus.Infof("USE P2P block(%s)", block.Hash.String())
+   	env.StartBlock(block.Hash)
    	return
     }
     

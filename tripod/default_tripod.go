@@ -1,9 +1,8 @@
 package tripod
 
 import (
-	. "github.com/yu-org/yu/blockchain"
 	. "github.com/yu-org/yu/chain_env"
-	"github.com/yu-org/yu/txn"
+	"github.com/yu-org/yu/types"
 )
 
 type DefaultTripod struct {
@@ -26,11 +25,11 @@ func (dt *DefaultTripod) SetChainEnv(env *ChainEnv) {
 	dt.ChainEnv = env
 }
 
-func (*DefaultTripod) CheckTxn(*txn.SignedTxn) error {
+func (*DefaultTripod) CheckTxn(*types.SignedTxn) error {
 	return nil
 }
 
-func (*DefaultTripod) VerifyBlock(IBlock) bool {
+func (*DefaultTripod) VerifyBlock(*types.CompactBlock) bool {
 	return true
 }
 
@@ -38,14 +37,14 @@ func (*DefaultTripod) InitChain() error {
 	return nil
 }
 
-func (*DefaultTripod) StartBlock(IBlock) error {
+func (*DefaultTripod) StartBlock(*types.CompactBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) EndBlock(IBlock) error {
+func (*DefaultTripod) EndBlock(*types.CompactBlock) error {
 	return nil
 }
 
-func (*DefaultTripod) FinalizeBlock(IBlock) error {
+func (*DefaultTripod) FinalizeBlock(*types.CompactBlock) error {
 	return nil
 }
