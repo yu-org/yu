@@ -3,6 +3,7 @@ package tripod
 import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/context"
+	"github.com/yu-org/yu/tripod/dev"
 	. "github.com/yu-org/yu/yerror"
 )
 
@@ -28,7 +29,7 @@ func (l *Land) SetTripods(Tripods ...Tripod) {
 	}
 }
 
-func (l *Land) GetExecLei(c *Ecall) (Execution, uint64, error) {
+func (l *Land) GetExecLei(c *Ecall) (dev.Execution, uint64, error) {
 	tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return nil, 0, TripodNotFound(c.TripodName)

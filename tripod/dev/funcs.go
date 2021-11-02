@@ -1,4 +1,4 @@
-package tripod
+package dev
 
 import (
 	. "github.com/yu-org/yu/common"
@@ -14,4 +14,6 @@ type (
 	// This operation has no consensus reached in the blockchain network.
 	// respObj is a json object
 	Query func(ctx *Context, blockHash Hash) (respObj interface{}, err error)
+
+	P2pHandler func([]byte) ([]byte, error)
 )

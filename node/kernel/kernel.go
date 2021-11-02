@@ -1,22 +1,20 @@
-package master
+package kernel
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
-	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/node"
+	"github.com/yu-org/yu/p2p"
 	. "github.com/yu-org/yu/state"
 	"github.com/yu-org/yu/storage/kv"
 	"github.com/yu-org/yu/subscribe"
 	. "github.com/yu-org/yu/tripod"
+	"github.com/yu-org/yu/tripod/dev"
 	. "github.com/yu-org/yu/txpool"
 	"github.com/yu-org/yu/types"
 	. "github.com/yu-org/yu/utils/ip"
@@ -27,13 +25,8 @@ import (
 	"time"
 )
 
-type Master struct {
+type Kernel struct {
 	sync.Mutex
-
-	host           host.Host
-	ps             *pubsub.PubSub
-	protocolID     protocol.ID
-	ConnectedPeers []peer.ID
 
 	RunMode RunMode
 	// Key: NodeKeeper IP, Value: NodeKeeperInfo
@@ -53,36 +46,24 @@ type Master struct {
 
 	// event subscription
 	sub *subscribe.Subscription
+
+	p2pNetwork p2p.P2pNetwork
 }
 
-func NewMaster(
-	cfg *MasterConf,
+func NewKernel(
+	cfg *KernelConf,
 	env *ChainEnv,
 	land *Land,
-) *Master {
+) *Kernel {
 
 	nkDB, err := kv.NewKV(&cfg.NkDB)
 	if err != nil {
 		logrus.Fatal("init nkDB error: ", err)
 	}
-	pid := protocol.ID(cfg.ProtocolID)
-	ctx := context.Background()
-	p2pHost, err := makeP2pHost(ctx, cfg)
-	if err != nil {
-		logrus.Fatal("init P2P host error: ", err)
-	}
-
-	ps, err := pubsub.NewGossipSub(ctx, p2pHost)
-	if err != nil {
-		logrus.Fatal("init p2p gossip error: ", err)
-	}
 
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
-	m := &Master{
-		host:       p2pHost,
-		ps:         ps,
-		protocolID: pid,
+	m := &Kernel{
 		RunMode:    cfg.RunMode,
 		leiLimit:   cfg.LeiLimit,
 		nkDB:       nkDB,
@@ -94,33 +75,45 @@ func NewMaster(
 		txPool:     env.Pool,
 		stateStore: env.StateStore,
 		sub:        env.Sub,
+		p2pNetwork: env.P2pNetwork,
 
 		land: land,
 	}
 
 	env.Execute = m.ExecuteTxns
 
-	err = m.initTopics()
-	if err != nil {
-		logrus.Fatal("init p2p topics error: ", err)
-	}
 	err = m.InitChain()
 	if err != nil {
 		logrus.Fatal("init chain error: ", err)
 	}
 
-	err = m.ConnectP2PNetwork(cfg)
+	handerlsMap := make(map[int]dev.P2pHandler, 0)
+	handerlsMap[HandshakeCode] = m.handleHsReq
+	handerlsMap[SyncTxnsCode] = m.handleSyncTxnsReq
+
+	land.RangeList(func(tri Tripod) error {
+		for code, handler := range tri.GetTripodMeta().P2pHandlers {
+			handerlsMap[code] = handler
+		}
+		return nil
+	})
+	m.p2pNetwork.SetHandlers(handerlsMap)
+	err = m.p2pNetwork.ConnectBootNodes()
 	if err != nil {
-		logrus.Fatal("connect to P2P error: ", err)
+		logrus.Fatal("connect p2p bootnodes error: ", err)
 	}
+
 	return m
 }
 
-func (m *Master) P2pID() string {
-	return m.host.ID().String()
-}
+func (m *Kernel) Startup() {
 
-func (m *Master) Startup() {
+	if len(m.p2pNetwork.GetBootNodes()) > 0 {
+		err := m.SyncHistory()
+		if err != nil {
+			logrus.Fatal("sync history error: ", err)
+		}
+	}
 
 	if m.RunMode == MasterWorker {
 		go m.CheckHealth()
@@ -152,7 +145,7 @@ func (m *Master) Startup() {
 	m.Run()
 }
 
-func (m *Master) InitChain() error {
+func (m *Kernel) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
@@ -167,7 +160,7 @@ func (m *Master) InitChain() error {
 	}
 }
 
-//func (m *Master) AcceptBlocksFromP2P() error {
+//func (m *Kernel) AcceptBlocksFromP2P() error {
 //	block, err := m.subBlock()
 //	if err != nil {
 //		return err
@@ -192,7 +185,7 @@ func (m *Master) InitChain() error {
 //	return m.chain.InsertBlockFromP2P(block)
 //}
 
-func (m *Master) AcceptUnpkgTxns() error {
+func (m *Kernel) AcceptUnpkgTxns() error {
 	txns, err := m.subUnpackedTxns()
 	if err != nil {
 		return err
@@ -240,7 +233,7 @@ func (m *Master) AcceptUnpkgTxns() error {
 }
 
 // Check the health of NodeKeepers by SendHeartbeat to them.
-func (m *Master) CheckHealth() {
+func (m *Kernel) CheckHealth() {
 	for {
 		nkAddrs, err := m.allNodeKeepersIp()
 		if err != nil {
@@ -259,7 +252,7 @@ func (m *Master) CheckHealth() {
 }
 
 // FIXME: when number of txns is just less than NumOfBcTxns
-//func (m *Master) BroadcastTxns() {
+//func (m *Kernel) BroadcastTxns() {
 //	var txns SignedTxns
 //	for {
 //		select {
@@ -279,7 +272,7 @@ func (m *Master) CheckHealth() {
 //}
 
 // sync txns of P2P-network
-func (m *Master) SyncTxns(block *types.CompactBlock) error {
+func (m *Kernel) SyncTxns(block *types.CompactBlock) error {
 	txnsHashes := block.TxnsHashes
 
 	needFetch := make([]Hash, 0)
@@ -301,10 +294,10 @@ func (m *Master) SyncTxns(block *types.CompactBlock) error {
 		logrus.Info(" start sub packed txns")
 
 		var fetchPeer peer.ID
-		if m.ConnectedPeers == nil {
+		if m.p2pNetwork.GetBootNodes() == nil {
 			fetchPeer = block.PeerID
 		} else {
-			fetchPeer = m.ConnectedPeers[0]
+			fetchPeer = m.p2pNetwork.GetBootNodes()[0]
 		}
 
 		fetchedTxns, err := m.requestTxns(fetchPeer, block.PeerID, needFetch)
@@ -332,7 +325,7 @@ func (m *Master) SyncTxns(block *types.CompactBlock) error {
 	return m.base.SetTxns(block.Hash, txns)
 }
 
-func (m *Master) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
+func (m *Kernel) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
@@ -372,19 +365,7 @@ func (m *Master) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
 	}
 }
 
-func (m *Master) GetEnv() *ChainEnv {
-	return &ChainEnv{
-		StateStore: m.stateStore,
-		Chain:      m.chain,
-		Base:       m.base,
-		Pool:       m.txPool,
-		Sub:        m.sub,
-		PubP2P:     PubToP2P,
-		SubP2P:     SubFromP2P,
-	}
-}
-
-func (m *Master) registerNodeKeepers(c *gin.Context) {
+func (m *Kernel) registerNodeKeepers(c *gin.Context) {
 	m.Lock()
 	defer m.Unlock()
 	var nkInfo NodeKeeperInfo
@@ -411,7 +392,7 @@ func (m *Master) registerNodeKeepers(c *gin.Context) {
 	logrus.Infof("NodeKeeper(%s) register succeed!", nkIP)
 }
 
-func (m *Master) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
+func (m *Kernel) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
 	infoByt, err := info.EncodeNodeKeeperInfo()
 	if err != nil {
 		return err
@@ -419,7 +400,7 @@ func (m *Master) SetNodeKeeper(ip string, info NodeKeeperInfo) error {
 	return m.nkDB.Set([]byte(ip), infoByt)
 }
 
-func (m *Master) allNodeKeepersIp() ([]string, error) {
+func (m *Kernel) allNodeKeepersIp() ([]string, error) {
 	nkIPs := make([]string, 0)
 	err := m.allNodeKeepers(func(ip string, _ *NodeKeeperInfo) error {
 		nkIPs = append(nkIPs, ip)
@@ -428,7 +409,7 @@ func (m *Master) allNodeKeepersIp() ([]string, error) {
 	return nkIPs, err
 }
 
-func (m *Master) WorkersCount() (int, error) {
+func (m *Kernel) WorkersCount() (int, error) {
 	count := 0
 	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
 		count += len(info.WorkersInfo)
@@ -437,7 +418,7 @@ func (m *Master) WorkersCount() (int, error) {
 	return count, err
 }
 
-func (m *Master) randomGetWorkerIP() (string, error) {
+func (m *Kernel) randomGetWorkerIP() (string, error) {
 	ips, err := m.allWorkersIP()
 	if err != nil {
 		return "", err
@@ -446,7 +427,7 @@ func (m *Master) randomGetWorkerIP() (string, error) {
 	return ips[randIdx], nil
 }
 
-func (m *Master) allWorkersIP() ([]string, error) {
+func (m *Kernel) allWorkersIP() ([]string, error) {
 	var workersIP []string
 	err := m.allNodeKeepers(func(_ string, info *NodeKeeperInfo) error {
 		for ip, _ := range info.WorkersInfo {
@@ -458,12 +439,12 @@ func (m *Master) allWorkersIP() ([]string, error) {
 }
 
 // find workerIP by Execution/Query name
-func (m *Master) findWorkerIP(tripodName, callName string, callType CallType) (wip string, err error) {
+func (m *Kernel) findWorkerIP(tripodName, callName string, callType CallType) (wip string, err error) {
 	wip, _, err = m.findWorker(tripodName, callName, callType)
 	return
 }
 
-func (m *Master) findWorkerIpAndName(tripodName, callName string, callType CallType) (wip, name string, err error) {
+func (m *Kernel) findWorkerIpAndName(tripodName, callName string, callType CallType) (wip, name string, err error) {
 	var info *WorkerInfo
 	wip, info, err = m.findWorker(tripodName, callName, callType)
 	if err != nil {
@@ -473,7 +454,7 @@ func (m *Master) findWorkerIpAndName(tripodName, callName string, callType CallT
 	return
 }
 
-func (m *Master) findWorker(tripodName, callName string, callType CallType) (wip string, wInfo *WorkerInfo, err error) {
+func (m *Kernel) findWorker(tripodName, callName string, callType CallType) (wip string, wInfo *WorkerInfo, err error) {
 	err = m.allNodeKeepers(func(nkIP string, info *NodeKeeperInfo) error {
 		if !info.Online {
 			return NodeKeeperDead(nkIP)
@@ -517,7 +498,7 @@ func (m *Master) findWorker(tripodName, callName string, callType CallType) (wip
 	return
 }
 
-func (m *Master) allNodeKeepers(fn func(nkIP string, info *NodeKeeperInfo) error) error {
+func (m *Kernel) allNodeKeepers(fn func(nkIP string, info *NodeKeeperInfo) error) error {
 	iter, err := m.nkDB.Iter(nil)
 	if err != nil {
 		return err
@@ -545,7 +526,7 @@ func (m *Master) allNodeKeepers(fn func(nkIP string, info *NodeKeeperInfo) error
 	return nil
 }
 
-func (m *Master) setNkIfOnline(ip string, isOnline bool) error {
+func (m *Kernel) setNkIfOnline(ip string, isOnline bool) error {
 	tx, err := m.nkDB.NewKvTxn()
 	if err != nil {
 		return err

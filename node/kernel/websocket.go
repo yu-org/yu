@@ -1,4 +1,4 @@
-package master
+package kernel
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-func (m *Master) HandleWS() {
+func (m *Kernel) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(w http.ResponseWriter, req *http.Request) {
 		m.handleWS(w, req, execution)
 	})
@@ -35,7 +35,7 @@ const (
 	subscription
 )
 
-func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
+func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	upgrade := websocket.Upgrader{}
 	c, err := upgrade.Upgrade(w, req, nil)
 	if err != nil {
@@ -62,7 +62,7 @@ func (m *Master) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 
 }
 
-func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params string) {
+func (m *Kernel) handleWsExec(w http.ResponseWriter, req *http.Request, params string) {
 	_, _, stxn, err := getExecInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Execution info from websocket error: %v", err))
@@ -112,7 +112,7 @@ func (m *Master) handleWsExec(w http.ResponseWriter, req *http.Request, params s
 	logrus.Info("publish unpacked txns to P2P")
 }
 
-func (m *Master) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params string) {
+func (m *Kernel) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http.Request, params string) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
 		BadReqHttpResp(w, fmt.Sprintf("get Query info from websocket error: %v", err))

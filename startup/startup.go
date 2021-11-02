@@ -7,7 +7,8 @@ import (
 	"github.com/yu-org/yu/blockchain"
 	"github.com/yu-org/yu/chain_env"
 	"github.com/yu-org/yu/config"
-	"github.com/yu-org/yu/node/master"
+	"github.com/yu-org/yu/node/kernel"
+	"github.com/yu-org/yu/p2p"
 	"github.com/yu-org/yu/state"
 	"github.com/yu-org/yu/subscribe"
 	"github.com/yu-org/yu/tripod"
@@ -16,8 +17,8 @@ import (
 )
 
 var (
-	masterCfgPath string
-	masterCfg     config.MasterConf
+	kernelCfgPath string
+	kernelCfg     config.KernelConf
 )
 
 //var (
@@ -28,7 +29,7 @@ var (
 
 func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
-	initLog(masterCfg.LogLevel)
+	initLog(kernelCfg.LogLevel)
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
@@ -36,17 +37,17 @@ func StartUp(tripods ...tripod.Tripod) {
 	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	chain, err := blockchain.NewBlockChain(&masterCfg.BlockChain)
+	chain, err := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 	if err != nil {
 		logrus.Panicf("load blockchain error: %s", err.Error())
 	}
 
-	base, err := blockchain.NewBlockBase(&masterCfg.BlockBase)
+	base, err := blockchain.NewBlockBase(&kernelCfg.BlockBase)
 	if err != nil {
 		logrus.Panicf("load blockbase error: %s", err.Error())
 	}
 
-	stateStore, err := state.NewStateStore(&masterCfg.State)
+	stateStore, err := state.NewStateStore(&kernelCfg.State)
 	if err != nil {
 		logrus.Panicf("load stateKV error: %s", err.Error())
 	}
@@ -55,17 +56,16 @@ func StartUp(tripods ...tripod.Tripod) {
 		StateStore: stateStore,
 		Chain:      chain,
 		Base:       base,
-		Pool:       txpool.LocalWithDefaultChecks(&masterCfg.Txpool),
+		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool),
 		Sub:        subscribe.NewSubscription(),
-		PubP2P:     master.PubToP2P,
-		SubP2P:     master.SubFromP2P,
+		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
 
 	for _, t := range tripods {
 		t.SetChainEnv(env)
 	}
 
-	m := master.NewMaster(&masterCfg, env, land)
+	m := kernel.NewKernel(&kernelCfg, env, land)
 
 	m.Startup()
 }
@@ -73,7 +73,7 @@ func StartUp(tripods ...tripod.Tripod) {
 func initCfgFromFlags() {
 	useDefaultCfg := flag.Bool("dc", false, "default config files")
 
-	flag.StringVar(&masterCfgPath, "m", "yu_conf/master.toml", "Master config file path")
+	flag.StringVar(&kernelCfgPath, "k", "yu_conf/kernel.toml", "Kernel config file path")
 
 	flag.Parse()
 	if *useDefaultCfg {
@@ -81,7 +81,7 @@ func initCfgFromFlags() {
 		return
 	}
 
-	config.LoadConf(masterCfgPath, &masterCfg)
+	config.LoadConf(kernelCfgPath, &kernelCfg)
 }
 
 func initLog(level string) {
@@ -99,7 +99,7 @@ func initLog(level string) {
 }
 
 func initDefaultCfg() {
-	masterCfg = config.MasterConf{
+	kernelCfg = config.KernelConf{
 		RunMode:  0,
 		HttpPort: "7999",
 		WsPort:   "8999",
@@ -110,7 +110,9 @@ func initDefaultCfg() {
 			Path:   "./nk_db.db",
 			Hosts:  nil,
 		},
-		Timeout:         60,
+		Timeout: 60,
+	}
+	kernelCfg.P2P = config.P2pConf{
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},
 		Bootnodes:       nil,
 		ProtocolID:      "yu",
@@ -120,7 +122,7 @@ func initDefaultCfg() {
 		NodeKeyBits:     0,
 		NodeKeyFile:     "",
 	}
-	masterCfg.BlockChain = config.BlockchainConf{
+	kernelCfg.BlockChain = config.BlockchainConf{
 		ChainDB: config.SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       "chain.db",
@@ -130,18 +132,18 @@ func initDefaultCfg() {
 			Dsn:       "blocks_from_p2p.db",
 		},
 	}
-	masterCfg.BlockBase = config.BlockBaseConf{
+	kernelCfg.BlockBase = config.BlockBaseConf{
 		BaseDB: config.SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       "blockbase.db",
 		}}
-	masterCfg.Txpool = config.TxpoolConf{
+	kernelCfg.Txpool = config.TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
 		Timeout:    10,
 		WorkerIP:   "",
 	}
-	masterCfg.State = config.StateConf{KV: config.StateKvConf{
+	kernelCfg.State = config.StateConf{KV: config.StateKvConf{
 		IndexDB: config.KVconf{
 			KvType: "bolt",
 			Path:   "./state_index.db",

@@ -2,6 +2,7 @@ package tripod
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/tripod/dev"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -13,14 +14,17 @@ type TripodMeta struct {
 	// Key: Execution Name
 	execs map[string]ExecAndLei
 	// Key: Query Name
-	queries map[string]Query
+	queries map[string]dev.Query
+	// key: p2p-handler type code
+	P2pHandlers map[int]dev.P2pHandler
 }
 
 func NewTripodMeta(name string) *TripodMeta {
 	return &TripodMeta{
-		name:    name,
-		execs:   make(map[string]ExecAndLei),
-		queries: make(map[string]Query),
+		name:        name,
+		execs:       make(map[string]ExecAndLei),
+		queries:     make(map[string]dev.Query),
+		P2pHandlers: make(map[int]dev.P2pHandler),
 	}
 }
 
@@ -28,7 +32,7 @@ func (t *TripodMeta) Name() string {
 	return t.name
 }
 
-func (t *TripodMeta) SetExec(fn Execution, lei uint64) *TripodMeta {
+func (t *TripodMeta) SetExec(fn dev.Execution, lei uint64) *TripodMeta {
 	name := getFuncName(fn)
 	t.execs[name] = ExecAndLei{
 		exec: fn,
@@ -38,12 +42,18 @@ func (t *TripodMeta) SetExec(fn Execution, lei uint64) *TripodMeta {
 	return t
 }
 
-func (t *TripodMeta) SetQueries(queries ...Query) {
+func (t *TripodMeta) SetQueries(queries ...dev.Query) {
 	for _, q := range queries {
 		name := getFuncName(q)
 		t.queries[name] = q
 		logrus.Infof("register Query(%s) into Tripod(%s) \n", name, t.name)
 	}
+}
+
+func (t *TripodMeta) SetP2pHandler(code int, handler dev.P2pHandler) *TripodMeta {
+	t.P2pHandlers[code] = handler
+	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
+	return t
 }
 
 func getFuncName(i interface{}) string {
@@ -59,7 +69,7 @@ func (t *TripodMeta) ExistExec(execName string) bool {
 	return ok
 }
 
-func (t *TripodMeta) GetExec(name string) (Execution, uint64) {
+func (t *TripodMeta) GetExec(name string) (dev.Execution, uint64) {
 	execEne, ok := t.execs[name]
 	if ok {
 		return execEne.exec, execEne.lei
@@ -67,7 +77,7 @@ func (t *TripodMeta) GetExec(name string) (Execution, uint64) {
 	return nil, 0
 }
 
-func (t *TripodMeta) GetQuery(name string) Query {
+func (t *TripodMeta) GetQuery(name string) dev.Query {
 	return t.queries[name]
 }
 
@@ -88,6 +98,6 @@ func (t *TripodMeta) AllExecNames() []string {
 }
 
 type ExecAndLei struct {
-	exec Execution
+	exec dev.Execution
 	lei  uint64
 }

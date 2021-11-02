@@ -87,7 +87,7 @@ func (p *Pow) InitChain() error {
 	}
 	go func() {
 		for {
-			msg, err := p.env.SubP2P(StartBlockTopic)
+			msg, err := p.env.P2pNetwork.SubP2P(StartBlockTopic)
 			if err != nil {
 				logrus.Error("subscribe message from P2P error: ", err)
 				continue
@@ -151,7 +151,7 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 		return err
 	}
 
-	return p.env.PubP2P(StartBlockTopic, rawBlockByt)
+	return p.env.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
 }
 
 func (p *Pow) EndBlock(block *types.CompactBlock) error {

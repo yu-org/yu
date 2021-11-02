@@ -24,7 +24,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/tendermint/tendermint v0.34.0
-	github.com/xuperchain/xupercore v0.0.0-20210727025644-b21e3796e679 // indirect
+	github.com/xuperchain/xupercore v0.0.0-20210727025644-b21e3796e679
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect

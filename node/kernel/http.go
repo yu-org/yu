@@ -1,4 +1,4 @@
-package master
+package kernel
 
 import (
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ import (
 
 const PARAMS_KEY = "params"
 
-func (m *Master) HandleHttp() {
+func (m *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	if m.RunMode == MasterWorker {
@@ -58,7 +58,7 @@ func (m *Master) HandleHttp() {
 	r.Run(m.httpPort)
 }
 
-func (m *Master) handleHttpExec(c *gin.Context) {
+func (m *Kernel) handleHttpExec(c *gin.Context) {
 	params, err := getHttpJsonParams(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -112,7 +112,7 @@ func (m *Master) handleHttpExec(c *gin.Context) {
 	}
 }
 
-func (m *Master) handleHttpQry(c *gin.Context) {
+func (m *Kernel) handleHttpQry(c *gin.Context) {
 	params, err := getHttpJsonParams(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)

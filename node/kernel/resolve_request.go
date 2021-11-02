@@ -1,4 +1,4 @@
-package master
+package kernel
 
 import (
 	"github.com/gin-gonic/gin"

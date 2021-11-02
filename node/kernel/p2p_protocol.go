@@ -1,23 +1,15 @@
-package master
+package kernel
 
 import (
 	"encoding/json"
 	"github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/yerror"
-	"strconv"
 )
 
 const (
-	HandshakeType int = iota
-	SyncTxnsType
-
-	RequestTypeBytesLen = 1
-)
-
-var (
-	HandshakeReqByt = []byte(strconv.Itoa(HandshakeType))
-	SyncTxnsReqByt  = []byte(strconv.Itoa(SyncTxnsType))
+	HandshakeCode int = iota
+	SyncTxnsCode
 )
 
 type HandShakeRequest struct {
@@ -25,7 +17,7 @@ type HandShakeRequest struct {
 	Info       *HandShakeInfo
 }
 
-func (m *Master) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
+func (m *Kernel) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
 	info, err := m.NewHsInfo()
 	if err != nil {
 		return nil, err
@@ -37,16 +29,12 @@ func (m *Master) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
 }
 
 func (hs *HandShakeRequest) Encode() ([]byte, error) {
-	byt, err := json.Marshal(hs)
-	if err != nil {
-		return nil, err
-	}
-	return append(HandshakeReqByt, byt...), nil
+	return json.Marshal(hs)
 }
 
 func DecodeHsRequest(data []byte) (*HandShakeRequest, error) {
 	var hs HandShakeRequest
-	err := json.Unmarshal(data[RequestTypeBytesLen:], &hs)
+	err := json.Unmarshal(data, &hs)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +49,7 @@ type HandShakeInfo struct {
 	EndBlockHash Hash
 }
 
-func (m *Master) NewHsInfo() (*HandShakeInfo, error) {
+func (m *Kernel) NewHsInfo() (*HandShakeInfo, error) {
 	gBlock, err := m.chain.GetGenesis()
 	if err != nil {
 		return nil, err
@@ -151,14 +139,10 @@ type TxnsRequest struct {
 }
 
 func (tr TxnsRequest) Encode() ([]byte, error) {
-	byt, err := json.Marshal(tr)
-	if err != nil {
-		return nil, err
-	}
-	return append(SyncTxnsReqByt, byt...), nil
+	return json.Marshal(tr)
 }
 
 func DecodeTxnsRequest(data []byte) (tr TxnsRequest, err error) {
-	err = json.Unmarshal(data[RequestTypeBytesLen:], &tr)
+	err = json.Unmarshal(data, &tr)
 	return
 }

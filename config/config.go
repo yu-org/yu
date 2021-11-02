@@ -6,7 +6,7 @@ import (
 	. "github.com/yu-org/yu/common"
 )
 
-type MasterConf struct {
+type KernelConf struct {
 	// 0: local-node
 	// 1: master-worker
 	RunMode RunMode `toml:"run_mode"`
@@ -30,8 +30,10 @@ type MasterConf struct {
 	BlockBase  BlockBaseConf  `toml:"block_base"`
 	State      StateConf      `toml:"state"`
 	Txpool     TxpoolConf     `toml:"txpool"`
+	P2P        P2pConf        `toml:"p2p"`
+}
 
-	//---------P2P config--------
+type P2pConf struct {
 	// For listening from blockchain network.
 	P2pListenAddrs []string `toml:"p2p_listen_addrs"`
 	// To connect other hosts as a p2p network.

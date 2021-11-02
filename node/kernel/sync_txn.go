@@ -1,17 +1,15 @@
-package master
+package kernel
 
 import (
-	"context"
-	"github.com/libp2p/go-libp2p-core/network"
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/types"
 )
 
-func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
+func (m *Kernel) handleSyncTxnsReq(byt []byte) ([]byte, error) {
 	txnsReq, err := DecodeTxnsRequest(byt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var (
 		txns             types.SignedTxns
@@ -20,7 +18,7 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 	for _, hash := range txnsReq.Hashes {
 		stxn, err := m.txPool.GetTxn(hash)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if stxn != nil {
@@ -31,10 +29,10 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 	}
 
 	// request the node of block-producer for missingTxnHashes
-	if txnsReq.BlockProducer != m.host.ID() {
+	if txnsReq.BlockProducer != m.p2pNetwork.LocalID() {
 		stxns, err := m.requestTxns(txnsReq.BlockProducer, txnsReq.BlockProducer, missingTxnHashes)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		txns = append(txns, stxns...)
@@ -44,18 +42,14 @@ func (m *Master) handleSyncTxnsReq(byt []byte, s network.Stream) error {
 	if txns != nil {
 		txnsByt, err = txns.Encode()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return writeToStream(txnsByt, s)
+	return txnsByt, nil
 }
 
-func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (types.SignedTxns, error) {
-	s, err := m.host.NewStream(context.Background(), connectPeer, m.protocolID)
-	if err != nil {
-		return nil, err
-	}
+func (m *Kernel) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (types.SignedTxns, error) {
 	txnsRequest := TxnsRequest{
 		Hashes:        txnHashes,
 		BlockProducer: blockProducer,
@@ -64,11 +58,8 @@ func (m *Master) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes 
 	if err != nil {
 		return nil, err
 	}
-	err = writeToStream(reqByt, s)
-	if err != nil {
-		return nil, err
-	}
-	respByt, err := readFromStream(s)
+
+	respByt, err := m.p2pNetwork.RequestPeer(connectPeer, SyncTxnsCode, reqByt)
 	if err != nil {
 		return nil, err
 	}

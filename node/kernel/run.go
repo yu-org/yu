@@ -1,4 +1,4 @@
-package master
+package kernel
 
 import (
 	"github.com/sirupsen/logrus"
@@ -12,7 +12,7 @@ import (
 	. "github.com/yu-org/yu/yerror"
 )
 
-func (m *Master) Run() {
+func (m *Kernel) Run() {
 
 	switch m.RunMode {
 	case LocalNode:
@@ -34,7 +34,7 @@ func (m *Master) Run() {
 
 }
 
-func (m *Master) LocalRun() (err error) {
+func (m *Kernel) LocalRun() (err error) {
 	newBlock, err := m.makeNewBasicBlock()
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (m *Master) LocalRun() (err error) {
 	})
 }
 
-func (m *Master) makeNewBasicBlock() (*types.CompactBlock, error) {
+func (m *Kernel) makeNewBasicBlock() (*types.CompactBlock, error) {
 	var newBlock *types.CompactBlock = m.chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowNanoTsU64()
@@ -71,14 +71,14 @@ func (m *Master) makeNewBasicBlock() (*types.CompactBlock, error) {
 		return nil, err
 	}
 	newBlock.PrevHash = prevBlock.Hash
-	newBlock.PeerID = m.host.ID()
+	newBlock.PeerID = m.p2pNetwork.LocalID()
 	newBlock.Height = prevBlock.Height + 1
 	newBlock.LeiLimit = m.leiLimit
 	newBlock.Validators = &goproto.Validators{}
 	return newBlock, nil
 }
 
-func (m *Master) ExecuteTxns(block *types.CompactBlock) error {
+func (m *Kernel) ExecuteTxns(block *types.CompactBlock) error {
 	stxns, err := m.base.GetTxns(block.Hash)
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func (m *Master) ExecuteTxns(block *types.CompactBlock) error {
 	return nil
 }
 
-func (m *Master) MasterWokrerRun() error {
+func (m *Kernel) MasterWokrerRun() error {
 	//workersIps, err := m.allWorkersIP()
 	//if err != nil {
 	//	return err
@@ -169,7 +169,7 @@ func (m *Master) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Master) nortifyWorker(workersIps []string, path string, newBlock *types.CompactBlock) error {
+func (m *Kernel) nortifyWorker(workersIps []string, path string, newBlock *types.CompactBlock) error {
 	blockByt, err := newBlock.Encode()
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func (m *Master) nortifyWorker(workersIps []string, path string, newBlock *types
 	return nil
 }
 
-func (m *Master) handleError(err error, ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
+func (m *Kernel) handleError(err error, ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	ctx.EmitError(err)
 	ecall := stxn.Raw.Ecall
 
@@ -207,7 +207,7 @@ func (m *Master) handleError(err error, ctx *context.Context, block *types.Compa
 
 }
 
-func (m *Master) handleEvent(ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
+func (m *Kernel) handleEvent(ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
 	for _, event := range ctx.Events {
 		ecall := stxn.Raw.Ecall
 
