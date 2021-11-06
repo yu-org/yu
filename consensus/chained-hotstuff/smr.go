@@ -389,7 +389,7 @@ func (s *Smr) BlockToProposalNode(block *types.CompactBlock) *ProposalNode {
 			VoteInfo: &VoteInfo{
 				ProposalId:   blockHash.Bytes(),
 				ProposalView: height,
-				ParentId:     block.GetPrevHash().Bytes(),
+				ParentId:     block.PrevHash.Bytes(),
 				ParentView:   height - 1,
 			},
 		},

@@ -1,4 +1,4 @@
-go build -o yu-pow
+go build -v -o yu-pow
 
 cp yu-pow ~/run-yu/node1/
 
