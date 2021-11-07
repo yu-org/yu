@@ -5,9 +5,8 @@ package chained_hotstuff
 
 import (
 	"errors"
-
-	cCrypto "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/crypto"
-	"github.com/xuperchain/xupercore/lib/logs"
+	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/keypair"
 )
 
 var (
@@ -39,10 +38,8 @@ type DefaultSaftyRules struct {
 	// 即有[两个子孙节点的节点]
 	// 若本地有相同高度的节点，则自然排序后选出preferredRound
 	preferredRound int64
-	Crypto         *cCrypto.CBFTCrypto
+	Pubkey         keypair.PubKey
 	QcTree         *QCPendingTree
-
-	Log logs.Logger
 }
 
 func (s *DefaultSaftyRules) UpdatePreferredRound(round int64) bool {
@@ -78,12 +75,12 @@ func (s *DefaultSaftyRules) CheckVote(qc IQuorumCert, validators []string) error
 	}
 	// 是否是来自有效的候选人
 	if !isInSlice(signs[0].GetAddress(), validators) {
-		s.Log.Error("DefaultSaftyRules::CheckVote error", "validators", validators, "from", signs[0].GetAddress())
+		logrus.Errorf("DefaultSaftyRules::CheckVote Validators(%v) from(%s) error", validators, signs[0].GetAddress())
 		return InvalidVoteAddr
 	}
 	// 签名和公钥是否匹配
-	if ok, err := s.Crypto.VerifyVoteMsgSign(signs[0], qc.GetProposalId()); !ok {
-		return err
+	if ok := s.Pubkey.VerifySignature(qc.GetProposalId(), signs[0].GetSign()); !ok {
+		return InvalidVoteSign
 	}
 	// 检查voteinfo信息, proposalView小于lastVoteRound，parentView不小于preferredRound
 	if qc.GetProposalView() < s.lastVoteRound-3 {
@@ -148,7 +145,7 @@ func (s *DefaultSaftyRules) CheckProposal(proposal, parent IQuorumCert, justifyV
 			continue
 		}
 		// 签名和公钥是否匹配
-		if ok, _ := s.Crypto.VerifyVoteMsgSign(v, parent.GetProposalId()); !ok {
+		if ok := s.Pubkey.VerifySignature(parent.GetProposalId(), v.GetSign()); !ok {
 			return InvalidVoteSign
 		}
 		validCnt++

@@ -43,11 +43,11 @@ func (l *Land) GetExecLei(c *Ecall) (dev.Execution, uint64, error) {
 }
 
 func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
-	Tripod, ok := l.tripodsMap[c.TripodName]
+	tripod, ok := l.tripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
-	ph := Tripod.GetTripodMeta()
+	ph := tripod.GetTripodMeta()
 	qry := ph.GetQuery(c.QueryName)
 	if qry == nil {
 		return nil, QryNotFound(c.QueryName)

@@ -1,38 +1,68 @@
 package hotstuff
 
 import (
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
+	"github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/types"
 )
 
 type Hotstuff struct {
-	meta         *TripodMeta
-	validatorsIP []string
+	meta *TripodMeta
+	// key: crypto address
+	validators map[string]peer.ID
+	myPubkey   keypair.PubKey
+	myPrivKey  keypair.PrivKey
 
 	smr *Smr
 
-	msgChan chan []byte
+	env *ChainEnv
 }
 
-func NewHotstuff(addr string, validatorsIP []string) *Hotstuff {
+func NewHotstuff(myPubkey keypair.PubKey, myPrivkey keypair.PrivKey, validatorsMap map[string]string) *Hotstuff {
 	meta := NewTripodMeta("hotstuff")
 
 	q := InitQcTee()
 	saftyrules := &DefaultSaftyRules{
 		QcTree: q,
 	}
-	elec := NewSimpleElection(validatorsIP)
-	smr := NewSmr(addr, &DefaultPaceMaker{}, saftyrules, elec, q)
+
+	validatorsAddr := make([]string, 0)
+	validators := make(map[string]peer.ID)
+	for addr, ip := range validatorsMap {
+		peerID, err := peer.Decode(ip)
+		if err != nil {
+			logrus.Fatalf("decode validatorIP(%s) error: %v", ip, err)
+		}
+		validators[addr] = peerID
+
+		validatorsAddr = append(validatorsAddr, addr)
+	}
+
+	elec := NewSimpleElection(validatorsAddr)
+	smr := NewSmr(myPubkey.String(), &DefaultPaceMaker{}, saftyrules, elec, q)
 
 	return &Hotstuff{
-		meta:         meta,
-		validatorsIP: validatorsIP,
-		smr:          smr,
-		msgChan:      make(chan []byte, 10),
+		meta:       meta,
+		validators: validators,
+		myPubkey:   myPubkey,
+		myPrivKey:  myPrivkey,
+		smr:        smr,
 	}
+}
+
+func (h *Hotstuff) ValidatorsP2pID() (peers []peer.ID) {
+	for _, id := range h.validators {
+		peers = append(peers, id)
+	}
+	return
+}
+
+func (h *Hotstuff) LocalAddress() string {
+	return h.myPubkey.Address().String()
 }
 
 func (h *Hotstuff) GetTripodMeta() *TripodMeta {
@@ -47,27 +77,31 @@ func (h *Hotstuff) CheckTxn(txn *types.SignedTxn) error {
 	return nil
 }
 
-func (h *Hotstuff) VerifyBlock(block *types.CompactBlock, env *ChainEnv) bool {
+func (h *Hotstuff) SetChainEnv(env *ChainEnv) {
+	h.env = env
+}
+
+func (h *Hotstuff) VerifyBlock(block *types.CompactBlock) bool {
 	return true
 }
 
-func (h *Hotstuff) InitChain(env *ChainEnv, _ *Land) error {
-	chain := env.Chain
+func (h *Hotstuff) InitChain() error {
+	chain := h.env.Chain
 	gensisBlock := &types.CompactBlock{
 		Header: &types.Header{},
 	}
 	return chain.SetGenesis(gensisBlock)
 }
 
-func (h *Hotstuff) StartBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) StartBlock(block *types.CompactBlock) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) EndBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) EndBlock(block *types.CompactBlock) error {
 	panic("implement me")
 }
 
-func (h *Hotstuff) FinalizeBlock(block *types.CompactBlock, env *ChainEnv, land *Land) error {
+func (h *Hotstuff) FinalizeBlock(block *types.CompactBlock) error {
 	panic("implement me")
 }
 
@@ -93,21 +127,14 @@ func InitQcTee() *QCPendingTree {
 }
 
 func (h *Hotstuff) CompeteLeader() string {
-	if h.smr.GetCurrentView() == 0 {
-		return h.validatorsIP[0]
-	}
 	return h.smr.Election.GetLeader(h.smr.GetCurrentView())
 }
 
-func (h *Hotstuff) CompeteBlock(block *types.CompactBlock) error {
+func (h *Hotstuff) CompeteBlock(block *types.CompactBlock) {
 	miner := h.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
 	if miner != h.smr.GetAddress() {
-		return nil
+		return
 	}
-	proposal, err := h.smr.DoProposal(int64(block.Height), block.Hash.Bytes(), h.validatorsIP)
-	if err != nil {
-		return err
-	}
-
+	h.doPropose(int64(block.Height), block.Hash.Bytes())
 }

@@ -15,7 +15,7 @@ type P2pNetwork interface {
 	AddTopic(topicName string)
 
 	SetHandlers(handlers map[int]dev.P2pHandler)
-	RequestPeer(peerID peer.ID, typ int, request []byte) (response []byte, err error)
+	RequestPeer(peerID peer.ID, code int, request []byte) (response []byte, err error)
 
 	PubP2P(topic string, msg []byte) error
 	SubP2P(topic string) ([]byte, error)

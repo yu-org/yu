@@ -8,6 +8,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"errors"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
@@ -72,7 +73,8 @@ func NewSmr(address string, pacemaker IPacemaker, saftyrules iSaftyRules,
 	return s
 }
 
-func (s *Smr) DoProposal(viewNumber int64, proposalID []byte, validatesIpInfo []string) (*chainedBftPb.ProposalMsg, error) {
+func (s *Smr) DoPropose(viewNumber int64, proposalID []byte, validatesIpInfo []peer.ID) (*chainedBftPb.ProposalMsg, error) {
+	// ATTENTION::TODO:: 由于本次设计面向的是viewNumber可能重复的BFT，因此账本回滚后高度会相同，在此用LockedQC高度为标记
 	if validatesIpInfo == nil {
 		return nil, EmptyTarget
 	}
@@ -104,7 +106,6 @@ func (s *Smr) DoProposal(viewNumber int64, proposalID []byte, validatesIpInfo []
 		Timestamp:    time.Now().UnixNano(),
 		JustifyQC:    parentQuorumCertBytes,
 	}, nil
-
 }
 
 func (s *Smr) reloadJustifyQC() (*QuorumCert, error) {
@@ -201,7 +202,7 @@ func (s *Smr) CheckViewAndRound(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo
 // 5. 向本地PendingTree插入该QC，即更新QC
 // 6. 发送一个vote消息给下一个Leader
 // 注意：该过程删除了当前round的leader是否符合计算，将该步骤后置到上层共识CheckMinerMatch，原因：需要支持上层基于时间调度而不是基于round调度，减小耦合
-func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo, parentQC *QuorumCert) (*chainedBftPb.VoteMsg, error) {
+func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo, parentQC *QuorumCert) (*chainedBftPb.VoteMsg, string, error) {
 
 	// 3.本地safetyrules更新, 如有可以commit的QC，执行commit操作并更新本地rootQC
 	if parentQC.LedgerCommitInfo != nil && parentQC.LedgerCommitInfo.CommitStateId != nil &&
@@ -212,14 +213,14 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInf
 	if !s.saftyrules.CheckPacemaker(msg.GetProposalView(), s.pacemaker.GetCurrentView()) {
 		logrus.Error("smr::handleReceivedProposal::error", "error", TooLowNewProposal, "local want", s.pacemaker.GetCurrentView(),
 			"proposal have", msg.GetProposalView())
-		return nil, nil
+		return nil, "", nil
 	}
 
 	// 注意：删除此处的验证收到的proposal是否符合local计算，在本账本状态中后置到上层共识CheckMinerMatch
 	// 根据本地saftyrules返回是否 需要发送voteMsg给下一个Leader
 	if !s.saftyrules.VoteProposal(msg.GetProposalId(), msg.GetProposalView(), parentQC) {
 		logrus.Error("smr::handleReceivedProposal::VoteProposal fail", "view", msg.GetProposalView(), "proposalId", msg.GetProposalId())
-		return nil, nil
+		return nil, "", nil
 	}
 
 	// 这个newVoteId表示的是本地最新一次vote的id，生成voteInfo的hash，标识vote消息
@@ -235,32 +236,32 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInf
 	// 5.与proposal.ParentId相比，更新本地qcTree，insert新节点, 包括更新CommitQC等等
 	err := s.qcTree.updateQcStatus(newNode)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	logrus.Debug("smr::handleReceivedProposal::pacemaker changed", "round", s.pacemaker.GetCurrentView())
 	// 6.发送一个vote消息给下一个Leader
 	nextLeader := s.Election.GetLeader(s.pacemaker.GetCurrentView() + 1)
 	if nextLeader == "" {
 		logrus.Debug("smr::handleReceivedProposal::empty next leader", "next round", s.pacemaker.GetCurrentView()+1)
-		return nil, nil
+		return nil, "", nil
 	}
 	// 若为自己直接先返回
 	if nextLeader == s.address {
-		return nil, nil
+		return nil, "", nil
 	}
 	voteBytes, err := json.Marshal(newVote)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	ledgerBytes, err := json.Marshal(newLedgerInfo)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	return &chainedBftPb.VoteMsg{
 		VoteInfo:         voteBytes,
 		LedgerCommitInfo: ledgerBytes,
 		Signature:        []*chainedBftPb.QuorumCertSign{ /* nextSign */ },
-	}, nil
+	}, nextLeader, nil
 }
 
 // handleReceivedVoteMsg 当前Leader在发送一个proposal消息之后，由下一Leader等待周围replica的投票，收集vote消息
