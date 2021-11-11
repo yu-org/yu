@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	RequestCodeBytesLen = 1
+	RequestCodeBytesLen = 3
 )
 
 // todo: use stream pool to optimize it

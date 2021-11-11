@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	HandshakeCode int = iota
-	SyncTxnsCode
+	HandshakeCode int = 100
+	SyncTxnsCode      = 101
 )
 
 type HandShakeRequest struct {

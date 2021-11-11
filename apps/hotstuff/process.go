@@ -12,40 +12,13 @@ import (
 )
 
 const (
-	ProposeCode int = 100
-	VoteCode    int = 101
+	ProposeCode int = 102
+	VoteCode    int = 103
 )
 
-func (h *Hotstuff) doPropose(viewNumber int64, proposalID []byte) {
-	proposal, err := h.smr.DoPropose(viewNumber, proposalID, h.ValidatorsP2pID())
-	if err != nil {
-		return
-	}
-	propMsg, err := h.signProposal(proposal)
-	if err != nil {
-		logrus.Error("smr::ProcessProposal SignProposalMsg error: ", err)
-		return
-	}
-	go func() {
-		for _, validator := range h.validators {
-			proposalByt, err := proto.Marshal(propMsg)
-			if err != nil {
-				logrus.Error("smr::ProcessProposal decode proposal error: ", err)
-				continue
-			}
-			_, err = h.env.P2pNetwork.RequestPeer(validator, ProposeCode, proposalByt)
-			if err != nil {
-				logrus.Errorf("smr::ProcessProposal request validator(%s) error: %v", validator.String(), err)
-			} else {
-				logrus.Debugf("smr:ProcessProposal::new proposal has been made, address(%s), proposal(%s)", h.LocalAddress(), utils.F(proposalID))
-			}
-		}
-	}()
-}
-
-func (h *Hotstuff) handleRecvProposal(data []byte) {
+func (h *Hotstuff) handleRecvProposal(data []byte) (noResp []byte, err error) {
 	newProposal := &chainedBftPb.ProposalMsg{}
-	err := proto.Unmarshal(data, newProposal)
+	err = proto.Unmarshal(data, newProposal)
 	if err != nil {
 		logrus.Errorf("smr::handleReceivedProposal Encode ProposalMsg error: %v", err)
 		return
@@ -103,6 +76,22 @@ func (h *Hotstuff) handleRecvProposal(data []byte) {
 			logrus.Debug("smr::voteProposal::vote  vote to next leader(%s)  vote view number(%d)", voteTo, newVote.ProposalView)
 		}
 	}()
+
+	return
+}
+
+func (h *Hotstuff) handleRecvVoteMsg(data []byte) (noResp []byte, err error) {
+	newVoteMsg := &chainedBftPb.VoteMsg{}
+	err = proto.Unmarshal(data, newVoteMsg)
+	if err != nil {
+		logrus.Errorf("smr::handleRecvVoteMsg Encode VoteMsg error: %v", err)
+		return
+	}
+	err = h.smr.HandleRecvVoteMsg(newVoteMsg)
+	if err != nil {
+		logrus.Errorf("smr::handleRecvVoteMsg handle VoteMsg error: %v", err)
+	}
+	return
 }
 
 func (h *Hotstuff) signProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.ProposalMsg, error) {
@@ -121,4 +110,31 @@ func (h *Hotstuff) signProposal(msg *chainedBftPb.ProposalMsg) (*chainedBftPb.Pr
 		Sign:      sig,
 	}
 	return msg, nil
+}
+
+func (h *Hotstuff) doPropose(viewNumber int64, proposalID []byte) {
+	proposal, err := h.smr.DoPropose(viewNumber, proposalID, h.ValidatorsP2pID())
+	if err != nil {
+		return
+	}
+	propMsg, err := h.signProposal(proposal)
+	if err != nil {
+		logrus.Error("smr::ProcessProposal SignProposalMsg error: ", err)
+		return
+	}
+	go func() {
+		for _, validator := range h.validators {
+			proposalByt, err := proto.Marshal(propMsg)
+			if err != nil {
+				logrus.Error("smr::ProcessProposal decode proposal error: ", err)
+				continue
+			}
+			_, err = h.env.P2pNetwork.RequestPeer(validator, ProposeCode, proposalByt)
+			if err != nil {
+				logrus.Errorf("smr::ProcessProposal request validator(%s) error: %v", validator.String(), err)
+			} else {
+				logrus.Debugf("smr:ProcessProposal::new proposal has been made, address(%s), proposal(%s)", h.LocalAddress(), utils.F(proposalID))
+			}
+		}
+	}()
 }

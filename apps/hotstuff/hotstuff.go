@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
+	"github.com/yu-org/yu/context"
 	"github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/types"
@@ -19,7 +20,9 @@ type Hotstuff struct {
 
 	smr *Smr
 
-	env *ChainEnv
+	env              *ChainEnv
+	proposalDataChan chan []byte
+	VoteMsgChan      chan []byte
 }
 
 func NewHotstuff(myPubkey keypair.PubKey, myPrivkey keypair.PrivKey, validatorsMap map[string]string) *Hotstuff {
@@ -45,13 +48,18 @@ func NewHotstuff(myPubkey keypair.PubKey, myPrivkey keypair.PrivKey, validatorsM
 	elec := NewSimpleElection(validatorsAddr)
 	smr := NewSmr(myPubkey.String(), &DefaultPaceMaker{}, saftyrules, elec, q)
 
-	return &Hotstuff{
-		meta:       meta,
-		validators: validators,
-		myPubkey:   myPubkey,
-		myPrivKey:  myPrivkey,
-		smr:        smr,
+	h := &Hotstuff{
+		meta:             meta,
+		validators:       validators,
+		myPubkey:         myPubkey,
+		myPrivKey:        myPrivkey,
+		smr:              smr,
+		proposalDataChan: make(chan []byte, 10),
+		VoteMsgChan:      make(chan []byte, 10),
 	}
+	h.meta.SetP2pHandler(ProposeCode, h.handleRecvProposal).SetP2pHandler(VoteCode, h.handleRecvVoteMsg)
+	h.meta.SetExec(h.JoinValidator, 10000).SetExec(h.QuitValidator, 100)
+	return h
 }
 
 func (h *Hotstuff) ValidatorsP2pID() (peers []peer.ID) {
@@ -137,4 +145,14 @@ func (h *Hotstuff) CompeteBlock(block *types.CompactBlock) {
 		return
 	}
 	h.doPropose(int64(block.Height), block.Hash.Bytes())
+}
+
+func (h *Hotstuff) JoinValidator(ctx *context.Context, block *types.CompactBlock) error {
+
+	return nil
+}
+
+func (h *Hotstuff) QuitValidator(ctx *context.Context, block *types.CompactBlock) error {
+
+	return nil
 }
