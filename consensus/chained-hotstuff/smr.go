@@ -374,6 +374,17 @@ func (s *Smr) GetGenericQC() IQuorumCert {
 	return s.qcTree.GetGenericQC().In
 }
 
+func (s *Smr) UpdateQcStatus(node *ProposalNode) error {
+	if node == nil {
+		return EmptyTarget
+	}
+	// 更新ledgerStatus
+	if node.In.GetProposalView() > s.ledgerState {
+		s.ledgerState = node.In.GetProposalView()
+	}
+	return s.qcTree.updateQcStatus(node)
+}
+
 func (s *Smr) EnforceUpdateHighQC(inProposalId []byte) error {
 	return s.qcTree.enforceUpdateHighQC(inProposalId)
 }

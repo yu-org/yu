@@ -122,13 +122,15 @@ func (h *Hotstuff) doPropose(viewNumber int64, proposalID []byte) {
 		logrus.Error("smr::ProcessProposal SignProposalMsg error: ", err)
 		return
 	}
+
+	proposalByt, err := proto.Marshal(propMsg)
+	if err != nil {
+		logrus.Error("smr::ProcessProposal decode proposal error: ", err)
+		return
+	}
+
 	go func() {
 		for _, validator := range h.validators {
-			proposalByt, err := proto.Marshal(propMsg)
-			if err != nil {
-				logrus.Error("smr::ProcessProposal decode proposal error: ", err)
-				continue
-			}
 			_, err = h.env.P2pNetwork.RequestPeer(validator, ProposeCode, proposalByt)
 			if err != nil {
 				logrus.Errorf("smr::ProcessProposal request validator(%s) error: %v", validator.String(), err)
