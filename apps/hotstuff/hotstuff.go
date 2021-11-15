@@ -90,6 +90,7 @@ func (h *Hotstuff) SetChainEnv(env *ChainEnv) {
 }
 
 func (h *Hotstuff) VerifyBlock(block *CompactBlock) bool {
+
 	return true
 }
 

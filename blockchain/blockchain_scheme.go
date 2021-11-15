@@ -71,7 +71,7 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 
 		ProofBlock:  b.ProofBlockHash.String(),
 		ProofHeight: b.ProofHeight,
-		VrfProof:    ToHex(b.VrfProof),
+		VrfProof:    ToHex(b.Proof),
 
 		Extra: string(b.Extra),
 	}, nil
@@ -118,7 +118,7 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 
 		ProofBlockHash: HexToHash(b.ProofBlock),
 		ProofHeight:    b.ProofHeight,
-		VrfProof:       FromHex(b.VrfProof),
+		Proof:          FromHex(b.VrfProof),
 
 		Extra: []byte(b.Extra),
 	}

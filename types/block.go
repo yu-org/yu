@@ -120,8 +120,8 @@ type Header struct {
 
 	Validators     *goproto.Validators
 	ProofBlockHash Hash
-	ProofHeight    BlockNum
-	VrfProof       []byte
+	ProofHeight BlockNum
+	Proof       []byte
 
 	Nonce      uint64
 	Difficulty uint64
@@ -142,7 +142,7 @@ func (h *Header) ToPb() *goproto.Header {
 
 		ProofBlockHash: h.ProofBlockHash.Bytes(),
 		ProofHeight:    uint64(h.ProofHeight),
-		VrfProof:       h.VrfProof,
+		Proof:       h.Proof,
 
 		Nonce:      h.Nonce,
 		Difficulty: h.Difficulty,
@@ -180,7 +180,7 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 
 		ProofBlockHash: BytesToHash(pb.ProofBlockHash),
 		ProofHeight:    BlockNum(pb.ProofHeight),
-		VrfProof:       pb.VrfProof,
+		Proof:          pb.Proof,
 
 		Nonce:      pb.Nonce,
 		Difficulty: pb.Difficulty,
