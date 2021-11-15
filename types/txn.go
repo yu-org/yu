@@ -164,7 +164,7 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
-		ID:     ut.Id.Bytes(),
+		Id:     ut.Id.Bytes(),
 		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
 			TripodName: ut.Ecall.TripodName,
@@ -177,7 +177,7 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
-		Id:     BytesToHash(pb.ID),
+		Id:     BytesToHash(pb.Id),
 		Caller: BytesToAddress(pb.Caller),
 		Ecall: &Ecall{
 			TripodName: pb.Ecall.TripodName,

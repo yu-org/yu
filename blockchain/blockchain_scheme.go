@@ -24,8 +24,8 @@ type BlocksScheme struct {
 
 	Finalize bool
 
-	Pubkey    string
-	Signature string
+	MinerPubkey    string
+	MinerSignature string
 
 	Validators []byte
 
@@ -61,8 +61,8 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 		LeiLimit:   b.LeiLimit,
 		LeiUsed:    b.LeiUsed,
 
-		Pubkey:    ToHex(b.Pubkey),
-		Signature: ToHex(b.Signature),
+		MinerPubkey:    ToHex(b.MinerPubkey),
+		MinerSignature: ToHex(b.MinerSignature),
 
 		Validators: validators,
 
@@ -109,8 +109,8 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 		LeiLimit: b.LeiLimit,
 		LeiUsed:  b.LeiUsed,
 
-		Pubkey:    FromHex(b.Pubkey),
-		Signature: FromHex(b.Signature),
+		MinerPubkey:    FromHex(b.MinerPubkey),
+		MinerSignature: FromHex(b.MinerSignature),
 
 		Validators: &validators,
 		Nonce:      b.Nonce,
@@ -144,7 +144,7 @@ func bssToBlocks(bss []BlocksScheme) []*CompactBlock {
 
 //type ValidatorScheme struct {
 //	BlockHash     string
-//	Pubkey        string
+//	MinerPubkey        string
 //	ProposeWeight uint64
 //	VoteWeight    uint64
 //}
@@ -156,7 +156,7 @@ func bssToBlocks(bss []BlocksScheme) []*CompactBlock {
 //func toValidatorScheme(pb *goproto.Validator) ValidatorScheme {
 //	return ValidatorScheme{
 //		BlockHash:     "",
-//		Pubkey:        pb.String(),
+//		MinerPubkey:        pb.String(),
 //		ProposeWeight: pb.ProposeWeight,
 //		VoteWeight:    pb.VoteWeight,
 //	}
@@ -164,7 +164,7 @@ func bssToBlocks(bss []BlocksScheme) []*CompactBlock {
 //
 //func (v *ValidatorScheme) toValidator() *goproto.Validator {
 //	return &goproto.Validator{
-//		PubKey:        FromHex(v.Pubkey),
+//		PubKey:        FromHex(v.MinerPubkey),
 //		ProposeWeight: v.ProposeWeight,
 //		VoteWeight:    v.VoteWeight,
 //	}

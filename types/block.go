@@ -115,8 +115,8 @@ type Header struct {
 	LeiLimit uint64
 	LeiUsed  uint64
 
-	Pubkey    []byte
-	Signature []byte
+	MinerPubkey    []byte
+	MinerSignature []byte
 
 	Validators     *goproto.Validators
 	ProofBlockHash Hash
@@ -135,7 +135,7 @@ func (h *Header) ToPb() *goproto.Header {
 		TxnRoot:    h.TxnRoot.Bytes(),
 		StateRoot:  h.StateRoot.Bytes(),
 		Timestamp:  h.Timestamp,
-		PeerID:     h.PeerID.String(),
+		PeerId:     h.PeerID.String(),
 		LeiLimit:   h.LeiLimit,
 		LeiUsed:    h.LeiUsed,
 		Validators: h.Validators,
@@ -156,12 +156,12 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 		peerID peer.ID
 		err    error
 	)
-	if pb.PeerID == "" {
+	if pb.PeerId == "" {
 		peerID = peer.ID("")
 	} else {
-		peerID, err = peer.Decode(pb.PeerID)
+		peerID, err = peer.Decode(pb.PeerId)
 		if err != nil {
-			logrus.Panicf("peerID(%s) decode error: %v", pb.PeerID, err)
+			logrus.Panicf("peerID(%s) decode error: %v", pb.PeerId, err)
 		}
 	}
 

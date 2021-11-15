@@ -8,17 +8,18 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
 	"github.com/yu-org/yu/context"
-	"github.com/yu-org/yu/keypair"
+	. "github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	. "github.com/yu-org/yu/types"
+	"time"
 )
 
 type Hotstuff struct {
 	meta *TripodMeta
-	// key: crypto address
+	// key: crypto address, generate from pubkey
 	validators map[string]peer.ID
-	myPubkey   keypair.PubKey
-	myPrivKey  keypair.PrivKey
+	myPubkey   PubKey
+	myPrivKey  PrivKey
 
 	smr *Smr
 
@@ -26,7 +27,7 @@ type Hotstuff struct {
 	blockChan chan *Block
 }
 
-func NewHotstuff(myPubkey keypair.PubKey, myPrivkey keypair.PrivKey, validatorsMap map[string]string) *Hotstuff {
+func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]string) *Hotstuff {
 	meta := NewTripodMeta("hotstuff")
 
 	q := InitQcTee()
@@ -90,8 +91,16 @@ func (h *Hotstuff) SetChainEnv(env *ChainEnv) {
 }
 
 func (h *Hotstuff) VerifyBlock(block *CompactBlock) bool {
-
-	return true
+	minerPubkey, err := PubKeyFromBytes(block.MinerPubkey)
+	if err != nil {
+		logrus.Warnf("parse pubkey(%s) error: %v", block.MinerPubkey, err)
+		return false
+	}
+	if _, ok := h.validators[minerPubkey.Address().String()]; !ok {
+		logrus.Warn("illegal miner: ", minerPubkey.StringWithType())
+		return false
+	}
+	return minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature)
 }
 
 func (h *Hotstuff) InitChain() error {
@@ -122,6 +131,8 @@ func (h *Hotstuff) InitChain() error {
 }
 
 func (h *Hotstuff) StartBlock(block *CompactBlock) error {
+	defer time.Sleep(3 * time.Second)
+
 	miner := h.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
 	if miner != h.smr.GetAddress() {
@@ -129,7 +140,6 @@ func (h *Hotstuff) StartBlock(block *CompactBlock) error {
 		return nil
 	}
 
-	// TODO: pack txns from txpool
 	txns, err := h.env.Pool.Pack(3000)
 	if err != nil {
 		return err
@@ -145,6 +155,13 @@ func (h *Hotstuff) StartBlock(block *CompactBlock) error {
 
 	byt, _ := block.Encode()
 	block.Hash = BytesToHash(Sha256(byt))
+
+	// miner signs block
+	block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
+	if err != nil {
+		return err
+	}
+	block.MinerPubkey = h.myPubkey.BytesWithType()
 
 	h.env.StartBlock(block.Hash)
 	err = h.env.Base.SetTxns(block.Hash, txns)
