@@ -130,7 +130,10 @@ func (h *Hotstuff) doPropose(viewNumber int64, proposalID []byte) {
 	}
 
 	go func() {
-		for _, validator := range h.validators {
+		for addr, validator := range h.validators {
+			if addr == h.LocalAddress() {
+				continue
+			}
 			_, err = h.env.P2pNetwork.RequestPeer(validator, ProposeCode, proposalByt)
 			if err != nil {
 				logrus.Errorf("smr::ProcessProposal request validator(%s) error: %v", validator.String(), err)

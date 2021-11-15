@@ -149,7 +149,7 @@ func (h *Hotstuff) StartBlock(block *CompactBlock) error {
 	defer time.Sleep(2 * time.Second)
 
 	miner := h.CompeteLeader()
-	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
+	logrus.Debugf("compete a leader(%s) in round(%d)", miner, h.smr.GetCurrentView())
 	if miner != h.smr.GetAddress() {
 		h.useP2pBlock(block)
 		return nil

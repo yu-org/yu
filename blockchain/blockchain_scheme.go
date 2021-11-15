@@ -34,7 +34,7 @@ type BlocksScheme struct {
 
 	ProofBlock  string
 	ProofHeight BlockNum
-	VrfProof    string
+	Proof       string
 
 	Extra string
 }
@@ -71,7 +71,7 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 
 		ProofBlock:  b.ProofBlockHash.String(),
 		ProofHeight: b.ProofHeight,
-		VrfProof:    ToHex(b.Proof),
+		Proof:       ToHex(b.Proof),
 
 		Extra: string(b.Extra),
 	}, nil
@@ -118,7 +118,7 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 
 		ProofBlockHash: HexToHash(b.ProofBlock),
 		ProofHeight:    b.ProofHeight,
-		Proof:          FromHex(b.VrfProof),
+		Proof:          FromHex(b.Proof),
 
 		Extra: []byte(b.Extra),
 	}

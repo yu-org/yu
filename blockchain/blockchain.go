@@ -139,7 +139,7 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
 func (bc *BlockChain) Finalize(blockHash Hash) error {
 	bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
-	}).Update("finalize", true)
+	}).Updates(BlocksScheme{Finalize: true})
 	return nil
 }
 
