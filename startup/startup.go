@@ -21,12 +21,6 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-//var (
-//	Chain  blockchain.IBlockChain
-//	Base   blockchain.IBlockBase
-//	TxPool txpool.ItxPool
-//)
-
 func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
 	initLog(kernelCfg.LogLevel)

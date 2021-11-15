@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/asset"
 	"github.com/yu-org/yu/apps/hotstuff"
 	"github.com/yu-org/yu/keypair"
@@ -16,8 +17,13 @@ type pair struct {
 
 func main() {
 	pub0, priv0 := keypair.GenSrKey([]byte("node1"))
+	logrus.Info("node1 address is ", pub0.Address().String())
+
 	pub1, priv1 := keypair.GenSrKey([]byte("node2"))
+	logrus.Info("node2 address is ", pub1.Address().String())
+
 	pub2, priv2 := keypair.GenSrKey([]byte("node3"))
+	logrus.Info("node3 address is ", pub2.Address().String())
 
 	pairArray := []pair{
 		{
@@ -34,7 +40,7 @@ func main() {
 		},
 	}
 
-	idxStr := os.Args[0]
+	idxStr := os.Args[1]
 	idx, err := strconv.Atoi(idxStr)
 	if err != nil {
 		panic(err)

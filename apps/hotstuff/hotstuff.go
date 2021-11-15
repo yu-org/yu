@@ -1,6 +1,7 @@
 package hotstuff
 
 import (
+	"container/list"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
 	"github.com/xuperchain/xupercore/lib/utils"
@@ -11,6 +12,7 @@ import (
 	. "github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	. "github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/types/goproto"
 	"time"
 )
 
@@ -48,7 +50,7 @@ func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]st
 	}
 
 	elec := NewSimpleElection(validatorsAddr)
-	smr := NewSmr(myPubkey.String(), &DefaultPaceMaker{}, saftyrules, elec, q)
+	smr := NewSmr(myPubkey.Address().String(), &DefaultPaceMaker{}, saftyrules, elec, q)
 
 	h := &Hotstuff{
 		meta:       meta,
@@ -117,6 +119,7 @@ func (h *Hotstuff) InitChain() error {
 			Hash:           genesisHash,
 			MinerPubkey:    rootPubkey.BytesWithType(),
 			MinerSignature: signer,
+			Validators:     &goproto.Validators{Validators: nil},
 		},
 	}
 
@@ -143,7 +146,7 @@ func (h *Hotstuff) InitChain() error {
 }
 
 func (h *Hotstuff) StartBlock(block *CompactBlock) error {
-	defer time.Sleep(3 * time.Second)
+	defer time.Sleep(2 * time.Second)
 
 	miner := h.CompeteLeader()
 	logrus.Debugf("compete a leader(%s) address(%s) in round(%d)", miner, h.smr.GetAddress(), h.smr.GetCurrentView())
@@ -219,8 +222,16 @@ func (h *Hotstuff) FinalizeBlock(block *CompactBlock) error {
 	h.doPropose(int64(block.Height), block.Hash.Bytes())
 	pNode := h.smr.BlockToProposalNode(block)
 	err := h.smr.UpdateQcStatus(pNode)
-	logrus.Debugf("Hotstuff::ProcessConfirmBlock::Now HighQC(%s) blockHash(%s) error: %v", utils.F(h.smr.GetHighQC().GetProposalId()), block.Hash.String(), err)
-	return err
+	if err != nil {
+		logrus.Warnf("Hotstuff::ProcessFinalizeBlock::Now HighQC(%s) blockHash(%s) error: %v", utils.F(h.smr.GetHighQC().GetProposalId()), block.Hash.String(), err)
+		return err
+	}
+	err = h.env.Chain.Finalize(block.Hash)
+	if err != nil {
+		return err
+	}
+	logrus.Infof("Finalize Block(%d) (%s)", block.Height, block.Hash.String())
+	return nil
 }
 
 func InitQcTee() *QCPendingTree {
@@ -237,10 +248,12 @@ func InitQcTee() *QCPendingTree {
 		In: initQC,
 	}
 	return &QCPendingTree{
-		Genesis:  rootNode,
-		Root:     rootNode,
-		HighQC:   rootNode,
-		CommitQC: rootNode,
+		Genesis:    rootNode,
+		Root:       rootNode,
+		HighQC:     rootNode,
+		CommitQC:   rootNode,
+		OrphanList: list.New(),
+		OrphanMap:  make(map[string]bool),
 	}
 }
 
