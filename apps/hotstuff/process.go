@@ -16,18 +16,18 @@ const (
 	VoteCode    int = 103
 )
 
-func (h *Hotstuff) handleRecvProposal(data []byte) (noResp []byte, err error) {
+func (h *Hotstuff) handleRecvProposal(data []byte) ([]byte, error) {
 	newProposal := &chainedBftPb.ProposalMsg{}
-	err = proto.Unmarshal(data, newProposal)
+	err := proto.Unmarshal(data, newProposal)
 	if err != nil {
 		logrus.Errorf("smr::handleReceivedProposal Encode ProposalMsg error: %v", err)
-		return
+		return nil, err
 	}
 	parentQC := &ch.QuorumCert{}
 	err = json.Unmarshal(newProposal.GetJustifyQC(), parentQC)
 	if err != nil {
 		logrus.Errorf("smr::voteProposal::vote Encode parentQC error: %v", err)
-		return
+		return nil, err
 	}
 
 	newVote := &ch.VoteInfo{
@@ -39,14 +39,14 @@ func (h *Hotstuff) handleRecvProposal(data []byte) (noResp []byte, err error) {
 
 	needSendMsg, err := h.smr.CheckViewAndRound(newProposal, newVote, parentQC)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if needSendMsg {
 		leader := newProposal.GetSign().GetAddress()
 		leaderPeerID, err := peer.Decode(leader)
 		if err != nil {
 			logrus.Errorf("smr::handleReceivedProposal Decode P2P-ID(%s) error: %v, vote view number(%d)", leader, err, newVote.ProposalView)
-			return
+			return nil, err
 		}
 		if h.env.P2pNetwork.LocalID() != leaderPeerID {
 			go h.env.P2pNetwork.RequestPeer(leaderPeerID, ProposeCode, data)
@@ -55,21 +55,21 @@ func (h *Hotstuff) handleRecvProposal(data []byte) (noResp []byte, err error) {
 	}
 	voteMsg, voteTo, err := h.smr.HandleRecvProposal(newProposal, newVote, parentQC)
 	if err != nil {
-		return
+		return nil, err
 	}
 	voteMsgByt, err := proto.Marshal(voteMsg)
 	if err != nil {
 		logrus.Errorf("smr::voteProposal::vote  Encode VoteMsg error: %v, vote view number(%d)", err, newVote.ProposalView)
-		return
+		return nil, err
 	}
 	votePeerID, err := peer.Decode(voteTo)
 	if err != nil {
 		logrus.Errorf("smr::voteProposal::vote Decode P2P-ID(%s) error: %v, vote view number(%d)", voteTo, err, newVote.ProposalView)
-		return
+		return nil, err
 	}
 
 	go func() {
-		_, err := h.env.P2pNetwork.RequestPeer(votePeerID, VoteCode, voteMsgByt)
+		_, err = h.env.P2pNetwork.RequestPeer(votePeerID, VoteCode, voteMsgByt)
 		if err != nil {
 			logrus.Errorf("smr::voteProposal vote to next leader(%s) error: %v,  vote view number(%d)", voteTo, err, newVote.ProposalView)
 		} else {
@@ -77,7 +77,7 @@ func (h *Hotstuff) handleRecvProposal(data []byte) (noResp []byte, err error) {
 		}
 	}()
 
-	return
+	return nil, nil
 }
 
 func (h *Hotstuff) handleRecvVoteMsg(data []byte) (noResp []byte, err error) {

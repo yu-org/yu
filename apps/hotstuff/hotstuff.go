@@ -104,11 +104,23 @@ func (h *Hotstuff) VerifyBlock(block *CompactBlock) bool {
 }
 
 func (h *Hotstuff) InitChain() error {
+	rootPubkey, rootPrivkey := GenSrKey([]byte("root"))
+	genesisHash := HexToHash("genesis")
+	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
+	if err != nil {
+		return err
+	}
+
 	chain := h.env.Chain
 	gensisBlock := &CompactBlock{
-		Header: &Header{},
+		Header: &Header{
+			Hash:           genesisHash,
+			MinerPubkey:    rootPubkey.BytesWithType(),
+			MinerSignature: signer,
+		},
 	}
-	err := chain.SetGenesis(gensisBlock)
+
+	err = chain.SetGenesis(gensisBlock)
 	if err != nil {
 		return err
 	}

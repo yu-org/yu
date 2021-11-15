@@ -171,7 +171,7 @@ func (s *Smr) GetVoteAndParentQC(msg *chainedBftPb.ProposalMsg) (*VoteInfo, *Quo
 func (s *Smr) CheckViewAndRound(msg *chainedBftPb.ProposalMsg, newVote *VoteInfo, parentQC *QuorumCert) (needSendMsg bool, err error) {
 	isFirstJustify := bytes.Equal(s.qcTree.Genesis.In.GetProposalId(), parentQC.GetProposalId())
 	if !isFirstJustify {
-		if err := s.saftyrules.CheckProposal(&QuorumCert{
+		if err = s.saftyrules.CheckProposal(&QuorumCert{
 			VoteInfo:  newVote,
 			SignInfos: []*chainedBftPb.QuorumCertSign{msg.GetSign()},
 		}, parentQC, s.Election.GetValidators(parentQC.GetProposalView())); err != nil {
