@@ -1,6 +1,7 @@
 package keypair
 
 import (
+	"github.com/pkg/errors"
 	"github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -30,6 +31,9 @@ func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 
 // data: (keyTypeBytes + keyBytes)
 func PubKeyFromBytes(data []byte) (PubKey, error) {
+	if len(data) < KeyTypeBytLen {
+		return nil, errors.New("null data")
+	}
 	keyTypeByt := data[:KeyTypeBytLen]
 	switch string(keyTypeByt) {
 	case Sr25519Idx:
