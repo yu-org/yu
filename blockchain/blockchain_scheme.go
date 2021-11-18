@@ -44,7 +44,7 @@ func (BlocksScheme) TableName() string {
 }
 
 func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
-	validators, err := proto.Marshal(b.Validators)
+	validators, err := proto.Marshal(ValidatorsToPb(b.Validators))
 	if err != nil {
 		return BlocksScheme{}, err
 	}
@@ -112,7 +112,7 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 		MinerPubkey:    FromHex(b.MinerPubkey),
 		MinerSignature: FromHex(b.MinerSignature),
 
-		Validators: &validators,
+		Validators: ValidatorsFromPb(&validators),
 		Nonce:      b.Nonce,
 		Difficulty: b.Difficulty,
 

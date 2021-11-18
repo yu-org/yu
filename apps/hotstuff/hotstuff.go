@@ -1,6 +1,7 @@
 package hotstuff
 
 import (
+	"bytes"
 	"container/list"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
@@ -12,7 +13,6 @@ import (
 	. "github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	. "github.com/yu-org/yu/types"
-	"github.com/yu-org/yu/types/goproto"
 	"time"
 )
 
@@ -25,8 +25,9 @@ type Hotstuff struct {
 
 	smr *Smr
 
-	env       *ChainEnv
-	blockChan chan *Block
+	env           *ChainEnv
+	blockChan     chan *Block
+	waitOtherNode time.Duration
 }
 
 func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]string) *Hotstuff {
@@ -119,11 +120,14 @@ func (h *Hotstuff) InitChain() error {
 			Hash:           genesisHash,
 			MinerPubkey:    rootPubkey.BytesWithType(),
 			MinerSignature: signer,
-			Validators:     &goproto.Validators{Validators: nil},
 		},
 	}
 
 	err = chain.SetGenesis(gensisBlock)
+	if err != nil {
+		return err
+	}
+	err = chain.Finalize(genesisHash)
 	if err != nil {
 		return err
 	}
@@ -148,11 +152,12 @@ func (h *Hotstuff) InitChain() error {
 func (h *Hotstuff) StartBlock(block *CompactBlock) error {
 	defer time.Sleep(2 * time.Second)
 
-	miner := h.CompeteLeader()
-	logrus.Debugf("compete a leader(%s) in round(%d)", miner, h.smr.GetCurrentView())
-	if miner != h.smr.GetAddress() {
-		h.useP2pBlock(block)
-		return nil
+	miner := h.CompeteLeader(block.Height)
+	logrus.Debugf("compete a leader(%s) in round(%d)", miner, block.Height)
+	if miner != h.LocalAddress() {
+		if h.useP2pBlock(block) {
+			return nil
+		}
 	}
 
 	txns, err := h.env.Pool.Pack(3000)
@@ -257,28 +262,40 @@ func InitQcTee() *QCPendingTree {
 	}
 }
 
-func (h *Hotstuff) CompeteLeader() string {
-	return h.smr.Election.GetLeader(h.smr.GetCurrentView())
+func (h *Hotstuff) CompeteLeader(blockHeight BlockNum) string {
+	return h.smr.Election.GetLeader(int64(blockHeight))
 }
 
-func (h *Hotstuff) useP2pBlock(localBlock *CompactBlock) {
-	p2pBlock := <-h.blockChan
+func (h *Hotstuff) useP2pBlock(localBlock *CompactBlock) bool {
+	var p2pBlock *Block
+	select {
+	case p2pBlock = <-h.blockChan:
+		goto USEP2P
+	case <-time.NewTicker(1000 * time.Millisecond).C:
+		return false
+	}
+USEP2P:
+	logrus.Debugf("accept block(%s), height(%d), miner(%s)", p2pBlock.Hash.String(), p2pBlock.Height, p2pBlock.MinerPubkey)
+	if bytes.Equal(p2pBlock.MinerPubkey, h.myPubkey.BytesWithType()) {
+		return true
+	}
 	ok := h.VerifyBlock(p2pBlock.CompactBlock)
 	if !ok {
 		logrus.Warnf("block(%s) verify failed", p2pBlock.Hash.String())
-		return
+		return false
 	}
 	localBlock.CopyFrom(p2pBlock.CompactBlock)
 	err := h.env.Base.SetTxns(localBlock.Hash, p2pBlock.Txns)
 	if err != nil {
 		logrus.Errorf("set txns of p2p-block(%s) into base error: %v", p2pBlock.Hash.String(), err)
-		return
+		return true
 	}
 	h.env.StartBlock(localBlock.Hash)
 	err = h.env.Pool.RemoveTxns(localBlock.TxnsHashes)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}
+	return true
 }
 
 func (h *Hotstuff) JoinValidator(ctx *context.Context, block *CompactBlock) error {

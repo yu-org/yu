@@ -8,7 +8,6 @@ import (
 	. "github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/types"
-	"github.com/yu-org/yu/types/goproto"
 	"math/big"
 	"time"
 )
@@ -77,9 +76,7 @@ func (p *Pow) VerifyBlock(block *types.CompactBlock) bool {
 func (p *Pow) InitChain() error {
 	chain := p.env.Chain
 	gensisBlock := &types.CompactBlock{
-		Header: &types.Header{
-			Validators: &goproto.Validators{Validators: nil},
-		},
+		Header: &types.Header{},
 	}
 	err := chain.SetGenesis(gensisBlock)
 	if err != nil {

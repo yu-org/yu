@@ -9,7 +9,7 @@ func NewSimpleElection(addrs []string) *SimpleElection {
 }
 
 func (s *SimpleElection) GetLeader(round int64) string {
-	pos := round % 3
+	pos := (round - 1) % 3
 	return s.addrs[pos]
 }
 

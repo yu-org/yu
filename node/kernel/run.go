@@ -7,7 +7,6 @@ import (
 	. "github.com/yu-org/yu/node"
 	. "github.com/yu-org/yu/tripod"
 	"github.com/yu-org/yu/types"
-	"github.com/yu-org/yu/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	. "github.com/yu-org/yu/yerror"
 )
@@ -74,7 +73,6 @@ func (m *Kernel) makeNewBasicBlock() (*types.CompactBlock, error) {
 	newBlock.PeerID = m.p2pNetwork.LocalID()
 	newBlock.Height = prevBlock.Height + 1
 	newBlock.LeiLimit = m.leiLimit
-	newBlock.Validators = &goproto.Validators{}
 	return newBlock, nil
 }
 

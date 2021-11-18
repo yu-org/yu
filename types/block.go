@@ -118,7 +118,7 @@ type Header struct {
 	MinerPubkey    []byte
 	MinerSignature []byte
 
-	Validators     *goproto.Validators
+	Validators     []*Validator
 	ProofBlockHash Hash
 	ProofHeight    BlockNum
 	Proof          []byte
@@ -138,7 +138,7 @@ func (h *Header) ToPb() *goproto.Header {
 		PeerId:     h.PeerID.String(),
 		LeiLimit:   h.LeiLimit,
 		LeiUsed:    h.LeiUsed,
-		Validators: h.Validators,
+		Validators: ValidatorsToPb(h.Validators),
 
 		ProofBlockHash: h.ProofBlockHash.Bytes(),
 		ProofHeight:    uint64(h.ProofHeight),
@@ -176,7 +176,7 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 
 		LeiLimit:   pb.LeiLimit,
 		LeiUsed:    pb.LeiUsed,
-		Validators: pb.Validators,
+		Validators: ValidatorsFromPb(pb.Validators),
 
 		ProofBlockHash: BytesToHash(pb.ProofBlockHash),
 		ProofHeight:    BlockNum(pb.ProofHeight),
@@ -187,4 +187,34 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 
 		Extra: pb.Extra,
 	}
+}
+
+type Validator struct {
+	PubKey        []byte
+	ProposeWeight uint64
+	VoteWeight    uint64
+}
+
+func ValidatorsToPb(vs []*Validator) *goproto.Validators {
+	validators := make([]*goproto.Validator, 0)
+	for _, v := range vs {
+		validators = append(validators, &goproto.Validator{
+			PubKey:        v.PubKey,
+			ProposeWeight: v.ProposeWeight,
+			VoteWeight:    v.VoteWeight,
+		})
+	}
+	return &goproto.Validators{Validators: validators}
+}
+
+func ValidatorsFromPb(vs *goproto.Validators) []*Validator {
+	validators := make([]*Validator, 0)
+	for _, v := range vs.Validators {
+		validators = append(validators, &Validator{
+			PubKey:        v.PubKey,
+			ProposeWeight: v.ProposeWeight,
+			VoteWeight:    v.VoteWeight,
+		})
+	}
+	return validators
 }
