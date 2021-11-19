@@ -9,8 +9,8 @@ func NewSimpleElection(addrs []string) *SimpleElection {
 }
 
 func (s *SimpleElection) GetLeader(round int64) string {
-	pos := (round - 1) % 3
-	return s.addrs[pos]
+	idx := (round - 1) % int64(len(s.addrs))
+	return s.addrs[idx]
 }
 
 func (s *SimpleElection) GetValidators(round int64) []string {

@@ -25,9 +25,10 @@ type Hotstuff struct {
 
 	smr *Smr
 
-	env           *ChainEnv
-	blockChan     chan *Block
-	waitOtherNode time.Duration
+	env       *ChainEnv
+	blockChan chan *Block
+	// local node index in addrs
+	nodeIdx int
 }
 
 func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]string) *Hotstuff {
@@ -38,6 +39,8 @@ func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]st
 		QcTree: q,
 	}
 
+	var nodeIdx int
+
 	validatorsAddr := make([]string, 0)
 	validators := make(map[string]peer.ID)
 	for addr, ip := range validatorsMap {
@@ -46,6 +49,10 @@ func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]st
 			logrus.Fatalf("decode validatorIP(%s) error: %v", ip, err)
 		}
 		validators[addr] = peerID
+
+		if addr == myPubkey.Address().String() {
+			nodeIdx = len(validatorsAddr)
+		}
 
 		validatorsAddr = append(validatorsAddr, addr)
 	}
@@ -60,6 +67,7 @@ func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]st
 		myPrivKey:  myPrivkey,
 		smr:        smr,
 		blockChan:  make(chan *Block, 10),
+		nodeIdx:    nodeIdx,
 	}
 	h.meta.SetP2pHandler(ProposeCode, h.handleRecvProposal).SetP2pHandler(VoteCode, h.handleRecvVoteMsg)
 	h.meta.SetExec(h.JoinValidator, 10000).SetExec(h.QuitValidator, 100)
@@ -150,7 +158,7 @@ func (h *Hotstuff) InitChain() error {
 }
 
 func (h *Hotstuff) StartBlock(block *CompactBlock) error {
-	defer time.Sleep(2 * time.Second)
+	defer time.Sleep(3 * time.Second)
 
 	miner := h.CompeteLeader(block.Height)
 	logrus.Debugf("compete a leader(%s) in round(%d)", miner, block.Height)
@@ -271,11 +279,14 @@ func (h *Hotstuff) useP2pBlock(localBlock *CompactBlock) bool {
 	select {
 	case p2pBlock = <-h.blockChan:
 		goto USEP2P
-	case <-time.NewTicker(1000 * time.Millisecond).C:
+	case <-time.NewTicker(h.calulateWaitTime(localBlock)).C:
 		return false
 	}
 USEP2P:
 	logrus.Debugf("accept block(%s), height(%d), miner(%s)", p2pBlock.Hash.String(), p2pBlock.Height, p2pBlock.MinerPubkey)
+	if localBlock.Height > p2pBlock.Height{
+		return false
+	}
 	if bytes.Equal(p2pBlock.MinerPubkey, h.myPubkey.BytesWithType()) {
 		return true
 	}
@@ -306,4 +317,15 @@ func (h *Hotstuff) JoinValidator(ctx *context.Context, block *CompactBlock) erro
 func (h *Hotstuff) QuitValidator(ctx *context.Context, block *CompactBlock) error {
 
 	return nil
+}
+
+func (h *Hotstuff) calulateWaitTime(block *CompactBlock) time.Duration {
+	height := int(block.Height)
+	shouldLeaderIdx := (height - 1) % len(h.smr.Election.GetValidators(0))
+	n := shouldLeaderIdx - h.nodeIdx
+	if n < 0 {
+		n = -n
+	}
+
+	return time.Duration(n) * time.Second
 }
