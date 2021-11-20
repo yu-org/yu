@@ -283,8 +283,9 @@ func (h *Hotstuff) useP2pBlock(localBlock *CompactBlock) bool {
 		return false
 	}
 USEP2P:
-	logrus.Debugf("accept block(%s), height(%d), miner(%s)", p2pBlock.Hash.String(), p2pBlock.Height, p2pBlock.MinerPubkey)
-	if localBlock.Height > p2pBlock.Height{
+	logrus.Debugf("accept block(%s), height(%d), miner(%s), signer(%s)",
+		p2pBlock.Hash.String(), p2pBlock.Height, ToHex(p2pBlock.MinerPubkey), ToHex(p2pBlock.MinerSignature))
+	if localBlock.Height > p2pBlock.Height {
 		return false
 	}
 	if bytes.Equal(p2pBlock.MinerPubkey, h.myPubkey.BytesWithType()) {

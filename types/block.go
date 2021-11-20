@@ -140,6 +140,9 @@ func (h *Header) ToPb() *goproto.Header {
 		LeiUsed:    h.LeiUsed,
 		Validators: ValidatorsToPb(h.Validators),
 
+		MinerPubkey:    h.MinerPubkey,
+		MinerSignature: h.MinerSignature,
+
 		ProofBlockHash: h.ProofBlockHash.Bytes(),
 		ProofHeight:    uint64(h.ProofHeight),
 		Proof:          h.Proof,
@@ -177,6 +180,9 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 		LeiLimit:   pb.LeiLimit,
 		LeiUsed:    pb.LeiUsed,
 		Validators: ValidatorsFromPb(pb.Validators),
+
+		MinerPubkey:    pb.MinerPubkey,
+		MinerSignature: pb.MinerSignature,
 
 		ProofBlockHash: BytesToHash(pb.ProofBlockHash),
 		ProofHeight:    BlockNum(pb.ProofHeight),
