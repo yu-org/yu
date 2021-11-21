@@ -158,7 +158,11 @@ func (h *Hotstuff) InitChain() error {
 }
 
 func (h *Hotstuff) StartBlock(block *CompactBlock) error {
-	defer time.Sleep(3 * time.Second)
+	now := time.Now()
+	defer func() {
+		duration := time.Since(now)
+		time.Sleep(3*time.Second - duration)
+	}()
 
 	miner := h.CompeteLeader(block.Height)
 	logrus.Debugf("compete a leader(%s) in round(%d)", miner, block.Height)
@@ -237,10 +241,6 @@ func (h *Hotstuff) FinalizeBlock(block *CompactBlock) error {
 	err := h.smr.UpdateQcStatus(pNode)
 	if err != nil {
 		logrus.Warnf("Hotstuff::ProcessFinalizeBlock::Now HighQC(%s) blockHash(%s) error: %v", utils.F(h.smr.GetHighQC().GetProposalId()), block.Hash.String(), err)
-		return err
-	}
-	err = h.env.Chain.Finalize(block.Hash)
-	if err != nil {
 		return err
 	}
 	logrus.Infof("Finalize Block(%d) (%s)", block.Height, block.Hash.String())

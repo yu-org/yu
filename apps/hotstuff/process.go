@@ -8,6 +8,7 @@ import (
 	"github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/crypto"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
+	"github.com/yu-org/yu/common"
 	ch "github.com/yu-org/yu/consensus/chained-hotstuff"
 )
 
@@ -80,16 +81,30 @@ func (h *Hotstuff) handleRecvProposal(data []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (h *Hotstuff) handleRecvVoteMsg(data []byte) (noResp []byte, err error) {
+func (h *Hotstuff) handleRecvVoteMsg(data []byte) (no []byte, err error) {
 	newVoteMsg := &chainedBftPb.VoteMsg{}
 	err = proto.Unmarshal(data, newVoteMsg)
 	if err != nil {
 		logrus.Errorf("smr::handleRecvVoteMsg Encode VoteMsg error: %v", err)
 		return
 	}
-	err = h.smr.HandleRecvVoteMsg(newVoteMsg)
+	ok, err := h.smr.HandleRecvVoteMsg(newVoteMsg)
 	if err != nil {
-		logrus.Errorf("smr::handleRecvVoteMsg handle VoteMsg error: %v", err)
+		return
+	}
+	if ok {
+		var ledger ch.LedgerCommitInfo
+		err = json.Unmarshal(newVoteMsg.LedgerCommitInfo, &ledger)
+		if err != nil {
+			logrus.Errorf("smr::handleRecvVoteMsg Encode Ledger error: %v", err)
+			return
+		}
+		blockHash := common.BytesToHash(ledger.VoteInfoHash)
+		err = h.env.Chain.Finalize(blockHash)
+		if err != nil {
+			logrus.Errorf("smr::handleRecvVoteMsg finalize block(%s) error: %v", blockHash.String(), err)
+			return
+		}
 	}
 	return
 }

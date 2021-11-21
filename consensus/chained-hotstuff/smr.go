@@ -267,27 +267,28 @@ func (s *Smr) HandleRecvProposal(msg *chainedBftPb.ProposalMsg, newVote *VoteInf
 // handleReceivedVoteMsg 当前Leader在发送一个proposal消息之后，由下一Leader等待周围replica的投票，收集vote消息
 // 当收到2f+1个vote消息之后，本地pacemaker调用AdvanceView，并更新highQC
 // 该方法针对Leader而言
-func (s *Smr) HandleRecvVoteMsg(msg *chainedBftPb.VoteMsg) error {
+// 如果超过2f+1，则返回 true, nil
+func (s *Smr) HandleRecvVoteMsg(msg *chainedBftPb.VoteMsg) (bool, error) {
 	voteQC, err := VoteMsgToQC(msg)
 	if err != nil {
 		logrus.Error("smr::handleReceivedVoteMsg VoteMsgToQC error", "error", err)
-		return err
+		return false, err
 	}
 	// 检查voteInfoHash是否正确
 	if err := s.saftyrules.CheckVote(voteQC, s.Election.GetValidators(voteQC.GetProposalView())); err != nil {
 		logrus.Error("smr::handleReceivedVoteMsg CheckVote error", "error", err, "msg", utils.F(voteQC.GetProposalId()))
-		return err
+		return false, err
 	}
 	logrus.Debug("smr::handleReceivedVoteMsg::receive vote", "voteId", utils.F(voteQC.GetProposalId()), "voteView", voteQC.GetProposalView(), "from", voteQC.SignInfos[0].Address)
 
 	// 若vote先于proposal到达，则直接丢弃票数
 	if _, ok := s.localProposal.Load(utils.F(voteQC.GetProposalId())); !ok {
 		logrus.Debug("smr::handleReceivedVoteMsg::haven't received the related proposal msg, drop it.")
-		return EmptyTarget
+		return false, EmptyTarget
 	}
 	if node := s.qcTree.DFSQueryNode(voteQC.GetProposalId()); node == nil {
 		logrus.Debug("smr::handleReceivedVoteMsg::haven't finish proposal process, drop it.")
-		return EmptyTarget
+		return false, EmptyTarget
 	}
 
 	// 存入本地voteInfo内存，查看签名数量是否超过2f+1
@@ -313,7 +314,7 @@ func (s *Smr) HandleRecvVoteMsg(msg *chainedBftPb.VoteMsg) error {
 	}
 	// 查看签名数量是否达到2f+1, 需要获取justify对应的validators
 	if !s.saftyrules.CalVotesThreshold(VoteLen, len(s.Election.GetValidators(voteQC.GetProposalView()))) {
-		return nil
+		return false, nil
 	}
 
 	// 更新本地pacemaker AdvanceRound
@@ -321,8 +322,7 @@ func (s *Smr) HandleRecvVoteMsg(msg *chainedBftPb.VoteMsg) error {
 	logrus.Debug("smr::handleReceivedVoteMsg::FULL VOTES!", "pacemaker view", s.pacemaker.GetCurrentView())
 	// 更新HighQC
 	s.qcTree.updateHighQC(voteQC.GetProposalId())
-	return nil
-
+	return true, nil
 }
 
 func (s *Smr) GetCurrentView() int64 {
