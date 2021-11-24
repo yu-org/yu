@@ -153,7 +153,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}()
 
 	miner := h.CompeteLeader(block.Height)
-	logrus.Debugf("compete a leader(%s) in round(%d)", miner, block.Height)
+	logrus.Debugf("compete a leader(%s) in round(%d)", miner.String(), block.Height)
 	if miner != h.LocalAddress() {
 		if h.useP2pBlock(block) {
 			return nil

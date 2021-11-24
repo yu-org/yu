@@ -101,6 +101,7 @@ func MakeTxnRoot(txns []*SignedTxn) (Hash, error) {
 }
 
 type Header struct {
+	ChainID   uint64
 	PrevHash  Hash
 	Hash      Hash
 	Height    BlockNum
@@ -129,6 +130,7 @@ type Header struct {
 
 func (h *Header) ToPb() *goproto.Header {
 	return &goproto.Header{
+		ChainId:    h.ChainID,
 		Hash:       h.Hash.Bytes(),
 		PrevHash:   h.PrevHash.Bytes(),
 		Height:     uint64(h.Height),
@@ -169,6 +171,7 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 	}
 
 	return &Header{
+		ChainID:   pb.ChainId,
 		PrevHash:  BytesToHash(pb.PrevHash),
 		Hash:      BytesToHash(pb.Hash),
 		Height:    BlockNum(pb.Height),

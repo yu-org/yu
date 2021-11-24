@@ -10,6 +10,7 @@ import (
 )
 
 type BlocksScheme struct {
+	ChainID    uint64
 	Hash       string `gorm:"primaryKey"`
 	PrevHash   string
 	Height     BlockNum
@@ -49,6 +50,7 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 		return BlocksScheme{}, err
 	}
 	return BlocksScheme{
+		ChainID:    b.ChainID,
 		Hash:       b.Hash.String(),
 		PrevHash:   b.PrevHash.String(),
 		Height:     b.Height,
@@ -98,6 +100,7 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 	}
 
 	header := &Header{
+		ChainID:   b.ChainID,
 		PrevHash:  HexToHash(b.PrevHash),
 		Hash:      HexToHash(b.Hash),
 		Height:    b.Height,
