@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+const BlockTime = 3
+
 type Poa struct {
 	meta *TripodMeta
 	// key: crypto address, generate from pubkey
@@ -170,7 +172,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	now := time.Now()
 	defer func() {
 		duration := time.Since(now)
-		time.Sleep(3*time.Second - duration)
+		time.Sleep(BlockTime*time.Second - duration)
 	}()
 
 	h.setCurrentHeight(block.Height)
@@ -298,7 +300,7 @@ func (h *Poa) calulateWaitTime(block *CompactBlock) time.Duration {
 		n = -n
 	}
 
-	return time.Duration(n) * time.Second
+	return time.Duration(BlockTime+n) * time.Second
 }
 
 func (h *Poa) JoinValidator(ctx *context.Context, block *CompactBlock) error {
