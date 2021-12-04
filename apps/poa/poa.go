@@ -10,6 +10,7 @@ import (
 	. "github.com/yu-org/yu/keypair"
 	. "github.com/yu-org/yu/tripod"
 	. "github.com/yu-org/yu/types"
+	"go.uber.org/atomic"
 	"time"
 )
 
@@ -22,8 +23,10 @@ type Poa struct {
 
 	validatorsList []Address
 
-	env       *ChainEnv
-	blockChan chan *Block
+	currentHeight *atomic.Uint32
+
+	env      *ChainEnv
+	recvChan chan *Block
 	// local node index in addrs
 	nodeIdx int
 }
@@ -55,7 +58,8 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[Address]string
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,
 		myPrivKey:      myPrivkey,
-		blockChan:      make(chan *Block, 10),
+		currentHeight:  atomic.NewUint32(0),
+		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
 	h.meta.SetExec(h.JoinValidator, 10000).SetExec(h.QuitValidator, 100)
@@ -134,12 +138,29 @@ func (h *Poa) InitChain() error {
 				logrus.Error("subscribe message from P2P error: ", err)
 				continue
 			}
-			block, err := DecodeBlock(msg)
+			p2pBlock, err := DecodeBlock(msg)
 			if err != nil {
-				logrus.Error("decode block from p2p error: ", err)
+				logrus.Error("decode p2pBlock from p2p error: ", err)
 				continue
 			}
-			h.blockChan <- block
+			if bytes.Equal(p2pBlock.MinerPubkey, h.myPubkey.BytesWithType()) {
+				continue
+			}
+
+			logrus.Debugf("accept block(%s), height(%d), miner(%s)",
+				p2pBlock.Hash.String(), p2pBlock.Height, ToHex(p2pBlock.MinerPubkey))
+
+			if h.getCurrentHeight() > p2pBlock.Height {
+				continue
+			}
+
+			ok := h.VerifyBlock(p2pBlock.CompactBlock)
+			if !ok {
+				logrus.Warnf("p2pBlock(%s) verify failed", p2pBlock.Hash.String())
+				continue
+			}
+
+			h.recvChan <- p2pBlock
 		}
 	}()
 	return nil
@@ -152,10 +173,16 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 		time.Sleep(3*time.Second - duration)
 	}()
 
+	h.setCurrentHeight(block.Height)
+
+	logrus.Info("====== start a new block ", block.Height)
+
 	miner := h.CompeteLeader(block.Height)
 	logrus.Debugf("compete a leader(%s) in round(%d)", miner.String(), block.Height)
 	if miner != h.LocalAddress() {
-		if h.useP2pBlock(block) {
+		if h.useP2pOrSkip(block) {
+			logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
+				block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
 			return nil
 		}
 	}
@@ -216,7 +243,8 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 		return err
 	}
 
-	logrus.Infof("append block(%d) (%s)", block.Height, block.Hash.String())
+	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+		Info("append block")
 
 	h.env.SetCanRead(block.Hash)
 
@@ -224,7 +252,8 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 }
 
 func (h *Poa) FinalizeBlock(block *CompactBlock) error {
-	logrus.Infof("Finalize Block(%d) (%s)", block.Height, block.Hash.String())
+	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+		Info("finalize block")
 	return h.env.Chain.Finalize(block.Hash)
 }
 
@@ -233,28 +262,20 @@ func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {
 	return h.validatorsList[idx]
 }
 
-func (h *Poa) useP2pBlock(localBlock *CompactBlock) bool {
-	var p2pBlock *Block
+func (h *Poa) useP2pOrSkip(localBlock *CompactBlock) bool {
+LOOP:
 	select {
-	case p2pBlock = <-h.blockChan:
-		goto USEP2P
+	case p2pBlock := <-h.recvChan:
+		if h.getCurrentHeight() > p2pBlock.Height {
+			goto LOOP
+		}
+		return h.useP2pBlock(localBlock, p2pBlock)
 	case <-time.NewTicker(h.calulateWaitTime(localBlock)).C:
 		return false
 	}
-USEP2P:
-	logrus.Debugf("accept block(%s), height(%d), miner(%s), signer(%s)",
-		p2pBlock.Hash.String(), p2pBlock.Height, ToHex(p2pBlock.MinerPubkey), ToHex(p2pBlock.MinerSignature))
-	if localBlock.Height > p2pBlock.Height {
-		return false
-	}
-	if bytes.Equal(p2pBlock.MinerPubkey, h.myPubkey.BytesWithType()) {
-		return true
-	}
-	ok := h.VerifyBlock(p2pBlock.CompactBlock)
-	if !ok {
-		logrus.Warnf("block(%s) verify failed", p2pBlock.Hash.String())
-		return false
-	}
+}
+
+func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 	localBlock.CopyFrom(p2pBlock.CompactBlock)
 	err := h.env.Base.SetTxns(localBlock.Hash, p2pBlock.Txns)
 	if err != nil {
@@ -269,6 +290,17 @@ USEP2P:
 	return true
 }
 
+func (h *Poa) calulateWaitTime(block *CompactBlock) time.Duration {
+	height := int(block.Height)
+	shouldLeaderIdx := (height - 1) % len(h.validatorsList)
+	n := shouldLeaderIdx - h.nodeIdx
+	if n < 0 {
+		n = -n
+	}
+
+	return time.Duration(n) * time.Second
+}
+
 func (h *Poa) JoinValidator(ctx *context.Context, block *CompactBlock) error {
 
 	return nil
@@ -279,13 +311,10 @@ func (h *Poa) QuitValidator(ctx *context.Context, block *CompactBlock) error {
 	return nil
 }
 
-func (h *Poa) calulateWaitTime(block *CompactBlock) time.Duration {
-	height := int(block.Height)
-	shouldLeaderIdx := (height - 1) % len(h.validatorsList)
-	n := shouldLeaderIdx - h.nodeIdx
-	if n < 0 {
-		n = -n
-	}
+func (h *Poa) getCurrentHeight() BlockNum {
+	return BlockNum(h.currentHeight.Load())
+}
 
-	return time.Duration(n) * time.Second
+func (h *Poa) setCurrentHeight(height BlockNum) {
+	h.currentHeight.Store(uint32(height))
 }
