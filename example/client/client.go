@@ -32,7 +32,7 @@ func main() {
 	time.Sleep(4 * time.Second)
 
 	transfer(privkey, pubkey, toPubkey.Address())
-	//time.Sleep(4 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	transfer(privkey, pubkey, toPubkey.Address())
 	time.Sleep(6 * time.Second)
