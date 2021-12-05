@@ -22,7 +22,7 @@ func (a Amount) Encode() ([]byte, error) {
 func MustDecodeToAmount(data []byte) Amount {
 	a, err := DecodeToAmount(data)
 	if err != nil {
-		logrus.Panic("decode amount error")
+		logrus.Panic("decode amount error: ", err)
 	}
 	return a
 }
