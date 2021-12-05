@@ -6,13 +6,13 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
 	"github.com/xuperchain/xupercore/lib/utils"
-	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/consensus/chained-hotstuff"
-	"github.com/yu-org/yu/context"
-	. "github.com/yu-org/yu/keypair"
-	. "github.com/yu-org/yu/tripod"
-	. "github.com/yu-org/yu/types"
+	. "github.com/yu-org/yu/core/chain_env"
+	"github.com/yu-org/yu/core/context"
+	. "github.com/yu-org/yu/core/keypair"
+	. "github.com/yu-org/yu/core/tripod"
+	. "github.com/yu-org/yu/core/types"
 	"time"
 )
 

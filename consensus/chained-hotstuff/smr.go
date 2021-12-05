@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
-	"github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/core/types"
 	"sync"
 	"time"
 )

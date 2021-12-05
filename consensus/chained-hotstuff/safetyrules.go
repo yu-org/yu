@@ -6,7 +6,7 @@ package chained_hotstuff
 import (
 	"errors"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/keypair"
+	"github.com/yu-org/yu/core/keypair"
 )
 
 var (

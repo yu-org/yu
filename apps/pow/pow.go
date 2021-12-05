@@ -2,12 +2,12 @@ package pow
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
 	spow "github.com/yu-org/yu/consensus/pow"
-	. "github.com/yu-org/yu/keypair"
-	. "github.com/yu-org/yu/tripod"
-	"github.com/yu-org/yu/types"
+	. "github.com/yu-org/yu/core/chain_env"
+	. "github.com/yu-org/yu/core/keypair"
+	. "github.com/yu-org/yu/core/tripod"
+	types2 "github.com/yu-org/yu/core/types"
 	"math/big"
 	"time"
 )
@@ -65,18 +65,18 @@ func (p *Pow) SetChainEnv(env *ChainEnv) {
 	p.env = env
 }
 
-func (*Pow) CheckTxn(*types.SignedTxn) error {
+func (*Pow) CheckTxn(*types2.SignedTxn) error {
 	return nil
 }
 
-func (p *Pow) VerifyBlock(block *types.CompactBlock) bool {
+func (p *Pow) VerifyBlock(block *types2.CompactBlock) bool {
 	return spow.Validate(block, p.target, p.targetBits)
 }
 
 func (p *Pow) InitChain() error {
 	chain := p.env.Chain
-	gensisBlock := &types.CompactBlock{
-		Header: &types.Header{},
+	gensisBlock := &types2.CompactBlock{
+		Header: &types2.Header{},
 	}
 	err := chain.SetGenesis(gensisBlock)
 	if err != nil {
@@ -96,7 +96,7 @@ func (p *Pow) InitChain() error {
 	return nil
 }
 
-func (p *Pow) StartBlock(block *types.CompactBlock) error {
+func (p *Pow) StartBlock(block *types2.CompactBlock) error {
 	time.Sleep(2 * time.Second)
 
 	pool := p.env.Pool
@@ -115,10 +115,10 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 		return err
 	}
 
-	hashes := types.FromArray(txns...).Hashes()
+	hashes := types2.FromArray(txns...).Hashes()
 	block.TxnsHashes = hashes
 
-	txnRoot, err := types.MakeTxnRoot(txns)
+	txnRoot, err := types2.MakeTxnRoot(txns)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 		return err
 	}
 
-	rawBlock := &types.Block{
+	rawBlock := &types2.Block{
 		CompactBlock: block,
 		Txns:         txns,
 	}
@@ -151,7 +151,7 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 	return p.env.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
 }
 
-func (p *Pow) EndBlock(block *types.CompactBlock) error {
+func (p *Pow) EndBlock(block *types2.CompactBlock) error {
 	chain := p.env.Chain
 	pool := p.env.Pool
 
@@ -172,12 +172,12 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 	return pool.Reset()
 }
 
-func (*Pow) FinalizeBlock(_ *types.CompactBlock) error {
+func (*Pow) FinalizeBlock(_ *types2.CompactBlock) error {
 	return nil
 }
 
 // return TRUE if we use the p2p-block
-func (p *Pow) UseBlocksFromP2P(block *types.CompactBlock) bool {
+func (p *Pow) UseBlocksFromP2P(block *types2.CompactBlock) bool {
 	msgCount := len(p.msgChan)
 	if msgCount > 0 {
 		for i := 0; i < msgCount; i++ {
@@ -190,9 +190,9 @@ func (p *Pow) UseBlocksFromP2P(block *types.CompactBlock) bool {
 	return false
 }
 
-func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
+func (p *Pow) useP2pBlock(msg []byte, block *types2.CompactBlock) bool {
 
-	p2pRawBlock, err := types.DecodeBlock(msg)
+	p2pRawBlock, err := types2.DecodeBlock(msg)
 	if err != nil {
 		logrus.Error("decode p2p-raw-block error: ", err)
 		return false

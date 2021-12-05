@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/types"
+	"github.com/yu-org/yu/core/types"
 	"math"
 	"math/big"
 )

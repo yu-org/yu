@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/yu-org/yu/apps/asset"
 	"github.com/yu-org/yu/apps/pow"
-	"github.com/yu-org/yu/startup"
+	"github.com/yu-org/yu/core/startup"
 )
 
 func main() {

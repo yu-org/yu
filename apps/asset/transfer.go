@@ -2,12 +2,12 @@ package asset
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/chain_env"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/context"
-	. "github.com/yu-org/yu/tripod"
-	"github.com/yu-org/yu/types"
-	. "github.com/yu-org/yu/yerror"
+	. "github.com/yu-org/yu/common/yerror"
+	. "github.com/yu-org/yu/core/chain_env"
+	. "github.com/yu-org/yu/core/context"
+	. "github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/types"
 )
 
 type Asset struct {

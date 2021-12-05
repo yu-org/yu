@@ -9,9 +9,9 @@ import (
 	"errors"
 	chainedBftPb "github.com/xuperchain/xupercore/kernel/consensus/base/driver/chained-bft/pb"
 	"github.com/xuperchain/xupercore/lib/utils"
+	. "github.com/yu-org/yu/common/yerror"
 
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/yerror"
 )
 
 var _ IQuorumCert = (*QuorumCert)(nil)
