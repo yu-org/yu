@@ -15,7 +15,7 @@ import (
 	. "github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/txpool"
-	types2 "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	. "github.com/yu-org/yu/utils/ip"
@@ -37,8 +37,8 @@ type Kernel struct {
 
 	timeout time.Duration
 
-	chain      types2.IBlockChain
-	base       types2.IBlockBase
+	chain      types.IBlockChain
+	base       types.IBlockBase
 	txPool     ItxPool
 	stateStore *StateStore
 
@@ -272,11 +272,11 @@ func (m *Kernel) CheckHealth() {
 //}
 
 // sync txns of P2P-network
-func (m *Kernel) SyncTxns(block *types2.CompactBlock) error {
+func (m *Kernel) SyncTxns(block *types.CompactBlock) error {
 	txnsHashes := block.TxnsHashes
 
 	needFetch := make([]Hash, 0)
-	txns := make(types2.SignedTxns, 0)
+	txns := make(types.SignedTxns, 0)
 	for _, txnHash := range txnsHashes {
 		stxn, err := m.txPool.GetTxn(txnHash)
 		if err != nil {
@@ -325,7 +325,7 @@ func (m *Kernel) SyncTxns(block *types2.CompactBlock) error {
 	return m.base.SetTxns(block.Hash, txns)
 }
 
-func (m *Kernel) SyncHistoryBlocks(blocks []*types2.CompactBlock) error {
+func (m *Kernel) SyncHistoryBlocks(blocks []*types.CompactBlock) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
@@ -561,7 +561,7 @@ func setNkWithTx(txn kv.KvTxn, ip string, info *NodeKeeperInfo) error {
 	return txn.Set([]byte(ip), infoByt)
 }
 
-func existTxnHash(txnHash Hash, txns []*types2.SignedTxn) (*types2.SignedTxn, bool) {
+func existTxnHash(txnHash Hash, txns []*types.SignedTxn) (*types.SignedTxn, bool) {
 	for _, stxn := range txns {
 		if stxn.TxnHash == txnHash {
 			return stxn, true
