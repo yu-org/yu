@@ -7,7 +7,7 @@ require (
 	github.com/HyperService-Consortium/go-hexutil v1.0.1
 	github.com/HyperService-Consortium/go-rlp v1.0.2
 	github.com/dgraph-io/badger v1.6.2
-	github.com/ethereum/go-ethereum v1.10.3
+	github.com/ethereum/go-ethereum v1.10.8
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/websocket v1.4.2
