@@ -18,22 +18,21 @@ func ApplyTxn(
 	chain *blockchain.BlockChain,
 	statedb *gstate.StateDB,
 	to common.Address,
-	value, gasPrice,
-	gasFeeCap, gasTipCap uint64,
+	value, gasFeeCap, gasTipCap uint64,
 ) error {
 	gaspool := new(gcore.GasPool).AddGas(block.LeiLimit)
-	gasprice := new(big.Int).SetUint64(gasPrice)
 	amount := new(big.Int).SetUint64(value)
 	gfc := new(big.Int).SetUint64(gasFeeCap)
 	gtc := new(big.Int).SetUint64(gasTipCap)
 	toAddr := gcommon.Address(to)
 
 	for i, stxn := range block.Txns {
+		gasPrice := new(big.Int).SetUint64(stxn.Raw.LeiPrice)
 		msg := gtypes.NewMessage(
 			gcommon.Address(stxn.Raw.Caller),
 			&toAddr, stxn.Raw.Nonce,
 			amount, block.LeiLimit,
-			gasprice, gfc,
+			gasPrice, gfc,
 			gtc, stxn.Raw.Code,
 			nil, false,
 		)
@@ -41,7 +40,7 @@ func ApplyTxn(
 		evm := NewDefaultEVM(block.Header, chain, statedb)
 		txCtx := vm.TxContext{
 			Origin:   gcommon.Address(stxn.Raw.Caller),
-			GasPrice: gasprice,
+			GasPrice: gasPrice,
 		}
 		evm.Reset(txCtx, statedb)
 
