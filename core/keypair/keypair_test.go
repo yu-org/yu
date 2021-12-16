@@ -5,8 +5,15 @@ import (
 	"testing"
 )
 
-func TestSrKey(t *testing.T) {
-	pubkey, privkey, err := GenKeyPair(Sr25519)
+func TestKey(t *testing.T) {
+	testKey(t, Sr25519)
+	testKey(t, Ed25519)
+	testKey(t, Secp256k1)
+}
+
+func testKey(t *testing.T, keyType string) {
+	t.Log("------- test ", keyType)
+	pubkey, privkey, err := GenKeyPair(keyType)
 	if err != nil {
 		panic("generate key error: " + err.Error())
 	}
