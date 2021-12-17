@@ -1,6 +1,7 @@
 package keypair
 
 import (
+	"github.com/stretchr/testify/assert"
 	. "github.com/yu-org/yu/common"
 	"testing"
 )
@@ -30,9 +31,5 @@ func testKey(t *testing.T, keyType string) {
 		panic("sign data error: " + err.Error())
 	}
 
-	genPubkey, err := PubKeyFromBytes(pubkey.BytesWithType())
-	if err != nil {
-		panic("gen pubkey error: " + err.Error())
-	}
-	t.Logf("verify signature result:  %v", genPubkey.VerifySignature(ecall.Bytes(), signByt))
+	assert.True(t, pubkey.VerifySignature(ecall.Bytes(), signByt), "verify signature")
 }
