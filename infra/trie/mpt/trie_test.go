@@ -3,13 +3,13 @@ package mpt
 import (
 	"bytes"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/storage/kv"
+	"github.com/yu-org/yu/config"
 	"testing"
 )
 
 func TestTrieSetPutandGet(t *testing.T) {
-	cfg := &kv.KVconf{
-		KVtype: "badger",
+	cfg := &config.KVconf{
+		KvType: "badger",
 		Path:   "./testdb",
 	}
 	db, err := NewNodeBase(cfg)

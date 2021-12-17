@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/storage/kv"
+	"github.com/yu-org/yu/config"
 	"io"
 	"testing"
 	"unicode/utf8"
@@ -130,8 +130,8 @@ CheckKeyValueOK:
 }
 
 func TestGenerateProof(t *testing.T) {
-	cfg := &kv.KVconf{
-		KVtype: "badger",
+	cfg := &config.KVconf{
+		KvType: "badger",
 		Path:   "./testdb",
 	}
 	db, err := NewNodeBase(cfg)
@@ -168,8 +168,8 @@ func TestGenerateProof(t *testing.T) {
 }
 
 func TestGenerateLongProof(t *testing.T) {
-	cfg := &kv.KVconf{
-		KVtype: "badger",
+	cfg := &config.KVconf{
+		KvType: "badger",
 		Path:   "./testdb",
 	}
 	db, err := NewNodeBase(cfg)

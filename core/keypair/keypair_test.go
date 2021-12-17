@@ -30,6 +30,6 @@ func testKey(t *testing.T, keyType string) {
 	if err != nil {
 		panic("sign data error: " + err.Error())
 	}
-
-	assert.True(t, pubkey.VerifySignature(ecall.Bytes(), signByt), "verify signature")
+	ok := pubkey.VerifySignature(ecall.Bytes(), signByt)
+	assert.True(t, ok)
 }
