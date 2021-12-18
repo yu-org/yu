@@ -1,22 +1,22 @@
 package blockchain
 
 import (
-	types2 "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types"
 )
 
 // todo: consider use array instead of linklist
 type ChainStruct struct {
 	//root *ChainNode
-	chainArr []*types2.CompactBlock
+	chainArr []*types.CompactBlock
 }
 
-func NewEmptyChain(block *types2.CompactBlock) *ChainStruct {
+func NewEmptyChain(block *types.CompactBlock) *ChainStruct {
 	return &ChainStruct{
-		chainArr: []*types2.CompactBlock{block},
+		chainArr: []*types.CompactBlock{block},
 	}
 }
 
-func MakeFinalizedChain(blocks []*types2.CompactBlock) types2.IChainStruct {
+func MakeFinalizedChain(blocks []*types.CompactBlock) types.IChainStruct {
 	chain := NewEmptyChain(blocks[0])
 	for i := 1; i < len(blocks); i++ {
 		chain.Append(blocks[i])
@@ -70,11 +70,11 @@ func MakeFinalizedChain(blocks []*types2.CompactBlock) types2.IChainStruct {
 //}
 
 // // deprecated
-func MakeHeaviestChain(blocks []*types2.CompactBlock) []types2.IChainStruct {
+func MakeHeaviestChain(blocks []*types.CompactBlock) []types.IChainStruct {
 	return nil
 }
 
-func (c *ChainStruct) Append(block *types2.CompactBlock) {
+func (c *ChainStruct) Append(block *types.CompactBlock) {
 	//cursor := c.root
 	//for cursor.Next != nil {
 	//	cursor = cursor.Next
@@ -87,21 +87,21 @@ func (c *ChainStruct) Append(block *types2.CompactBlock) {
 	c.chainArr = append(c.chainArr, block)
 }
 
-func (c *ChainStruct) InsertPrev(block *types2.CompactBlock) {
+func (c *ChainStruct) InsertPrev(block *types.CompactBlock) {
 	//c.root.Prev = &ChainNode{
 	//	Prev:    nil,
 	//	Current: block,
 	//	Next:    c.root,
 	//}
 	//c.root = c.root.Prev
-	c.chainArr = append([]*types2.CompactBlock{block}, c.chainArr...)
+	c.chainArr = append([]*types.CompactBlock{block}, c.chainArr...)
 }
 
-func (c *ChainStruct) First() *types2.CompactBlock {
+func (c *ChainStruct) First() *types.CompactBlock {
 	return c.chainArr[0]
 }
 
-func (c *ChainStruct) Range(fn func(block *types2.CompactBlock) error) error {
+func (c *ChainStruct) Range(fn func(block *types.CompactBlock) error) error {
 	//for cursor := c.root; cursor.Next != nil; cursor = cursor.Next {
 	//	err := fn(cursor.Current)
 	//	if err != nil {
@@ -117,7 +117,7 @@ func (c *ChainStruct) Range(fn func(block *types2.CompactBlock) error) error {
 	return nil
 }
 
-func (c *ChainStruct) Last() *types2.CompactBlock {
+func (c *ChainStruct) Last() *types.CompactBlock {
 	//cursor := c.root
 	//for cursor.Next != nil {
 	//	cursor = cursor.Next

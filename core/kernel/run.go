@@ -101,10 +101,10 @@ func (m *Kernel) ExecuteTxns(block *types.CompactBlock) error {
 
 		err = exec(ctx, block)
 		if err != nil {
-			m.stateStore.Discard()
+			m.stateDB.Discard()
 			m.handleError(err, ctx, block, stxn)
 		} else {
-			m.stateStore.NextTxn()
+			m.stateDB.NextTxn()
 		}
 
 		block.UseLei(lei)
@@ -121,7 +121,7 @@ func (m *Kernel) ExecuteTxns(block *types.CompactBlock) error {
 		}
 	}
 
-	stateRoot, err := m.stateStore.Commit()
+	stateRoot, err := m.stateDB.Commit()
 	if err != nil {
 		return err
 	}

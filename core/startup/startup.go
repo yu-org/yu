@@ -41,13 +41,13 @@ func StartUp(tripods ...tripod2.Tripod) {
 		logrus.Panicf("load blockbase error: %s", err.Error())
 	}
 
-	stateStore, err := state.NewStateStore(&kernelCfg.State)
+	statedb, err := state.NewStateDB(&kernelCfg.State)
 	if err != nil {
 		logrus.Panicf("load stateKV error: %s", err.Error())
 	}
 
 	env := &chain_env.ChainEnv{
-		StateStore: stateStore,
+		IState:     statedb,
 		Chain:      chain,
 		Base:       base,
 		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool),

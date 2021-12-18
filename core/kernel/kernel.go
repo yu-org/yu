@@ -37,10 +37,10 @@ type Kernel struct {
 
 	timeout time.Duration
 
-	chain      types.IBlockChain
-	base       types.IBlockBase
-	txPool     ItxPool
-	stateStore *StateStore
+	chain   types.IBlockChain
+	base    types.IBlockBase
+	txPool  ItxPool
+	stateDB IState
 
 	land *Land
 
@@ -73,7 +73,7 @@ func NewKernel(
 		chain:      env.Chain,
 		base:       env.Base,
 		txPool:     env.Pool,
-		stateStore: env.StateStore,
+		stateDB:    env.IState,
 		sub:        env.Sub,
 		p2pNetwork: env.P2pNetwork,
 

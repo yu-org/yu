@@ -4,14 +4,13 @@ import (
 	gcommon "github.com/ethereum/go-ethereum/common"
 	gtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/blockchain"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/common"
+	. "github.com/yu-org/yu/core/types"
 	"math/big"
 )
 
 // NewEVMBlockContext creates a new context for use in the EVM.
-func NewEVMBlockContext(yheader *types.Header, chain *BlockChain, author *gcommon.Address) vm.BlockContext {
+func NewEVMBlockContext(yheader *Header, chain IBlockChain, author *gcommon.Address) vm.BlockContext {
 	header := HeaderToGeth(yheader)
 	var (
 		beneficiary gcommon.Address
@@ -41,7 +40,7 @@ func NewEVMBlockContext(yheader *types.Header, chain *BlockChain, author *gcommo
 }
 
 // GetHashFn returns a GetHashFunc which retrieves header hashes by number
-func GetHashFn(ref *gtypes.Header, chain *BlockChain) func(n uint64) gcommon.Hash {
+func GetHashFn(ref *gtypes.Header, chain IBlockChain) func(n uint64) gcommon.Hash {
 	// Cache will initially contain [refHash.parent],
 	// Then fill up with [refHash.p, refHash.pp, refHash.ppp, ...]
 	var cache []gcommon.Hash
@@ -59,7 +58,7 @@ func GetHashFn(ref *gtypes.Header, chain *BlockChain) func(n uint64) gcommon.Has
 		lastKnownNumber := ref.Number.Uint64() - uint64(len(cache))
 
 		for {
-			block, _ := chain.GetBlock(common.Hash(lastKnownHash))
+			block, _ := chain.GetBlock(Hash(lastKnownHash))
 			//header := chain.GetHeader(lastKnownHash, lastKnownNumber)
 			if block == nil {
 				break

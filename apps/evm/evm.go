@@ -8,14 +8,13 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/blockchain"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/core/types"
 	"math/big"
 )
 
 func ApplyTxn(
-	block *types.Block,
-	chain *blockchain.BlockChain,
+	block *Block,
+	chain IBlockChain,
 	statedb *gstate.StateDB,
 	to common.Address,
 	value, gasFeeCap, gasTipCap uint64,
@@ -42,27 +41,27 @@ func ApplyTxn(
 			Origin:   gcommon.Address(stxn.Raw.Caller),
 			GasPrice: gasPrice,
 		}
-		evm.Reset(txCtx, statedb)
 
+		evm.Reset(txCtx, statedb)
 		statedb.Prepare(gcommon.Hash(stxn.TxnHash), i)
 		result, err := gcore.ApplyMessage(evm, msg, gaspool)
 		if err != nil {
 			return err
 		}
 
-		block.LeiUsed += result.UsedGas
+		block.UseLei(result.UsedGas)
 	}
 	return nil
 }
 
-func NewDefaultEVM(header *types.Header, chain *blockchain.BlockChain, statedb vm.StateDB) *vm.EVM {
+func NewDefaultEVM(header *Header, chain IBlockChain, statedb vm.StateDB) *vm.EVM {
 	blockCtx := NewEVMBlockContext(header, chain, nil)
 	return vm.NewEVM(blockCtx, vm.TxContext{}, statedb, DefaultEthChainCfg, vm.Config{})
 }
 
 func NewEVM(
-	header *types.Header,
-	chain *blockchain.BlockChain,
+	header *Header,
+	chain IBlockChain,
 	statedb vm.StateDB,
 	chainCfg *params.ChainConfig,
 	txCtx vm.TxContext,

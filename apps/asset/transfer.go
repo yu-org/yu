@@ -83,11 +83,11 @@ func (a *Asset) CreateAccount(ctx *Context, _ *types.CompactBlock) error {
 }
 
 func (a *Asset) exsitAccount(env *ChainEnv, addr Address) bool {
-	return env.KVDB.Exist(a, addr.Bytes())
+	return env.Exist(a, addr.Bytes())
 }
 
 func (a *Asset) getBalance(env *ChainEnv, addr Address) Amount {
-	balanceByt, err := env.KVDB.Get(a, addr.Bytes())
+	balanceByt, err := env.Get(a, addr.Bytes())
 	if err != nil {
 		logrus.Panic("get balance error")
 	}
@@ -95,7 +95,7 @@ func (a *Asset) getBalance(env *ChainEnv, addr Address) Amount {
 }
 
 func (a *Asset) setBalance(env *ChainEnv, addr Address, amount Amount) {
-	env.KVDB.Set(a, addr.Bytes(), amount.MustEncode())
+	env.Set(a, addr.Bytes(), amount.MustEncode())
 }
 
 func checkAdd(origin, add Amount) (Amount, error) {

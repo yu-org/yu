@@ -3,7 +3,7 @@ package core
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	types2 "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -38,10 +38,10 @@ func PostRequest(url string, body []byte) (*http.Response, error) {
 	return cli.Do(req)
 }
 
-func DecodeBlockFromHttp(body io.ReadCloser, chain types2.IBlockChain) (*types2.CompactBlock, error) {
+func DecodeBlockFromHttp(body io.ReadCloser, chain types.IBlockChain) (*types.CompactBlock, error) {
 	byt, err := ioutil.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}
-	return types2.DecodeCompactBlock(byt)
+	return types.DecodeCompactBlock(byt)
 }
