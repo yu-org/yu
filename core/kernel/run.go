@@ -7,7 +7,7 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
@@ -61,8 +61,8 @@ func (m *Kernel) LocalRun() (err error) {
 	})
 }
 
-func (m *Kernel) makeNewBasicBlock() (*types.CompactBlock, error) {
-	var newBlock *types.CompactBlock = m.chain.NewEmptyBlock()
+func (m *Kernel) makeNewBasicBlock() (*CompactBlock, error) {
+	var newBlock *CompactBlock = m.chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowNanoTsU64()
 	prevBlock, err := m.chain.GetEndBlock()
@@ -76,7 +76,7 @@ func (m *Kernel) makeNewBasicBlock() (*types.CompactBlock, error) {
 	return newBlock, nil
 }
 
-func (m *Kernel) ExecuteTxns(block *types.CompactBlock) error {
+func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 	stxns, err := m.base.GetTxns(block.Hash)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (m *Kernel) ExecuteTxns(block *types.CompactBlock) error {
 			continue
 		}
 
-		if types.IfLeiOut(lei, block) {
+		if IfLeiOut(lei, block) {
 			m.handleError(OutOfEnergy, ctx, block, stxn)
 			break
 		}
@@ -167,7 +167,7 @@ func (m *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Kernel) nortifyWorker(workersIps []string, path string, newBlock *types.CompactBlock) error {
+func (m *Kernel) nortifyWorker(workersIps []string, path string, newBlock *CompactBlock) error {
 	blockByt, err := newBlock.Encode()
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func (m *Kernel) nortifyWorker(workersIps []string, path string, newBlock *types
 	return nil
 }
 
-func (m *Kernel) handleError(err error, ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
+func (m *Kernel) handleError(err error, ctx *context.Context, block *CompactBlock, stxn *SignedTxn) {
 	ctx.EmitError(err)
 	ecall := stxn.Raw.Ecall
 
@@ -205,7 +205,7 @@ func (m *Kernel) handleError(err error, ctx *context.Context, block *types.Compa
 
 }
 
-func (m *Kernel) handleEvent(ctx *context.Context, block *types.CompactBlock, stxn *types.SignedTxn) {
+func (m *Kernel) handleEvent(ctx *context.Context, block *CompactBlock, stxn *SignedTxn) {
 	for _, event := range ctx.Events {
 		ecall := stxn.Raw.Ecall
 

@@ -230,7 +230,7 @@ func (h *Hotstuff) EndBlock(block *CompactBlock) error {
 
 	logrus.Infof("append block(%d) (%s)", block.Height, block.Hash.String())
 
-	h.env.SetCanRead(block.Hash)
+	h.env.FinalizeBlock(block.Hash)
 
 	return pool.Reset()
 }

@@ -248,7 +248,7 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("append block")
 
-	h.env.SetCanRead(block.Hash)
+	h.env.FinalizeBlock(block.Hash)
 
 	return pool.Reset()
 }

@@ -49,6 +49,7 @@ func ApplyTxn(
 			return err
 		}
 
+		statedb.Finalise(true)
 		block.UseLei(result.UsedGas)
 	}
 	return nil

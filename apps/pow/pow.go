@@ -167,7 +167,7 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 
 	logrus.Infof("append block(%d) (%s)", block.Height, block.Hash.String())
 
-	p.env.SetCanRead(block.Hash)
+	p.env.FinalizeBlock(block.Hash)
 
 	return pool.Reset()
 }

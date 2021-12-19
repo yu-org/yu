@@ -342,24 +342,24 @@ var file_state_store_proto_goTypes = []interface{}{
 	(*TxnHashResponse)(nil), // 8: TxnHashResponse
 }
 var file_state_store_proto_depIdxs = []int32{
-	0,  // 0: StateStore.Get:input_type -> Key
+	0,  // 0: StateStore.get:input_type -> Key
 	1,  // 1: StateStore.Set:input_type -> KeyValue
 	0,  // 2: StateStore.Delete:input_type -> Key
 	0,  // 3: StateStore.Exist:input_type -> Key
 	3,  // 4: StateStore.GetByBlockHash:input_type -> KeyByHash
 	4,  // 5: StateStore.StartBlock:input_type -> TxnHash
-	4,  // 6: StateStore.SetCanRead:input_type -> TxnHash
+	4,  // 6: StateStore.FinalizeBlock:input_type -> TxnHash
 	5,  // 7: StateStore.Commit:input_type -> google.protobuf.Empty
 	5,  // 8: StateStore.Discard:input_type -> google.protobuf.Empty
 	5,  // 9: StateStore.DiscardAll:input_type -> google.protobuf.Empty
 	5,  // 10: StateStore.NextTxn:input_type -> google.protobuf.Empty
-	2,  // 11: StateStore.Get:output_type -> ValueResponse
+	2,  // 11: StateStore.get:output_type -> ValueResponse
 	6,  // 12: StateStore.Set:output_type -> Err
 	6,  // 13: StateStore.Delete:output_type -> Err
 	7,  // 14: StateStore.Exist:output_type -> Bool
 	2,  // 15: StateStore.GetByBlockHash:output_type -> ValueResponse
 	5,  // 16: StateStore.StartBlock:output_type -> google.protobuf.Empty
-	5,  // 17: StateStore.SetCanRead:output_type -> google.protobuf.Empty
+	5,  // 17: StateStore.FinalizeBlock:output_type -> google.protobuf.Empty
 	8,  // 18: StateStore.Commit:output_type -> TxnHashResponse
 	5,  // 19: StateStore.Discard:output_type -> google.protobuf.Empty
 	5,  // 20: StateStore.DiscardAll:output_type -> google.protobuf.Empty

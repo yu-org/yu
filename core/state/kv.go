@@ -22,11 +22,11 @@ type StateKV struct {
 
 	nodeBase *NodeBase
 
-	nowBlock     Hash
-	canReadBlock Hash
+	prevBlock      Hash
+	currentBlock   Hash
+	finalizedBlock Hash
 
-	nowStashes []*KvStash
-	stashes    []*KvStash
+	stashes []*TxnStashes
 }
 
 func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
@@ -41,39 +41,46 @@ func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
 	}
 
 	return &StateKV{
-		indexDB:    indexDB,
-		nodeBase:   nodeBase,
-		nowBlock:   NullHash,
-		nowStashes: make([]*KvStash, 0),
-		stashes:    make([]*KvStash, 0),
+		indexDB:      indexDB,
+		nodeBase:     nodeBase,
+		prevBlock:    NullHash,
+		currentBlock: NullHash,
+		stashes:      make([]*TxnStashes, 0),
 	}, nil
 }
 
 func (skv *StateKV) NextTxn() {
-	for _, stash := range skv.nowStashes {
-		skv.stashes = append(skv.stashes, stash)
-	}
-	skv.nowStashes = make([]*KvStash, 0)
+	skv.stashes = append(skv.stashes, newTxnStashes())
 }
 
 func (skv *StateKV) Set(triName NameString, key, value []byte) {
-	skv.nowStashes = append(skv.nowStashes, &KvStash{
-		ops:   SetOp,
-		Key:   makeKey(triName, key),
-		Value: value,
-	})
+	skv.mute(SetOp, triName, key, value)
 }
 
 func (skv *StateKV) Delete(triName NameString, key []byte) {
-	skv.nowStashes = append(skv.nowStashes, &KvStash{
-		ops:   DeleteOp,
-		Key:   makeKey(triName, key),
-		Value: nil,
-	})
+	skv.mute(DeleteOp, triName, key, nil)
+}
+
+func (skv *StateKV) mute(op Ops, triName NameString, key, value []byte) {
+	if len(skv.stashes) == 0 {
+		skv.stashes = append(skv.stashes, newTxnStashes())
+	}
+	currentTxnStashes := skv.stashes[len(skv.stashes)-1]
+	currentTxnStashes.append(op, makeKey(triName, key), value)
 }
 
 func (skv *StateKV) Get(triName NameString, key []byte) ([]byte, error) {
-	return skv.GetByBlockHash(triName, key, skv.canReadBlock)
+	for i := len(skv.stashes) - 1; i >= 0; i-- {
+		value := skv.stashes[i].get(makeKey(triName, key))
+		if value != nil {
+			return value, nil
+		}
+	}
+	return skv.GetByBlockHash(triName, key, skv.prevBlock)
+}
+
+func (skv *StateKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
+	return skv.GetByBlockHash(triName, key, skv.finalizedBlock)
 }
 
 func (skv *StateKV) Exist(triName NameString, key []byte) bool {
@@ -95,7 +102,7 @@ func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Has
 
 // return StateRoot or error
 func (skv *StateKV) Commit() (Hash, error) {
-	lastStateRoot, err := skv.getIndexDB(skv.canReadBlock)
+	lastStateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
 		return NullHash, err
 	}
@@ -107,20 +114,13 @@ func (skv *StateKV) Commit() (Hash, error) {
 		skv.DiscardAll()
 		return NullHash, err
 	}
+
+	// todo: optimize combine all key-values stashes
 	for _, stash := range skv.stashes {
-		switch stash.ops {
-		case SetOp:
-			err := mpt.TryUpdate(stash.Key, stash.Value)
-			if err != nil {
-				skv.DiscardAll()
-				return NullHash, err
-			}
-		case DeleteOp:
-			err := mpt.TryDelete(stash.Key)
-			if err != nil {
-				skv.DiscardAll()
-				return NullHash, err
-			}
+		err = stash.commit(mpt)
+		if err != nil {
+			skv.DiscardAll()
+			return NullHash, err
 		}
 	}
 
@@ -130,7 +130,7 @@ func (skv *StateKV) Commit() (Hash, error) {
 		return NullHash, err
 	}
 
-	err = skv.setIndexDB(skv.nowBlock, stateRoot)
+	err = skv.setIndexDB(skv.currentBlock, stateRoot)
 	if err != nil {
 		skv.DiscardAll()
 		return NullHash, err
@@ -141,15 +141,15 @@ func (skv *StateKV) Commit() (Hash, error) {
 }
 
 func (skv *StateKV) Discard() {
-	skv.nowStashes = nil
+	skv.stashes = skv.stashes[:len(skv.stashes)-1]
 }
 
 func (skv *StateKV) DiscardAll() {
-	stateRoot, err := skv.getIndexDB(skv.canReadBlock)
+	stateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
 		logrus.Panicf("DiscardAll: get stateRoot error: %s", err.Error())
 	}
-	err = skv.setIndexDB(skv.nowBlock, stateRoot)
+	err = skv.setIndexDB(skv.currentBlock, stateRoot)
 	if err != nil {
 		logrus.Panicf("DiscardAll: set stateRoot error: %s", err.Error())
 	}
@@ -158,11 +158,12 @@ func (skv *StateKV) DiscardAll() {
 }
 
 func (skv *StateKV) StartBlock(blockHash Hash) {
-	skv.nowBlock = blockHash
+	skv.prevBlock = skv.currentBlock
+	skv.currentBlock = blockHash
 }
 
-func (skv *StateKV) SetCanRead(blockHash Hash) {
-	skv.canReadBlock = blockHash
+func (skv *StateKV) FinalizeBlock(blockHash Hash) {
+	skv.finalizedBlock = blockHash
 }
 
 func (skv *StateKV) setIndexDB(blockHash, stateRoot Hash) error {
@@ -193,6 +194,59 @@ type KvStash struct {
 	ops   Ops
 	Key   []byte
 	Value []byte
+}
+
+type TxnStashes struct {
+	stashes []*KvStash
+	// key: string(key bytes)
+	// value: index of stashes
+	indexes map[string]int
+}
+
+func newTxnStashes() *TxnStashes {
+	return &TxnStashes{
+		stashes: make([]*KvStash, 0),
+		indexes: make(map[string]int),
+	}
+}
+
+func (k *TxnStashes) append(ops Ops, key, value []byte) {
+	newKvSlash := &KvStash{
+		ops:   ops,
+		Key:   key,
+		Value: value,
+	}
+	if idx, ok := k.indexes[string(key)]; ok {
+		k.stashes[idx] = newKvSlash
+		return
+	}
+	k.stashes = append(k.stashes, newKvSlash)
+	k.indexes[string(key)] = len(k.stashes) - 1
+}
+
+func (k *TxnStashes) get(key []byte) []byte {
+	if idx, ok := k.indexes[string(key)]; ok {
+		return k.stashes[idx].Value
+	}
+	return nil
+}
+
+func (k *TxnStashes) commit(mpt *Trie) error {
+	for _, stash := range k.stashes {
+		switch stash.ops {
+		case SetOp:
+			err := mpt.TryUpdate(stash.Key, stash.Value)
+			if err != nil {
+				return err
+			}
+		case DeleteOp:
+			err := mpt.TryDelete(stash.Key)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 type NameString interface {

@@ -39,7 +39,7 @@ func TestKvCommit(t *testing.T) {
 		t.Fatalf("commit state-kv error: %s", err.Error())
 	}
 
-	statekv.SetCanRead(NullHash)
+	statekv.FinalizeBlock(NullHash)
 
 	t.Logf("state-root is %s", stateRoot.String())
 
@@ -47,13 +47,13 @@ func TestKvCommit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get state-kv error: %s", err.Error())
 	}
-	t.Logf("Get value is %s", string(value))
+	t.Logf("get value is %s", string(value))
 
 	value, err = statekv.GetByBlockHash(tri, []byte("dayu-key"), NullHash)
 	if err != nil {
 		t.Fatalf("get state-kv by blockHash error: %s", err.Error())
 	}
-	t.Logf("Get value by blockHash is %s", string(value))
+	t.Logf("get value by blockHash is %s", string(value))
 
 	removeTestDB()
 }

@@ -42,7 +42,7 @@ func NewStateStoreClient(cc grpc.ClientConnInterface) StateStoreClient {
 
 func (c *stateStoreClient) Get(ctx context.Context, in *Key, opts ...grpc.CallOption) (*ValueResponse, error) {
 	out := new(ValueResponse)
-	err := c.cc.Invoke(ctx, "/StateStore/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/StateStore/get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *stateStoreClient) StartBlock(ctx context.Context, in *TxnHash, opts ...
 
 func (c *stateStoreClient) SetCanRead(ctx context.Context, in *TxnHash, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/StateStore/SetCanRead", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/StateStore/FinalizeBlock", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ type UnimplementedStateStoreServer struct {
 }
 
 func (UnimplementedStateStoreServer) Get(context.Context, *Key) (*ValueResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method get not implemented")
 }
 func (UnimplementedStateStoreServer) Set(context.Context, *KeyValue) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
@@ -180,7 +180,7 @@ func (UnimplementedStateStoreServer) StartBlock(context.Context, *TxnHash) (*emp
 	return nil, status.Errorf(codes.Unimplemented, "method StartBlock not implemented")
 }
 func (UnimplementedStateStoreServer) SetCanRead(context.Context, *TxnHash) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetCanRead not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method FinalizeBlock not implemented")
 }
 func (UnimplementedStateStoreServer) Commit(context.Context, *emptypb.Empty) (*TxnHashResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Commit not implemented")
@@ -217,7 +217,7 @@ func _StateStore_Get_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/StateStore/Get",
+		FullMethod: "/StateStore/get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StateStoreServer).Get(ctx, req.(*Key))
@@ -325,7 +325,7 @@ func _StateStore_SetCanRead_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/StateStore/SetCanRead",
+		FullMethod: "/StateStore/FinalizeBlock",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(StateStoreServer).SetCanRead(ctx, req.(*TxnHash))
@@ -413,7 +413,7 @@ var StateStore_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*StateStoreServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Get",
+			MethodName: "get",
 			Handler:    _StateStore_Get_Handler,
 		},
 		{
@@ -437,7 +437,7 @@ var StateStore_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StateStore_StartBlock_Handler,
 		},
 		{
-			MethodName: "SetCanRead",
+			MethodName: "FinalizeBlock",
 			Handler:    _StateStore_SetCanRead_Handler,
 		},
 		{

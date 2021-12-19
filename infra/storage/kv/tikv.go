@@ -31,12 +31,12 @@ package kv
 //	return storage.KV
 //}
 //
-//func (t *tiKV) Get(key []byte) ([]byte, error) {
+//func (t *tiKV) get(key []byte) ([]byte, error) {
 //	tx, err := t.store.Begin()
 //	if err != nil {
 //		return nil, err
 //	}
-//	return tx.Get(goctx.Background(), key)
+//	return tx.get(goctx.Background(), key)
 //}
 //
 //func (t *tiKV) Set(key, value []byte) error {
@@ -64,7 +64,7 @@ package kv
 //}
 //
 //func (t *tiKV) Exist(key []byte) bool {
-//	value, _ := t.Get(key)
+//	value, _ := t.get(key)
 //	return value != nil
 //}
 //
@@ -114,8 +114,8 @@ package kv
 //	tx kv.Transaction
 //}
 //
-//func (tt *tikvTxn) Get(key []byte) ([]byte, error) {
-//	return tt.tx.Get(goctx.Background(), key)
+//func (tt *tikvTxn) get(key []byte) ([]byte, error) {
+//	return tt.tx.get(goctx.Background(), key)
 //}
 //
 //func (tt *tikvTxn) Set(key, value []byte) error {
