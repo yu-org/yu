@@ -20,6 +20,6 @@ type IState interface {
 	FinalizeBlock(blockHash Hash)
 }
 
-func NewStateDB(cfg *StateConf) (IState, error) {
+func NewStateDB(cfg *StateConf) IState {
 	return NewStateKV(&cfg.KV)
 }

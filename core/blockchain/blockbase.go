@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/result"
@@ -12,30 +13,30 @@ type BlockBase struct {
 	db ysql.SqlDB
 }
 
-func NewBlockBase(cfg *config.BlockBaseConf) (*BlockBase, error) {
+func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
 	db, err := ysql.NewSqlDB(&cfg.BaseDB)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init blockbase SQL db error: ", err)
 	}
 
 	err = db.CreateIfNotExist(&TxnScheme{})
 	if err != nil {
-		return nil, err
+		logrus.Fatal("create blockbase TXN sceme error: ", err)
 	}
 
 	err = db.CreateIfNotExist(&EventScheme{})
 	if err != nil {
-		return nil, err
+		logrus.Fatal("create blockbase Event sceme error: ", err)
 	}
 
 	err = db.CreateIfNotExist(&ErrorScheme{})
 	if err != nil {
-		return nil, err
+		logrus.Fatal("create blockbase Error sceme error: ", err)
 	}
 
 	return &BlockBase{
 		db: db,
-	}, nil
+	}
 }
 
 func (bb *BlockBase) GetTxn(txnHash Hash) (*types.SignedTxn, error) {

@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
@@ -12,20 +13,20 @@ type BlockChain struct {
 	chain ysql.SqlDB
 }
 
-func NewBlockChain(cfg *config.BlockchainConf) (*BlockChain, error) {
+func NewBlockChain(cfg *config.BlockchainConf) *BlockChain {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init blockchain SQL db error: ", err)
 	}
 
 	err = chain.CreateIfNotExist(&BlocksScheme{})
 	if err != nil {
-		return nil, err
+		logrus.Fatal("create blockchain scheme: ", err)
 	}
 
 	return &BlockChain{
 		chain: chain,
-	}, nil
+	}
 }
 
 func (bc *BlockChain) ConvergeType() ConvergeType {

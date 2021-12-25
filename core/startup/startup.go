@@ -5,12 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/config"
-	blockchain2 "github.com/yu-org/yu/core/blockchain"
+	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
-	tripod2 "github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txpool"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/utils/codec"
@@ -21,30 +21,21 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-func StartUp(tripods ...tripod2.Tripod) {
+func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
 	initLog(kernelCfg.LogLevel)
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
 
-	land := tripod2.NewLand()
+	land := tripod.NewLand()
 	land.SetTripods(tripods...)
 
-	chain, err := blockchain2.NewBlockChain(&kernelCfg.BlockChain)
-	if err != nil {
-		logrus.Panicf("load blockchain error: %s", err.Error())
-	}
+	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
-	base, err := blockchain2.NewBlockBase(&kernelCfg.BlockBase)
-	if err != nil {
-		logrus.Panicf("load blockbase error: %s", err.Error())
-	}
+	base := blockchain.NewBlockBase(&kernelCfg.BlockBase)
 
-	statedb, err := state.NewStateDB(&kernelCfg.State)
-	if err != nil {
-		logrus.Panicf("load stateKV error: %s", err.Error())
-	}
+	statedb := state.NewStateDB(&kernelCfg.State)
 
 	env := &chain_env.ChainEnv{
 		IState:     statedb,

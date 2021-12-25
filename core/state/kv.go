@@ -29,15 +29,15 @@ type StateKV struct {
 	stashes []*TxnStashes
 }
 
-func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
+func NewStateKV(cfg *StateKvConf) IState {
 	indexDB, err := NewKV(&cfg.IndexDB)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init stateKV indexDB error: ", err)
 	}
 
 	nodeBase, err := NewNodeBase(&cfg.NodeBase)
 	if err != nil {
-		return nil, err
+		logrus.Fatal("init stateKV nodeBase error: ", err)
 	}
 
 	return &StateKV{
@@ -46,7 +46,7 @@ func NewStateKV(cfg *StateKvConf) (*StateKV, error) {
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
 		stashes:      make([]*TxnStashes, 0),
-	}, nil
+	}
 }
 
 func (skv *StateKV) NextTxn() {

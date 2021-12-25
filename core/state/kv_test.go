@@ -23,10 +23,7 @@ func (tt *TestTripod) Name() string {
 }
 
 func TestKvCommit(t *testing.T) {
-	statekv, err := NewStateKV(TestStateKvCfg)
-	if err != nil {
-		panic("new state-kv error: " + err.Error())
-	}
+	statekv := NewStateKV(TestStateKvCfg)
 
 	tri := &TestTripod{}
 
