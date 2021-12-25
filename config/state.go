@@ -10,6 +10,10 @@ type StateKvConf struct {
 }
 
 type StateEvmConf struct {
+	IndexDB  KVconf `toml:"index_db"`
+	NodeBase KVconf `toml:"node_base"`
+
+	// evm raw leveldb
 	Fpath     string ` toml:"fpath"`
 	Cache     int    ` toml:"cache"`
 	Handles   int    ` toml:"handles"`

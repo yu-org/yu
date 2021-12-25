@@ -211,16 +211,15 @@ func newTxnStashes() *TxnStashes {
 }
 
 func (k *TxnStashes) append(ops Ops, key, value []byte) {
-	newKvSlash := &KvStash{
+	newKvStash := &KvStash{
 		ops:   ops,
 		Key:   key,
 		Value: value,
 	}
 	if idx, ok := k.indexes[string(key)]; ok {
-		k.stashes[idx] = newKvSlash
-		return
+		k.stashes = append(k.stashes[:idx], k.stashes[idx+1:]...)
 	}
-	k.stashes = append(k.stashes, newKvSlash)
+	k.stashes = append(k.stashes, newKvStash)
 	k.indexes[string(key)] = len(k.stashes) - 1
 }
 

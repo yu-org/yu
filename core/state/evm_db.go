@@ -30,15 +30,29 @@ type EvmDB struct {
 func NewEvmDB(root Hash, cfg *StateEvmConf) IState {
 	ethdb, err := rawdb.NewLevelDBDatabase(cfg.Fpath, cfg.Cache, cfg.Handles, cfg.Namespace, cfg.ReadOnly)
 	if err != nil {
-		logrus.Fatal("init eth rawdb error: ", err)
+		logrus.Fatal("init geth rawdb error: ", err)
 	}
 	db, err := gstate.New(gcommon.Hash(root), gstate.NewDatabase(ethdb), nil)
 	if err != nil {
-		logrus.Fatal("init evm statedb error: ", err)
+		logrus.Fatal("init geth statedb error: ", err)
 	}
+	indexDB, err := NewKV(&cfg.IndexDB)
+	if err != nil {
+		logrus.Fatal("init EvmDB indexDB error: ", err)
+	}
+
+	nodeBase, err := NewNodeBase(&cfg.NodeBase)
+	if err != nil {
+		logrus.Fatal("init EvmDB nodeBase error: ", err)
+	}
+
 	return &EvmDB{
-		DB:      db,
-		stashes: make([]*EvmTxnStashes, 0),
+		DB:           db,
+		indexDB:      indexDB,
+		nodeBase:     nodeBase,
+		prevBlock:    NullHash,
+		currentBlock: NullHash,
+		stashes:      make([]*EvmTxnStashes, 0),
 	}
 }
 
@@ -115,11 +129,72 @@ func (db *EvmDB) GetByBlockHash(triName NameString, key []byte, blockHash Hash) 
 }
 
 func (db *EvmDB) Commit() (Hash, error) {
-	panic("implement me")
+	lastStateRoot, err := db.getIndexDB(db.prevBlock)
+	if err != nil {
+		return NullHash, err
+	}
+	if lastStateRoot == NullHash {
+		lastStateRoot = EmptyRoot
+	}
+	mpt, err := NewTrie(lastStateRoot, db.nodeBase)
+	if err != nil {
+		db.DiscardAll()
+		return NullHash, err
+	}
+
+	// todo: optimize combine all key-values stashes
+	for _, stash := range db.stashes {
+		err = stash.commit(mpt)
+		if err != nil {
+			db.DiscardAll()
+			return NullHash, err
+		}
+	}
+
+	stateRoot, err := mpt.Commit(nil)
+	if err != nil {
+		db.DiscardAll()
+		return NullHash, err
+	}
+
+	err = db.setIndexDB(db.currentBlock, stateRoot)
+	if err != nil {
+		db.DiscardAll()
+		return NullHash, err
+	}
+
+	db.stashes = nil
+	return stateRoot, nil
 }
 
 func (db *EvmDB) Discard() {
-	for _, stash := range db.stashes[len(db.stashes)-1].stashes {
+	db.discardBalanceOps(db.stashes[len(db.stashes)-1].stashes)
+	db.stashes = db.stashes[:len(db.stashes)-1]
+}
+
+func (db *EvmDB) DiscardAll() {
+	stateRoot, err := db.getIndexDB(db.prevBlock)
+	if err != nil {
+		logrus.Panicf("DiscardAll: get stateRoot error: %s", err.Error())
+	}
+	err = db.setIndexDB(db.currentBlock, stateRoot)
+	if err != nil {
+		logrus.Panicf("DiscardAll: set stateRoot error: %s", err.Error())
+	}
+
+	allStashes := make([]*EvmKvStash, 0)
+	for _, stash := range db.stashes {
+		for _, kvStash := range stash.stashes {
+			allStashes = append(allStashes, kvStash)
+		}
+	}
+	db.discardBalanceOps(allStashes)
+
+	db.stashes = nil
+}
+
+func (db *EvmDB) discardBalanceOps(stashes []*EvmKvStash) {
+	for _, stash := range stashes {
 		if isBalanceOp(stash.ops) {
 			if stash.ops == AddBalance {
 				db.DB.SubBalance(gcommon.Address(stash.addr), stash.amount)
@@ -129,11 +204,6 @@ func (db *EvmDB) Discard() {
 			}
 		}
 	}
-	db.stashes = db.stashes[:len(db.stashes)-1]
-}
-
-func (db *EvmDB) DiscardAll() {
-	panic("implement me")
 }
 
 func (db *EvmDB) StartBlock(blockHash Hash) {
@@ -204,8 +274,7 @@ func (e *EvmTxnStashes) append(op Ops, key, value []byte) {
 		amount: nil,
 	}
 	if idx, ok := e.indexes[string(key)]; ok {
-		e.stashes[idx] = newStash
-		return
+		e.stashes = append(e.stashes[:idx], e.stashes[idx+1:]...)
 	}
 	e.stashes = append(e.stashes, newStash)
 	e.indexes[string(key)] = len(e.stashes) - 1
@@ -220,8 +289,7 @@ func (e *EvmTxnStashes) appendBalanceOp(ops Ops, addr Address, b *big.Int) {
 		amount: b,
 	}
 	if idx, ok := e.indexes[addr.String()]; ok {
-		e.stashes[idx] = newEvmKvStash
-		return
+		e.stashes = append(e.stashes[:idx], e.stashes[idx+1:]...)
 	}
 	e.stashes = append(e.stashes, newEvmKvStash)
 	e.indexes[addr.String()] = len(e.stashes) - 1
