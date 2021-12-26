@@ -143,7 +143,6 @@ func DecodeSignedTxns(data []byte) (SignedTxns, error) {
 
 type UnsignedTxn struct {
 	Id        Hash
-	Nonce     uint64
 	Caller    Address
 	Ecall     *Ecall
 	LeiPrice  uint64
@@ -169,7 +168,6 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
 		Id:       ut.Id.Bytes(),
 		Caller:   ut.Caller.Bytes(),
-		Nonce:    ut.Nonce,
 		LeiPrice: ut.LeiPrice,
 		Code:     ut.Code,
 		Ecall: &goproto.Ecall{
@@ -185,7 +183,6 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
 		Id:       BytesToHash(pb.Id),
 		Caller:   BytesToAddress(pb.Caller),
-		Nonce:    pb.Nonce,
 		LeiPrice: pb.LeiPrice,
 		Code:     pb.Code,
 		Ecall: &Ecall{

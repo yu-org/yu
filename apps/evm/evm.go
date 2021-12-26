@@ -29,7 +29,7 @@ func ApplyTxn(
 		gasPrice := new(big.Int).SetUint64(stxn.Raw.LeiPrice)
 		msg := gtypes.NewMessage(
 			gcommon.Address(stxn.Raw.Caller),
-			&toAddr, stxn.Raw.Nonce,
+			&toAddr, 0,
 			amount, block.LeiLimit,
 			gasPrice, gfc,
 			gtc, stxn.Raw.Code,
