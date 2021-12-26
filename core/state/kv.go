@@ -147,11 +147,11 @@ func (skv *StateKV) Discard() {
 func (skv *StateKV) DiscardAll() {
 	stateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
-		logrus.Panicf("DiscardAll: get stateRoot error: %s", err.Error())
+		logrus.Panic("DiscardAll: get stateRoot error: ", err)
 	}
 	err = skv.setIndexDB(skv.currentBlock, stateRoot)
 	if err != nil {
-		logrus.Panicf("DiscardAll: set stateRoot error: %s", err.Error())
+		logrus.Panic("DiscardAll: set stateRoot error: ", err)
 	}
 
 	skv.stashes = nil

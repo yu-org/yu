@@ -175,11 +175,11 @@ func (db *EvmDB) Discard() {
 func (db *EvmDB) DiscardAll() {
 	stateRoot, err := db.getIndexDB(db.prevBlock)
 	if err != nil {
-		logrus.Panicf("DiscardAll: get stateRoot error: %s", err.Error())
+		logrus.Panic("DiscardAll: get stateRoot error: ", err)
 	}
 	err = db.setIndexDB(db.currentBlock, stateRoot)
 	if err != nil {
-		logrus.Panicf("DiscardAll: set stateRoot error: %s", err.Error())
+		logrus.Panic("DiscardAll: set stateRoot error: ", err)
 	}
 
 	allStashes := make([]*EvmKvStash, 0)
