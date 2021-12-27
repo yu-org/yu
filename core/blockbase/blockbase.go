@@ -1,4 +1,4 @@
-package blockchain
+package blockbase
 
 import (
 	"github.com/sirupsen/logrus"

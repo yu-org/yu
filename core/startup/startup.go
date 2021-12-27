@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/core/blockbase"
 	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/kernel"
@@ -33,7 +34,7 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
-	base := blockchain.NewBlockBase(&kernelCfg.BlockBase)
+	base := blockbase.NewBlockBase(&kernelCfg.BlockBase)
 
 	statedb := state.NewStateDB(&kernelCfg.State)
 
