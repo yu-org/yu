@@ -17,6 +17,7 @@ func ApplyTxn(
 	chain IBlockChain,
 	statedb *gstate.StateDB,
 	to common.Address,
+	code []byte,
 	value, gasFeeCap, gasTipCap uint64,
 ) error {
 	gaspool := new(gcore.GasPool).AddGas(block.LeiLimit)
@@ -32,7 +33,7 @@ func ApplyTxn(
 			&toAddr, 0,
 			amount, block.LeiLimit,
 			gasPrice, gfc,
-			gtc, stxn.Raw.Code,
+			gtc, code,
 			nil, false,
 		)
 
