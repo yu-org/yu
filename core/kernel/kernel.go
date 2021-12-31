@@ -73,7 +73,7 @@ func NewKernel(
 		chain:      env.Chain,
 		base:       env.Base,
 		txPool:     env.Pool,
-		stateDB:    env.IState,
+		stateDB:    env.State,
 		sub:        env.Sub,
 		p2pNetwork: env.P2pNetwork,
 
@@ -223,9 +223,9 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 		//}
 
 	case LocalNode:
-		err = m.txPool.BatchInsert(txns)
-		if err != nil {
-			return err
+		errs := m.txPool.BatchInsert(txns)
+		for _, e := range errs {
+			logrus.Error("insert txn of P2P into txpool error: ", e)
 		}
 	}
 

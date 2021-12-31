@@ -132,7 +132,7 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 	block.Nonce = uint64(nonce)
 	block.Hash = hash
 
-	p.env.StartBlock(hash)
+	p.env.State.StartBlock(hash)
 	err = p.env.Base.SetTxns(block.Hash, txns)
 	if err != nil {
 		return err
@@ -167,7 +167,7 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 
 	logrus.Infof("append block(%d) (%s)", block.Height, block.Hash.String())
 
-	p.env.FinalizeBlock(block.Hash)
+	p.env.State.FinalizeBlock(block.Hash)
 
 	return pool.Reset()
 }
@@ -220,8 +220,8 @@ func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
 			logrus.Error("set txns of p2p-block into base error: ", err)
 			return false
 		}
-		p.env.StartBlock(block.Hash)
-		err = p.env.Pool.RemoveTxns(block.TxnsHashes)
+		p.env.State.StartBlock(block.Hash)
+		err = p.env.Pool.Packed(block.TxnsHashes)
 		if err != nil {
 			logrus.Error("clear txpool error: ", err)
 			return false

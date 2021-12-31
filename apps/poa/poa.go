@@ -212,7 +212,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
-	h.env.StartBlock(block.Hash)
+	h.env.State.StartBlock(block.Hash)
 	err = h.env.Base.SetTxns(block.Hash, txns)
 	if err != nil {
 		return err
@@ -248,7 +248,7 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("append block")
 
-	h.env.FinalizeBlock(block.Hash)
+	h.env.State.FinalizeBlock(block.Hash)
 
 	return pool.Reset()
 }
@@ -284,8 +284,8 @@ func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 		logrus.Errorf("set txns of p2p-block(%s) into base error: %v", p2pBlock.Hash.String(), err)
 		return true
 	}
-	h.env.StartBlock(localBlock.Hash)
-	err = h.env.Pool.RemoveTxns(localBlock.TxnsHashes)
+	h.env.State.StartBlock(localBlock.Hash)
+	err = h.env.Pool.Packed(localBlock.TxnsHashes)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}

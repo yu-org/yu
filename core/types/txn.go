@@ -43,7 +43,7 @@ func (st *SignedTxn) ToPb() *goproto.SignedTxn {
 	}
 }
 
-func SignedTxFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
+func SignedTxnFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
 	pubkey, err := PubKeyFromBytes(pb.Pubkey)
 	if err != nil {
 		return nil, err
@@ -64,11 +64,14 @@ func (st *SignedTxn) Size() int {
 	return int(unsafe.Sizeof(st))
 }
 
-//func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
-//	decoder := gob.NewDecoder(bytes.NewReader(data))
-//	err = decoder.Decode(st)
-//	return
-//}
+func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
+	var pb goproto.SignedTxn
+	err = proto.Unmarshal(data, &pb)
+	if err != nil {
+		return nil, err
+	}
+	return SignedTxnFromPb(&pb)
+}
 
 type SignedTxns []*SignedTxn
 
@@ -83,7 +86,7 @@ func (sts SignedTxns) ToPb() *goproto.SignedTxns {
 func SignedTxnsFromPb(pb *goproto.SignedTxns) (SignedTxns, error) {
 	var sts SignedTxns
 	for _, tx := range pb.Txns {
-		txn, err := SignedTxFromPb(tx)
+		txn, err := SignedTxnFromPb(tx)
 		if err != nil {
 			return nil, err
 		}

@@ -303,7 +303,7 @@ USEP2P:
 		return true
 	}
 	h.env.StartBlock(localBlock.Hash)
-	err = h.env.Pool.RemoveTxns(localBlock.TxnsHashes)
+	err = h.env.Pool.Packed(localBlock.TxnsHashes)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}

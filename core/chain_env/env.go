@@ -9,7 +9,7 @@ import (
 )
 
 type ChainEnv struct {
-	IState
+	State IState
 	Chain IBlockChain
 	Base  IBlockBase
 	Pool  ItxPool

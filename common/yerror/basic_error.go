@@ -23,6 +23,7 @@ var NoSqlDbType = errors.New("no sqlDB type")
 var (
 	PoolOverflow    error = errors.New("pool size is full")
 	TxnSignatureErr error = errors.New("the signature of Txn illegal")
+	TxnTimeoutErr   error = errors.New("Txn time out")
 	TxnTooLarge     error = errors.New("the size of txn is too large")
 )
 

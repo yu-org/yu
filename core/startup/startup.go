@@ -126,8 +126,12 @@ func initDefaultCfg() {
 	kernelCfg.Txpool = config.TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
-		Timeout:    10,
-		WorkerIP:   "",
+		DB: config.KVconf{
+			KvType: "badger",
+			Path:   "txpool.db",
+			Hosts:  nil,
+		},
+		WorkerIP: "",
 	}
 	kernelCfg.State = config.StateConf{KV: config.StateKvConf{
 		IndexDB: config.KVconf{
