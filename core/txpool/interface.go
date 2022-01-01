@@ -22,9 +22,10 @@ type ItxPool interface {
 	BatchInsert(txns SignedTxns) []error
 	// package some txns to send to tripods
 	Pack(numLimit uint64) ([]*SignedTxn, error)
-	// pacakge txns according to specific conditions
-	PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*SignedTxn, error)
 
+	PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error)
+
+	// get unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
 
 	Packed(hashes []Hash) error

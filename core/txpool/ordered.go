@@ -17,10 +17,12 @@ func newOrderedTxns() *orderedTxns {
 	}
 }
 
-func (ot *orderedTxns) insertTx(input *SignedTxn) {
-	if _, ok := ot.index[input.TxnHash]; ok {
-		return
-	}
+func (ot *orderedTxns) exist(txn *SignedTxn) bool {
+	_, exist := ot.index[txn.TxnHash]
+	return exist
+}
+
+func (ot *orderedTxns) insert(input *SignedTxn) {
 	if len(ot.txns) == 0 {
 		ot.txns = []*SignedTxn{input}
 	}
@@ -42,11 +44,22 @@ func (ot *orderedTxns) delete(hash Hash) {
 	}
 }
 
-func (ot *orderedTxns) pop(count int) []*SignedTxn {
-	pops := ot.txns[:count]
-	ot.txns = ot.txns[count:]
-	for _, pop := range pops {
-		delete(ot.index, pop.TxnHash)
+func (ot *orderedTxns) deletes(hashes []Hash) {
+	for _, hash := range hashes {
+		ot.delete(hash)
 	}
-	return pops
+}
+
+func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+	txns := make([]*SignedTxn, 0)
+	for _, txn := range ot.txns[:numLimit] {
+		if filter(txn) {
+			txns = append(txns, txn)
+		}
+	}
+	return txns
+}
+
+func (ot *orderedTxns) len() int {
+	return len(ot.txns)
 }

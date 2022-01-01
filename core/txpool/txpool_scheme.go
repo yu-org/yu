@@ -44,7 +44,7 @@ func (tp *TxPool) getAllUnpacked() ([]*SignedTxn, error) {
 	return txns, err
 }
 
-func (tp *TxPool) pack(hashes []Hash) error {
+func (tp *TxPool) packByHashes(hashes []Hash) error {
 	return tp.db.Db().Transaction(func(tx *gorm.DB) error {
 		for _, hash := range hashes {
 			tx.Where(&TxpoolScheme{TxnHash: hash.String()}).Updates(TxpoolScheme{IsPacked: true})
