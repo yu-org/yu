@@ -6,7 +6,7 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
-	. "github.com/yu-org/yu/infra/storage/kv"
+	. "github.com/yu-org/yu/infra/storage/sql"
 	ytime "github.com/yu-org/yu/utils/time"
 	"sync"
 )
@@ -18,31 +18,47 @@ type TxPool struct {
 	poolSize   uint64
 	TxnMaxSize int
 
-	Txns         []*TxpoolScheme
+	LeiOrdered *orderedTxns
+
+	Txns         []*SignedTxn
 	startPackIdx int
 
 	startTS uint64
-	db      KV
+	db      SqlDB
 
 	baseChecks   []TxnCheck
 	tripodChecks []TxnCheck
 }
 
 func NewTxPool(cfg *TxpoolConf) *TxPool {
-	db, err := NewKV(&cfg.DB)
+	db, err := NewSqlDB(&cfg.DB)
 	if err != nil {
 		logrus.Fatal("init txpool error: ", err)
 	}
-	return &TxPool{
+	err = db.CreateIfNotExist(TxpoolScheme{})
+	if err != nil {
+		logrus.Fatal("create txpool scheme error: ", err)
+	}
+	ordered := newOrderedTxns()
+
+	tp := &TxPool{
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
-		Txns:         make([]*TxpoolScheme, 0),
+		LeiOrdered:   ordered,
 		startPackIdx: 0,
 		startTS:      ytime.NowNanoTsU64(),
 		db:           db,
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
 	}
+	allUnpacked, err := tp.getAllUnpacked()
+	if err != nil {
+		logrus.Fatal("get all unpacked txns from txpool db failed: ", err)
+	}
+	for _, tx := range allUnpacked {
+		tp.LeiOrdered.insertTx(tx)
+	}
+	return tp
 }
 
 func LocalWithDefaultChecks(cfg *TxpoolConf) *TxPool {
@@ -148,7 +164,7 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(*SignedTxn) error) ([]*Si
 }
 
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
-	return tp.getTx(hash)
+	return tp.getUnpacked(hash)
 }
 
 func (tp *TxPool) Packed(hashes []Hash) error {
@@ -232,78 +248,6 @@ func (tp *TxPool) checkTxnSize(stxn *SignedTxn) error {
 		return TxnTooLarge
 	}
 	return nil
-}
-
-func (tp *TxPool) insertTx(txn *SignedTxn) error {
-	itxn := &TxpoolScheme{
-		Txn:      txn,
-		IsPacked: false,
-	}
-	byt, err := itxn.encode()
-	if err != nil {
-		return err
-	}
-	err = tp.db.Set(txn.TxnHash.Bytes(), byt)
-	if err != nil {
-		return err
-	}
-	tp.Txns = append(tp.Txns, itxn)
-	return nil
-}
-
-func (tp *TxPool) getTx(hash Hash) (*SignedTxn, error) {
-	byt, err := tp.db.Get(hash.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	itxn, err := new(TxpoolScheme).decode(byt)
-	if err != nil {
-		return nil, err
-	}
-	return itxn.Txn, nil
-}
-
-func (tp *TxPool) cleanPacked() error {
-
-}
-
-func (tp *TxPool) pack(hash Hash) {
-
-}
-
-type TxpoolScheme struct {
-	Txn      *SignedTxn
-	IsPacked bool
-}
-
-func boolToByte(b bool) byte {
-	if b {
-		return 0
-	}
-	return 1
-}
-
-func byteToBool(b byte) bool {
-	return b == 0
-}
-
-func (it *TxpoolScheme) encode() (byt []byte, err error) {
-	byt, err = it.Txn.Encode()
-	if err != nil {
-		return
-	}
-	byt = append(byt, boolToByte(it.IsPacked))
-	return
-}
-
-func (it *TxpoolScheme) decode(data []byte) (*TxpoolScheme, error) {
-	txn, err := DecodeSignedTxn(data[:len(data)-1])
-	if err != nil {
-		return nil, err
-	}
-	it.Txn = txn
-	it.IsPacked = byteToBool(data[len(data)-1])
-	return it, nil
 }
 
 type TxnCheck func(*SignedTxn) error

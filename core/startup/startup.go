@@ -39,7 +39,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	statedb := state.NewStateDB(&kernelCfg.State)
 
 	env := &chain_env.ChainEnv{
-		IState:     statedb,
+		State:      statedb,
 		Chain:      chain,
 		Base:       base,
 		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool),
@@ -126,10 +126,9 @@ func initDefaultCfg() {
 	kernelCfg.Txpool = config.TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
-		DB: config.KVconf{
-			KvType: "badger",
-			Path:   "txpool.db",
-			Hosts:  nil,
+		DB: config.SqlDbConf{
+			SqlDbType: "sqlite",
+			Dsn:       "txpool.db",
 		},
 		WorkerIP: "",
 	}

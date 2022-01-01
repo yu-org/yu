@@ -102,9 +102,9 @@ type BlockBaseConf struct {
 }
 
 type TxpoolConf struct {
-	PoolSize   uint64 `toml:"pool_size"`
-	TxnMaxSize int    `toml:"txn_max_size"`
-	DB         KVconf `toml:"db"`
+	PoolSize   uint64    `toml:"pool_size"`
+	TxnMaxSize int       `toml:"txn_max_size"`
+	DB         SqlDbConf `toml:"db"`
 	// In local-node mode, this will be null.
 	WorkerIP string `toml:"worker_ip"`
 }
