@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
 )
@@ -54,6 +55,7 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	txns := make([]*SignedTxn, 0)
 	for _, txn := range ot.txns[:numLimit] {
 		if filter(txn) {
+			logrus.Debugf("Pack txn(%s) from Txpool", txn.TxnHash.String())
 			txns = append(txns, txn)
 		}
 	}
