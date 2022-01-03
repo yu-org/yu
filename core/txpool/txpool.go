@@ -6,12 +6,10 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
-	. "github.com/yu-org/yu/infra/storage/sql"
 	ytime "github.com/yu-org/yu/utils/time"
 	"sync"
 )
 
-// This implementation only use for Local-Node mode.
 type TxPool struct {
 	sync.RWMutex
 
@@ -20,21 +18,13 @@ type TxPool struct {
 	startTS    uint64
 
 	unpackedTxns *orderedTxns
-	db           SqlDB
+	base         IBlockBase
 
 	baseChecks   []TxnCheck
 	tripodChecks []TxnCheck
 }
 
-func NewTxPool(cfg *TxpoolConf) *TxPool {
-	db, err := NewSqlDB(&cfg.DB)
-	if err != nil {
-		logrus.Fatal("init txpool error: ", err)
-	}
-	err = db.CreateIfNotExist(TxpoolScheme{})
-	if err != nil {
-		logrus.Fatal("create txpool scheme error: ", err)
-	}
+func NewTxPool(cfg *TxpoolConf, base IBlockBase) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
@@ -42,11 +32,11 @@ func NewTxPool(cfg *TxpoolConf) *TxPool {
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
 		startTS:      ytime.NowNanoTsU64(),
-		db:           db,
+		base:         base,
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
 	}
-	allUnpacked, err := tp.getAllUnpacked()
+	allUnpacked, err := tp.base.GetAllUnpackedTxns()
 	if err != nil {
 		logrus.Fatal("get all unpacked txns from txpool db failed: ", err)
 	}
@@ -56,8 +46,8 @@ func NewTxPool(cfg *TxpoolConf) *TxPool {
 	return tp
 }
 
-func LocalWithDefaultChecks(cfg *TxpoolConf) *TxPool {
-	tp := NewTxPool(cfg)
+func LocalWithDefaultChecks(cfg *TxpoolConf, base IBlockBase) *TxPool {
+	tp := NewTxPool(cfg, base)
 	return tp.withDefaultBaseChecks()
 }
 
@@ -65,7 +55,6 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	tp.baseChecks = []TxnCheck{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
-		tp.checkTimeout,
 		tp.checkSignature,
 	}
 	return tp
@@ -93,7 +82,6 @@ func (tp *TxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
 	return tp
 }
 
-// insert into txpool
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	errs := tp.BatchInsert(FromArray(stxn))
 	if len(errs) == 0 {
@@ -102,7 +90,6 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	return errs[0]
 }
 
-// batch insert into txpool
 func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 	tp.Lock()
 	defer tp.Unlock()
@@ -111,6 +98,11 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 		if tp.unpackedTxns.exist(stxn) {
 			continue
 		}
+		// check replay attack
+		if tp.base.ExistTxn(stxn.TxnHash) {
+			continue
+		}
+
 		err := tp.BaseCheck(stxn)
 		if err != nil {
 			errs = append(errs, err)
@@ -121,7 +113,7 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 			errs = append(errs, err)
 			continue
 		}
-		err = tp.insertToDB(stxn)
+		err = tp.base.SetTxn(stxn)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -131,18 +123,17 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 	return errs
 }
 
-func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackFor(numLimit, func(*SignedTxn) bool {
+func (tp *TxPool) Pack(blockHash Hash, numLimit uint64) ([]*SignedTxn, error) {
+	return tp.PackFor(blockHash, numLimit, func(*SignedTxn) bool {
 		return true
 	})
 }
 
-// package some txns to send to tripods
-func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
+func (tp *TxPool) PackFor(blockHash Hash, numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
 	txns := tp.unpackedTxns.gets(numLimit, filter)
-	err := tp.packed(FromArray(txns...).Hashes())
+	err := tp.packed(blockHash, FromArray(txns...).Hashes())
 	if err != nil {
 		return nil, err
 	}
@@ -152,32 +143,27 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
-	return tp.getUnpacked(hash)
+	return tp.base.GetTxn(hash)
 }
 
-func (tp *TxPool) Packed(hashes []Hash) error {
+func (tp *TxPool) Packed(block Hash, txns []Hash) error {
 	tp.Lock()
 	defer tp.Unlock()
-	return tp.packed(hashes)
+	return tp.packed(block, txns)
 }
 
-func (tp *TxPool) packed(hashes []Hash) error {
-	err := tp.packByHashes(hashes)
+func (tp *TxPool) packed(block Hash, txns []Hash) error {
+	err := tp.base.Packs(block, txns)
 	if err != nil {
 		return err
 	}
-	tp.unpackedTxns.deletes(hashes)
+	tp.unpackedTxns.deletes(txns)
 	return nil
 }
 
-// remove txns after execute all tripods
 func (tp *TxPool) Reset() error {
 	tp.Lock()
 	defer tp.Unlock()
-	err := tp.cleanPacked()
-	if err != nil {
-		return err
-	}
 	tp.startTS = ytime.NowNanoTsU64()
 	return nil
 }
@@ -208,13 +194,6 @@ func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 func (tp *TxPool) checkPoolLimit(*SignedTxn) error {
 	if uint64(tp.unpackedTxns.len()) >= tp.poolSize {
 		return PoolOverflow
-	}
-	return nil
-}
-
-func (tp *TxPool) checkTimeout(stxn *SignedTxn) error {
-	if stxn.Raw.Timestamp < tp.startTS {
-		return TxnTimeoutErr
 	}
 	return nil
 }

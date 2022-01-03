@@ -180,7 +180,7 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 	return nil
 }
 
-// sync txns of P2P-network
+// SyncTxns sync txns of P2P-network
 func (m *Kernel) SyncTxns(block *CompactBlock) error {
 	txnsHashes := block.TxnsHashes
 

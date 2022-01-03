@@ -5,8 +5,10 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/result"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type BlockBase struct {
@@ -39,13 +41,19 @@ func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
 	}
 }
 
-func (bb *BlockBase) GetTxn(txnHash Hash) (*types.SignedTxn, error) {
+func (bb *BlockBase) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	var ts TxnScheme
-	bb.db.Db().Where(&TxnScheme{TxnHash: txnHash.String()}).First(&ts)
+	bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
 	return ts.toTxn()
 }
 
-func (bb *BlockBase) SetTxn(stxn *types.SignedTxn) error {
+func (bb *BlockBase) ExistTxn(hash Hash) bool {
+	var ts TxnScheme
+	result := bb.db.Db().Where(TxnScheme{TxnHash: hash.String()}).Find(&ts)
+	return result.RowsAffected > 0
+}
+
+func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return err
@@ -54,10 +62,51 @@ func (bb *BlockBase) SetTxn(stxn *types.SignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetTxns(blockHash Hash) ([]*types.SignedTxn, error) {
+func (bb *BlockBase) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
+	var schemes []*TxnScheme
+	err = bb.db.Db().Where(&TxnScheme{IsPacked: false}).Find(&schemes).Error
+	if err != nil {
+		return
+	}
+	for _, scheme := range schemes {
+		var txn *SignedTxn
+		txn, err = scheme.toTxn()
+		if err != nil {
+			return
+		}
+		txns = append(txns, txn)
+	}
+	return
+}
+
+func (bb *BlockBase) Packs(block Hash, txns []Hash) error {
+	return bb.db.Db().Transaction(func(tx *gorm.DB) error {
+		for _, txn := range txns {
+			err := tx.Where(TxnScheme{TxnHash: txn.String()}).
+				Updates(TxnScheme{
+					BlockHash: block.String(),
+					IsPacked:  true,
+				}).Error
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (bb *BlockBase) Pack(block, txn Hash) error {
+	return bb.db.Db().Where(TxnScheme{TxnHash: txn.String()}).
+		Updates(TxnScheme{
+			BlockHash: block.String(),
+			IsPacked:  true,
+		}).Error
+}
+
+func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
 	var tss []TxnScheme
 	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
-	itxns := make([]*types.SignedTxn, 0)
+	itxns := make([]*SignedTxn, 0)
 	for _, ts := range tss {
 		stxn, err := ts.toTxn()
 		if err != nil {
@@ -68,17 +117,19 @@ func (bb *BlockBase) GetTxns(blockHash Hash) ([]*types.SignedTxn, error) {
 	return itxns, nil
 }
 
-func (bb *BlockBase) SetTxns(blockHash Hash, txns []*types.SignedTxn) error {
+func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
 	txnSms := make([]TxnScheme, 0)
 	for _, stxn := range txns {
 		txnSm, err := newTxnScheme(blockHash, stxn)
 		if err != nil {
 			return err
 		}
+		txnSm.IsPacked = true
 		txnSms = append(txnSms, txnSm)
 	}
+
 	if len(txnSms) > 0 {
-		bb.db.Db().Create(&txnSms)
+		bb.db.Db().Clauses(clause.OnConflict{UpdateAll: true}).Create(&txnSms)
 	}
 	return nil
 }

@@ -189,7 +189,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 		}
 	}
 
-	txns, err := h.env.Pool.Pack(3000)
+	txns, err := h.env.Pool.Pack(block.Hash, 3000)
 	if err != nil {
 		return err
 	}
@@ -213,10 +213,6 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
 	h.env.State.StartBlock(block.Hash)
-	err = h.env.Base.SetTxns(block.Hash, txns)
-	if err != nil {
-		return err
-	}
 
 	rawBlock := &Block{
 		CompactBlock: block,
@@ -285,7 +281,7 @@ func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 		return true
 	}
 	h.env.State.StartBlock(localBlock.Hash)
-	err = h.env.Pool.Packed(localBlock.TxnsHashes)
+	err = h.env.Pool.Packed(localBlock.Hash, localBlock.TxnsHashes)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}

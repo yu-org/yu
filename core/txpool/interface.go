@@ -21,14 +21,14 @@ type ItxPool interface {
 	// batch insert into txpool
 	BatchInsert(txns SignedTxns) []error
 	// package some txns to send to tripods
-	Pack(numLimit uint64) ([]*SignedTxn, error)
+	Pack(blockHash Hash, numLimit uint64) ([]*SignedTxn, error)
 
-	PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error)
+	PackFor(blockHash Hash, numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error)
 
 	// get unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
 
-	Packed(hashes []Hash) error
+	Packed(block Hash, txns []Hash) error
 	// remove txns after execute all tripods
 	Reset() error
 }

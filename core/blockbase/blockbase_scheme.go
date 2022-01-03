@@ -13,8 +13,8 @@ type TxnScheme struct {
 	Pubkey    string
 	Signature string
 	RawTxn    string
-
 	BlockHash string
+	IsPacked  bool
 }
 
 func (TxnScheme) TableName() string {

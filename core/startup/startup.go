@@ -42,7 +42,7 @@ func StartUp(tripods ...tripod.Tripod) {
 		State:      statedb,
 		Chain:      chain,
 		Base:       base,
-		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool),
+		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
