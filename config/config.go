@@ -20,7 +20,6 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
-	NkDB KVconf `toml:"nk_db"`
 	// when beyond 'Timeout', it means this nodekeeper is down.
 	// Unit is Second.
 	Timeout int `toml:"timeout"`
@@ -58,7 +57,7 @@ type P2pConf struct {
 
 //type WorkerConf struct {
 //	Name           string `toml:"name"`
-//	DB             KVconf `toml:"db"`
+//	DB              `toml:"db"`
 //	NodeKeeperPort string `toml:"node_keeper_port"`
 //
 //	// number of broadcast txns every time

@@ -91,12 +91,7 @@ func initDefaultCfg() {
 		WsPort:   "8999",
 		LogLevel: "info",
 		LeiLimit: 50000,
-		NkDB: config.KVconf{
-			KvType: "bolt",
-			Path:   "./nk_db.db",
-			Hosts:  nil,
-		},
-		Timeout: 60,
+		Timeout:  60,
 	}
 	kernelCfg.P2P = config.P2pConf{
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},

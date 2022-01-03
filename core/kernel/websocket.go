@@ -120,13 +120,6 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, w http.ResponseWriter, req *http
 	}
 
 	switch m.RunMode {
-	case MasterWorker:
-		ip, err := m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
-		if err != nil {
-			BadReqHttpResp(w, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
-			return
-		}
-		forwardQueryToWorker(ip, w, req)
 	case LocalNode:
 		ctx, err := context.NewContext(NullAddress, qcall.Params)
 		if err != nil {

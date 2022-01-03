@@ -17,12 +17,6 @@ const PARAMS_KEY = "params"
 func (m *Kernel) HandleHttp() {
 	r := gin.Default()
 
-	if m.RunMode == MasterWorker {
-		r.POST(RegisterNodeKeepersPath, func(c *gin.Context) {
-			m.registerNodeKeepers(c)
-		})
-	}
-
 	// GET request
 	r.GET(ExecApiPath, func(c *gin.Context) {
 		m.handleHttpExec(c)
@@ -125,17 +119,6 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 	}
 
 	switch m.RunMode {
-	case MasterWorker:
-		var ip string
-		ip, err = m.findWorkerIP(qcall.TripodName, qcall.QueryName, QryCall)
-		if err != nil {
-			c.String(
-				http.StatusBadRequest,
-				FindNoCallStr(qcall.TripodName, qcall.QueryName, err),
-			)
-			return
-		}
-		forwardQueryToWorker(ip, c.Writer, c.Request)
 	case LocalNode:
 		pubkey, err := GetPubkey(c.Request)
 		if err != nil {

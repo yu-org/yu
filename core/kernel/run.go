@@ -4,7 +4,6 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
-	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
@@ -164,26 +163,6 @@ func (m *Kernel) MasterWokrerRun() error {
 	//}()
 	//
 	//return m.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
-	return nil
-}
-
-func (m *Kernel) nortifyWorker(workersIps []string, path string, newBlock *CompactBlock) error {
-	blockByt, err := newBlock.Encode()
-	if err != nil {
-		return err
-	}
-
-	for _, ip := range workersIps {
-		resp, err := PostRequest(ip+path, blockByt)
-		if err != nil {
-			return err
-		}
-		respBlock, err := DecodeBlockFromHttp(resp.Body, m.chain)
-		if err != nil {
-			return err
-		}
-		newBlock = respBlock
-	}
 	return nil
 }
 
