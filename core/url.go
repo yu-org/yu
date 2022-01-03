@@ -8,29 +8,7 @@ import (
 )
 
 const (
-	DownloadUpdatedPath     = "/download/upgrade"
-	RegisterNodeKeepersPath = "/nodekeeper/register"
-	RegisterWorkersPath     = "/worker/register"
-	HeartbeatPath           = "/heartbeat"
-
-	// Worker accept block from p2p network.
-	// Master forwards this request to Worker.
-	// Deprecated
-	BlockFromP2P = "/p2p/block"
-
-	// Worker accept txns from p2p network.
-	// Master forwards this request to Worker.
-	// Deprecated
-	TxnsFromP2P = "/p2p/txns"
-
-	StartBlockPath    = "/block/start"
-	EndBlockPath      = "/block/end"
-	FinalizeBlockPath = "/block/finalize"
-
-	CheckTxnsPath   = "/txns/check"
-	ExecuteTxnsPath = "/txns/execute"
-
-	// For developers, every customized Execution and Query of tripods
+	// RootApiPath For developers, every customized Execution and Query of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"
 
@@ -48,13 +26,13 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-// return (Tripod Name, Execution/Query Name)
+// GetTripodCallName return (Tripod Name, Execution/Query Name)
 func GetTripodCallName(req *http.Request) (string, string) {
 	query := req.URL.Query()
 	return query.Get(TripodNameKey), query.Get(CallNameKey)
 }
 
-// return the Address of Txn-Sender
+// GetAddress return the Address of Txn-Sender
 func GetAddress(req *http.Request) Address {
 	return HexToAddress(req.URL.Query().Get(AddressKey))
 }
