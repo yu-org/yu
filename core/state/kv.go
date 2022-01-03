@@ -141,6 +141,9 @@ func (skv *StateKV) Commit() (Hash, error) {
 }
 
 func (skv *StateKV) Discard() {
+	if len(skv.stashes) == 0 {
+		return
+	}
 	skv.stashes = skv.stashes[:len(skv.stashes)-1]
 }
 

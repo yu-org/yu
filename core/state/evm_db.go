@@ -168,6 +168,9 @@ func (db *EvmDB) Commit() (Hash, error) {
 }
 
 func (db *EvmDB) Discard() {
+	if len(db.stashes) == 0 {
+		return
+	}
 	db.discardBalanceOps(db.stashes[len(db.stashes)-1].stashes)
 	db.stashes = db.stashes[:len(db.stashes)-1]
 }
