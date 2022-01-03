@@ -53,6 +53,9 @@ func (ot *orderedTxns) deletes(hashes []Hash) {
 
 func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
 	txns := make([]*SignedTxn, 0)
+	if numLimit > uint64(ot.len()) {
+		numLimit = uint64(ot.len())
+	}
 	for _, txn := range ot.txns[:numLimit] {
 		if filter(txn) {
 			logrus.Debugf("Pack txn(%s) from Txpool", txn.TxnHash.String())
