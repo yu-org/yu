@@ -1,33 +1,17 @@
 package asset
 
 import (
-	"github.com/HyperService-Consortium/go-rlp"
-	"github.com/sirupsen/logrus"
+	"encoding/binary"
 )
 
 type Amount uint64
 
-func (a Amount) MustEncode() []byte {
-	byt, err := a.Encode()
-	if err != nil {
-		logrus.Panic("encode amount error")
-	}
-	return byt
+func (a Amount) Encode() []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(a))
+	return b
 }
 
-func (a Amount) Encode() ([]byte, error) {
-	return rlp.EncodeToBytes(a)
-}
-
-func MustDecodeToAmount(data []byte) Amount {
-	a, err := DecodeToAmount(data)
-	if err != nil {
-		logrus.Panic("decode amount error: ", err)
-	}
-	return a
-}
-
-func DecodeToAmount(data []byte) (a Amount, err error) {
-	err = rlp.DecodeBytes(data, &a)
-	return
+func DecodeToAmount(data []byte) Amount {
+	return Amount(binary.LittleEndian.Uint64(data))
 }

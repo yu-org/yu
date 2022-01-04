@@ -27,6 +27,9 @@ func NewAsset(tokenName string) *Asset {
 
 func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
+	if !a.exsitAccount(a.ChainEnv, account) {
+		return nil, AccountNotFound(account)
+	}
 	amount := a.getBalance(a.ChainEnv, account)
 	return amount, nil
 }
@@ -89,13 +92,13 @@ func (a *Asset) exsitAccount(env *ChainEnv, addr Address) bool {
 func (a *Asset) getBalance(env *ChainEnv, addr Address) Amount {
 	balanceByt, err := env.State.Get(a, addr.Bytes())
 	if err != nil {
-		logrus.Panic("get balance error")
+		logrus.Panic("get balance error: ", err)
 	}
-	return MustDecodeToAmount(balanceByt)
+	return DecodeToAmount(balanceByt)
 }
 
 func (a *Asset) setBalance(env *ChainEnv, addr Address, amount Amount) {
-	env.State.Set(a, addr.Bytes(), amount.MustEncode())
+	env.State.Set(a, addr.Bytes(), amount.Encode())
 }
 
 func checkAdd(origin, add Amount) (Amount, error) {
