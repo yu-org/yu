@@ -28,12 +28,15 @@ func main() {
 
 	go subEvent()
 
+	logrus.Info("--- send Creating Account ---")
 	createAccount(privkey, pubkey)
 	time.Sleep(4 * time.Second)
 
+	logrus.Info("--- send Transfering 1 ---")
 	transfer(privkey, pubkey, toPubkey.Address())
 	time.Sleep(4 * time.Second)
 
+	logrus.Info("--- send Transfering 2 ---")
 	transfer(privkey, pubkey, toPubkey.Address())
 	time.Sleep(6 * time.Second)
 

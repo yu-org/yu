@@ -27,7 +27,7 @@ func NewAsset(tokenName string) *Asset {
 
 func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
-	if !a.exsitAccount(a.ChainEnv, account) {
+	if !a.existAccount(a.ChainEnv, account) {
 		return nil, AccountNotFound(account)
 	}
 	amount := a.getBalance(a.ChainEnv, account)
@@ -39,7 +39,7 @@ func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
 	to := ctx.GetAddress("to")
 	amount := Amount(ctx.GetUint64("amount"))
 
-	if !a.exsitAccount(a.ChainEnv, from) {
+	if !a.existAccount(a.ChainEnv, from) {
 		return AccountNotFound(from)
 	}
 
@@ -48,7 +48,7 @@ func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
 		return InsufficientFunds
 	}
 
-	if !a.exsitAccount(a.ChainEnv, to) {
+	if !a.existAccount(a.ChainEnv, to) {
 		a.setBalance(a.ChainEnv, to, amount)
 	} else {
 		toBalance := a.getBalance(a.ChainEnv, to)
@@ -75,7 +75,7 @@ func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 
-	if a.exsitAccount(a.ChainEnv, addr) {
+	if a.existAccount(a.ChainEnv, addr) {
 		_ = ctx.EmitEvent("Account Exists!")
 		return nil
 	}
@@ -85,7 +85,7 @@ func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
 	return nil
 }
 
-func (a *Asset) exsitAccount(env *ChainEnv, addr Address) bool {
+func (a *Asset) existAccount(env *ChainEnv, addr Address) bool {
 	return env.State.Exist(a, addr.Bytes())
 }
 

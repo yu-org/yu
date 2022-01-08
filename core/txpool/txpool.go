@@ -123,41 +123,33 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 	return errs
 }
 
-func (tp *TxPool) Pack(blockHash Hash, numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackFor(blockHash, numLimit, func(*SignedTxn) bool {
-		return true
-	})
-}
-
-func (tp *TxPool) PackFor(blockHash Hash, numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
-	tp.Lock()
-	defer tp.Unlock()
-	txns := tp.unpackedTxns.gets(numLimit, filter)
-	err := tp.packed(blockHash, FromArray(txns...).Hashes())
-	if err != nil {
-		return nil, err
-	}
-	return txns, nil
-}
-
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
 	return tp.base.GetTxn(hash)
 }
 
-func (tp *TxPool) Packed(block Hash, txns []Hash) error {
-	tp.Lock()
-	defer tp.Unlock()
-	return tp.packed(block, txns)
+func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
+	return tp.PackFor(numLimit, func(*SignedTxn) bool {
+		return true
+	})
 }
 
-func (tp *TxPool) packed(block Hash, txns []Hash) error {
-	err := tp.base.Packs(block, txns)
+func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
+	tp.Lock()
+	defer tp.Unlock()
+	txns := tp.unpackedTxns.gets(numLimit, filter)
+	return txns, nil
+}
+
+func (tp *TxPool) Packed(block *CompactBlock) error {
+	tp.Lock()
+	defer tp.Unlock()
+	err := tp.base.Packs(block.Hash, block.TxnsHashes)
 	if err != nil {
 		return err
 	}
-	tp.unpackedTxns.deletes(txns)
+	tp.unpackedTxns.deletes(block.TxnsHashes)
 	return nil
 }
 
