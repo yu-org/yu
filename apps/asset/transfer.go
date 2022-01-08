@@ -75,6 +75,8 @@ func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
 	addr := ctx.Caller
 	amount := ctx.GetUint64("amount")
 
+	logrus.Debugf("Create ACCOUNT(%s) amount(%d)", addr.String(), amount)
+
 	if a.existAccount(a.ChainEnv, addr) {
 		_ = ctx.EmitEvent("Account Exists!")
 		return nil

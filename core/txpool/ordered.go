@@ -26,6 +26,7 @@ func (ot *orderedTxns) exist(txn *SignedTxn) bool {
 func (ot *orderedTxns) insert(input *SignedTxn) {
 	if len(ot.txns) == 0 {
 		ot.txns = []*SignedTxn{input}
+		ot.index[input.TxnHash] = 0
 	}
 	for i, tx := range ot.txns {
 		if input.Raw.LeiPrice > tx.Raw.LeiPrice {
@@ -37,9 +38,10 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 }
 
 func (ot *orderedTxns) delete(hash Hash) {
-	if idx, ok := ot.index[hash]; ok {
+	if idx, ok := ot.index[hash]; !ok {
 		return
 	} else {
+		logrus.Debugf("DELETE txn(%s) from txpool", hash.String())
 		ot.txns = append(ot.txns[:idx], ot.txns[idx+1:]...)
 		delete(ot.index, hash)
 	}

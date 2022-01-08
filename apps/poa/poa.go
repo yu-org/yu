@@ -212,6 +212,11 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
+	err = h.env.Pool.Packed(block)
+	if err != nil {
+		return err
+	}
+
 	h.env.State.StartBlock(block.Hash)
 
 	rawBlock := &Block{
