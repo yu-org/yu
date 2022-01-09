@@ -142,7 +142,7 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 	return txns, nil
 }
 
-func (tp *TxPool) Packed(block *CompactBlock) error {
+func (tp *TxPool) Reset(block *CompactBlock) error {
 	tp.Lock()
 	defer tp.Unlock()
 	err := tp.base.Packs(block.Hash, block.TxnsHashes)

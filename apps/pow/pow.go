@@ -153,7 +153,6 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 
 func (p *Pow) EndBlock(block *types.CompactBlock) error {
 	chain := p.env.Chain
-	pool := p.env.Pool
 
 	err := p.env.Execute(block)
 	if err != nil {
@@ -169,7 +168,7 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 
 	p.env.State.FinalizeBlock(block.Hash)
 
-	return pool.Reset()
+	return nil
 }
 
 func (*Pow) FinalizeBlock(_ *types.CompactBlock) error {
@@ -221,7 +220,7 @@ func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
 			return false
 		}
 		p.env.State.StartBlock(block.Hash)
-		err = p.env.Pool.Packed(block.TxnsHashes)
+		err = p.env.Pool.Reset(block)
 		if err != nil {
 			logrus.Error("clear txpool error: ", err)
 			return false

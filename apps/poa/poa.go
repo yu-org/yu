@@ -212,7 +212,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
-	err = h.env.Pool.Packed(block)
+	err = h.env.Pool.Reset(block)
 	if err != nil {
 		return err
 	}
@@ -286,7 +286,7 @@ func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 		return true
 	}
 	h.env.State.StartBlock(localBlock.Hash)
-	err = h.env.Pool.Packed(localBlock)
+	err = h.env.Pool.Reset(localBlock)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}
