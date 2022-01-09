@@ -234,7 +234,6 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 
 func (h *Poa) EndBlock(block *CompactBlock) error {
 	chain := h.env.Chain
-	pool := h.env.Pool
 
 	err := h.env.Execute(block)
 	if err != nil {
@@ -251,7 +250,7 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 
 	h.env.State.FinalizeBlock(block.Hash)
 
-	return pool.Reset()
+	return nil
 }
 
 func (h *Poa) FinalizeBlock(block *CompactBlock) error {
