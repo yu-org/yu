@@ -153,13 +153,6 @@ func (tp *TxPool) Reset(block *CompactBlock) error {
 	return nil
 }
 
-func (tp *TxPool) Reset() error {
-	tp.Lock()
-	defer tp.Unlock()
-	tp.startTS = ytime.NowNanoTsU64()
-	return nil
-}
-
 // ------------------- check txn rules ----------------------
 
 func (tp *TxPool) BaseCheck(stxn *SignedTxn) error {
