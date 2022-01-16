@@ -4,7 +4,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/asset"
 	"github.com/yu-org/yu/apps/poa"
-	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/startup"
 	"os"
@@ -50,11 +49,11 @@ func main() {
 	myPubkey := pairArray[idx].pubkey
 	myPrivkey := pairArray[idx].privkey
 
-	validatorsMap := map[common.Address]string{
-		pub0.Address(): "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu",
-		pub1.Address(): "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG",
-		pub2.Address(): "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH",
+	validatorsAddrs := []poa.ValidatorAddrIp{
+		{Addr: pub0.Address(), P2pIP: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+		{Addr: pub1.Address(), P2pIP: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
+		{Addr: pub2.Address(), P2pIP: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 	}
 	logrus.Info("My Address is ", pairArray[idx].pubkey.Address().String())
-	startup.StartUp(poa.NewPoa(myPubkey, myPrivkey, validatorsMap), asset.NewAsset("YuCoin"))
+	startup.StartUp(poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs), asset.NewAsset("YuCoin"))
 }

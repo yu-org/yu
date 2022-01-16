@@ -33,17 +33,25 @@ type Poa struct {
 	nodeIdx int
 }
 
-func NewPoa(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[Address]string) *Poa {
+type ValidatorAddrIp struct {
+	Addr  Address
+	P2pIP string
+}
+
+func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa {
 	meta := NewTripodMeta("Poa")
 
 	var nodeIdx int
 
 	validatorsAddr := make([]Address, 0)
 	validators := make(map[Address]peer.ID)
-	for addr, ip := range validatorsMap {
-		peerID, err := peer.Decode(ip)
+	for _, addrIp := range addrIps {
+		addr := addrIp.Addr
+		p2pIP := addrIp.P2pIP
+
+		peerID, err := peer.Decode(p2pIP)
 		if err != nil {
-			logrus.Fatalf("decode validatorIP(%s) error: %v", ip, err)
+			logrus.Fatalf("decode validatorIP(%s) error: %v", p2pIP, err)
 		}
 		validators[addr] = peerID
 

@@ -12,7 +12,7 @@ type pair struct {
 	privkey PrivKey
 }
 
-func initKeypair(idx int) (PubKey, PrivKey, map[Address]string) {
+func initKeypair(idx int) (PubKey, PrivKey, []ValidatorAddrIp) {
 	pub0, priv0 := GenSrKey([]byte("node1"))
 	pub1, priv1 := GenSrKey([]byte("node2"))
 	pub2, priv2 := GenSrKey([]byte("node3"))
@@ -34,26 +34,26 @@ func initKeypair(idx int) (PubKey, PrivKey, map[Address]string) {
 
 	myPubkey := pairArray[idx].pubkey
 	myPrivkey := pairArray[idx].privkey
-	validatorsMap := map[Address]string{
-		pub0.Address(): "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu",
-		pub1.Address(): "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG",
-		pub2.Address(): "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH",
+	validatorsAddrs := []ValidatorAddrIp{
+		{Addr: pub0.Address(), P2pIP: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+		{Addr: pub1.Address(), P2pIP: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
+		{Addr: pub2.Address(), P2pIP: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 	}
 
-	return myPubkey, myPrivkey, validatorsMap
+	return myPubkey, myPrivkey, validatorsAddrs
 }
 
 func TestCompeteLeader(t *testing.T) {
-	myPubkey1, myPrivkey1, validatorsMap1 := initKeypair(0)
-	node1 := NewPoa(myPubkey1, myPrivkey1, validatorsMap1)
+	myPubkey1, myPrivkey1, validators1 := initKeypair(0)
+	node1 := NewPoa(myPubkey1, myPrivkey1, validators1)
 	t.Log("addr1 = ", myPubkey1.Address().String())
 
-	myPubkey2, myPrivkey2, validatorsMap2 := initKeypair(1)
-	node2 := NewPoa(myPubkey2, myPrivkey2, validatorsMap2)
+	myPubkey2, myPrivkey2, validators2 := initKeypair(1)
+	node2 := NewPoa(myPubkey2, myPrivkey2, validators2)
 	t.Log("addr2 = ", myPubkey2.Address().String())
 
-	myPubkey3, myPrivkey3, validatorsMap3 := initKeypair(2)
-	node3 := NewPoa(myPubkey3, myPrivkey3, validatorsMap3)
+	myPubkey3, myPrivkey3, validators3 := initKeypair(2)
+	node3 := NewPoa(myPubkey3, myPrivkey3, validators3)
 	t.Log("addr3 = ", myPubkey3.Address().String())
 
 	for i := 1; i <= 30; i++ {
