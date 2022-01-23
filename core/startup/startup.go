@@ -51,9 +51,9 @@ func StartUp(tripods ...tripod.Tripod) {
 		t.SetChainEnv(env)
 	}
 
-	m := kernel.NewKernel(&kernelCfg, env, land)
+	k := kernel.NewKernel(&kernelCfg, env, land)
 
-	m.Startup()
+	k.Startup()
 }
 
 func initCfgFromFlags() {
@@ -63,7 +63,7 @@ func initCfgFromFlags() {
 
 	flag.Parse()
 	if *useDefaultCfg {
-		initDefaultCfg()
+		kernelCfg = config.InitDefaultCfg()
 		return
 	}
 
@@ -82,61 +82,4 @@ func initLog(level string) {
 	}
 
 	logrus.SetLevel(lvl)
-}
-
-func initDefaultCfg() {
-	kernelCfg = config.KernelConf{
-		RunMode:  0,
-		HttpPort: "7999",
-		WsPort:   "8999",
-		LogLevel: "info",
-		LeiLimit: 50000,
-		Timeout:  60,
-	}
-	kernelCfg.P2P = config.P2pConf{
-		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},
-		Bootnodes:       nil,
-		ProtocolID:      "yu",
-		NodeKeyType:     1,
-		NodeKeyRandSeed: 1,
-		NodeKey:         "",
-		NodeKeyBits:     0,
-		NodeKeyFile:     "",
-	}
-	kernelCfg.BlockChain = config.BlockchainConf{
-		ChainDB: config.SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       "chain.db",
-		},
-		BlocksFromP2pDB: config.SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       "blocks_from_p2p.db",
-		},
-	}
-	kernelCfg.BlockBase = config.BlockBaseConf{
-		BaseDB: config.SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       "blockbase.db",
-		}}
-	kernelCfg.Txpool = config.TxpoolConf{
-		PoolSize:   2048,
-		TxnMaxSize: 1024000,
-		DB: config.SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       "txpool.db",
-		},
-		WorkerIP: "",
-	}
-	kernelCfg.State = config.StateConf{KV: config.StateKvConf{
-		IndexDB: config.KVconf{
-			KvType: "bolt",
-			Path:   "./state_index.db",
-			Hosts:  nil,
-		},
-		NodeBase: config.KVconf{
-			KvType: "bolt",
-			Path:   "./state_base.db",
-			Hosts:  nil,
-		},
-	}}
 }

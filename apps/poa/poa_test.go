@@ -3,8 +3,18 @@ package poa
 import (
 	"github.com/stretchr/testify/assert"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/core/blockbase"
+	"github.com/yu-org/yu/core/blockchain"
+	"github.com/yu-org/yu/core/chain_env"
+	"github.com/yu-org/yu/core/kernel"
 	. "github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/core/state"
+	"github.com/yu-org/yu/core/subscribe"
+	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/infra/p2p"
 	"testing"
 )
 
@@ -31,6 +41,7 @@ func initGlobalVars() {
 
 func TestCompeteLeader(t *testing.T) {
 	initGlobalVars()
+
 	for i := 1; i <= 30; i++ {
 		bn := BlockNum(i)
 		t.Log("block number = ", bn)
@@ -87,4 +98,43 @@ func TestVerifyBlock(t *testing.T) {
 	assert.True(t, node1.VerifyBlock(block))
 	assert.True(t, node2.VerifyBlock(block))
 	assert.True(t, node3.VerifyBlock(block))
+}
+
+func TestChainNet(t *testing.T) {
+	initGlobalVars()
+
+	mockP2P := p2p.NewMockP2p()
+	go runNode("node1", node1, mockP2P)
+	go runNode("node2", node2, mockP2P)
+	go runNode("node3", node3, mockP2P)
+}
+
+func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p) {
+	cfg := config.InitDefaultCfgWithDir(cfgPath)
+
+	land := tripod.NewLand()
+	land.SetTripods(poaNode)
+
+	chain := blockchain.NewBlockChain(&cfg.BlockChain)
+	base := blockbase.NewBlockBase(&cfg.BlockBase)
+	statedb := state.NewStateDB(&cfg.State)
+
+	env := &chain_env.ChainEnv{
+		State:      statedb,
+		Chain:      chain,
+		Base:       base,
+		Pool:       txpool.LocalWithDefaultChecks(&cfg.Txpool, base),
+		Sub:        subscribe.NewSubscription(),
+		P2pNetwork: mockP2P,
+	}
+	node1.SetChainEnv(env)
+
+	k := kernel.NewKernel(&cfg, env, land)
+	for i := 0; i < 10; i++ {
+		err := k.LocalRun()
+		if err != nil {
+			panic(err)
+		}
+	}
+
 }
