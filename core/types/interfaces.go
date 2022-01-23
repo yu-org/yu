@@ -64,9 +64,7 @@ type IBlockChain interface {
 	EncodeBlocks(blocks []*CompactBlock) ([]byte, error)
 	DecodeBlocks(data []byte) ([]*CompactBlock, error)
 
-	// get genesis block
 	GetGenesis() (*CompactBlock, error)
-	// set genesis block
 	SetGenesis(b *CompactBlock) error
 
 	AppendBlock(b *CompactBlock) error
@@ -81,16 +79,6 @@ type IBlockChain interface {
 	GetAllBlocks() ([]*CompactBlock, error)
 
 	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*CompactBlock, error)
-
-	Chain() (IChainStruct, error)
-}
-
-type IChainStruct interface {
-	Append(block *CompactBlock)
-	InsertPrev(block *CompactBlock)
-	First() *CompactBlock
-	Range(fn func(block *CompactBlock) error) error
-	Last() *CompactBlock
 }
 
 type IBlockBase interface {
