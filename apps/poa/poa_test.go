@@ -15,6 +15,7 @@ import (
 	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
+	"sync"
 	"testing"
 )
 
@@ -103,13 +104,20 @@ func TestVerifyBlock(t *testing.T) {
 func TestChainNet(t *testing.T) {
 	initGlobalVars()
 
-	mockP2P := p2p.NewMockP2p()
-	go runNode("node1", node1, mockP2P)
-	go runNode("node2", node2, mockP2P)
-	go runNode("node3", node3, mockP2P)
+	mockP2P := p2p.NewMockP2p(3)
+	mockP2P.AddTopic(StartBlockTopic)
+	mockP2P.AddTopic(EndBlockTopic)
+	mockP2P.AddTopic(FinalizeBlockTopic)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(3)
+	go runNode("node1", node1, mockP2P, wg)
+	go runNode("node2", node2, mockP2P, wg)
+	go runNode("node3", node3, mockP2P, wg)
+	wg.Wait()
 }
 
-func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p) {
+func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
 	cfg := config.InitDefaultCfgWithDir(cfgPath)
 
 	land := tripod.NewLand()
@@ -127,7 +135,7 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p) {
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
 	}
-	node1.SetChainEnv(env)
+	poaNode.SetChainEnv(env)
 
 	k := kernel.NewKernel(&cfg, env, land)
 	for i := 0; i < 10; i++ {
@@ -137,4 +145,5 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p) {
 		}
 	}
 
+	wg.Done()
 }

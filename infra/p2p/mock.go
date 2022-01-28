@@ -6,43 +6,44 @@ import (
 )
 
 type MockP2p struct {
+	nodesNum  int
 	topicChan map[string]chan []byte
 }
 
-func NewMockP2p() *MockP2p {
-	return &MockP2p{topicChan: make(map[string]chan []byte)}
+func NewMockP2p(nodesNum int) *MockP2p {
+	return &MockP2p{topicChan: make(map[string]chan []byte), nodesNum: nodesNum}
 }
 
 func (m *MockP2p) LocalID() peer.ID {
-	panic("implement me")
+	return peer.ID("")
 }
 
 func (m *MockP2p) LocalIdString() string {
-	panic("implement me")
+	return ""
 }
 
 func (m *MockP2p) GetBootNodes() []peer.ID {
-	panic("implement me")
+	return nil
 }
 
 func (m *MockP2p) ConnectBootNodes() error {
-	panic("implement me")
+	return nil
 }
 
 func (m *MockP2p) AddTopic(topicName string) {
-	panic("implement me")
+	m.topicChan[topicName] = make(chan []byte, m.nodesNum)
 }
 
-func (m *MockP2p) SetHandlers(handlers map[int]dev.P2pHandler) {
-	panic("implement me")
-}
+func (m *MockP2p) SetHandlers(handlers map[int]dev.P2pHandler) {}
 
 func (m *MockP2p) RequestPeer(peerID peer.ID, code int, request []byte) (response []byte, err error) {
 	panic("implement me")
 }
 
 func (m *MockP2p) PubP2P(topic string, msg []byte) error {
-	m.topicChan[topic] <- msg
+	for i := 0; i < m.nodesNum; i++ {
+		m.topicChan[topic] <- msg
+	}
 	return nil
 }
 

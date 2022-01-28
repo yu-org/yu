@@ -1,12 +1,19 @@
 package config
 
-import "path"
+import (
+	"os"
+	"path"
+)
 
 func InitDefaultCfg() KernelConf {
 	return InitDefaultCfgWithDir("")
 }
 
 func InitDefaultCfgWithDir(dir string) KernelConf {
+	err := os.MkdirAll(dir, 0700)
+	if err != nil {
+		panic(err)
+	}
 	cfg := KernelConf{
 		RunMode:  0,
 		HttpPort: "7999",
