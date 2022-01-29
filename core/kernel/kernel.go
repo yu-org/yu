@@ -31,7 +31,7 @@ type Kernel struct {
 	timeout time.Duration
 
 	chain   IBlockChain
-	base    IBlockBase
+	base    IyuDB
 	txPool  ItxPool
 	stateDB IState
 
@@ -58,7 +58,7 @@ func NewKernel(
 		httpPort:   MakePort(cfg.HttpPort),
 		wsPort:     MakePort(cfg.WsPort),
 		chain:      env.Chain,
-		base:       env.Base,
+		base:       env.YuDB,
 		txPool:     env.Pool,
 		stateDB:    env.State,
 		sub:        env.Sub,

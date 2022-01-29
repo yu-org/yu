@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/config"
-	"github.com/yu-org/yu/core/blockbase"
 	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/kernel"
@@ -13,6 +12,7 @@ import (
 	"github.com/yu-org/yu/core/subscribe"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txpool"
+	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/utils/codec"
 )
@@ -34,14 +34,14 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
-	base := blockbase.NewBlockBase(&kernelCfg.BlockBase)
+	base := yudb.NewYuDB(&kernelCfg.BlockBase)
 
 	statedb := state.NewStateDB(&kernelCfg.State)
 
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
-		Base:       base,
+		YuDB:       base,
 		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),

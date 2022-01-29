@@ -196,7 +196,7 @@ func (h *Hotstuff) StartBlock(block *CompactBlock) error {
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
 	h.env.State.StartBlock(block.Hash)
-	err = h.env.Base.SetTxns(block.Hash, txns)
+	err = h.env.YuDB.SetTxns(block.Hash, txns)
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ USEP2P:
 		return false
 	}
 	localBlock.CopyFrom(p2pBlock.CompactBlock)
-	err := h.env.Base.SetTxns(localBlock.Hash, p2pBlock.Txns)
+	err := h.env.YuDB.SetTxns(localBlock.Hash, p2pBlock.Txns)
 	if err != nil {
 		logrus.Errorf("set txns of p2p-block(%s) into base error: %v", p2pBlock.Hash.String(), err)
 		return true

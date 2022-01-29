@@ -11,7 +11,7 @@ import (
 type ChainEnv struct {
 	State IState
 	Chain IBlockChain
-	Base  IBlockBase
+	YuDB  IyuDB
 	Pool  ItxPool
 
 	Sub *Subscription

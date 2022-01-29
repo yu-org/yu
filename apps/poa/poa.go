@@ -287,7 +287,7 @@ LOOP:
 
 func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 	localBlock.CopyFrom(p2pBlock.CompactBlock)
-	err := h.env.Base.SetTxns(localBlock.Hash, p2pBlock.Txns)
+	err := h.env.YuDB.SetTxns(localBlock.Hash, p2pBlock.Txns)
 	if err != nil {
 		logrus.Errorf("set txns of p2p-block(%s) into base error: %v", p2pBlock.Hash.String(), err)
 		return true

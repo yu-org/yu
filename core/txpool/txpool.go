@@ -18,13 +18,13 @@ type TxPool struct {
 	startTS    uint64
 
 	unpackedTxns *orderedTxns
-	base         IBlockBase
+	yudb         IyuDB
 
 	baseChecks   []TxnCheck
 	tripodChecks []TxnCheck
 }
 
-func NewTxPool(cfg *TxpoolConf, base IBlockBase) *TxPool {
+func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
@@ -32,11 +32,11 @@ func NewTxPool(cfg *TxpoolConf, base IBlockBase) *TxPool {
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
 		startTS:      ytime.NowNanoTsU64(),
-		base:         base,
+		yudb:         base,
 		baseChecks:   make([]TxnCheck, 0),
 		tripodChecks: make([]TxnCheck, 0),
 	}
-	allUnpacked, err := tp.base.GetAllUnpackedTxns()
+	allUnpacked, err := tp.yudb.GetAllUnpackedTxns()
 	if err != nil {
 		logrus.Fatal("get all unpacked txns from txpool db failed: ", err)
 	}
@@ -46,7 +46,7 @@ func NewTxPool(cfg *TxpoolConf, base IBlockBase) *TxPool {
 	return tp
 }
 
-func LocalWithDefaultChecks(cfg *TxpoolConf, base IBlockBase) *TxPool {
+func LocalWithDefaultChecks(cfg *TxpoolConf, base IyuDB) *TxPool {
 	tp := NewTxPool(cfg, base)
 	return tp.withDefaultBaseChecks()
 }
@@ -99,7 +99,7 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 			continue
 		}
 		// check replay attack
-		if tp.base.ExistTxn(stxn.TxnHash) {
+		if tp.yudb.ExistTxn(stxn.TxnHash) {
 			continue
 		}
 
@@ -113,7 +113,7 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 			errs = append(errs, err)
 			continue
 		}
-		err = tp.base.SetTxn(stxn)
+		err = tp.yudb.SetTxn(stxn)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -126,7 +126,7 @@ func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
-	return tp.base.GetTxn(hash)
+	return tp.yudb.GetTxn(hash)
 }
 
 func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
@@ -145,7 +145,7 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 func (tp *TxPool) Reset(block *CompactBlock) error {
 	tp.Lock()
 	defer tp.Unlock()
-	err := tp.base.Packs(block.Hash, block.TxnsHashes)
+	err := tp.yudb.Packs(block.Hash, block.TxnsHashes)
 	if err != nil {
 		return err
 	}

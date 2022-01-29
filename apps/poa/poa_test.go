@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
-	"github.com/yu-org/yu/core/blockbase"
 	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/kernel"
@@ -14,6 +13,7 @@ import (
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
 	"sync"
 	"testing"
@@ -124,13 +124,13 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 	land.SetTripods(poaNode)
 
 	chain := blockchain.NewBlockChain(&cfg.BlockChain)
-	base := blockbase.NewBlockBase(&cfg.BlockBase)
+	base := yudb.NewYuDB(&cfg.BlockBase)
 	statedb := state.NewStateDB(&cfg.State)
 
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
-		Base:       base,
+		YuDB:       base,
 		Pool:       txpool.LocalWithDefaultChecks(&cfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,

@@ -1,4 +1,4 @@
-package blockbase
+package yudb
 
 import (
 	. "github.com/yu-org/yu/common"

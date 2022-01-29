@@ -1,4 +1,4 @@
-package blockbase
+package yudb
 
 import (
 	"github.com/sirupsen/logrus"
@@ -11,11 +11,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type BlockBase struct {
+type YuDB struct {
 	db ysql.SqlDB
 }
 
-func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
+func NewYuDB(cfg *config.BlockBaseConf) *YuDB {
 	db, err := ysql.NewSqlDB(&cfg.BaseDB)
 	if err != nil {
 		logrus.Fatal("init blockbase SQL db error: ", err)
@@ -36,24 +36,24 @@ func NewBlockBase(cfg *config.BlockBaseConf) *BlockBase {
 		logrus.Fatal("create blockbase Error sceme error: ", err)
 	}
 
-	return &BlockBase{
+	return &YuDB{
 		db: db,
 	}
 }
 
-func (bb *BlockBase) GetTxn(txnHash Hash) (*SignedTxn, error) {
+func (bb *YuDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	var ts TxnScheme
 	bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
 	return ts.toTxn()
 }
 
-func (bb *BlockBase) ExistTxn(hash Hash) bool {
+func (bb *YuDB) ExistTxn(hash Hash) bool {
 	var ts TxnScheme
 	result := bb.db.Db().Where(TxnScheme{TxnHash: hash.String()}).Find(&ts)
 	return result.RowsAffected > 0
 }
 
-func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
+func (bb *YuDB) SetTxn(stxn *SignedTxn) error {
 	txnSm, err := toTxnScheme(stxn)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (bb *BlockBase) SetTxn(stxn *SignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
+func (bb *YuDB) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
 	var schemes []*TxnScheme
 	err = bb.db.Db().Where(&TxnScheme{IsPacked: false}).Find(&schemes).Error
 	if err != nil {
@@ -79,7 +79,7 @@ func (bb *BlockBase) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
 	return
 }
 
-func (bb *BlockBase) Packs(block Hash, txns []Hash) error {
+func (bb *YuDB) Packs(block Hash, txns []Hash) error {
 	return bb.db.Db().Transaction(func(tx *gorm.DB) error {
 		for _, txn := range txns {
 			err := tx.Where(TxnScheme{TxnHash: txn.String()}).
@@ -95,7 +95,7 @@ func (bb *BlockBase) Packs(block Hash, txns []Hash) error {
 	})
 }
 
-func (bb *BlockBase) Pack(block, txn Hash) error {
+func (bb *YuDB) Pack(block, txn Hash) error {
 	return bb.db.Db().Where(TxnScheme{TxnHash: txn.String()}).
 		Updates(TxnScheme{
 			BlockHash: block.String(),
@@ -103,7 +103,7 @@ func (bb *BlockBase) Pack(block, txn Hash) error {
 		}).Error
 }
 
-func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
+func (bb *YuDB) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
 	var tss []TxnScheme
 	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
 	itxns := make([]*SignedTxn, 0)
@@ -117,7 +117,7 @@ func (bb *BlockBase) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
 	return itxns, nil
 }
 
-func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
+func (bb *YuDB) SetTxns(blockHash Hash, txns []*SignedTxn) error {
 	txnSms := make([]TxnScheme, 0)
 	for _, stxn := range txns {
 		txnSm, err := newTxnScheme(blockHash, stxn)
@@ -134,7 +134,7 @@ func (bb *BlockBase) SetTxns(blockHash Hash, txns []*SignedTxn) error {
 	return nil
 }
 
-func (bb *BlockBase) GetEvents(blockHash Hash) ([]*Event, error) {
+func (bb *YuDB) GetEvents(blockHash Hash) ([]*Event, error) {
 	var ess []EventScheme
 	bb.db.Db().Where(&EventScheme{BlockHash: blockHash.String()}).Find(&ess)
 	events := make([]*Event, 0)
@@ -148,7 +148,7 @@ func (bb *BlockBase) GetEvents(blockHash Hash) ([]*Event, error) {
 	return events, nil
 }
 
-func (bb *BlockBase) SetEvents(events []*Event) error {
+func (bb *YuDB) SetEvents(events []*Event) error {
 	eventSms := make([]EventScheme, 0)
 	for _, event := range events {
 		eventSm, err := toEventScheme(event)
@@ -163,7 +163,7 @@ func (bb *BlockBase) SetEvents(events []*Event) error {
 	return nil
 }
 
-func (bb *BlockBase) GetErrors(blockHash Hash) ([]*Error, error) {
+func (bb *YuDB) GetErrors(blockHash Hash) ([]*Error, error) {
 	var ess []ErrorScheme
 	bb.db.Db().Where(&ErrorScheme{BlockHash: blockHash.String()}).Find(&ess)
 	errs := make([]*Error, 0)
@@ -173,7 +173,7 @@ func (bb *BlockBase) GetErrors(blockHash Hash) ([]*Error, error) {
 	return errs, nil
 }
 
-func (bb *BlockBase) SetError(err *Error) error {
+func (bb *YuDB) SetError(err *Error) error {
 	if err == nil {
 		return nil
 	}
