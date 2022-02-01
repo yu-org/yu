@@ -2,7 +2,7 @@ package tripod
 
 import (
 	. "github.com/yu-org/yu/core/chain_env"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/core/types"
 )
 
 type Tripod interface {
@@ -12,15 +12,15 @@ type Tripod interface {
 
 	SetChainEnv(env *ChainEnv)
 
-	CheckTxn(*types.SignedTxn) error
+	CheckTxn(*SignedTxn) error
 
-	VerifyBlock(block *types.CompactBlock) bool
+	VerifyBlock(block *CompactBlock) bool
 
 	InitChain() error
 
-	StartBlock(block *types.CompactBlock) error
+	StartBlock(block *CompactBlock) error
 
-	EndBlock(block *types.CompactBlock) error
+	EndBlock(block *CompactBlock) error
 
-	FinalizeBlock(block *types.CompactBlock) error
+	FinalizeBlock(block *CompactBlock) error
 }
