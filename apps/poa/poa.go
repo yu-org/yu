@@ -9,6 +9,7 @@ import (
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
+	. "github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 	"go.uber.org/atomic"
 	"time"
@@ -96,7 +97,7 @@ func (h *Poa) Name() string {
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
-	return nil
+	return CheckSignature(txn)
 }
 
 func (h *Poa) SetChainEnv(env *ChainEnv) {

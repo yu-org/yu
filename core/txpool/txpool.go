@@ -20,8 +20,8 @@ type TxPool struct {
 	unpackedTxns *orderedTxns
 	yudb         IyuDB
 
-	baseChecks   []TxnCheck
-	tripodChecks []TxnCheck
+	baseChecks   []TxnCheckFn
+	tripodChecks []TxnCheckFn
 }
 
 func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
@@ -33,8 +33,8 @@ func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
 		unpackedTxns: ordered,
 		startTS:      ytime.NowNanoTsU64(),
 		yudb:         base,
-		baseChecks:   make([]TxnCheck, 0),
-		tripodChecks: make([]TxnCheck, 0),
+		baseChecks:   make([]TxnCheckFn, 0),
+		tripodChecks: make([]TxnCheckFn, 0),
 	}
 	allUnpacked, err := tp.yudb.GetAllUnpackedTxns()
 	if err != nil {
@@ -46,16 +46,15 @@ func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
 	return tp
 }
 
-func LocalWithDefaultChecks(cfg *TxpoolConf, base IyuDB) *TxPool {
+func WithDefaultChecks(cfg *TxpoolConf, base IyuDB) *TxPool {
 	tp := NewTxPool(cfg, base)
 	return tp.withDefaultBaseChecks()
 }
 
 func (tp *TxPool) withDefaultBaseChecks() *TxPool {
-	tp.baseChecks = []TxnCheck{
+	tp.baseChecks = []TxnCheckFn{
 		tp.checkPoolLimit,
 		tp.checkTxnSize,
-		tp.checkSignature,
 	}
 	return tp
 }
@@ -72,13 +71,13 @@ func (tp *TxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
 
-func (tp *TxPool) WithBaseChecks(checkFns []TxnCheck) ItxPool {
-	tp.baseChecks = append(tp.baseChecks, checkFns...)
+func (tp *TxPool) WithBaseCheck(checkFn TxnCheckFn) ItxPool {
+	tp.baseChecks = append(tp.baseChecks, checkFn)
 	return tp
 }
 
-func (tp *TxPool) WithTripodChecks(checkFns []TxnCheck) ItxPool {
-	tp.tripodChecks = append(tp.tripodChecks, checkFns...)
+func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
+	tp.tripodChecks = append(tp.tripodChecks, tri.CheckTxn)
 	return tp
 }
 
@@ -168,10 +167,6 @@ func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 	if err != nil {
 		return
 	}
-	err = tp.checkSignature(stxn)
-	if err != nil {
-		return
-	}
 
 	return tp.TripodsCheck(stxn)
 }
@@ -183,15 +178,6 @@ func (tp *TxPool) checkPoolLimit(*SignedTxn) error {
 	return nil
 }
 
-func (tp *TxPool) checkSignature(stxn *SignedTxn) error {
-	sig := stxn.Signature
-	ecall := stxn.Raw.Ecall
-	if !stxn.Pubkey.VerifySignature(ecall.Bytes(), sig) {
-		return TxnSignatureErr
-	}
-	return nil
-}
-
 func (tp *TxPool) checkTxnSize(stxn *SignedTxn) error {
 	if stxn.Size() > tp.TxnMaxSize {
 		return TxnTooLarge
@@ -199,14 +185,27 @@ func (tp *TxPool) checkTxnSize(stxn *SignedTxn) error {
 	return nil
 }
 
-type TxnCheck func(*SignedTxn) error
+type TxnCheckFn func(*SignedTxn) error
 
-func Check(checks []TxnCheck, stxn *SignedTxn) error {
+type TxnCheckTripod interface {
+	CheckTxn(*SignedTxn) error
+}
+
+func Check(checks []TxnCheckFn, stxn *SignedTxn) error {
 	for _, check := range checks {
 		err := check(stxn)
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func CheckSignature(stxn *SignedTxn) error {
+	sig := stxn.Signature
+	ecall := stxn.Raw.Ecall
+	if !stxn.Pubkey.VerifySignature(ecall.Bytes(), sig) {
+		return TxnSignatureErr
 	}
 	return nil
 }

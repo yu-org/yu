@@ -38,11 +38,16 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	statedb := state.NewStateDB(&kernelCfg.State)
 
+	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
+	for _, tri := range tripods {
+		pool.WithTripodCheck(tri)
+	}
+
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
 		YuDB:       base,
-		Pool:       txpool.LocalWithDefaultChecks(&kernelCfg.Txpool, base),
+		Pool:       pool,
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}

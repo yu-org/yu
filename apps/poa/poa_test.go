@@ -131,7 +131,7 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 		State:      statedb,
 		Chain:      chain,
 		YuDB:       base,
-		Pool:       txpool.LocalWithDefaultChecks(&cfg.Txpool, base),
+		Pool:       txpool.WithDefaultChecks(&cfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
 	}
