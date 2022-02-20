@@ -93,7 +93,6 @@ type P2pConf struct {
 
 type BlockchainConf struct {
 	ChainDB         SqlDbConf `toml:"chain_db"`
-	BlocksFromP2pDB SqlDbConf `toml:"blocks_from_p2p_db"`
 }
 
 type BlockBaseConf struct {

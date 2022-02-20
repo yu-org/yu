@@ -37,10 +37,6 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 			SqlDbType: "sqlite",
 			Dsn:       path.Join(dir, "chain.db"),
 		},
-		BlocksFromP2pDB: SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       path.Join(dir, "blocks_from_p2p.db"),
-		},
 	}
 	cfg.BlockBase = BlockBaseConf{
 		BaseDB: SqlDbConf{
