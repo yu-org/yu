@@ -92,7 +92,7 @@ type P2pConf struct {
 //}
 
 type BlockchainConf struct {
-	ChainDB         SqlDbConf `toml:"chain_db"`
+	ChainDB SqlDbConf `toml:"chain_db"`
 }
 
 type BlockBaseConf struct {
@@ -100,11 +100,8 @@ type BlockBaseConf struct {
 }
 
 type TxpoolConf struct {
-	PoolSize   uint64    `toml:"pool_size"`
-	TxnMaxSize int       `toml:"txn_max_size"`
-	DB         SqlDbConf `toml:"db"`
-	// In local-node mode, this will be null.
-	WorkerIP string `toml:"worker_ip"`
+	PoolSize   uint64 `toml:"pool_size"`
+	TxnMaxSize int    `toml:"txn_max_size"`
 }
 
 func LoadConf(fpath string, cfg interface{}) {

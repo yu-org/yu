@@ -46,11 +46,6 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 	cfg.Txpool = TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
-		DB: SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       path.Join(dir, "txpool.db"),
-		},
-		WorkerIP: "",
 	}
 	cfg.State = StateConf{KV: StateKvConf{
 		IndexDB: KVconf{
