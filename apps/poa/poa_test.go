@@ -124,7 +124,7 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 	land.SetTripods(poaNode)
 
 	chain := blockchain.NewBlockChain(&cfg.BlockChain)
-	base := yudb.NewYuDB(&cfg.BlockBase)
+	base := yudb.NewYuDB(&cfg.YuDB)
 	statedb := state.NewStateDB(&cfg.State)
 
 	env := &chain_env.ChainEnv{

@@ -133,10 +133,6 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 	block.Hash = hash
 
 	p.env.State.StartBlock(hash)
-	err = p.env.YuDB.SetTxns(block.Hash, txns)
-	if err != nil {
-		return err
-	}
 
 	rawBlock := &types.Block{
 		CompactBlock: block,
@@ -153,6 +149,7 @@ func (p *Pow) StartBlock(block *types.CompactBlock) error {
 
 func (p *Pow) EndBlock(block *types.CompactBlock) error {
 	chain := p.env.Chain
+	pool := p.env.Pool
 
 	err := p.env.Execute(block)
 	if err != nil {
@@ -160,6 +157,11 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 	}
 
 	err = chain.AppendBlock(block)
+	if err != nil {
+		return err
+	}
+
+	err = pool.Reset(block)
 	if err != nil {
 		return err
 	}

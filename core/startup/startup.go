@@ -34,7 +34,7 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
-	base := yudb.NewYuDB(&kernelCfg.BlockBase)
+	base := yudb.NewYuDB(&kernelCfg.YuDB)
 
 	statedb := state.NewStateDB(&kernelCfg.State)
 

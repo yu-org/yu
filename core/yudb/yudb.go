@@ -15,7 +15,7 @@ type YuDB struct {
 	db ysql.SqlDB
 }
 
-func NewYuDB(cfg *config.BlockBaseConf) *YuDB {
+func NewYuDB(cfg *config.YuDBConf) *YuDB {
 	db, err := ysql.NewSqlDB(&cfg.BaseDB)
 	if err != nil {
 		logrus.Fatal("init blockbase SQL db error: ", err)

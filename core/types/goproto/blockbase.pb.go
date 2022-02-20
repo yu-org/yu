@@ -249,22 +249,22 @@ var file_blockbase_proto_depIdxs = []int32{
 	3,  // 0: EventsRequest.events:type_name -> Event
 	3,  // 1: EventsResponse.events:type_name -> Event
 	4,  // 2: ErrorsResponse.errors:type_name -> Error
-	5,  // 3: BlockBase.GetTxn:input_type -> TxnHash
-	6,  // 4: BlockBase.SetTxn:input_type -> SignedTxn
-	7,  // 5: BlockBase.GetTxns:input_type -> BlockHash
-	8,  // 6: BlockBase.SetTxns:input_type -> TxnsRequest
-	7,  // 7: BlockBase.GetEvents:input_type -> BlockHash
-	0,  // 8: BlockBase.SetEvents:input_type -> EventsRequest
-	7,  // 9: BlockBase.GetErrors:input_type -> BlockHash
-	4,  // 10: BlockBase.SetError:input_type -> Error
-	9,  // 11: BlockBase.GetTxn:output_type -> TxnResponse
-	10, // 12: BlockBase.SetTxn:output_type -> Err
-	11, // 13: BlockBase.GetTxns:output_type -> TxnsResponse
-	10, // 14: BlockBase.SetTxns:output_type -> Err
-	1,  // 15: BlockBase.GetEvents:output_type -> EventsResponse
-	10, // 16: BlockBase.SetEvents:output_type -> Err
-	2,  // 17: BlockBase.GetErrors:output_type -> ErrorsResponse
-	10, // 18: BlockBase.SetError:output_type -> Err
+	5,  // 3: YuDB.GetTxn:input_type -> TxnHash
+	6,  // 4: YuDB.SetTxn:input_type -> SignedTxn
+	7,  // 5: YuDB.GetTxns:input_type -> BlockHash
+	8,  // 6: YuDB.SetTxns:input_type -> TxnsRequest
+	7,  // 7: YuDB.GetEvents:input_type -> BlockHash
+	0,  // 8: YuDB.SetEvents:input_type -> EventsRequest
+	7,  // 9: YuDB.GetErrors:input_type -> BlockHash
+	4,  // 10: YuDB.SetError:input_type -> Error
+	9,  // 11: YuDB.GetTxn:output_type -> TxnResponse
+	10, // 12: YuDB.SetTxn:output_type -> Err
+	11, // 13: YuDB.GetTxns:output_type -> TxnsResponse
+	10, // 14: YuDB.SetTxns:output_type -> Err
+	1,  // 15: YuDB.GetEvents:output_type -> EventsResponse
+	10, // 16: YuDB.SetEvents:output_type -> Err
+	2,  // 17: YuDB.GetErrors:output_type -> ErrorsResponse
+	10, // 18: YuDB.SetError:output_type -> Err
 	11, // [11:19] is the sub-list for method output_type
 	3,  // [3:11] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name

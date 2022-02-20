@@ -14,7 +14,7 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// BlockBaseClient is the client API for BlockBase service.
+// BlockBaseClient is the client API for YuDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BlockBaseClient interface {
@@ -38,7 +38,7 @@ func NewBlockBaseClient(cc grpc.ClientConnInterface) BlockBaseClient {
 
 func (c *blockBaseClient) GetTxn(ctx context.Context, in *TxnHash, opts ...grpc.CallOption) (*TxnResponse, error) {
 	out := new(TxnResponse)
-	err := c.cc.Invoke(ctx, "/BlockBase/GetTxn", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/GetTxn", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *blockBaseClient) GetTxn(ctx context.Context, in *TxnHash, opts ...grpc.
 
 func (c *blockBaseClient) SetTxn(ctx context.Context, in *SignedTxn, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/BlockBase/SetTxn", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/SetTxn", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *blockBaseClient) SetTxn(ctx context.Context, in *SignedTxn, opts ...grp
 
 func (c *blockBaseClient) GetTxns(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*TxnsResponse, error) {
 	out := new(TxnsResponse)
-	err := c.cc.Invoke(ctx, "/BlockBase/GetTxns", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/GetTxns", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (c *blockBaseClient) GetTxns(ctx context.Context, in *BlockHash, opts ...gr
 
 func (c *blockBaseClient) SetTxns(ctx context.Context, in *TxnsRequest, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/BlockBase/SetTxns", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/SetTxns", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *blockBaseClient) SetTxns(ctx context.Context, in *TxnsRequest, opts ...
 
 func (c *blockBaseClient) GetEvents(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*EventsResponse, error) {
 	out := new(EventsResponse)
-	err := c.cc.Invoke(ctx, "/BlockBase/GetEvents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/GetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (c *blockBaseClient) GetEvents(ctx context.Context, in *BlockHash, opts ...
 
 func (c *blockBaseClient) SetEvents(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/BlockBase/SetEvents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/SetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *blockBaseClient) SetEvents(ctx context.Context, in *EventsRequest, opts
 
 func (c *blockBaseClient) GetErrors(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*ErrorsResponse, error) {
 	out := new(ErrorsResponse)
-	err := c.cc.Invoke(ctx, "/BlockBase/GetErrors", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/GetErrors", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +101,14 @@ func (c *blockBaseClient) GetErrors(ctx context.Context, in *BlockHash, opts ...
 
 func (c *blockBaseClient) SetError(ctx context.Context, in *Error, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/BlockBase/SetError", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/YuDB/SetError", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// BlockBaseServer is the server API for BlockBase service.
+// BlockBaseServer is the server API for YuDB service.
 // All implementations must embed UnimplementedBlockBaseServer
 // for forward compatibility
 type BlockBaseServer interface {
@@ -174,7 +174,7 @@ func _BlockBase_GetTxn_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/GetTxn",
+		FullMethod: "/YuDB/GetTxn",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).GetTxn(ctx, req.(*TxnHash))
@@ -192,7 +192,7 @@ func _BlockBase_SetTxn_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/SetTxn",
+		FullMethod: "/YuDB/SetTxn",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).SetTxn(ctx, req.(*SignedTxn))
@@ -210,7 +210,7 @@ func _BlockBase_GetTxns_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/GetTxns",
+		FullMethod: "/YuDB/GetTxns",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).GetTxns(ctx, req.(*BlockHash))
@@ -228,7 +228,7 @@ func _BlockBase_SetTxns_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/SetTxns",
+		FullMethod: "/YuDB/SetTxns",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).SetTxns(ctx, req.(*TxnsRequest))
@@ -246,7 +246,7 @@ func _BlockBase_GetEvents_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/GetEvents",
+		FullMethod: "/YuDB/GetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).GetEvents(ctx, req.(*BlockHash))
@@ -264,7 +264,7 @@ func _BlockBase_SetEvents_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/SetEvents",
+		FullMethod: "/YuDB/SetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).SetEvents(ctx, req.(*EventsRequest))
@@ -282,7 +282,7 @@ func _BlockBase_GetErrors_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/GetErrors",
+		FullMethod: "/YuDB/GetErrors",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).GetErrors(ctx, req.(*BlockHash))
@@ -300,7 +300,7 @@ func _BlockBase_SetError_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockBase/SetError",
+		FullMethod: "/YuDB/SetError",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockBaseServer).SetError(ctx, req.(*Error))
@@ -308,11 +308,11 @@ func _BlockBase_SetError_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-// BlockBase_ServiceDesc is the grpc.ServiceDesc for BlockBase service.
+// BlockBase_ServiceDesc is the grpc.ServiceDesc for YuDB service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var BlockBase_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "BlockBase",
+	ServiceName: "YuDB",
 	HandlerType: (*BlockBaseServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
