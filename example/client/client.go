@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/apps/asset"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
+	"math/big"
 	"net/url"
 	"time"
 )
@@ -128,10 +128,10 @@ func callChainByQry(addr Address, qcall *Qcall) {
 	if err != nil {
 		fmt.Println("get qcall response error: " + err.Error())
 	}
-	var amount asset.Amount
-	err = json.Unmarshal(resp, &amount)
+	amount := new(big.Int)
+	err = amount.UnmarshalText(resp)
 	if err != nil {
-		panic("json decode response error: " + err.Error())
+		panic(err)
 	}
 	logrus.Infof("get account(%s) balance(%d)", addr.String(), amount)
 }

@@ -4,10 +4,10 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
-	. "github.com/yu-org/yu/core/chain_env"
 	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
+	"math/big"
 )
 
 type Asset struct {
@@ -27,44 +27,37 @@ func NewAsset(tokenName string) *Asset {
 
 func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	account := ctx.GetAddress("account")
-	if !a.existAccount(a.ChainEnv, account) {
+	if !a.existAccount(account) {
 		return nil, AccountNotFound(account)
 	}
-	amount := a.getBalance(a.ChainEnv, account)
+	amount := a.getBalance(account)
 	return amount, nil
 }
 
 func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
-	amount := Amount(ctx.GetUint64("amount"))
+	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
-	if !a.existAccount(a.ChainEnv, from) {
+	if !a.existAccount(from) {
 		return AccountNotFound(from)
 	}
 
-	fromBalance := a.getBalance(a.ChainEnv, from)
-	if fromBalance < amount {
+	fromBalance := a.getBalance(from)
+	if fromBalance.Cmp(amount) < 0 {
 		return InsufficientFunds
 	}
 
-	if !a.existAccount(a.ChainEnv, to) {
-		a.setBalance(a.ChainEnv, to, amount)
+	if !a.existAccount(to) {
+		a.setBalance(to, amount)
 	} else {
-		toBalance := a.getBalance(a.ChainEnv, to)
-		toBalance, err = checkAdd(toBalance, amount)
-		if err != nil {
-			return
-		}
-		a.setBalance(a.ChainEnv, to, toBalance)
+		toBalance := a.getBalance(to)
+		toAdd := new(big.Int).Add(toBalance, amount)
+		a.setBalance(to, toAdd)
 	}
 
-	fromBalance, err = checkSub(fromBalance, amount)
-	if err != nil {
-		return
-	}
-
-	a.setBalance(a.ChainEnv, from, fromBalance)
+	fromSub := new(big.Int).Sub(fromBalance, amount)
+	a.setBalance(from, fromSub)
 
 	_ = ctx.EmitEvent("Transfer Completed!")
 
@@ -73,47 +66,43 @@ func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
 
 func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
 	addr := ctx.Caller
-	amount := ctx.GetUint64("amount")
+	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
 	logrus.Debugf("Create ACCOUNT(%s) amount(%d)", addr.String(), amount)
 
-	if a.existAccount(a.ChainEnv, addr) {
+	if a.existAccount(addr) {
 		_ = ctx.EmitEvent("Account Exists!")
 		return nil
 	}
 
-	a.setBalance(a.ChainEnv, addr, Amount(amount))
+	a.setBalance(addr, amount)
 	_ = ctx.EmitEvent("Account Created Success!")
 	return nil
 }
 
-func (a *Asset) existAccount(env *ChainEnv, addr Address) bool {
-	return env.State.Exist(a, addr.Bytes())
+func (a *Asset) existAccount(addr Address) bool {
+	return a.State.Exist(a, addr.Bytes())
 }
 
-func (a *Asset) getBalance(env *ChainEnv, addr Address) Amount {
-	balanceByt, err := env.State.Get(a, addr.Bytes())
+func (a *Asset) getBalance(addr Address) *big.Int {
+	balanceByt, err := a.State.Get(a, addr.Bytes())
 	if err != nil {
 		logrus.Panic("get balance error: ", err)
 	}
-	return DecodeToAmount(balanceByt)
-}
 
-func (a *Asset) setBalance(env *ChainEnv, addr Address, amount Amount) {
-	env.State.Set(a, addr.Bytes(), amount.Encode())
-}
-
-func checkAdd(origin, add Amount) (Amount, error) {
-	result := origin + add
-	if result < origin && result < add {
-		return 0, IntegerOverflow
+	b := new(big.Int)
+	err = b.UnmarshalText(balanceByt)
+	if err != nil {
+		logrus.Panic("getBalance marshal error: ", err)
 	}
-	return result, nil
+	return b
 }
 
-func checkSub(origin, sub Amount) (Amount, error) {
-	if origin < sub {
-		return 0, IntegerOverflow
+func (a *Asset) setBalance(addr Address, amount *big.Int) {
+	amountText, err := amount.MarshalText()
+	if err != nil {
+		logrus.Panic("amount marshal error: ", err)
 	}
-	return origin - sub, nil
+
+	a.State.Set(a, addr.Bytes(), amountText)
 }

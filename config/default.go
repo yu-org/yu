@@ -10,10 +10,13 @@ func InitDefaultCfg() KernelConf {
 }
 
 func InitDefaultCfgWithDir(dir string) KernelConf {
-	err := os.MkdirAll(dir, 0700)
-	if err != nil {
-		panic(err)
+	if dir != "" {
+		err := os.MkdirAll(dir, 0700)
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	cfg := KernelConf{
 		RunMode:  0,
 		HttpPort: "7999",

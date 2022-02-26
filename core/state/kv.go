@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
@@ -220,14 +221,21 @@ func (k *TxnStashes) append(ops Ops, key, value []byte) {
 		Value: value,
 	}
 	if idx, ok := k.indexes[string(key)]; ok {
-		k.stashes = append(k.stashes[:idx], k.stashes[idx+1:]...)
+		// k.stashes = append(k.stashes[:idx], k.stashes[idx+1:]...)
+		k.stashes[idx] = nil
 	}
 	k.stashes = append(k.stashes, newKvStash)
+	fmt.Printf("INSERT key=(%x) value=(%v) index=(%d)\n", newKvStash.Key, newKvStash.Value, len(k.stashes)-1)
 	k.indexes[string(key)] = len(k.stashes) - 1
 }
 
 func (k *TxnStashes) get(key []byte) []byte {
+	fmt.Printf("key is %x \n", key)
+	for ki, v := range k.indexes {
+		fmt.Printf("index-key = %x, index = %d \n", ki, v)
+	}
 	if idx, ok := k.indexes[string(key)]; ok {
+		fmt.Printf("FIND key(%x) value(%v) \n", k.stashes[idx].Key, k.stashes[idx].Value)
 		return k.stashes[idx].Value
 	}
 	return nil
@@ -235,6 +243,9 @@ func (k *TxnStashes) get(key []byte) []byte {
 
 func (k *TxnStashes) commit(mpt *Trie) error {
 	for _, stash := range k.stashes {
+		if stash == nil {
+			continue
+		}
 		switch stash.ops {
 		case SetOp:
 			err := mpt.TryUpdate(stash.Key, stash.Value)
