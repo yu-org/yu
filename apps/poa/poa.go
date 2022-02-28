@@ -6,7 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/chain_env"
-	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/txpool"
@@ -73,7 +72,6 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa 
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
-	h.meta.SetExec(h.JoinValidator, 10000).SetExec(h.QuitValidator, 100)
 	return h
 }
 
@@ -310,16 +308,6 @@ func (h *Poa) calulateWaitTime(block *CompactBlock) time.Duration {
 	}
 
 	return time.Duration(BlockTime+n) * time.Second
-}
-
-func (h *Poa) JoinValidator(ctx *context.Context, block *CompactBlock) error {
-
-	return nil
-}
-
-func (h *Poa) QuitValidator(ctx *context.Context, block *CompactBlock) error {
-
-	return nil
 }
 
 func (h *Poa) getCurrentHeight() BlockNum {
