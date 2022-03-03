@@ -11,10 +11,10 @@ Yu is a highly customizable blockchain framework.
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
 customize their own business.     
-First level is define  `Exection` and `Query` on chain.  
+First level is define  `Execution` and `Query` on chain.  
 Second level is define `blockchain lifecycle`. ( including customizable Consensus Algorithm )  
 Third level is define `basic components`, such as `block data structures`, `blockchain`, `yudb`, `txpool`. 
-- Define your `Exection` and `Query` on  chain.  
+- Define your `Execution` and `Query` on  chain.  
 `Execution` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
 `Query` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
 `P2pHandler` is a p2p server handler. You can define the services in P2P server. Just like TCP handler.  

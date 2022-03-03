@@ -65,6 +65,8 @@ func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
 }
 
 func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
+	// TODO: we can set permissions here, only allow a few people to create account and balance.
+
 	addr := ctx.Caller
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
