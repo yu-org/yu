@@ -77,6 +77,24 @@ func initChain(t *testing.T) *BlockChain {
 	return chain
 }
 
+func TestEndBlock(t *testing.T) {
+	chain := initChain(t)
+	insertedBlocks := []*CompactBlock{block1, block2, block3}
+
+	for i, block := range insertedBlocks {
+		err := chain.AppendBlock(block)
+		if err != nil {
+			t.Fatalf("append block(%d) error: %v", i, err)
+		}
+	}
+
+	block, err := chain.GetEndBlock()
+	if err != nil {
+		t.Fatal("get end block error: ", err)
+	}
+	assert.Equal(t, block.Hash, block3.Hash)
+}
+
 func TestLastFinalized(t *testing.T) {
 	chain := initChain(t)
 	insertedBlocks := []*CompactBlock{block1, block2}
