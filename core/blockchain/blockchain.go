@@ -113,7 +113,7 @@ func (bc *BlockChain) UpdateBlock(b *CompactBlock) error {
 }
 
 func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
-	rows, err := bc.chain.Db().Where(&BlocksScheme{
+	rows, err := bc.chain.Db().Model(&BlocksScheme{}).Where(BlocksScheme{
 		PrevHash: prevBlockHash.String(),
 	}).Rows()
 	if err != nil {
@@ -138,7 +138,7 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
 }
 
 func (bc *BlockChain) Finalize(blockHash Hash) error {
-	bc.chain.Db().Where(&BlocksScheme{
+	bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Hash: blockHash.String(),
 	}).Updates(BlocksScheme{Finalize: true})
 	return nil
@@ -146,7 +146,7 @@ func (bc *BlockChain) Finalize(blockHash Hash) error {
 
 func (bc *BlockChain) LastFinalized() (*CompactBlock, error) {
 	var bs BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
+	bc.chain.Db().Debug().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Finalize: true,
 	}).Order("height").Last(&bs)
 	return bs.toBlock()
