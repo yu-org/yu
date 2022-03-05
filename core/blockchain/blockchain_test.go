@@ -77,7 +77,7 @@ func initChain(t *testing.T) *BlockChain {
 	return chain
 }
 
-func TestFinalizeBlock(t *testing.T) {
+func TestLastFinalized(t *testing.T) {
 	chain := initChain(t)
 	insertedBlocks := []*CompactBlock{block1, block2}
 

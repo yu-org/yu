@@ -145,10 +145,11 @@ func (bc *BlockChain) Finalize(blockHash Hash) error {
 }
 
 func (bc *BlockChain) LastFinalized() (*CompactBlock, error) {
-	var bs BlocksScheme
-	bc.chain.Db().Debug().Model(&BlocksScheme{}).Where(&BlocksScheme{
+	var bss []BlocksScheme
+	bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Finalize: true,
-	}).Order("height").Last(&bs)
+	}).Order("height").Find(&bss)
+	bs := bss[len(bss)-1]
 	return bs.toBlock()
 }
 
