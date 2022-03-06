@@ -5,7 +5,10 @@ import (
 	"github.com/yu-org/yu/common"
 )
 
-var InsufficientFunds = errors.New("Insufficient Funds")
+var (
+	InsufficientFunds = errors.New("Insufficient Funds")
+	NoPermission      = errors.New("No Permission")
+)
 
 type ErrAccountNotFound struct {
 	account string
