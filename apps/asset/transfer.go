@@ -25,6 +25,14 @@ func NewAsset(tokenName string, validators []PubKey) *Asset {
 	a.SetQueries(a.QueryBalance)
 
 	a.SetTxnChecker(func(txn *SignedTxn) error {
+		if txn.Raw.Ecall.LeiPrice == 0 {
+			return nil
+		}
+
+		if !a.existAccount(txn.Raw.Caller) {
+			return AccountNotFound(txn.Raw.Caller)
+		}
+
 		balance := a.getBalance(txn.Raw.Caller)
 		leiPrice := new(big.Int).SetUint64(txn.Raw.Ecall.LeiPrice)
 		if balance.Cmp(leiPrice) < 0 {
@@ -97,9 +105,9 @@ func (a *Asset) transfer(from, to Address, amount *big.Int) error {
 
 func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
 	addr := ctx.Caller
-	if !a.isValidator(addr) {
-		return NoPermission
-	}
+	//if !a.isValidator(addr) {
+	//	return NoPermission
+	//}
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
 	logrus.Debugf("Create ACCOUNT(%s) amount(%d)", addr.String(), amount)
