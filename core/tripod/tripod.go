@@ -10,6 +10,8 @@ type Tripod interface {
 
 	Name() string
 
+	SetLand(land *Land)
+
 	SetChainEnv(env *ChainEnv)
 
 	CheckTxn(*SignedTxn) error

@@ -9,6 +9,7 @@ import (
 type DefaultTripod struct {
 	*TripodMeta
 	*ChainEnv
+	*Land
 
 	txnChecker    TxnCheckFn
 	blockVerifier BlockVerifier
@@ -37,6 +38,10 @@ func (dt *DefaultTripod) GetTripodMeta() *TripodMeta {
 
 func (dt *DefaultTripod) SetChainEnv(env *ChainEnv) {
 	dt.ChainEnv = env
+}
+
+func (dt *DefaultTripod) SetLand(land *Land) {
+	dt.Land = land
 }
 
 func (dt *DefaultTripod) CheckTxn(txn *SignedTxn) error {

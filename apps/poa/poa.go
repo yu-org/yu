@@ -18,6 +18,7 @@ const BlockTime = 3
 
 type Poa struct {
 	meta *TripodMeta
+
 	// key: crypto address, generate from pubkey
 	validatorsMap map[Address]peer.ID
 	myPubkey      PubKey
@@ -27,6 +28,7 @@ type Poa struct {
 
 	currentHeight *atomic.Uint32
 
+	land     *Land
 	env      *ChainEnv
 	recvChan chan *Block
 	// local node index in addrs
@@ -100,6 +102,10 @@ func (h *Poa) CheckTxn(txn *SignedTxn) error {
 
 func (h *Poa) SetChainEnv(env *ChainEnv) {
 	h.env = env
+}
+
+func (h *Poa) SetLand(land *Land) {
+	h.land = land
 }
 
 func (h *Poa) VerifyBlock(block *CompactBlock) bool {

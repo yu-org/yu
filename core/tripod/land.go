@@ -8,29 +8,29 @@ import (
 )
 
 type Land struct {
-	orderedTripods []Tripod
+	OrderedTripods []Tripod
 	// Key: the Name of Tripod
-	tripodsMap map[string]Tripod
+	TripodsMap map[string]Tripod
 }
 
 func NewLand() *Land {
 	return &Land{
-		tripodsMap:     make(map[string]Tripod),
-		orderedTripods: make([]Tripod, 0),
+		TripodsMap:     make(map[string]Tripod),
+		OrderedTripods: make([]Tripod, 0),
 	}
 }
 
 func (l *Land) SetTripods(Tripods ...Tripod) {
 	for _, tri := range Tripods {
 		triName := tri.GetTripodMeta().Name()
-		l.tripodsMap[triName] = tri
+		l.TripodsMap[triName] = tri
 
-		l.orderedTripods = append(l.orderedTripods, tri)
+		l.OrderedTripods = append(l.OrderedTripods, tri)
 	}
 }
 
 func (l *Land) GetExecLei(c *Ecall) (dev.Execution, uint64, error) {
-	tripod, ok := l.tripodsMap[c.TripodName]
+	tripod, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return nil, 0, TripodNotFound(c.TripodName)
 	}
@@ -43,7 +43,7 @@ func (l *Land) GetExecLei(c *Ecall) (dev.Execution, uint64, error) {
 }
 
 func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
-	tripod, ok := l.tripodsMap[c.TripodName]
+	tripod, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
@@ -56,7 +56,7 @@ func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
 }
 
 func (l *Land) RangeMap(fn func(string, Tripod) error) error {
-	for name, tri := range l.tripodsMap {
+	for name, tri := range l.TripodsMap {
 		err := fn(name, tri)
 		if err != nil {
 			return err
@@ -66,7 +66,7 @@ func (l *Land) RangeMap(fn func(string, Tripod) error) error {
 }
 
 func (l *Land) RangeList(fn func(Tripod) error) error {
-	for _, tri := range l.orderedTripods {
+	for _, tri := range l.OrderedTripods {
 		err := fn(tri)
 		if err != nil {
 			return err
