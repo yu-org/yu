@@ -148,7 +148,6 @@ type UnsignedTxn struct {
 	Id        Hash
 	Caller    Address
 	Ecall     *Ecall
-	LeiPrice  uint64
 	Timestamp uint64
 }
 
@@ -168,13 +167,13 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
-		Id:       ut.Id.Bytes(),
-		Caller:   ut.Caller.Bytes(),
-		LeiPrice: ut.LeiPrice,
+		Id:     ut.Id.Bytes(),
+		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
 			TripodName: ut.Ecall.TripodName,
 			ExecName:   ut.Ecall.ExecName,
 			Params:     ut.Ecall.Params,
+			LeiPrice:   ut.Ecall.LeiPrice,
 		},
 		Timestamp: ut.Timestamp,
 	}
@@ -182,13 +181,13 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
-		Id:       BytesToHash(pb.Id),
-		Caller:   BytesToAddress(pb.Caller),
-		LeiPrice: pb.LeiPrice,
+		Id:     BytesToHash(pb.Id),
+		Caller: BytesToAddress(pb.Caller),
 		Ecall: &Ecall{
 			TripodName: pb.Ecall.TripodName,
 			ExecName:   pb.Ecall.ExecName,
 			Params:     pb.Ecall.Params,
+			LeiPrice:   pb.Ecall.LeiPrice,
 		},
 		Timestamp: 0,
 	}

@@ -6,7 +6,6 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/types"
 	"net/http"
-	"net/http/httputil"
 )
 
 func getQryInfoFromReq(req *http.Request, params string) (qcall *Qcall, err error) {
@@ -48,12 +47,4 @@ func getHttpJsonParams(c *gin.Context) (params string, err error) {
 		params = c.GetString(PARAMS_KEY)
 	}
 	return
-}
-
-func forwardQueryToWorker(ip string, rw http.ResponseWriter, req *http.Request) {
-	director := func(req *http.Request) {
-		req.URL.Host = ip
-	}
-	proxy := &httputil.ReverseProxy{Director: director}
-	proxy.ServeHTTP(rw, req)
 }

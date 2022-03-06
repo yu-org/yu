@@ -33,6 +33,7 @@ type (
 		TripodName string
 		ExecName   string
 		Params     string
+		LeiPrice   uint64
 	}
 
 	// The Call from clients, it is an instance of an 'Query'.
@@ -51,6 +52,9 @@ func (e *Ecall) Bytes() []byte {
 	byt = append(byt, []byte(e.TripodName)...)
 	byt = append(byt, []byte(e.ExecName)...)
 	byt = append(byt, []byte(e.Params)...)
+	leiBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(leiBytes, e.LeiPrice)
+	byt = append(byt, leiBytes...)
 	return byt
 }
 

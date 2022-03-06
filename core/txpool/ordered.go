@@ -29,7 +29,7 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 		ot.index[input.TxnHash] = 0
 	}
 	for i, tx := range ot.txns {
-		if input.Raw.LeiPrice > tx.Raw.LeiPrice {
+		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
 			ot.txns = append(ot.txns[:i], append([]*SignedTxn{input}, ot.txns[i:]...)...)
 			ot.index[input.TxnHash] = i
 			return
