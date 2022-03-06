@@ -9,40 +9,41 @@ import (
 )
 
 var (
-	tx1, tx2, tx3 *SignedTxn
+	tx1, tx2, tx3    *SignedTxn
+	caller1, caller2 Address
 )
 
 func init() {
-	pubkey, privkey := keypair.GenSrKey([]byte("yu"))
-	caller := pubkey.Address()
+	pubkey1, privkey1 := keypair.GenSrKey([]byte("yu"))
+	caller1 = pubkey1.Address()
+	pubkey2, privkey2 := keypair.GenSrKey([]byte("boyi"))
+	caller2 = pubkey2.Address()
 
 	ecall1 := &Ecall{LeiPrice: 10}
-	sig1, err := privkey.SignData(ecall1.Bytes())
+	sig1, err := privkey1.SignData(ecall1.Bytes())
 	if err != nil {
 		panic(err)
 	}
-
 	ecall2 := &Ecall{LeiPrice: 30}
-	sig2, err := privkey.SignData(ecall2.Bytes())
+	sig2, err := privkey1.SignData(ecall2.Bytes())
 	if err != nil {
 		panic(err)
 	}
-
 	ecall3 := &Ecall{LeiPrice: 20}
-	sig3, err := privkey.SignData(ecall3.Bytes())
+	sig3, err := privkey2.SignData(ecall3.Bytes())
 	if err != nil {
 		panic(err)
 	}
 
-	tx1, err = NewSignedTxn(caller, ecall1, pubkey, sig1)
+	tx1, err = NewSignedTxn(caller1, ecall1, pubkey1, sig1)
 	if err != nil {
 		panic(err)
 	}
-	tx2, err = NewSignedTxn(caller, ecall2, pubkey, sig2)
+	tx2, err = NewSignedTxn(caller1, ecall2, pubkey1, sig2)
 	if err != nil {
 		panic(err)
 	}
-	tx3, err = NewSignedTxn(caller, ecall3, pubkey, sig3)
+	tx3, err = NewSignedTxn(caller2, ecall3, pubkey1, sig3)
 	if err != nil {
 		panic(err)
 	}
