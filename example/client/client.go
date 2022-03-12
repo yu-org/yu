@@ -80,6 +80,7 @@ func createAccount(privkey PrivKey, pubkey PubKey) {
 		TripodName: "asset",
 		ExecName:   "CreateAccount",
 		Params:     string(paramsByt),
+		LeiPrice:   0,
 	}
 	callChainByExec(privkey, pubkey, ecall)
 }
@@ -102,6 +103,7 @@ func transfer(privkey PrivKey, pubkey PubKey, to Address) {
 		TripodName: "asset",
 		ExecName:   "Transfer",
 		Params:     string(paramsByt),
+		LeiPrice:   0,
 	}
 	callChainByExec(privkey, pubkey, ecall)
 }
