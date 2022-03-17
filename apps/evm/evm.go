@@ -27,7 +27,7 @@ func ApplyTxn(
 	toAddr := gcommon.Address(to)
 
 	for i, stxn := range block.Txns {
-		gasPrice := new(big.Int).SetUint64(stxn.Raw.LeiPrice)
+		gasPrice := new(big.Int).SetUint64(stxn.Raw.Ecall.LeiPrice)
 		msg := gtypes.NewMessage(
 			gcommon.Address(stxn.Raw.Caller),
 			&toAddr, 0,

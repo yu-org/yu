@@ -64,10 +64,10 @@ type Tripod interface {
 ```go
 func (a *Asset) QueryBalance(ctx *context.Context, _ Hash) (interface{}, error) {
     account := ctx.GetAddress("account")
-    if !a.existAccount(a.ChainEnv, account) {
+    if !a.existAccount(account) {
         return nil, AccountNotFound(account)
     }
-    amount := a.getBalance(a.ChainEnv, account)
+    amount := a.getBalance(account)
     return amount, nil
 }
 ```  
@@ -77,14 +77,14 @@ The error returned will emit out of the chain.
 ```go
 func (a *Asset) CreateAccount(ctx *context.Context, _ *CompactBlock) error {
     addr := ctx.Caller
-    amount := ctx.GetUint64("amount")
+	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
-    if a.existAccount(a.ChainEnv, addr) {
+    if a.existAccount(addr) {
     _ = ctx.EmitEvent("Account Exists!")
     return nil
     }
 
-    a.setBalance(a.ChainEnv, addr, Amount(amount))
+    a.setBalance(addr, amount)
     _ = ctx.EmitEvent("Account Created Success!")
     return nil
 }
