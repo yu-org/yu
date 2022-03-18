@@ -1,13 +1,9 @@
 run_mode = 0
-
 http_port = "7999"
-
 ws_port = "8999"
-
 log_level = "debug"
-
+log_output = "yu.log"
 lei_limit = 50000
-
 timeout = 60
 
 [p2p]

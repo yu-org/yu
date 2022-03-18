@@ -15,6 +15,7 @@ import (
 	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/utils/codec"
+	"os"
 )
 
 var (
@@ -24,7 +25,7 @@ var (
 
 func StartUp(tripods ...tripod.Tripod) {
 	initCfgFromFlags()
-	initLog(kernelCfg.LogLevel)
+	initLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
@@ -76,12 +77,18 @@ func initCfgFromFlags() {
 	config.LoadConf(kernelCfgPath, &kernelCfg)
 }
 
-func initLog(level string) {
+func initLog(level, output string) {
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
 	}
 	logrus.SetFormatter(formatter)
+
+	logfile, err := os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+	if err != nil {
+		panic("init log file error: " + err.Error())
+	}
+	logrus.SetOutput(logfile)
 	lvl, err := logrus.ParseLevel(level)
 	if err != nil {
 		panic("parse log level error: " + err.Error())

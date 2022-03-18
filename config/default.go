@@ -18,12 +18,13 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 	}
 
 	cfg := KernelConf{
-		RunMode:  0,
-		HttpPort: "7999",
-		WsPort:   "8999",
-		LogLevel: "info",
-		LeiLimit: 50000,
-		Timeout:  60,
+		RunMode:   0,
+		HttpPort:  "7999",
+		WsPort:    "8999",
+		LogLevel:  "info",
+		LogOutput: "yu.log",
+		LeiLimit:  50000,
+		Timeout:   60,
 	}
 	cfg.P2P = P2pConf{
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},

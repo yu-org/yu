@@ -17,6 +17,8 @@ type KernelConf struct {
 	// log out level:
 	// panic, fatal, error, warn, info, debug, trace
 	LogLevel string `toml:"log_level"`
+	// log out put file path
+	LogOutput string `toml:"log_output"`
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
