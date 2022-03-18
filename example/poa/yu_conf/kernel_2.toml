@@ -1,0 +1,39 @@
+run_mode = 0
+
+http_port = "7998"
+
+ws_port = "8998"
+
+log_level = "debug"
+
+lei_limit = 50000
+
+timeout = 60
+
+[p2p]
+p2p_listen_addrs = ["/ip4/127.0.0.1/tcp/8886"]
+bootnodes = ["/ip4/127.0.0.1/tcp/8887/p2p/12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"]
+protocol_id = "yu"
+node_key_type = 1
+
+
+[block_chain.chain_db]
+sql_db_type = "sqlite"
+dsn = "chain.db"
+
+
+[yu_db.base_db]
+sql_db_type = "sqlite"
+dsn = "yudb.db"
+
+[txpool]
+pool_size = 2048
+txn_max_size = 1024000
+
+[state.kv.index_db]
+kv_type = "bolt"
+path = "./state_index.db"
+
+[state.kv.node_base]
+kv_type = "bolt"
+path = "./state_base.db"
