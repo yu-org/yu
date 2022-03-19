@@ -6,7 +6,6 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
-	. "github.com/yu-org/yu/utils/error_handle"
 	"io"
 	"io/ioutil"
 	"net/http"

@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
@@ -47,4 +48,8 @@ func getHttpJsonParams(c *gin.Context) (params string, err error) {
 		params = c.GetString(PARAMS_KEY)
 	}
 	return
+}
+
+func FindNoCallStr(tripodName, callName string, err error) string {
+	return fmt.Sprintf("find Tripod(%s) Call(%s) error: %s", tripodName, callName, err.Error())
 }
