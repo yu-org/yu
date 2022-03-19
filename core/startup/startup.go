@@ -84,7 +84,15 @@ func initLog(level, output string) {
 	}
 	logrus.SetFormatter(formatter)
 
-	logfile, err := os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+	var (
+		logfile *os.File
+		err     error
+	)
+
+	if output == "" {
+		logfile = os.Stderr
+	}
+	logfile, err = os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
 	if err != nil {
 		panic("init log file error: " + err.Error())
 	}
