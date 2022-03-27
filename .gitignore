@@ -1,1 +1,9 @@
 .idea
+.vscode
+.DS_Store
+example/client/client
+example/poa/node1/
+example/poa/node2/
+example/poa/node3/
+example/poa/poa
+example/pow/pow
