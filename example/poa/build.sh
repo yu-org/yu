@@ -4,9 +4,9 @@ node1_path=~/run-yu/node1
 node2_path=~/run-yu/node2
 node3_path=~/run-yu/node3
 
-node1_cfg_path=~/run-yu/node1/kernel.toml
-node2_cfg_path=~/run-yu/node2/kernel.toml
-node3_cfg_path=~/run-yu/node3/kernel.toml
+node1_cfg_path=yu_conf/node1/kernel.toml
+node2_cfg_path=yu_conf/node2/kernel.toml
+node3_cfg_path=yu_conf/node3/kernel.toml
 
 yu_cfg_path=/yu_conf
 
@@ -21,6 +21,6 @@ cp $node2_cfg_path  $node2_path/$yu_cfg_path
 mv poa $node3_path/
 cp $node3_cfg_path  $node3_path/$yu_cfg_path
 
-rm -f $node1_path/*.db
-rm -f $node2_path/*.db
-rm -f $node3_path/*.db
+rm -f $node1_path/*.*
+rm -f $node2_path/*.*
+rm -f $node3_path/*.*
