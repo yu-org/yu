@@ -12,10 +12,6 @@ bootnodes = ["/ip4/127.0.0.1/tcp/8887/p2p/12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFB
 protocol_id = "yu"
 node_key_type = 1
 
-[nk_db]
-kv_type = "bolt"
-path = "./nk_db.db"
-
 [block_chain.chain_db]
 sql_db_type = "sqlite"
 dsn = "chain.db"
