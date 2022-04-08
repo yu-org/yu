@@ -16,7 +16,7 @@ import (
 //     /      |      \		 /      |      \      /      |      \
 //	  kv      kv      kv     kv     kv     kv    kv     kv      kv
 
-type StateKV struct {
+type MptKV struct {
 	// blockHash -> stateRoot
 	indexDB KV
 
@@ -29,7 +29,7 @@ type StateKV struct {
 	stashes []*TxnStashes
 }
 
-func NewStateKV(cfg *StateKvConf) IState {
+func NewMptKV(cfg *MptKvConf) IState {
 	indexDB, err := NewKV(&cfg.IndexDB)
 	if err != nil {
 		logrus.Fatal("init stateKV indexDB error: ", err)
@@ -40,7 +40,7 @@ func NewStateKV(cfg *StateKvConf) IState {
 		logrus.Fatal("init stateKV nodeBase error: ", err)
 	}
 
-	return &StateKV{
+	return &MptKV{
 		indexDB:      indexDB,
 		nodeBase:     nodeBase,
 		prevBlock:    NullHash,
@@ -49,19 +49,19 @@ func NewStateKV(cfg *StateKvConf) IState {
 	}
 }
 
-func (skv *StateKV) NextTxn() {
+func (skv *MptKV) NextTxn() {
 	skv.stashes = append(skv.stashes, newTxnStashes())
 }
 
-func (skv *StateKV) Set(triName NameString, key, value []byte) {
+func (skv *MptKV) Set(triName NameString, key, value []byte) {
 	skv.mute(SetOp, triName, key, value)
 }
 
-func (skv *StateKV) Delete(triName NameString, key []byte) {
+func (skv *MptKV) Delete(triName NameString, key []byte) {
 	skv.mute(DeleteOp, triName, key, nil)
 }
 
-func (skv *StateKV) mute(op Ops, triName NameString, key, value []byte) {
+func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
 	if len(skv.stashes) == 0 {
 		skv.stashes = append(skv.stashes, newTxnStashes())
 	}
@@ -69,7 +69,7 @@ func (skv *StateKV) mute(op Ops, triName NameString, key, value []byte) {
 	currentTxnStashes.append(op, makeKey(triName, key), value)
 }
 
-func (skv *StateKV) Get(triName NameString, key []byte) ([]byte, error) {
+func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
 	for i := len(skv.stashes) - 1; i >= 0; i-- {
 		value := skv.stashes[i].get(makeKey(triName, key))
 		if value != nil {
@@ -79,16 +79,16 @@ func (skv *StateKV) Get(triName NameString, key []byte) ([]byte, error) {
 	return skv.GetByBlockHash(triName, key, skv.prevBlock)
 }
 
-func (skv *StateKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
+func (skv *MptKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
 	return skv.GetByBlockHash(triName, key, skv.finalizedBlock)
 }
 
-func (skv *StateKV) Exist(triName NameString, key []byte) bool {
+func (skv *MptKV) Exist(triName NameString, key []byte) bool {
 	value, _ := skv.Get(triName, key)
 	return value != nil
 }
 
-func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
+func (skv *MptKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
 	stateRoot, err := skv.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (skv *StateKV) GetByBlockHash(triName NameString, key []byte, blockHash Has
 }
 
 // return StateRoot or error
-func (skv *StateKV) Commit() (Hash, error) {
+func (skv *MptKV) Commit() (Hash, error) {
 	lastStateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
 		return NullHash, err
@@ -140,14 +140,14 @@ func (skv *StateKV) Commit() (Hash, error) {
 	return stateRoot, nil
 }
 
-func (skv *StateKV) Discard() {
+func (skv *MptKV) Discard() {
 	if len(skv.stashes) == 0 {
 		return
 	}
 	skv.stashes = skv.stashes[:len(skv.stashes)-1]
 }
 
-func (skv *StateKV) DiscardAll() {
+func (skv *MptKV) DiscardAll() {
 	stateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
 		logrus.Panic("DiscardAll: get stateRoot error: ", err)
@@ -160,20 +160,20 @@ func (skv *StateKV) DiscardAll() {
 	skv.stashes = nil
 }
 
-func (skv *StateKV) StartBlock(blockHash Hash) {
+func (skv *MptKV) StartBlock(blockHash Hash) {
 	skv.prevBlock = skv.currentBlock
 	skv.currentBlock = blockHash
 }
 
-func (skv *StateKV) FinalizeBlock(blockHash Hash) {
+func (skv *MptKV) FinalizeBlock(blockHash Hash) {
 	skv.finalizedBlock = blockHash
 }
 
-func (skv *StateKV) setIndexDB(blockHash, stateRoot Hash) error {
+func (skv *MptKV) setIndexDB(blockHash, stateRoot Hash) error {
 	return skv.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
 }
 
-func (skv *StateKV) getIndexDB(blockHash Hash) (Hash, error) {
+func (skv *MptKV) getIndexDB(blockHash Hash) (Hash, error) {
 	stateRoot, err := skv.indexDB.Get(blockHash.Bytes())
 	if err != nil {
 		return NullHash, err

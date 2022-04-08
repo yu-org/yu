@@ -51,7 +51,7 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
 	}
-	cfg.State = StateConf{KV: StateKvConf{
+	cfg.State = StateConf{KV: MptKvConf{
 		IndexDB: KVconf{
 			KvType: "bolt",
 			Path:   path.Join(dir, "state_index.db"),

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var TestStateKvCfg = &config.StateKvConf{
+var TestStateKvCfg = &config.MptKvConf{
 	IndexDB: config.KVconf{KvType: "bolt", Path: "./state_index.db", Hosts: nil},
 	NodeBase: config.KVconf{
 		KvType: "bolt",
@@ -23,7 +23,7 @@ func (tt *TestTripod) Name() string {
 }
 
 func TestKvCommit(t *testing.T) {
-	statekv := NewStateKV(TestStateKvCfg)
+	statekv := NewMptKV(TestStateKvCfg)
 
 	tri := &TestTripod{}
 

@@ -12,7 +12,7 @@ import (
 	"math/big"
 )
 
-type EvmDB struct {
+type EvmKV struct {
 	// blockHash -> stateRoot
 	indexDB KV
 
@@ -27,7 +27,7 @@ type EvmDB struct {
 	stashes []*EvmTxnStashes
 }
 
-func NewEvmDB(root Hash, cfg *StateEvmConf) IState {
+func NewEvmKV(root Hash, cfg *EvmKvConf) IState {
 	ethdb, err := rawdb.NewLevelDBDatabase(cfg.Fpath, cfg.Cache, cfg.Handles, cfg.Namespace, cfg.ReadOnly)
 	if err != nil {
 		logrus.Fatal("init geth rawdb error: ", err)
@@ -38,15 +38,15 @@ func NewEvmDB(root Hash, cfg *StateEvmConf) IState {
 	}
 	indexDB, err := NewKV(&cfg.IndexDB)
 	if err != nil {
-		logrus.Fatal("init EvmDB indexDB error: ", err)
+		logrus.Fatal("init EvmKV indexDB error: ", err)
 	}
 
 	nodeBase, err := NewNodeBase(&cfg.NodeBase)
 	if err != nil {
-		logrus.Fatal("init EvmDB nodeBase error: ", err)
+		logrus.Fatal("init EvmKV nodeBase error: ", err)
 	}
 
-	return &EvmDB{
+	return &EvmKV{
 		DB:           db,
 		indexDB:      indexDB,
 		nodeBase:     nodeBase,
@@ -56,48 +56,48 @@ func NewEvmDB(root Hash, cfg *StateEvmConf) IState {
 	}
 }
 
-func (db *EvmDB) AddBalance(addr Address, b *big.Int) {
+func (db *EvmKV) AddBalance(addr Address, b *big.Int) {
 	db.DB.AddBalance(gcommon.Address(addr), b)
 	db.muteBalance(AddBalance, addr, b)
 }
 
-func (db *EvmDB) SubBalance(addr Address, b *big.Int) {
+func (db *EvmKV) SubBalance(addr Address, b *big.Int) {
 	db.DB.SubBalance(gcommon.Address(addr), b)
 	db.muteBalance(SubBalance, addr, b)
 }
 
-func (db *EvmDB) GetBalance(addr Address) *big.Int {
+func (db *EvmKV) GetBalance(addr Address) *big.Int {
 	return db.DB.GetBalance(gcommon.Address(addr))
 }
 
-func (db *EvmDB) muteBalance(op Ops, addr Address, b *big.Int) {
+func (db *EvmKV) muteBalance(op Ops, addr Address, b *big.Int) {
 	db.mute().appendBalanceOp(op, addr, b)
 }
 
-func (db *EvmDB) muteKV(op Ops, triName NameString, key, value []byte) {
+func (db *EvmKV) muteKV(op Ops, triName NameString, key, value []byte) {
 	db.mute().append(op, makeKey(triName, key), value)
 }
 
-func (db *EvmDB) mute() *EvmTxnStashes {
+func (db *EvmKV) mute() *EvmTxnStashes {
 	if len(db.stashes) == 0 {
 		db.stashes = append(db.stashes, newEvmTxnStashes())
 	}
 	return db.stashes[len(db.stashes)-1]
 }
 
-func (db *EvmDB) NextTxn() {
+func (db *EvmKV) NextTxn() {
 	db.stashes = append(db.stashes, newEvmTxnStashes())
 }
 
-func (db *EvmDB) Set(triName NameString, key, value []byte) {
+func (db *EvmKV) Set(triName NameString, key, value []byte) {
 	db.muteKV(SetOp, triName, key, value)
 }
 
-func (db *EvmDB) Delete(triName NameString, key []byte) {
+func (db *EvmKV) Delete(triName NameString, key []byte) {
 	db.muteKV(DeleteOp, triName, key, nil)
 }
 
-func (db *EvmDB) Get(triName NameString, key []byte) ([]byte, error) {
+func (db *EvmKV) Get(triName NameString, key []byte) ([]byte, error) {
 	for i := len(db.stashes) - 1; i >= 0; i-- {
 		value := db.stashes[i].get(makeKey(triName, key))
 		if value != nil {
@@ -107,16 +107,16 @@ func (db *EvmDB) Get(triName NameString, key []byte) ([]byte, error) {
 	return db.GetByBlockHash(triName, key, db.prevBlock)
 }
 
-func (db *EvmDB) GetFinalized(triName NameString, key []byte) ([]byte, error) {
+func (db *EvmKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
 	return db.GetByBlockHash(triName, key, db.finalizedBlock)
 }
 
-func (db *EvmDB) Exist(triName NameString, key []byte) bool {
+func (db *EvmKV) Exist(triName NameString, key []byte) bool {
 	value, _ := db.Get(triName, key)
 	return value != nil
 }
 
-func (db *EvmDB) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
+func (db *EvmKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
 	stateRoot, err := db.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (db *EvmDB) GetByBlockHash(triName NameString, key []byte, blockHash Hash) 
 	return mpt.TryGet(makeKey(triName, key))
 }
 
-func (db *EvmDB) Commit() (Hash, error) {
+func (db *EvmKV) Commit() (Hash, error) {
 	lastStateRoot, err := db.getIndexDB(db.prevBlock)
 	if err != nil {
 		return NullHash, err
@@ -167,7 +167,7 @@ func (db *EvmDB) Commit() (Hash, error) {
 	return stateRoot, nil
 }
 
-func (db *EvmDB) Discard() {
+func (db *EvmKV) Discard() {
 	if len(db.stashes) == 0 {
 		return
 	}
@@ -175,7 +175,7 @@ func (db *EvmDB) Discard() {
 	db.stashes = db.stashes[:len(db.stashes)-1]
 }
 
-func (db *EvmDB) DiscardAll() {
+func (db *EvmKV) DiscardAll() {
 	stateRoot, err := db.getIndexDB(db.prevBlock)
 	if err != nil {
 		logrus.Panic("DiscardAll: get stateRoot error: ", err)
@@ -196,7 +196,7 @@ func (db *EvmDB) DiscardAll() {
 	db.stashes = nil
 }
 
-func (db *EvmDB) discardBalanceOps(stashes []*EvmKvStash) {
+func (db *EvmKV) discardBalanceOps(stashes []*EvmKvStash) {
 	for _, stash := range stashes {
 		if isBalanceOp(stash.ops) {
 			if stash.ops == AddBalance {
@@ -209,20 +209,20 @@ func (db *EvmDB) discardBalanceOps(stashes []*EvmKvStash) {
 	}
 }
 
-func (db *EvmDB) StartBlock(blockHash Hash) {
+func (db *EvmKV) StartBlock(blockHash Hash) {
 	db.prevBlock = db.currentBlock
 	db.currentBlock = blockHash
 }
 
-func (db *EvmDB) FinalizeBlock(blockHash Hash) {
+func (db *EvmKV) FinalizeBlock(blockHash Hash) {
 	db.finalizedBlock = blockHash
 }
 
-func (db *EvmDB) setIndexDB(blockHash, stateRoot Hash) error {
+func (db *EvmKV) setIndexDB(blockHash, stateRoot Hash) error {
 	return db.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
 }
 
-func (db *EvmDB) getIndexDB(blockHash Hash) (Hash, error) {
+func (db *EvmKV) getIndexDB(blockHash Hash) (Hash, error) {
 	stateRoot, err := db.indexDB.Get(blockHash.Bytes())
 	if err != nil {
 		return NullHash, err

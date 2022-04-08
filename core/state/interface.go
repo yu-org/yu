@@ -21,5 +21,5 @@ type IState interface {
 }
 
 func NewStateDB(cfg *StateConf) IState {
-	return NewStateKV(&cfg.KV)
+	return NewMptKV(&cfg.KV)
 }
