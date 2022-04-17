@@ -6,7 +6,7 @@ import (
 )
 
 type Tripod interface {
-	GetTripodMeta() *TripodMeta
+	GetTripodHeader() *TripodHeader
 
 	Name() string
 

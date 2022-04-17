@@ -17,7 +17,7 @@ import (
 const BlockTime = 3
 
 type Poa struct {
-	meta *TripodMeta
+	meta *TripodHeader
 
 	// key: crypto address, generate from pubkey
 	validatorsMap map[Address]peer.ID
@@ -41,7 +41,7 @@ type ValidatorAddrIp struct {
 }
 
 func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa {
-	meta := NewTripodMeta("Poa")
+	meta := NewTripodHeader("Poa")
 
 	var nodeIdx int
 
@@ -88,7 +88,7 @@ func (h *Poa) LocalAddress() Address {
 	return h.myPubkey.Address()
 }
 
-func (h *Poa) GetTripodMeta() *TripodMeta {
+func (h *Poa) GetTripodHeader() *TripodHeader {
 	return h.meta
 }
 

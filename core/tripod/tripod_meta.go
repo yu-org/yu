@@ -2,6 +2,7 @@ package tripod
 
 import (
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"path/filepath"
 	"reflect"
@@ -9,7 +10,10 @@ import (
 	"strings"
 )
 
-type TripodMeta struct {
+type TripodHeader struct {
+	*ChainEnv
+	*Land
+
 	name string
 	// Key: Execution Name
 	execs map[string]ExecAndLei
@@ -19,8 +23,8 @@ type TripodMeta struct {
 	P2pHandlers map[int]dev.P2pHandler
 }
 
-func NewTripodMeta(name string) *TripodMeta {
-	return &TripodMeta{
+func NewTripodHeader(name string) *TripodHeader {
+	return &TripodHeader{
 		name:        name,
 		execs:       make(map[string]ExecAndLei),
 		queries:     make(map[string]dev.Query),
@@ -28,11 +32,11 @@ func NewTripodMeta(name string) *TripodMeta {
 	}
 }
 
-func (t *TripodMeta) Name() string {
+func (t *TripodHeader) Name() string {
 	return t.name
 }
 
-func (t *TripodMeta) SetExec(fn dev.Execution, lei uint64) *TripodMeta {
+func (t *TripodHeader) SetExec(fn dev.Execution, lei uint64) *TripodHeader {
 	name := getFuncName(fn)
 	t.execs[name] = ExecAndLei{
 		exec: fn,
@@ -42,7 +46,7 @@ func (t *TripodMeta) SetExec(fn dev.Execution, lei uint64) *TripodMeta {
 	return t
 }
 
-func (t *TripodMeta) SetQueries(queries ...dev.Query) {
+func (t *TripodHeader) SetQueries(queries ...dev.Query) {
 	for _, q := range queries {
 		name := getFuncName(q)
 		t.queries[name] = q
@@ -50,7 +54,7 @@ func (t *TripodMeta) SetQueries(queries ...dev.Query) {
 	}
 }
 
-func (t *TripodMeta) SetP2pHandler(code int, handler dev.P2pHandler) *TripodMeta {
+func (t *TripodHeader) SetP2pHandler(code int, handler dev.P2pHandler) *TripodHeader {
 	t.P2pHandlers[code] = handler
 	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
@@ -64,12 +68,12 @@ func getFuncName(i interface{}) string {
 	return strings.TrimSuffix(funcName, "-fm")
 }
 
-func (t *TripodMeta) ExistExec(execName string) bool {
+func (t *TripodHeader) ExistExec(execName string) bool {
 	_, ok := t.execs[execName]
 	return ok
 }
 
-func (t *TripodMeta) GetExec(name string) (dev.Execution, uint64) {
+func (t *TripodHeader) GetExec(name string) (dev.Execution, uint64) {
 	execEne, ok := t.execs[name]
 	if ok {
 		return execEne.exec, execEne.lei
@@ -77,11 +81,11 @@ func (t *TripodMeta) GetExec(name string) (dev.Execution, uint64) {
 	return nil, 0
 }
 
-func (t *TripodMeta) GetQuery(name string) dev.Query {
+func (t *TripodHeader) GetQuery(name string) dev.Query {
 	return t.queries[name]
 }
 
-func (t *TripodMeta) AllQueryNames() []string {
+func (t *TripodHeader) AllQueryNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.queries {
 		allNames = append(allNames, name)
@@ -89,7 +93,7 @@ func (t *TripodMeta) AllQueryNames() []string {
 	return allNames
 }
 
-func (t *TripodMeta) AllExecNames() []string {
+func (t *TripodHeader) AllExecNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.execs {
 		allNames = append(allNames, name)

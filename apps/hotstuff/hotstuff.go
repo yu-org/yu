@@ -17,7 +17,7 @@ import (
 )
 
 type Hotstuff struct {
-	meta *TripodMeta
+	meta *TripodHeader
 	// key: crypto address, generate from pubkey
 	validators map[string]peer.ID
 	myPubkey   PubKey
@@ -32,7 +32,7 @@ type Hotstuff struct {
 }
 
 func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]string) *Hotstuff {
-	meta := NewTripodMeta("hotstuff")
+	meta := NewTripodHeader("hotstuff")
 
 	q := InitQcTee()
 	saftyrules := &DefaultSaftyRules{
@@ -85,7 +85,7 @@ func (h *Hotstuff) LocalAddress() string {
 	return h.myPubkey.Address().String()
 }
 
-func (h *Hotstuff) GetTripodMeta() *TripodMeta {
+func (h *Hotstuff) GetTripodHeader() *TripodHeader {
 	return h.meta
 }
 

@@ -79,7 +79,7 @@ func NewKernel(
 	handerlsMap[SyncTxnsCode] = m.handleSyncTxnsReq
 
 	land.RangeList(func(tri Tripod) error {
-		for code, handler := range tri.GetTripodMeta().P2pHandlers {
+		for code, handler := range tri.GetTripodHeader().P2pHandlers {
 			handerlsMap[code] = handler
 		}
 		return nil

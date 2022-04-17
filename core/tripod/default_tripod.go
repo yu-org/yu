@@ -7,7 +7,7 @@ import (
 )
 
 type DefaultTripod struct {
-	*TripodMeta
+	*TripodHeader
 	*ChainEnv
 	*Land
 
@@ -18,9 +18,9 @@ type DefaultTripod struct {
 type BlockVerifier func(block *CompactBlock) bool
 
 func NewDefaultTripod(name string) *DefaultTripod {
-	meta := NewTripodMeta(name)
+	meta := NewTripodHeader(name)
 	return &DefaultTripod{
-		TripodMeta: meta,
+		TripodHeader: meta,
 	}
 }
 
@@ -32,8 +32,8 @@ func (dt *DefaultTripod) SetBlockVerifier(fn BlockVerifier) {
 	dt.blockVerifier = fn
 }
 
-func (dt *DefaultTripod) GetTripodMeta() *TripodMeta {
-	return dt.TripodMeta
+func (dt *DefaultTripod) GetTripodHeader() *TripodHeader {
+	return dt.TripodHeader
 }
 
 func (dt *DefaultTripod) SetChainEnv(env *ChainEnv) {
