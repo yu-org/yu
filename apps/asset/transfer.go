@@ -5,7 +5,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	"math/big"
@@ -13,14 +12,13 @@ import (
 
 type Asset struct {
 	*DefaultTripod
-	validators []PubKey
-	TokenName  string
+	TokenName string
 }
 
-func NewAsset(tokenName string, validators []PubKey) *Asset {
+func NewAsset(tokenName string) *Asset {
 	df := NewDefaultTripod("asset")
 
-	a := &Asset{df, validators, tokenName}
+	a := &Asset{df, tokenName}
 	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
 	a.SetQueries(a.QueryBalance)
 
@@ -39,17 +37,17 @@ func NewAsset(tokenName string, validators []PubKey) *Asset {
 			return InsufficientFunds
 		}
 
-		validatorsCount := len(validators)
-		if validatorsCount > 0 {
-			validatorsCountBigInt := new(big.Int).SetInt64(int64(validatorsCount))
-			rewards := new(big.Int).Div(leiPrice, validatorsCountBigInt)
-			for _, validator := range validators {
-				err := a.transfer(txn.Raw.Caller, validator.Address(), rewards)
-				if err != nil {
-					return err
-				}
-			}
-		}
+		//validatorsCount := len(validators)
+		//if validatorsCount > 0 {
+		//	validatorsCountBigInt := new(big.Int).SetInt64(int64(validatorsCount))
+		//	rewards := new(big.Int).Div(leiPrice, validatorsCountBigInt)
+		//	for _, validator := range validators {
+		//		err := a.transfer(txn.Raw.Caller, validator.Address(), rewards)
+		//		if err != nil {
+		//			return err
+		//		}
+		//	}
+		//}
 
 		return nil
 	})
@@ -149,11 +147,11 @@ func (a *Asset) setBalance(addr Address, amount *big.Int) {
 	a.State.Set(a, addr.Bytes(), amountText)
 }
 
-func (a *Asset) isValidator(addr Address) bool {
-	for _, validator := range a.validators {
-		if validator.Address() == addr {
-			return true
-		}
-	}
-	return false
-}
+//func (a *Asset) isValidator(addr Address) bool {
+//	for _, validator := range a.validators {
+//		if validator.Address() == addr {
+//			return true
+//		}
+//	}
+//	return false
+//}
