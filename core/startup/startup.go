@@ -54,8 +54,8 @@ func StartUp(tripods ...tripod.Tripod) {
 	}
 
 	for _, t := range tripods {
-		t.SetChainEnv(env)
-		t.SetLand(land)
+		t.GetTripodHeader().SetChainEnv(env)
+		t.GetTripodHeader().SetLand(land)
 	}
 
 	k := kernel.NewKernel(&kernelCfg, env, land)

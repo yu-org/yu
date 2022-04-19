@@ -36,14 +36,6 @@ func (dt *DefaultTripod) GetTripodHeader() *TripodHeader {
 	return dt.TripodHeader
 }
 
-func (dt *DefaultTripod) SetChainEnv(env *ChainEnv) {
-	dt.ChainEnv = env
-}
-
-func (dt *DefaultTripod) SetLand(land *Land) {
-	dt.Land = land
-}
-
 func (dt *DefaultTripod) CheckTxn(txn *SignedTxn) error {
 	if dt.txnChecker == nil {
 		return nil

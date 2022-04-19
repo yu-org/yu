@@ -36,6 +36,14 @@ func (t *TripodHeader) Name() string {
 	return t.name
 }
 
+func (t *TripodHeader) SetChainEnv(env *ChainEnv) {
+	t.ChainEnv = env
+}
+
+func (t *TripodHeader) SetLand(land *Land) {
+	t.Land = land
+}
+
 func (t *TripodHeader) SetExec(fn dev.Execution, lei uint64) *TripodHeader {
 	name := getFuncName(fn)
 	t.execs[name] = ExecAndLei{

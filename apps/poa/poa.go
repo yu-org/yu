@@ -92,20 +92,8 @@ func (h *Poa) GetTripodHeader() *TripodHeader {
 	return h.meta
 }
 
-func (h *Poa) Name() string {
-	return h.meta.Name()
-}
-
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
 	return CheckSignature(txn)
-}
-
-func (h *Poa) SetChainEnv(env *ChainEnv) {
-	h.env = env
-}
-
-func (h *Poa) SetLand(land *Land) {
-	h.land = land
 }
 
 func (h *Poa) VerifyBlock(block *CompactBlock) bool {
