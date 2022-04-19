@@ -17,7 +17,7 @@ import (
 const BlockTime = 3
 
 type Poa struct {
-	meta *TripodHeader
+	header *TripodHeader
 
 	// key: crypto address, generate from pubkey
 	validatorsMap map[Address]peer.ID
@@ -41,7 +41,7 @@ type ValidatorAddrIp struct {
 }
 
 func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa {
-	meta := NewTripodHeader("Poa")
+	header := NewTripodHeader("Poa")
 
 	var nodeIdx int
 
@@ -65,7 +65,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa 
 	}
 
 	h := &Poa{
-		meta:           meta,
+		header:         header,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,
@@ -89,7 +89,7 @@ func (h *Poa) LocalAddress() Address {
 }
 
 func (h *Poa) GetTripodHeader() *TripodHeader {
-	return h.meta
+	return h.header
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {

@@ -1,15 +1,12 @@
 package tripod
 
 import (
-	. "github.com/yu-org/yu/core/chain_env"
 	. "github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 )
 
 type DefaultTripod struct {
 	*TripodHeader
-	*ChainEnv
-	*Land
 
 	txnChecker    TxnCheckFn
 	blockVerifier BlockVerifier
