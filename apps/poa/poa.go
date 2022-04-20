@@ -180,9 +180,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 
 	logrus.Info("====== start a new block ", block.Height)
 
-	miner := h.CompeteLeader(block.Height)
-	logrus.Debugf("compete a leader(%s) in round(%d)", miner.String(), block.Height)
-	if miner != h.LocalAddress() {
+	if h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
 			logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
 				block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
@@ -262,7 +260,13 @@ func (h *Poa) FinalizeBlock(block *CompactBlock) error {
 
 func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {
 	idx := (int(blockHeight) - 1) % len(h.validatorsList)
-	return h.validatorsList[idx]
+	leader := h.validatorsList[idx]
+	logrus.Debugf("compete a leader(%s) in round(%d)", leader.String(), blockHeight)
+	return leader
+}
+
+func (h *Poa) AmILeader(blockHeight BlockNum) bool {
+	return h.CompeteLeader(blockHeight) == h.LocalAddress()
 }
 
 func (h *Poa) useP2pOrSkip(localBlock *CompactBlock) bool {
