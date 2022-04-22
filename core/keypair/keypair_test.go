@@ -26,10 +26,14 @@ func testKey(t *testing.T, keyType string) {
 		Params:     string("params"),
 	}
 
-	signByt, err := privkey.SignData(ecall.Bytes())
+	hash, err := ecall.Hash()
+	if err != nil {
+		t.Fatalf("hash error: %s", err.Error())
+	}
+	signByt, err := privkey.SignData(hash)
 	if err != nil {
 		panic("sign data error: " + err.Error())
 	}
-	ok := pubkey.VerifySignature(ecall.Bytes(), signByt)
+	ok := pubkey.VerifySignature(hash, signByt)
 	assert.True(t, ok)
 }

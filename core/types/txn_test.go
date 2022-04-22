@@ -29,7 +29,11 @@ func TestSignedTxns_Remove(t *testing.T) {
 			ExecName:   istr,
 			Params:     string(istr),
 		}
-		sig, err := privKey.SignData(ecall.Bytes())
+		hash, err := ecall.Hash()
+		if err != nil {
+			t.Fatalf("ecall hash error: %s", err.Error())
+		}
+		sig, err := privKey.SignData(hash)
 		if err != nil {
 			t.Fatalf("sign data error: %s", err.Error())
 		}

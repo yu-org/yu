@@ -139,7 +139,11 @@ func callChainByQry(addr Address, qcall *Qcall) {
 }
 
 func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
-	signByt, err := privkey.SignData(ecall.Bytes())
+	hash, err := ecall.Hash()
+	if err != nil {
+		panic("ecall hash error: " + err.Error())
+	}
+	signByt, err := privkey.SignData(hash)
 	if err != nil {
 		panic("sign data error: " + err.Error())
 	}

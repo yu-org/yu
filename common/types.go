@@ -3,6 +3,8 @@ package common
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
+	"golang.org/x/crypto/blake2b"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -47,15 +49,13 @@ type (
 	CallType int
 )
 
-func (e *Ecall) Bytes() []byte {
-	var byt []byte
-	byt = append(byt, []byte(e.TripodName)...)
-	byt = append(byt, []byte(e.ExecName)...)
-	byt = append(byt, []byte(e.Params)...)
-	leiBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(leiBytes, e.LeiPrice)
-	byt = append(byt, leiBytes...)
-	return byt
+func (e *Ecall) Hash() ([]byte, error) {
+	byt, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	hash := blake2b.Sum256(byt)
+	return hash[:], nil
 }
 
 const (

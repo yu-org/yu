@@ -20,17 +20,29 @@ func init() {
 	caller2 = pubkey2.Address()
 
 	ecall1 := &Ecall{LeiPrice: 10}
-	sig1, err := privkey1.SignData(ecall1.Bytes())
+	hash1, err := ecall1.Hash()
+	if err != nil {
+		panic(err)
+	}
+	sig1, err := privkey1.SignData(hash1)
 	if err != nil {
 		panic(err)
 	}
 	ecall2 := &Ecall{LeiPrice: 30}
-	sig2, err := privkey1.SignData(ecall2.Bytes())
+	hash2, err := ecall2.Hash()
+	if err != nil {
+		panic(err)
+	}
+	sig2, err := privkey1.SignData(hash2)
 	if err != nil {
 		panic(err)
 	}
 	ecall3 := &Ecall{LeiPrice: 20}
-	sig3, err := privkey2.SignData(ecall3.Bytes())
+	hash3, err := ecall3.Hash()
+	if err != nil {
+		panic(err)
+	}
+	sig3, err := privkey2.SignData(hash3)
 	if err != nil {
 		panic(err)
 	}

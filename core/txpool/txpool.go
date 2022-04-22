@@ -204,7 +204,11 @@ func Check(checks []TxnCheckFn, stxn *SignedTxn) error {
 func CheckSignature(stxn *SignedTxn) error {
 	sig := stxn.Signature
 	ecall := stxn.Raw.Ecall
-	if !stxn.Pubkey.VerifySignature(ecall.Bytes(), sig) {
+	hash, err := ecall.Hash()
+	if err != nil {
+		return err
+	}
+	if !stxn.Pubkey.VerifySignature(hash, sig) {
 		return TxnSignatureErr
 	}
 	return nil
