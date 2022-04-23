@@ -35,7 +35,8 @@ type (
 		TripodName string
 		ExecName   string
 		Params     string
-		LeiPrice   uint64
+		// TODO: make LeiPrice as a sortable interface.
+		LeiPrice uint64
 	}
 
 	// The Call from clients, it is an instance of an 'Query'.

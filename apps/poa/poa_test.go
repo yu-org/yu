@@ -27,15 +27,15 @@ var (
 )
 
 func initGlobalVars() {
-	myPubkey1, myPrivkey1, validators = InitKeypair(0)
+	myPubkey1, myPrivkey1, validators = InitDefaultKeypairs(0)
 	node1 = NewPoa(myPubkey1, myPrivkey1, validators)
 	println("addr1 = ", myPubkey1.Address().String())
 
-	myPubkey2, myPrivkey2, validators = InitKeypair(1)
+	myPubkey2, myPrivkey2, validators = InitDefaultKeypairs(1)
 	node2 = NewPoa(myPubkey2, myPrivkey2, validators)
 	println("addr2 = ", myPubkey2.Address().String())
 
-	myPubkey3, myPrivkey3, validators = InitKeypair(2)
+	myPubkey3, myPrivkey3, validators = InitDefaultKeypairs(2)
 	node3 = NewPoa(myPubkey3, myPrivkey3, validators)
 	println("addr3 = ", myPubkey3.Address().String())
 }

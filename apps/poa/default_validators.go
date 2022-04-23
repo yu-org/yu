@@ -9,7 +9,7 @@ type pair struct {
 	privkey PrivKey
 }
 
-func InitKeypair(idx int) (PubKey, PrivKey, []ValidatorAddrIp) {
+func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorAddrIp) {
 	pub0, priv0 := GenSrKey([]byte("node1"))
 	pub1, priv1 := GenSrKey([]byte("node2"))
 	pub2, priv2 := GenSrKey([]byte("node3"))
