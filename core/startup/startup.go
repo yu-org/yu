@@ -52,12 +52,9 @@ func StartUp(tripods ...tripod.Tripod) {
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
 
-	for i, _ := range tripods {
-		tripods[i].GetTripodHeader().SetChainEnv(env)
-		tripods[i].GetTripodHeader().SetLand(land)
-
-		println("chain-env: ", tripods[i].GetTripodHeader().ChainEnv)
-		println("land: ", tripods[i].GetTripodHeader().Land)
+	for _, t := range tripods {
+		t.GetTripodHeader().SetChainEnv(env)
+		t.GetTripodHeader().SetLand(land)
 	}
 
 	land.SetTripods(tripods...)
