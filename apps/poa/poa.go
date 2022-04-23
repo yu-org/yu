@@ -35,12 +35,12 @@ type Poa struct {
 	nodeIdx int
 }
 
-type ValidatorAddrIp struct {
-	Addr  Address
-	P2pIP string
+type ValidatorInfo struct {
+	Pubkey PubKey
+	P2pIP  string
 }
 
-func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa {
+func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 	header := NewTripodHeader("Poa")
 
 	var nodeIdx int
@@ -48,7 +48,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorAddrIp) *Poa 
 	validatorsAddr := make([]Address, 0)
 	validators := make(map[Address]peer.ID)
 	for _, addrIp := range addrIps {
-		addr := addrIp.Addr
+		addr := addrIp.Pubkey.Address()
 		p2pIP := addrIp.P2pIP
 
 		peerID, err := peer.Decode(p2pIP)

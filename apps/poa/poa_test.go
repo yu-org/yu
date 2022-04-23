@@ -22,7 +22,7 @@ import (
 var (
 	myPubkey1, myPubkey2, myPubkey3    PubKey
 	myPrivkey1, myPrivkey2, myPrivkey3 PrivKey
-	validators                         []ValidatorAddrIp
+	validators                         []ValidatorInfo
 	node1, node2, node3                *Poa
 )
 

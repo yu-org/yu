@@ -9,7 +9,7 @@ type pair struct {
 	privkey PrivKey
 }
 
-func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorAddrIp) {
+func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorInfo) {
 	pub0, priv0 := GenSrKey([]byte("node1"))
 	pub1, priv1 := GenSrKey([]byte("node2"))
 	pub2, priv2 := GenSrKey([]byte("node3"))
@@ -31,10 +31,10 @@ func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorAddrIp) {
 
 	myPubkey := pairArray[idx].pubkey
 	myPrivkey := pairArray[idx].privkey
-	validatorsAddrs := []ValidatorAddrIp{
-		{Addr: pub0.Address(), P2pIP: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
-		{Addr: pub1.Address(), P2pIP: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
-		{Addr: pub2.Address(), P2pIP: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
+	validatorsAddrs := []ValidatorInfo{
+		{Pubkey: pub0, P2pIP: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+		{Pubkey: pub1, P2pIP: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
+		{Pubkey: pub2, P2pIP: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 	}
 
 	return myPubkey, myPrivkey, validatorsAddrs
