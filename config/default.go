@@ -24,7 +24,6 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 		LogLevel:  "info",
 		LogOutput: "yu.log",
 		LeiLimit:  50000,
-		Timeout:   60,
 	}
 	cfg.P2P = P2pConf{
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},

@@ -31,7 +31,6 @@ func StartUp(tripods ...tripod.Tripod) {
 	gin.SetMode(gin.ReleaseMode)
 
 	land := tripod.NewLand()
-	land.SetTripods(tripods...)
 
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
@@ -60,6 +59,8 @@ func StartUp(tripods ...tripod.Tripod) {
 		println("chain-env: ", tripods[i].GetTripodHeader().ChainEnv)
 		println("land: ", tripods[i].GetTripodHeader().Land)
 	}
+
+	land.SetTripods(tripods...)
 
 	k := kernel.NewKernel(&kernelCfg, env, land)
 
