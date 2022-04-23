@@ -23,7 +23,7 @@ func testKey(t *testing.T, keyType string) {
 	ecall := &Ecall{
 		TripodName: "asset",
 		ExecName:   "Transfer",
-		Params:     string("params"),
+		Params:     "params",
 	}
 
 	hash, err := ecall.Hash()

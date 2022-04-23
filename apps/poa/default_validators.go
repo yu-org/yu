@@ -11,8 +11,13 @@ type pair struct {
 
 func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorInfo) {
 	pub0, priv0 := GenSrKey([]byte("node1"))
+	println("pubkey0: ", pub0.String())
+
 	pub1, priv1 := GenSrKey([]byte("node2"))
+	println("pubkey1: ", pub1.String())
+
 	pub2, priv2 := GenSrKey([]byte("node3"))
+	println("pubkey2: ", pub2.String())
 
 	pairArray := []pair{
 		{

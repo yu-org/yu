@@ -117,7 +117,10 @@ func (h *Poa) InitChain() error {
 		return err
 	}
 
+	println("env: ", h.env == nil)
+
 	chain := h.env.Chain
+
 	gensisBlock := &CompactBlock{
 		Header: &Header{
 			Hash:           genesisHash,

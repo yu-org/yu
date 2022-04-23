@@ -16,7 +16,6 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	. "github.com/yu-org/yu/utils/ip"
 	"sync"
-	"time"
 )
 
 type Kernel struct {
@@ -27,8 +26,6 @@ type Kernel struct {
 	httpPort string
 	wsPort   string
 	leiLimit uint64
-
-	timeout time.Duration
 
 	chain   IBlockChain
 	base    IyuDB
@@ -49,12 +46,9 @@ func NewKernel(
 	land *Land,
 ) *Kernel {
 
-	timeout := time.Duration(cfg.Timeout) * time.Second
-
 	m := &Kernel{
 		RunMode:    cfg.RunMode,
 		leiLimit:   cfg.LeiLimit,
-		timeout:    timeout,
 		httpPort:   MakePort(cfg.HttpPort),
 		wsPort:     MakePort(cfg.WsPort),
 		chain:      env.Chain,

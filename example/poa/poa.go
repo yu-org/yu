@@ -22,5 +22,8 @@ func main() {
 	myPubkey, myPrivkey, validatorsAddrs := poa.InitDefaultKeypairs(idx)
 
 	logrus.Info("My Address is ", myPubkey.Address().String())
-	startup.StartUp(poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs), asset.NewAsset("YuCoin"))
+	startup.StartUp(
+		poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs),
+		asset.NewAsset("YuCoin"),
+	)
 }

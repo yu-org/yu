@@ -22,10 +22,6 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
-	// when beyond 'Timeout', it means this nodekeeper is down.
-	// Unit is Second.
-	Timeout int `toml:"timeout"`
-
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
 	YuDB       YuDBConf       `toml:"yu_db"`

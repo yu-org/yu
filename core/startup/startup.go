@@ -53,9 +53,12 @@ func StartUp(tripods ...tripod.Tripod) {
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
 
-	for _, t := range tripods {
-		t.GetTripodHeader().SetChainEnv(env)
-		t.GetTripodHeader().SetLand(land)
+	for i, _ := range tripods {
+		tripods[i].GetTripodHeader().SetChainEnv(env)
+		tripods[i].GetTripodHeader().SetLand(land)
+
+		println("chain-env: ", tripods[i].GetTripodHeader().ChainEnv)
+		println("land: ", tripods[i].GetTripodHeader().Land)
 	}
 
 	k := kernel.NewKernel(&kernelCfg, env, land)
@@ -91,11 +94,13 @@ func initLog(level, output string) {
 
 	if output == "" {
 		logfile = os.Stderr
+	} else {
+		logfile, err = os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+		if err != nil {
+			panic("init log file error: " + err.Error())
+		}
 	}
-	logfile, err = os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
-	if err != nil {
-		panic("init log file error: " + err.Error())
-	}
+
 	logrus.SetOutput(logfile)
 	lvl, err := logrus.ParseLevel(level)
 	if err != nil {
