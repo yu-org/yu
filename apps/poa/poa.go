@@ -16,7 +16,7 @@ import (
 const BlockTime = 3
 
 type Poa struct {
-	header *TripodHeader
+	*TripodHeader
 
 	// key: crypto address, generate from pubkey
 	validatorsMap map[Address]peer.ID
@@ -62,7 +62,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 	}
 
 	h := &Poa{
-		header:         header,
+		TripodHeader:   header,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,
@@ -86,7 +86,7 @@ func (h *Poa) LocalAddress() Address {
 }
 
 func (h *Poa) GetTripodHeader() *TripodHeader {
-	return h.header
+	return h.TripodHeader
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
@@ -114,7 +114,7 @@ func (h *Poa) InitChain() error {
 		return err
 	}
 
-	chain := h.GetTripodHeader().ChainEnv.Chain
+	chain := h.Chain
 
 	gensisBlock := &CompactBlock{
 		Header: &Header{
@@ -134,7 +134,7 @@ func (h *Poa) InitChain() error {
 	}
 	go func() {
 		for {
-			msg, err := h.GetTripodHeader().ChainEnv.P2pNetwork.SubP2P(StartBlockTopic)
+			msg, err := h.P2pNetwork.SubP2P(StartBlockTopic)
 			if err != nil {
 				logrus.Error("subscribe message from P2P error: ", err)
 				continue
@@ -186,7 +186,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 		}
 	}
 
-	txns, err := h.GetTripodHeader().ChainEnv.Pool.Pack(3000)
+	txns, err := h.Pool.Pack(3000)
 	if err != nil {
 		return err
 	}
@@ -209,12 +209,12 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
-	err = h.GetTripodHeader().ChainEnv.Pool.Reset(block)
+	err = h.Pool.Reset(block)
 	if err != nil {
 		return err
 	}
 
-	h.GetTripodHeader().ChainEnv.State.StartBlock(block.Hash)
+	h.State.StartBlock(block.Hash)
 
 	rawBlock := &Block{
 		CompactBlock: block,
@@ -226,13 +226,13 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 		return err
 	}
 
-	return h.GetTripodHeader().ChainEnv.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
+	return h.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
 }
 
 func (h *Poa) EndBlock(block *CompactBlock) error {
-	chain := h.GetTripodHeader().ChainEnv.Chain
+	chain := h.Chain
 
-	err := h.GetTripodHeader().ChainEnv.Execute(block)
+	err := h.Execute(block)
 	if err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("append block")
 
-	h.GetTripodHeader().ChainEnv.State.FinalizeBlock(block.Hash)
+	h.State.FinalizeBlock(block.Hash)
 
 	return nil
 }
@@ -253,7 +253,7 @@ func (h *Poa) EndBlock(block *CompactBlock) error {
 func (h *Poa) FinalizeBlock(block *CompactBlock) error {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("finalize block")
-	return h.GetTripodHeader().ChainEnv.Chain.Finalize(block.Hash)
+	return h.Chain.Finalize(block.Hash)
 }
 
 func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {
@@ -282,13 +282,13 @@ LOOP:
 
 func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 	localBlock.CopyFrom(p2pBlock.CompactBlock)
-	err := h.GetTripodHeader().ChainEnv.YuDB.SetTxns(localBlock.Hash, p2pBlock.Txns)
+	err := h.YuDB.SetTxns(localBlock.Hash, p2pBlock.Txns)
 	if err != nil {
 		logrus.Errorf("set txns of p2p-block(%s) into base error: %v", p2pBlock.Hash.String(), err)
 		return true
 	}
-	h.GetTripodHeader().ChainEnv.State.StartBlock(localBlock.Hash)
-	err = h.GetTripodHeader().ChainEnv.Pool.Reset(localBlock)
+	h.State.StartBlock(localBlock.Hash)
+	err = h.Pool.Reset(localBlock)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}
