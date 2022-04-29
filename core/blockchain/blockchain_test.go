@@ -161,3 +161,27 @@ func TestChildrenBlocks(t *testing.T) {
 		assert.Equal(t, block.Hash, children[i].Hash)
 	}
 }
+
+func TestRangeBlocks(t *testing.T) {
+	chain := initChain(t)
+	err := chain.AppendBlock(block1)
+	if err != nil {
+		t.Fatal("append block1 failed: ", err)
+	}
+	err = chain.AppendBlock(block2)
+	if err != nil {
+		t.Fatal("append block2 failed: ", err)
+	}
+	err = chain.AppendBlock(block3)
+	if err != nil {
+		t.Fatal("append block3 failed: ", err)
+	}
+	blocks, err := chain.GetRangeBlocks(block1.Height, block3.Height)
+	if err != nil {
+		t.Fatal("get range blocks failed: ", err)
+	}
+	assert.Equal(t, len(blocks), 3)
+	assert.Equal(t, blocks[0].Hash, block1.Hash)
+	assert.Equal(t, blocks[1].Hash, block2.Hash)
+	assert.Equal(t, blocks[2].Hash, block3.Hash)
+}
