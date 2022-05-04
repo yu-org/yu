@@ -10,12 +10,14 @@ import (
 )
 
 type BlocksScheme struct {
-	ChainID    uint64
-	Hash       string `gorm:"primaryKey"`
-	PrevHash   string
-	Height     BlockNum
-	TxnRoot    string
-	StateRoot  string
+	ChainID     uint64
+	Hash        string `gorm:"primaryKey"`
+	PrevHash    string
+	Height      BlockNum
+	TxnRoot     string
+	StateRoot   string
+	ReceiptRoot string
+
 	Timestamp  uint64
 	TxnsHashes string
 	PeerID     string
@@ -50,18 +52,19 @@ func toBlocksScheme(b *CompactBlock) (BlocksScheme, error) {
 		return BlocksScheme{}, err
 	}
 	return BlocksScheme{
-		ChainID:    b.ChainID,
-		Hash:       b.Hash.String(),
-		PrevHash:   b.PrevHash.String(),
-		Height:     b.Height,
-		TxnRoot:    b.TxnRoot.String(),
-		StateRoot:  b.StateRoot.String(),
-		Timestamp:  b.Timestamp,
-		TxnsHashes: HashesToHex(b.TxnsHashes),
-		PeerID:     b.PeerID.String(),
-		Finalize:   false,
-		LeiLimit:   b.LeiLimit,
-		LeiUsed:    b.LeiUsed,
+		ChainID:     b.ChainID,
+		Hash:        b.Hash.String(),
+		PrevHash:    b.PrevHash.String(),
+		Height:      b.Height,
+		TxnRoot:     b.TxnRoot.String(),
+		StateRoot:   b.StateRoot.String(),
+		ReceiptRoot: b.ReceiptRoot.String(),
+		Timestamp:   b.Timestamp,
+		TxnsHashes:  HashesToHex(b.TxnsHashes),
+		PeerID:      b.PeerID.String(),
+		Finalize:    false,
+		LeiLimit:    b.LeiLimit,
+		LeiUsed:     b.LeiUsed,
 
 		MinerPubkey:    ToHex(b.MinerPubkey),
 		MinerSignature: ToHex(b.MinerSignature),
@@ -100,14 +103,15 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 	}
 
 	header := &Header{
-		ChainID:   b.ChainID,
-		PrevHash:  HexToHash(b.PrevHash),
-		Hash:      HexToHash(b.Hash),
-		Height:    b.Height,
-		TxnRoot:   HexToHash(b.TxnRoot),
-		StateRoot: HexToHash(b.StateRoot),
-		Timestamp: b.Timestamp,
-		PeerID:    PeerID,
+		ChainID:     b.ChainID,
+		PrevHash:    HexToHash(b.PrevHash),
+		Hash:        HexToHash(b.Hash),
+		Height:      b.Height,
+		TxnRoot:     HexToHash(b.TxnRoot),
+		StateRoot:   HexToHash(b.StateRoot),
+		ReceiptRoot: HexToHash(b.ReceiptRoot),
+		Timestamp:   b.Timestamp,
+		PeerID:      PeerID,
 
 		LeiLimit: b.LeiLimit,
 		LeiUsed:  b.LeiUsed,
