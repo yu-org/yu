@@ -5,6 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
+	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
@@ -80,6 +81,8 @@ func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 	if err != nil {
 		return err
 	}
+
+	var results []Result
 	for _, stxn := range stxns {
 		ecall := stxn.Raw.Ecall
 		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params)
@@ -110,6 +113,13 @@ func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 
 		m.handleEvent(ctx, block, stxn)
 
+		for _, e := range ctx.Events {
+			results = append(results, e)
+		}
+		if ctx.Error != nil {
+			results = append(results, ctx.Error)
+		}
+
 		err = m.base.SetEvents(ctx.Events)
 		if err != nil {
 			return err
@@ -126,7 +136,8 @@ func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 	}
 	block.StateRoot = stateRoot
 
-	return nil
+	block.ReceiptRoot, err = CaculateReceiptRoot(results)
+	return err
 }
 
 func (m *Kernel) MasterWokrerRun() error {

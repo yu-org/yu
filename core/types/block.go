@@ -101,12 +101,14 @@ func MakeTxnRoot(txns []*SignedTxn) (Hash, error) {
 }
 
 type Header struct {
-	ChainID   uint64
-	PrevHash  Hash
-	Hash      Hash
-	Height    BlockNum
-	TxnRoot   Hash
-	StateRoot Hash
+	ChainID  uint64
+	PrevHash Hash
+	Hash     Hash
+	Height   BlockNum
+
+	TxnRoot     Hash
+	StateRoot   Hash
+	ReceiptRoot Hash
 
 	Timestamp uint64
 	PeerID    peer.ID
@@ -130,17 +132,18 @@ type Header struct {
 
 func (h *Header) ToPb() *goproto.Header {
 	return &goproto.Header{
-		ChainId:    h.ChainID,
-		Hash:       h.Hash.Bytes(),
-		PrevHash:   h.PrevHash.Bytes(),
-		Height:     uint64(h.Height),
-		TxnRoot:    h.TxnRoot.Bytes(),
-		StateRoot:  h.StateRoot.Bytes(),
-		Timestamp:  h.Timestamp,
-		PeerId:     h.PeerID.String(),
-		LeiLimit:   h.LeiLimit,
-		LeiUsed:    h.LeiUsed,
-		Validators: ValidatorsToPb(h.Validators),
+		ChainId:     h.ChainID,
+		Hash:        h.Hash.Bytes(),
+		PrevHash:    h.PrevHash.Bytes(),
+		Height:      uint64(h.Height),
+		TxnRoot:     h.TxnRoot.Bytes(),
+		StateRoot:   h.StateRoot.Bytes(),
+		ReceiptRoot: h.ReceiptRoot.Bytes(),
+		Timestamp:   h.Timestamp,
+		PeerId:      h.PeerID.String(),
+		LeiLimit:    h.LeiLimit,
+		LeiUsed:     h.LeiUsed,
+		Validators:  ValidatorsToPb(h.Validators),
 
 		MinerPubkey:    h.MinerPubkey,
 		MinerSignature: h.MinerSignature,
@@ -171,12 +174,14 @@ func HeaderFromPb(pb *goproto.Header) *Header {
 	}
 
 	return &Header{
-		ChainID:   pb.ChainId,
-		PrevHash:  BytesToHash(pb.PrevHash),
-		Hash:      BytesToHash(pb.Hash),
-		Height:    BlockNum(pb.Height),
-		TxnRoot:   BytesToHash(pb.TxnRoot),
-		StateRoot: BytesToHash(pb.StateRoot),
+		ChainID:     pb.ChainId,
+		PrevHash:    BytesToHash(pb.PrevHash),
+		Hash:        BytesToHash(pb.Hash),
+		Height:      BlockNum(pb.Height),
+		TxnRoot:     BytesToHash(pb.TxnRoot),
+		StateRoot:   BytesToHash(pb.StateRoot),
+		ReceiptRoot: BytesToHash(pb.ReceiptRoot),
+
 		Timestamp: pb.Timestamp,
 		PeerID:    peerID,
 

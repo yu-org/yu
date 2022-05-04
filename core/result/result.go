@@ -2,6 +2,8 @@ package result
 
 import (
 	"errors"
+	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/infra/trie"
 	"strconv"
 )
 
@@ -45,4 +47,17 @@ func DecodeResult(data []byte) (Result, error) {
 		return er, err
 	}
 	return nil, errors.New("no result type")
+}
+
+func CaculateReceiptRoot(results []Result) (Hash, error) {
+	var receiptsByt []Hash
+	for _, result := range results {
+		receipt, err := result.Encode()
+		if err != nil {
+			return NullHash, err
+		}
+		receiptsByt = append(receiptsByt, BytesToHash(receipt))
+	}
+	mTree := trie.NewMerkleTree(receiptsByt)
+	return mTree.RootNode.Data, nil
 }
