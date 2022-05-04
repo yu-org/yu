@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
@@ -155,6 +156,7 @@ func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
+	q.Set(LeiPriceKey, hexutil.EncodeUint64(100))
 
 	u.RawQuery = q.Encode()
 

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"net/http"
@@ -18,6 +19,7 @@ const (
 	BlockHashKey  = "block_hash"
 	PubkeyKey     = "pubkey"
 	SignatureKey  = "signature"
+	LeiPriceKey   = "lei_price"
 )
 
 var (
@@ -49,4 +51,8 @@ func GetPubkey(req *http.Request) (keypair.PubKey, error) {
 func GetSignature(req *http.Request) []byte {
 	signStr := req.URL.Query().Get(SignatureKey)
 	return FromHex(signStr)
+}
+
+func GetLeiPrice(req *http.Request) (uint64, error) {
+	return hexutil.DecodeUint64(req.URL.Query().Get(LeiPriceKey))
 }
