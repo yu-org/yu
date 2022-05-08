@@ -11,7 +11,9 @@ import (
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
 	"math/big"
+	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -33,12 +35,12 @@ func main() {
 	createAccount(privkey, pubkey)
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 1 ---")
-	transfer(privkey, pubkey, toPubkey.Address())
+	logrus.Info("--- send Transfering 1 by websocket---")
+	transfer(Websocket, privkey, pubkey, toPubkey.Address())
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 2 ---")
-	transfer(privkey, pubkey, toPubkey.Address())
+	logrus.Info("--- send Transfering 2 by http---")
+	transfer(Http, privkey, pubkey, toPubkey.Address())
 	time.Sleep(6 * time.Second)
 
 	queryAccount(pubkey)
@@ -83,7 +85,7 @@ func createAccount(privkey PrivKey, pubkey PubKey) {
 		Params:     string(paramsByt),
 		LeiPrice:   0,
 	}
-	callChainByExec(privkey, pubkey, ecall)
+	callChainByExec(Websocket, privkey, pubkey, ecall)
 }
 
 type TransferInfo struct {
@@ -91,7 +93,7 @@ type TransferInfo struct {
 	Amount uint64 `json:"amount"`
 }
 
-func transfer(privkey PrivKey, pubkey PubKey, to Address) {
+func transfer(reqType int, privkey PrivKey, pubkey PubKey, to Address) {
 	params := TransferInfo{
 		To:     to.String(),
 		Amount: 100,
@@ -106,7 +108,7 @@ func transfer(privkey PrivKey, pubkey PubKey, to Address) {
 		Params:     string(paramsByt),
 		LeiPrice:   0,
 	}
-	callChainByExec(privkey, pubkey, ecall)
+	callChainByExec(reqType, privkey, pubkey, ecall)
 }
 
 func callChainByQry(addr Address, qcall *Qcall) {
@@ -139,7 +141,12 @@ func callChainByQry(addr Address, qcall *Qcall) {
 	logrus.Infof("get account(%s) balance(%d)", addr.String(), amount)
 }
 
-func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
+const (
+	Http = iota
+	Websocket
+)
+
+func callChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	hash, err := ecall.Hash()
 	if err != nil {
 		panic("ecall hash error: " + err.Error())
@@ -161,15 +168,22 @@ func callChainByExec(privkey PrivKey, pubkey PubKey, ecall *Ecall) {
 	u.RawQuery = q.Encode()
 
 	// logrus.Info("ecall: ", u.String())
+	switch reqType {
+	case Http:
+		_, err := http.Post(u.String(), "application/json", strings.NewReader(ecall.Params))
+		if err != nil {
+			panic("post ecall message to chain error: " + err.Error())
+		}
+	case Websocket:
+		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+		if err != nil {
+			panic("ecall dial chain error: " + err.Error())
+		}
 
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	if err != nil {
-		panic("ecall dial chain error: " + err.Error())
-	}
-
-	err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
-	if err != nil {
-		panic("write ecall message to chain error: " + err.Error())
+		err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
+		if err != nil {
+			panic("write ecall message to chain error: " + err.Error())
+		}
 	}
 }
 
