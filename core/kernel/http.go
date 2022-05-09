@@ -39,18 +39,29 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	switch m.RunMode {
-	case LocalNode:
-		err = m.txPool.Insert(stxn)
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
+	_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
-	err = m.pubUnpackedTxns(types.FromArray(stxn))
+	err = m.txPool.CheckTxn(stxn)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	go func() {
+		err = m.pubUnpackedTxns(types.FromArray(stxn))
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
+	}()
+
+	err = m.txPool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 }
 

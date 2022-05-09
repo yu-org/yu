@@ -38,9 +38,9 @@ type CreateAccountInfo struct {
 	Amount uint64 `json:"amount"`
 }
 
-func CreateAccount(privkey PrivKey, pubkey PubKey) {
+func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 	paramsByt, err := json.Marshal(CreateAccountInfo{
-		Amount: 500,
+		Amount: amount,
 	})
 	if err != nil {
 		panic("create-account params marshal error: " + err.Error())
@@ -59,10 +59,10 @@ type TransferInfo struct {
 	Amount uint64 `json:"amount"`
 }
 
-func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address) {
+func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, amount uint64) {
 	params := TransferInfo{
 		To:     to.String(),
-		Amount: 100,
+		Amount: amount,
 	}
 	paramsByt, err := json.Marshal(params)
 	if err != nil {

@@ -81,45 +81,30 @@ func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) Insert(stxn *SignedTxn) error {
-	errs := tp.BatchInsert(FromArray(stxn))
-	if len(errs) == 0 {
-		return nil
+func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
+	if tp.unpackedTxns.exist(stxn) {
+		return
 	}
-	return errs[0]
+	// check replay attack
+	if tp.yudb.ExistTxn(stxn.TxnHash) {
+		return
+	}
+	err = tp.BaseCheck(stxn)
+	if err != nil {
+		return
+	}
+	return tp.TripodsCheck(stxn)
 }
 
-func (tp *TxPool) BatchInsert(txns SignedTxns) []error {
+func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	tp.Lock()
 	defer tp.Unlock()
-	errs := make([]error, 0)
-	for _, stxn := range txns {
-		if tp.unpackedTxns.exist(stxn) {
-			continue
-		}
-		// check replay attack
-		if tp.yudb.ExistTxn(stxn.TxnHash) {
-			continue
-		}
-
-		err := tp.BaseCheck(stxn)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		err = tp.TripodsCheck(stxn)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		err = tp.yudb.SetTxn(stxn)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		tp.unpackedTxns.insert(stxn)
+	err := tp.yudb.SetTxn(stxn)
+	if err != nil {
+		return err
 	}
-	return errs
+	tp.unpackedTxns.insert(stxn)
+	return nil
 }
 
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {

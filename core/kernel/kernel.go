@@ -133,41 +133,15 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 		return err
 	}
 
-	switch m.RunMode {
-	case MasterWorker:
-		//// key: workerIP
-		//forwardMap := make(map[string]*TxnsAndWorkerName)
-		//for _, txn := range txns {
-		//	ecall := txn.GetRaw().Ecall
-		//	tripodName := ecall.TripodName
-		//	execName := ecall.ExecName
-		//	workerIP, workerName, err := m.findWorkerIpAndName(tripodName, execName, ExecCall)
-		//	if err != nil {
-		//		return err
-		//	}
-		//	oldTxns := forwardMap[workerIP].Txns
-		//	forwardMap[workerIP] = &TxnsAndWorkerName{
-		//		Txns:       append(oldTxns, txn),
-		//		WorkerName: workerName,
-		//	}
-		//}
-		//
-		//err := m.forwardTxnsForCheck(forwardMap)
-		//if err != nil {
-		//	return err
-		//}
-		//
-		//for _, twn := range forwardMap {
-		//	err = m.txPool.BatchInsert(twn.WorkerName, twn.Txns)
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-
-	case LocalNode:
-		errs := m.txPool.BatchInsert(txns)
-		for _, e := range errs {
-			logrus.Error("insert txn of P2P into txpool error: ", e)
+	for _, txn := range txns {
+		err = m.txPool.CheckTxn(txn)
+		if err != nil {
+			logrus.Error("check txn from P2P into txpool error: ", err)
+			continue
+		}
+		err = m.txPool.Insert(txn)
+		if err != nil {
+			logrus.Error("insert txn from P2P into txpool error: ", err)
 		}
 	}
 

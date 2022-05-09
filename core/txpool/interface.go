@@ -18,8 +18,9 @@ type ItxPool interface {
 	// NecessaryCheck uses for SyncTxns
 	NecessaryCheck(stxn *SignedTxn) error
 
+	CheckTxn(stxn *SignedTxn) error
+
 	Insert(txn *SignedTxn) error
-	BatchInsert(txns SignedTxns) []error
 
 	// Pack packs some txns to send to tripods
 	Pack(numLimit uint64) ([]*SignedTxn, error)

@@ -68,27 +68,30 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 		return
 	}
 
-	switch m.RunMode {
-	case MasterWorker:
-
-	case LocalNode:
-		_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
-		if err != nil {
-			m.errorAndClose(c, err.Error())
-			return
-		}
-		err = m.txPool.Insert(stxn)
-		if err != nil {
-			m.errorAndClose(c, err.Error())
-			return
-		}
-	}
-
-	err = m.pubUnpackedTxns(types.FromArray(stxn))
+	_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
+		m.errorAndClose(c, err.Error())
+		return
 	}
-	logrus.Info("publish unpacked txns to P2P")
+
+	err = m.txPool.CheckTxn(stxn)
+	if err != nil {
+		m.errorAndClose(c, err.Error())
+		return
+	}
+
+	go func() {
+		err = m.pubUnpackedTxns(types.FromArray(stxn))
+		if err != nil {
+			m.errorAndClose(c, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
+		}
+	}()
+
+	err = m.txPool.Insert(stxn)
+	if err != nil {
+		m.errorAndClose(c, err.Error())
+		return
+	}
 }
 
 func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string) {

@@ -45,6 +45,7 @@ func CallChainByQry(reqtyp int, qcall *Qcall) []byte {
 		if err != nil {
 			panic("qcall dial chain error: " + err.Error())
 		}
+		defer c.Close()
 		err = c.WriteMessage(websocket.TextMessage, []byte(qcall.Params))
 		if err != nil {
 			panic("write qcall message to chain error: " + err.Error())
@@ -91,7 +92,7 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 		if err != nil {
 			panic("ecall dial chain error: " + err.Error())
 		}
-
+		defer c.Close()
 		err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
 		if err != nil {
 			panic("write ecall message to chain error: " + err.Error())
