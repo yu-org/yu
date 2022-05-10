@@ -69,7 +69,15 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 		panic("sign data error: " + err.Error())
 	}
 
-	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: ExecApiPath}
+	var scheme string
+	switch reqType {
+	case Http:
+		scheme = "http"
+	case Websocket:
+		scheme = "ws"
+	}
+
+	u := url.URL{Scheme: scheme, Host: "localhost:8999", Path: ExecApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, ecall.TripodName)
 	q.Set(CallNameKey, ecall.ExecName)

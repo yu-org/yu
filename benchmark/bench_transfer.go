@@ -37,7 +37,7 @@ func main() {
 	}
 	for i, user := range users {
 		var to common.Address
-		if i == len(users) {
+		if i == len(users)-1 {
 			to = users[0].pub.Address()
 		} else {
 			to = users[i+1].pub.Address()
