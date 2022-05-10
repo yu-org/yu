@@ -115,7 +115,7 @@ func (h *Hotstuff) VerifyBlock(block *CompactBlock) bool {
 }
 
 func (h *Hotstuff) InitChain() error {
-	rootPubkey, rootPrivkey := GenSrKey([]byte("root"))
+	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")
 	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
 	if err != nil {

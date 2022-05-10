@@ -14,9 +14,9 @@ var (
 )
 
 func init() {
-	pubkey1, privkey1 := keypair.GenSrKey([]byte("yu"))
+	pubkey1, privkey1 := keypair.GenSrKeyWithSecret([]byte("yu"))
 	caller1 = pubkey1.Address()
-	pubkey2, privkey2 := keypair.GenSrKey([]byte("boyi"))
+	pubkey2, privkey2 := keypair.GenSrKeyWithSecret([]byte("boyi"))
 	caller2 = pubkey2.Address()
 
 	ecall1 := &Ecall{LeiPrice: 10}

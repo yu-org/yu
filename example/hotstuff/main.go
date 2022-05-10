@@ -16,13 +16,13 @@ type pair struct {
 }
 
 func main() {
-	pub0, priv0 := keypair2.GenSrKey([]byte("node1"))
+	pub0, priv0 := keypair2.GenSrKeyWithSecret([]byte("node1"))
 	logrus.Info("node1 address is ", pub0.Address().String())
 
-	pub1, priv1 := keypair2.GenSrKey([]byte("node2"))
+	pub1, priv1 := keypair2.GenSrKeyWithSecret([]byte("node2"))
 	logrus.Info("node2 address is ", pub1.Address().String())
 
-	pub2, priv2 := keypair2.GenSrKey([]byte("node3"))
+	pub2, priv2 := keypair2.GenSrKeyWithSecret([]byte("node3"))
 	logrus.Info("node3 address is ", pub2.Address().String())
 
 	pairArray := []pair{

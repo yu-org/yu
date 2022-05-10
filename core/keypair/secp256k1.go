@@ -90,14 +90,14 @@ func (spr *SecpPrivkey) StringWithType() string {
 	return ToHex(spr.BytesWithType())
 }
 
-func GenSecpKey(secret []byte) (PubKey, PrivKey) {
+func GenSecpKeyWithSecret(secret []byte) (PubKey, PrivKey) {
 	secpPrivkey := secp256k1.GenPrivKeySecp256k1(secret)
 	privkey := &SecpPrivkey{secpPrivkey}
 	pubkey := &SecpPubkey{secpPrivkey.PubKey().(secp256k1.PubKey)}
 	return pubkey, privkey
 }
 
-func genSecp256k1() (*SecpPubkey, *SecpPrivkey) {
+func GenSecpKey() (PubKey, PrivKey) {
 	secpPrivkey := secp256k1.GenPrivKey()
 	privkey := &SecpPrivkey{secpPrivkey}
 	pubkey := &SecpPubkey{secpPrivkey.PubKey().(secp256k1.PubKey)}

@@ -21,13 +21,13 @@ var KeyTypeBytLen = 1
 func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	switch keyType {
 	case Sr25519:
-		pub, priv := genSr25519()
+		pub, priv := GenSrKey()
 		return pub, priv, nil
 	case Ed25519:
-		pub, priv := genEd25519()
+		pub, priv := GenEdKey()
 		return pub, priv, nil
 	case Secp256k1:
-		pub, priv := genSecp256k1()
+		pub, priv := GenSecpKey()
 		return pub, priv, nil
 	default:
 		return nil, nil, NoKeyType

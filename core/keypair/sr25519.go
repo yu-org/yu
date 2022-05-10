@@ -90,14 +90,14 @@ func (spr *SrPrivkey) StringWithType() string {
 	return ToHex(spr.BytesWithType())
 }
 
-func GenSrKey(secret []byte) (PubKey, PrivKey) {
+func GenSrKeyWithSecret(secret []byte) (PubKey, PrivKey) {
 	srPrivkey := sr25519.GenPrivKeyFromSecret(secret)
 	privkey := &SrPrivkey{srPrivkey}
 	pubkey := &SrPubkey{srPrivkey.PubKey().(sr25519.PubKey)}
 	return pubkey, privkey
 }
 
-func genSr25519() (*SrPubkey, *SrPrivkey) {
+func GenSrKey() (PubKey, PrivKey) {
 	srPrivkey := sr25519.GenPrivKey()
 	privkey := &SrPrivkey{srPrivkey}
 	pubkey := &SrPubkey{srPrivkey.PubKey().(sr25519.PubKey)}

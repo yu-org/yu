@@ -23,8 +23,8 @@ var (
 )
 
 func init() {
-	aPubkey, _ := keypair.GenSrKey([]byte("a"))
-	bPubkey, _ := keypair.GenSrKey([]byte("b"))
+	aPubkey, _ := keypair.GenSrKeyWithSecret([]byte("a"))
+	bPubkey, _ := keypair.GenSrKeyWithSecret([]byte("b"))
 	Aaddr = aPubkey.Address()
 	println("A addr is ", Aaddr.String())
 	Baddr = bPubkey.Address()

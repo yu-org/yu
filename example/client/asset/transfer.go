@@ -1,4 +1,4 @@
-package transfer
+package asset
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ type CreateAccountInfo struct {
 	Amount uint64 `json:"amount"`
 }
 
-func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
+func CreateAccount(reqType int, privkey PrivKey, pubkey PubKey, amount uint64) {
 	paramsByt, err := json.Marshal(CreateAccountInfo{
 		Amount: amount,
 	})
@@ -51,7 +51,7 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 		Params:     string(paramsByt),
 		LeiPrice:   0,
 	}
-	CallChainByExec(Websocket, privkey, pubkey, ecall)
+	CallChainByExec(reqType, privkey, pubkey, ecall)
 }
 
 type TransferInfo struct {
@@ -59,7 +59,7 @@ type TransferInfo struct {
 	Amount uint64 `json:"amount"`
 }
 
-func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, amount uint64) {
+func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, amount, leiPrice uint64) {
 	params := TransferInfo{
 		To:     to.String(),
 		Amount: amount,
@@ -72,7 +72,7 @@ func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, am
 		TripodName: "asset",
 		ExecName:   "Transfer",
 		Params:     string(paramsByt),
-		LeiPrice:   0,
+		LeiPrice:   leiPrice,
 	}
 	CallChainByExec(reqType, privkey, pubkey, ecall)
 }
