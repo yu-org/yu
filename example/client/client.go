@@ -26,12 +26,12 @@ func main() {
 	CreateAccount(Websocket, privkey, pubkey, 500)
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 1 by websocket---")
+	logrus.Info("--- send Transfering 1 ---")
 	TransferBalance(Websocket, privkey, pubkey, toPubkey.Address(), 100, 0)
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 2 by http---")
-	TransferBalance(Http, privkey, pubkey, toPubkey.Address(), 100, 0)
+	logrus.Info("--- send Transfering 2 ---")
+	TransferBalance(Websocket, privkey, pubkey, toPubkey.Address(), 100, 0)
 	time.Sleep(6 * time.Second)
 
 	QueryAccount(pubkey)

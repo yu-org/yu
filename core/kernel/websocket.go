@@ -38,7 +38,7 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	upgrade := websocket.Upgrader{}
 	c, err := upgrade.Upgrade(w, req, nil)
 	if err != nil {
-		c.WriteMessage(websocket.CloseMessage, []byte(err.Error()))
+		m.errorAndClose(c, err.Error())
 		return
 	}
 	if typ == subscription {
@@ -128,6 +128,6 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string
 }
 
 func (m *Kernel) errorAndClose(c *websocket.Conn, text string) {
+	logrus.Error(text)
 	c.WriteMessage(websocket.CloseMessage, []byte(text))
-	m.sub.UnRegister(c)
 }

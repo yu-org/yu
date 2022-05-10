@@ -189,7 +189,7 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 			Params:     pb.Ecall.Params,
 			LeiPrice:   pb.Ecall.LeiPrice,
 		},
-		Timestamp: 0,
+		Timestamp: pb.Timestamp,
 	}
 }
 

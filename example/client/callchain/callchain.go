@@ -28,7 +28,7 @@ func CallChainByQry(reqtyp int, qcall *Qcall) []byte {
 
 	u.RawQuery = q.Encode()
 
-	//logrus.Info("qcall: ", u.String())
+	// logrus.Info("qcall: ", u.String())
 	switch reqtyp {
 	case Http:
 		resp, err := http.Post(u.String(), "application/json", strings.NewReader(qcall.Params))
@@ -64,6 +64,9 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 	if err != nil {
 		panic("ecall hash error: " + err.Error())
 	}
+
+	println("ecall hash: ", ToHex(hash))
+
 	signByt, err := privkey.SignData(hash)
 	if err != nil {
 		panic("sign data error: " + err.Error())
@@ -84,11 +87,12 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
-	q.Set(LeiPriceKey, hexutil.EncodeUint64(100))
+	q.Set(LeiPriceKey, hexutil.EncodeUint64(ecall.LeiPrice))
 
 	u.RawQuery = q.Encode()
 
 	// logrus.Info("ecall: ", u.String())
+
 	switch reqType {
 	case Http:
 		_, err := http.Post(u.String(), "application/json", strings.NewReader(ecall.Params))

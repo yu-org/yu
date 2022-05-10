@@ -35,7 +35,7 @@ func main() {
 			counter.Inc()
 		}(user)
 
-		time.Sleep(time.Microsecond * 200)
+		time.Sleep(time.Microsecond * 100)
 	}
 
 	for {

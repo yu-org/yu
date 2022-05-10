@@ -2,9 +2,9 @@ package common
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
-	"golang.org/x/crypto/blake2b"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -55,7 +55,7 @@ func (e *Ecall) Hash() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash := blake2b.Sum256(byt)
+	hash := sha256.Sum256(byt)
 	return hash[:], nil
 }
 
