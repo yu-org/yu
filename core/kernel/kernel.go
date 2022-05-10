@@ -134,6 +134,9 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 	}
 
 	for _, txn := range txns {
+		if m.txPool.Exist(txn) {
+			continue
+		}
 		err = m.txPool.CheckTxn(txn)
 		if err != nil {
 			logrus.Error("check txn from P2P into txpool error: ", err)

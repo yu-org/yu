@@ -74,6 +74,10 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 		return
 	}
 
+	if m.txPool.Exist(stxn) {
+		return
+	}
+
 	err = m.txPool.CheckTxn(stxn)
 	if err != nil {
 		m.errorAndClose(c, err.Error())

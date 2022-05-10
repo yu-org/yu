@@ -11,7 +11,8 @@ import (
 )
 
 type SignedTxn struct {
-	Raw       *UnsignedTxn
+	Raw *UnsignedTxn
+	// FIXME: cannot avoid replay attack, need to re-design TxHash
 	TxnHash   Hash
 	Pubkey    PubKey
 	Signature []byte

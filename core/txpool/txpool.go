@@ -81,14 +81,15 @@ func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
+func (tp *TxPool) Exist(stxn *SignedTxn) bool {
 	if tp.unpackedTxns.exist(stxn) {
-		return
+		return true
 	}
 	// check replay attack
-	if tp.yudb.ExistTxn(stxn.TxnHash) {
-		return
-	}
+	return tp.yudb.ExistTxn(stxn.TxnHash)
+}
+
+func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 	err = tp.BaseCheck(stxn)
 	if err != nil {
 		return

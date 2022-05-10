@@ -44,6 +44,10 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 		return
 	}
 
+	if m.txPool.Exist(stxn) {
+		return
+	}
+
 	err = m.txPool.CheckTxn(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)

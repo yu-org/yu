@@ -18,6 +18,7 @@ type ItxPool interface {
 	// NecessaryCheck uses for SyncTxns
 	NecessaryCheck(stxn *SignedTxn) error
 
+	Exist(stxn *SignedTxn) bool
 	CheckTxn(stxn *SignedTxn) error
 
 	Insert(txn *SignedTxn) error

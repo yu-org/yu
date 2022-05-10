@@ -64,9 +64,6 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 	if err != nil {
 		panic("ecall hash error: " + err.Error())
 	}
-
-	println("ecall hash: ", ToHex(hash))
-
 	signByt, err := privkey.SignData(hash)
 	if err != nil {
 		panic("sign data error: " + err.Error())
