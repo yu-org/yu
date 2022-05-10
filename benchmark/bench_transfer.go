@@ -34,27 +34,36 @@ func main() {
 			CreateAccount(Websocket, user.prv, user.pub, 1_0000_0000)
 			counter.Inc()
 		}(user)
-	}
-	for i, user := range users {
-		var to common.Address
-		if i == len(users)-1 {
-			to = users[0].pub.Address()
-		} else {
-			to = users[i+1].pub.Address()
-		}
 
-		go func(user pair, to common.Address) {
-			TransferBalance(Http, user.prv, user.pub, to, 10, 1)
-			counter.Inc()
-		}(user, to)
+		time.Sleep(time.Microsecond * 200)
+	}
+
+	for {
+		for i, user := range users {
+			var to common.Address
+			if i == len(users)-1 {
+				to = users[0].pub.Address()
+			} else {
+				to = users[i+1].pub.Address()
+			}
+
+			go func(user pair, to common.Address) {
+				TransferBalance(Websocket, user.prv, user.pub, to, 10, 1)
+				counter.Inc()
+			}(user, to)
+
+			time.Sleep(time.Microsecond * 200)
+		}
 	}
 }
 
 func caculateTPS() {
+	var sec int64 = 0
 	for {
 		select {
 		case <-time.Tick(time.Second):
-			logrus.Info("TPS: ", counter.Load())
+			sec++
+			logrus.Info("TPS: ", counter.Load()/sec)
 		}
 	}
 }

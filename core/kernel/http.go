@@ -10,8 +10,7 @@ import (
 	"net/http"
 )
 
-const PARAMS_KEY = "params"
-
+// FIXME: conflict websocket
 func (m *Kernel) HandleHttp() {
 	r := gin.Default()
 
