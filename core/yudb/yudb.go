@@ -47,9 +47,9 @@ func (bb *YuDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	return ts.toTxn()
 }
 
-func (bb *YuDB) ExistTxn(hash Hash) bool {
+func (bb *YuDB) ExistTxn(txnHash Hash) bool {
 	var ts TxnScheme
-	result := bb.db.Db().Where(TxnScheme{TxnHash: hash.String()}).Find(&ts)
+	result := bb.db.Db().Debug().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
 	return result.RowsAffected > 0
 }
 
