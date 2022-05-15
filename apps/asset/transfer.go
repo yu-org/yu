@@ -22,35 +22,35 @@ func NewAsset(tokenName string) *Asset {
 	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
 	a.SetQueries(a.QueryBalance)
 
-	a.SetTxnChecker(func(txn *SignedTxn) error {
-		if txn.Raw.Ecall.LeiPrice == 0 {
-			return nil
-		}
-
-		if !a.existAccount(txn.Raw.Caller) {
-			return AccountNotFound(txn.Raw.Caller)
-		}
-
-		balance := a.getBalance(txn.Raw.Caller)
-		leiPrice := new(big.Int).SetUint64(txn.Raw.Ecall.LeiPrice)
-		if balance.Cmp(leiPrice) < 0 {
-			return InsufficientFunds
-		}
-
-		//validatorsCount := len(validators)
-		//if validatorsCount > 0 {
-		//	validatorsCountBigInt := new(big.Int).SetInt64(int64(validatorsCount))
-		//	rewards := new(big.Int).Div(leiPrice, validatorsCountBigInt)
-		//	for _, validator := range validators {
-		//		err := a.transfer(txn.Raw.Caller, validator.Address(), rewards)
-		//		if err != nil {
-		//			return err
-		//		}
-		//	}
-		//}
-
-		return nil
-	})
+	//a.SetTxnChecker(func(txn *SignedTxn) error {
+	//	if txn.Raw.Ecall.LeiPrice == 0 {
+	//		return nil
+	//	}
+	//
+	//	if !a.existAccount(txn.Raw.Caller) {
+	//		return AccountNotFound(txn.Raw.Caller)
+	//	}
+	//
+	//	balance := a.getBalance(txn.Raw.Caller)
+	//	leiPrice := new(big.Int).SetUint64(txn.Raw.Ecall.LeiPrice)
+	//	if balance.Cmp(leiPrice) < 0 {
+	//		return InsufficientFunds
+	//	}
+	//
+	//	validatorsCount := len(validators)
+	//	if validatorsCount > 0 {
+	//		validatorsCountBigInt := new(big.Int).SetInt64(int64(validatorsCount))
+	//		rewards := new(big.Int).Div(leiPrice, validatorsCountBigInt)
+	//		for _, validator := range validators {
+	//			err := a.transfer(txn.Raw.Caller, validator.Address(), rewards)
+	//			if err != nil {
+	//				return err
+	//			}
+	//		}
+	//	}
+	//
+	//	return nil
+	//})
 
 	return a
 }
