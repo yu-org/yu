@@ -11,8 +11,7 @@ import (
 )
 
 type SignedTxn struct {
-	Raw *UnsignedTxn
-	// FIXME: cannot avoid replay attack, need to re-design TxHash
+	Raw       *UnsignedTxn
 	TxnHash   Hash
 	Pubkey    PubKey
 	Signature []byte
@@ -23,16 +22,16 @@ func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*Sig
 	if err != nil {
 		return nil, err
 	}
-	hash, err := raw.Hash()
+	stx := &SignedTxn{
+		Raw:       raw,
+		Pubkey:    pubkey,
+		Signature: sig,
+	}
+	stx.TxnHash, err = stx.Hash()
 	if err != nil {
 		return nil, err
 	}
-	return &SignedTxn{
-		Raw:       raw,
-		TxnHash:   hash,
-		Pubkey:    pubkey,
-		Signature: sig,
-	}, nil
+	return stx, nil
 }
 
 func (st *SignedTxn) ToPb() *goproto.SignedTxn {
@@ -55,6 +54,16 @@ func SignedTxnFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
 		Pubkey:    pubkey,
 		Signature: pb.Signature,
 	}, nil
+}
+
+func (st *SignedTxn) Hash() (Hash, error) {
+	var hash Hash
+	byt, err := st.Encode()
+	if err != nil {
+		return NullHash, err
+	}
+	hash = sha256.Sum256(byt)
+	return hash, nil
 }
 
 func (st *SignedTxn) Encode() ([]byte, error) {
@@ -146,29 +155,21 @@ func DecodeSignedTxns(data []byte) (SignedTxns, error) {
 }
 
 type UnsignedTxn struct {
-	Id        Hash
 	Caller    Address
 	Ecall     *Ecall
 	Timestamp uint64
 }
 
 func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
-	utxn := &UnsignedTxn{
+	return &UnsignedTxn{
 		Caller:    caller,
 		Ecall:     ecall,
 		Timestamp: ytime.NowNanoTsU64(),
-	}
-	id, err := utxn.Hash()
-	if err != nil {
-		return nil, err
-	}
-	utxn.Id = id
-	return utxn, nil
+	}, nil
 }
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
-		Id:     ut.Id.Bytes(),
 		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
 			TripodName: ut.Ecall.TripodName,
@@ -182,7 +183,6 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
-		Id:     BytesToHash(pb.Id),
 		Caller: BytesToAddress(pb.Caller),
 		Ecall: &Ecall{
 			TripodName: pb.Ecall.TripodName,
@@ -192,16 +192,6 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 		},
 		Timestamp: pb.Timestamp,
 	}
-}
-
-func (ut *UnsignedTxn) Hash() (Hash, error) {
-	var hash Hash
-	byt, err := ut.Encode()
-	if err != nil {
-		return NullHash, err
-	}
-	hash = sha256.Sum256(byt)
-	return hash, nil
 }
 
 func (ut *UnsignedTxn) Encode() ([]byte, error) {
