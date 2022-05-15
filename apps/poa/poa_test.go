@@ -135,7 +135,7 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
 	}
-	poaNode.SetChainEnv(env)
+	poaNode.GetTripodHeader().SetChainEnv(env)
 
 	k := kernel.NewKernel(&cfg, env, land)
 	for i := 0; i < 10; i++ {

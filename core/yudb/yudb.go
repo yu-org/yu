@@ -49,7 +49,7 @@ func (bb *YuDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 
 func (bb *YuDB) ExistTxn(txnHash Hash) bool {
 	var ts TxnScheme
-	result := bb.db.Db().Debug().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
+	result := bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
 	return result.RowsAffected > 0
 }
 
@@ -64,7 +64,7 @@ func (bb *YuDB) SetTxn(stxn *SignedTxn) error {
 
 func (bb *YuDB) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
 	var schemes []*TxnScheme
-	err = bb.db.Db().Where(&TxnScheme{IsPacked: false}).Find(&schemes).Error
+	err = bb.db.Db().Where(map[string]interface{}{"is_packed": false}).Find(&schemes).Error
 	if err != nil {
 		return
 	}

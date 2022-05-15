@@ -1,7 +1,7 @@
 package yudb
 
 import (
-	"github.com/test-go/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/keypair"
@@ -12,7 +12,7 @@ import (
 
 var yudbCfg = &config.YuDBConf{BaseDB: config.SqlDbConf{
 	SqlDbType: "sqlite",
-	Dsn:       "/test_yudb",
+	Dsn:       "./test_yudb",
 }}
 
 var (
@@ -46,9 +46,12 @@ func init() {
 
 func TestExistTxn(t *testing.T) {
 	yudb := NewYuDB(yudbCfg)
-	insertTxns(yudb)
+	err := yudb.SetTxn(txn1)
+	if err != nil {
+		panic(err)
+	}
 	assert.True(t, yudb.ExistTxn(txn1.TxnHash))
-	assert.True(t, yudb.ExistTxn(txn2.TxnHash))
+	assert.True(t, !yudb.ExistTxn(txn2.TxnHash))
 }
 
 func TestPacks(t *testing.T) {
@@ -62,7 +65,7 @@ func TestPacks(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	assert.Equal(t, unpacks[0].TxnHash, txn3.TxnHash)
+	assert.Equal(t, txn3.TxnHash.String(), unpacks[0].TxnHash.String())
 }
 
 func insertTxns(yudb *YuDB) {
@@ -70,12 +73,17 @@ func insertTxns(yudb *YuDB) {
 	if err != nil {
 		panic(err)
 	}
+	println("insert txn1: ", txn1.TxnHash.String())
+
 	err = yudb.SetTxn(txn2)
 	if err != nil {
 		panic(err)
 	}
+	println("insert txn2: ", txn2.TxnHash.String())
+
 	err = yudb.SetTxn(txn3)
 	if err != nil {
 		panic(err)
 	}
+	println("insert txn3: ", txn3.TxnHash.String())
 }
