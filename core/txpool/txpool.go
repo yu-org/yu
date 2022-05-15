@@ -82,6 +82,8 @@ func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
 }
 
 func (tp *TxPool) Exist(stxn *SignedTxn) bool {
+	tp.RLock()
+	defer tp.RUnlock()
 	if tp.unpackedTxns.exist(stxn) {
 		return true
 	}
