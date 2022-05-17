@@ -18,8 +18,8 @@ type MerkleNode struct {
 }
 
 // NewMerkleTree creates a new Merkle tree from a sequence of data
-func NewMerkleTree(data []Hash) *MerkleTree {
-	if len(data) == 0 {
+func NewMerkleTree(hashes []Hash) *MerkleTree {
+	if len(hashes) == 0 {
 		return &MerkleTree{RootNode: &MerkleNode{
 			Left:  nil,
 			Right: nil,
@@ -27,39 +27,39 @@ func NewMerkleTree(data []Hash) *MerkleTree {
 		}}
 	}
 
-	var nodes []MerkleNode
+	var nodes []*MerkleNode
 
-	if len(data)%2 != 0 {
-		data = append(data, data[len(data)-1])
+	if len(hashes)%2 != 0 {
+		hashes = append(hashes, hashes[len(hashes)-1])
 	}
 
-	for _, datum := range data {
-		node := newMerkleNode(nil, nil, datum)
-		nodes = append(nodes, *node)
+	for _, hash := range hashes {
+		leaf := newMerkleNode(nil, nil, hash)
+		nodes = append(nodes, leaf)
 	}
 
-	for i := 0; i < len(data)/2; i++ {
-		var newLevel []MerkleNode
+	for {
+		var newLevel []*MerkleNode
 
-		for j := 0; j < len(nodes); j += 2 {
-			node := newMerkleNode(&nodes[j], &nodes[j+1], NullHash)
-			newLevel = append(newLevel, *node)
+		for j := 0; j < len(nodes)-1; j += 2 {
+
+			node := newMerkleNode(nodes[j], nodes[j+1], NullHash)
+			newLevel = append(newLevel, node)
 		}
-
 		nodes = newLevel
+
+		if len(nodes) == 1 {
+			return &MerkleTree{RootNode: nodes[0]}
+		}
 	}
-
-	mTree := MerkleTree{&nodes[0]}
-
-	return &mTree
 }
 
 // NewMerkleNode creates a new Merkle tree node
-func newMerkleNode(left, right *MerkleNode, data Hash) *MerkleNode {
-	mNode := MerkleNode{}
+func newMerkleNode(left, right *MerkleNode, defaultHash Hash) *MerkleNode {
+	mNode := &MerkleNode{}
 
 	if left == nil && right == nil {
-		mNode.Data = sha256.Sum256(data.Bytes())
+		mNode.Data = sha256.Sum256(defaultHash.Bytes())
 	} else {
 		prevHashes := append(left.Data.Bytes(), right.Data.Bytes()...)
 		mNode.Data = sha256.Sum256(prevHashes)
@@ -68,5 +68,5 @@ func newMerkleNode(left, right *MerkleNode, data Hash) *MerkleNode {
 	mNode.Left = left
 	mNode.Right = right
 
-	return &mNode
+	return mNode
 }

@@ -29,6 +29,9 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 		ot.index[input.TxnHash] = 0
 	}
 	for i, tx := range ot.txns {
+		if tx == nil {
+			continue
+		}
 		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
 			ot.txns = append(ot.txns[:i], append([]*SignedTxn{input}, ot.txns[i:]...)...)
 			ot.index[input.TxnHash] = i
@@ -41,8 +44,9 @@ func (ot *orderedTxns) delete(hash Hash) {
 	if idx, ok := ot.index[hash]; !ok {
 		return
 	} else {
-		logrus.Debugf("DELETE txn(%s) from txpool", hash.String())
-		ot.txns = append(ot.txns[:idx], ot.txns[idx+1:]...)
+		logrus.Tracef("DELETE txn(%s) from txpool", hash.String())
+		ot.txns[idx] = nil
+
 		delete(ot.index, hash)
 	}
 }
@@ -59,8 +63,8 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		numLimit = uint64(ot.len())
 	}
 	for _, txn := range ot.txns[:numLimit] {
-		if filter(txn) {
-			logrus.Debugf("Pack txn(%s) from Txpool", txn.TxnHash.String())
+		if filter(txn) && txn != nil {
+			logrus.Tracef("Pack txn(%s) from Txpool", txn.TxnHash.String())
 			txns = append(txns, txn)
 		}
 	}
