@@ -7,8 +7,9 @@ import (
 )
 
 type orderedTxns struct {
-	index map[Hash]int
-	txns  []*SignedTxn
+	length int
+	index  map[Hash]int
+	txns   []*SignedTxn
 }
 
 func newOrderedTxns() *orderedTxns {
@@ -24,6 +25,7 @@ func (ot *orderedTxns) exist(txn *SignedTxn) bool {
 }
 
 func (ot *orderedTxns) insert(input *SignedTxn) {
+	ot.length++
 	if len(ot.txns) == 0 {
 		ot.txns = []*SignedTxn{input}
 		ot.index[input.TxnHash] = 0
@@ -48,6 +50,7 @@ func (ot *orderedTxns) delete(hash Hash) {
 		ot.txns[idx] = nil
 
 		delete(ot.index, hash)
+		ot.length--
 	}
 }
 
@@ -72,5 +75,5 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 }
 
 func (ot *orderedTxns) len() int {
-	return len(ot.txns)
+	return ot.length
 }
