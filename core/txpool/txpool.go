@@ -84,9 +84,6 @@ func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
 func (tp *TxPool) Exist(stxn *SignedTxn) bool {
 	tp.RLock()
 	defer tp.RUnlock()
-	if tp.unpackedTxns.exist(stxn) {
-		return true
-	}
 	// check replay attack
 	return tp.yudb.ExistTxn(stxn.TxnHash)
 }
@@ -160,7 +157,7 @@ func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 }
 
 func (tp *TxPool) checkPoolLimit(*SignedTxn) error {
-	if uint64(tp.unpackedTxns.len()) >= tp.poolSize {
+	if uint64(tp.unpackedTxns.size()) >= tp.poolSize {
 		return PoolOverflow
 	}
 	return nil
