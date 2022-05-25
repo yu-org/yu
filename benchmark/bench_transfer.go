@@ -7,7 +7,6 @@ import (
 	. "github.com/yu-org/yu/example/client/asset"
 	. "github.com/yu-org/yu/example/client/callchain"
 	"go.uber.org/atomic"
-	"sync"
 	"time"
 )
 
@@ -31,19 +30,12 @@ func main() {
 	go caculateTPS()
 	go SubEvent()
 
-	wg := &sync.WaitGroup{}
-
 	for _, user := range users {
-		wg.Add(1)
-		go func(user pair, wg *sync.WaitGroup) {
-			CreateAccount(Websocket, user.prv, user.pub, 1_0000_0000)
-			counter.Inc()
-			wg.Done()
-		}(user, wg)
+		CreateAccount(Websocket, user.prv, user.pub, 1_0000_0000)
+		counter.Inc()
 
-		time.Sleep(time.Microsecond * 200)
+		time.Sleep(time.Microsecond * 100)
 	}
-	wg.Wait()
 
 	for {
 		for i, user := range users {
@@ -54,12 +46,10 @@ func main() {
 				to = users[i+1].pub.Address()
 			}
 
-			go func(user pair, to common.Address) {
-				TransferBalance(Websocket, user.prv, user.pub, to, 10, 1)
-				counter.Inc()
-			}(user, to)
+			TransferBalance(Websocket, user.prv, user.pub, to, 10, 1)
+			counter.Inc()
 
-			time.Sleep(time.Microsecond * 200)
+			time.Sleep(time.Microsecond * 100)
 		}
 	}
 }
