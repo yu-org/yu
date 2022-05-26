@@ -30,12 +30,15 @@ func main() {
 	go caculateTPS()
 	go SubEvent()
 
+	start := time.Now()
+
 	for _, user := range users {
 		CreateAccount(Websocket, user.prv, user.pub, 1_0000_0000)
 		counter.Inc()
-
-		time.Sleep(time.Microsecond * 100)
+		time.Sleep(10 * time.Microsecond)
 	}
+
+	logrus.Infof("create accounts (%d) cost %d", len(users), time.Since(start).Milliseconds())
 
 	for {
 		for i, user := range users {
@@ -48,8 +51,7 @@ func main() {
 
 			TransferBalance(Websocket, user.prv, user.pub, to, 10, 1)
 			counter.Inc()
-
-			time.Sleep(time.Microsecond * 100)
+			time.Sleep(10 * time.Microsecond)
 		}
 	}
 }
