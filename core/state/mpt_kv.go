@@ -71,7 +71,10 @@ func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
 
 func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
 	for i := len(skv.stashes) - 1; i >= 0; i-- {
-		value := skv.stashes[i].get(makeKey(triName, key))
+		ops, value := skv.stashes[i].get(makeKey(triName, key))
+		if *ops == DeleteOp {
+			return nil, nil
+		}
 		if value != nil {
 			return value, nil
 		}
@@ -227,11 +230,11 @@ func (k *TxnStashes) append(ops Ops, key, value []byte) {
 	k.indexes[string(key)] = len(k.stashes) - 1
 }
 
-func (k *TxnStashes) get(key []byte) []byte {
+func (k *TxnStashes) get(key []byte) (*Ops, []byte) {
 	if idx, ok := k.indexes[string(key)]; ok {
-		return k.stashes[idx].Value
+		return &k.stashes[idx].ops, k.stashes[idx].Value
 	}
-	return nil
+	return nil, nil
 }
 
 func (k *TxnStashes) commit(mpt *Trie) error {
