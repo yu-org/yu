@@ -7,7 +7,6 @@ import (
 	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -51,56 +50,6 @@ func (bb *YuDB) ExistTxn(txnHash Hash) bool {
 	var ts TxnScheme
 	result := bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
 	return result.RowsAffected > 0
-}
-
-func (bb *YuDB) SetTxn(stxn *SignedTxn) error {
-	txnSm, err := toTxnScheme(stxn)
-	if err != nil {
-		return err
-	}
-	bb.db.Db().Create(&txnSm)
-	return nil
-}
-
-func (bb *YuDB) GetAllUnpackedTxns() (txns []*SignedTxn, err error) {
-	var schemes []*TxnScheme
-	err = bb.db.Db().Where(map[string]interface{}{"is_packed": false}).Find(&schemes).Error
-	if err != nil {
-		return
-	}
-	for _, scheme := range schemes {
-		var txn *SignedTxn
-		txn, err = scheme.toTxn()
-		if err != nil {
-			return
-		}
-		txns = append(txns, txn)
-	}
-	return
-}
-
-func (bb *YuDB) Packs(block Hash, txns []Hash) error {
-	return bb.db.Db().Transaction(func(tx *gorm.DB) error {
-		for _, txn := range txns {
-			err := tx.Where(TxnScheme{TxnHash: txn.String()}).
-				Updates(TxnScheme{
-					BlockHash: block.String(),
-					IsPacked:  true,
-				}).Error
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (bb *YuDB) Pack(block, txn Hash) error {
-	return bb.db.Db().Where(TxnScheme{TxnHash: txn.String()}).
-		Updates(TxnScheme{
-			BlockHash: block.String(),
-			IsPacked:  true,
-		}).Error
 }
 
 func (bb *YuDB) GetTxns(blockHash Hash) ([]*SignedTxn, error) {

@@ -83,13 +83,7 @@ type IBlockChain interface {
 
 type IyuDB interface {
 	GetTxn(txnHash Hash) (*SignedTxn, error)
-	SetTxn(stxn *SignedTxn) error
 	ExistTxn(hash Hash) bool
-
-	Packs(block Hash, txns []Hash) error
-	Pack(block, txn Hash) error
-
-	GetAllUnpackedTxns() (txns []*SignedTxn, err error)
 
 	GetTxns(blockHash Hash) ([]*SignedTxn, error)
 	SetTxns(blockHash Hash, txns []*SignedTxn) error

@@ -211,12 +211,7 @@ func (m *Kernel) SyncHistoryBlocks(blocks []*CompactBlock) error {
 		for _, block := range blocks {
 			logrus.Trace("sync history block is ", block.Hash.String())
 
-			err := m.SyncTxns(block)
-			if err != nil {
-				return err
-			}
-
-			err = m.land.RangeList(func(tri Tripod) error {
+			err := m.land.RangeList(func(tri Tripod) error {
 				if tri.VerifyBlock(block) {
 					return nil
 				}

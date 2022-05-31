@@ -1,7 +1,6 @@
 package txpool
 
 import (
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
@@ -35,13 +34,6 @@ func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
 		yudb:         base,
 		baseChecks:   make([]TxnCheckFn, 0),
 		tripodChecks: make([]TxnCheckFn, 0),
-	}
-	allUnpacked, err := tp.yudb.GetAllUnpackedTxns()
-	if err != nil {
-		logrus.Fatal("get all unpacked txns from txpool db failed: ", err)
-	}
-	for _, tx := range allUnpacked {
-		tp.unpackedTxns.insert(tx)
 	}
 	return tp
 }
@@ -99,10 +91,6 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	tp.Lock()
 	defer tp.Unlock()
-	err := tp.yudb.SetTxn(stxn)
-	if err != nil {
-		return err
-	}
 	tp.unpackedTxns.insert(stxn)
 	return nil
 }
@@ -126,10 +114,10 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 	return txns, nil
 }
 
-func (tp *TxPool) Reset(block *CompactBlock) error {
+func (tp *TxPool) Reset(block *Block) error {
 	tp.Lock()
 	defer tp.Unlock()
-	err := tp.yudb.Packs(block.Hash, block.TxnsHashes)
+	err := tp.yudb.SetTxns(block.Hash, block.Txns)
 	if err != nil {
 		return err
 	}

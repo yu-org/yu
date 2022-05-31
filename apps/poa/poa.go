@@ -209,17 +209,17 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
-	err = h.Pool.Reset(block)
+	rawBlock := &Block{
+		CompactBlock: block,
+		Txns:         txns,
+	}
+
+	err = h.Pool.Reset(rawBlock)
 	if err != nil {
 		return err
 	}
 
 	h.State.StartBlock(block.Hash)
-
-	rawBlock := &Block{
-		CompactBlock: block,
-		Txns:         txns,
-	}
 
 	rawBlockByt, err := rawBlock.Encode()
 	if err != nil {
@@ -288,7 +288,7 @@ func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
 		return true
 	}
 	h.State.StartBlock(localBlock.Hash)
-	err = h.Pool.Reset(localBlock)
+	err = h.Pool.Reset(p2pBlock)
 	if err != nil {
 		logrus.Error("clear txpool error: ", err)
 	}
