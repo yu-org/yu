@@ -97,7 +97,7 @@ func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 		}
 
 		if IfLeiOut(lei, block) {
-			m.handleError(OutOfEnergy, ctx, block, stxn)
+			m.handleError(OutOfLei, ctx, block, stxn)
 			break
 		}
 

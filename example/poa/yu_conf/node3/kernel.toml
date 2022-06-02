@@ -21,7 +21,7 @@ sql_db_type = "sqlite"
 dsn = "yudb.db"
 
 [txpool]
-pool_size = 2048
+pool_size = 20000
 txn_max_size = 1024000
 
 [state.kv.index_db]

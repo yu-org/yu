@@ -27,7 +27,7 @@ var (
 	TxnTooLarge     error = errors.New("the size of txn is too large")
 )
 
-var OutOfEnergy = errors.New("energy out")
+var OutOfLei = errors.New("Lei out")
 
 type ErrBlockIllegal struct {
 	BlockHash string
@@ -93,7 +93,7 @@ func (q ErrQryNotFound) Error() string {
 //	txnsHashes []string
 //}
 //
-//func OutOfEnergy(txnsHashes []Hash) ErrOutOfEnergy {
+//func OutOfLei(txnsHashes []Hash) ErrOutOfEnergy {
 //	hashes := make([]string, 0)
 //	for _, txnHash := range txnsHashes {
 //		hashes = append(hashes, txnHash.String())
