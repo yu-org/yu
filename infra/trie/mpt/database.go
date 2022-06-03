@@ -2,7 +2,6 @@ package mpt
 
 import (
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"sync"
 )
@@ -12,16 +11,14 @@ type NodeBase struct {
 	lock sync.RWMutex
 }
 
-func NewNodeBase(cfg *config.KVconf) (*NodeBase, error) {
-	db, err := kv.NewKV(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &NodeBase{db: db}, nil
+const MptData = "mpt-data"
+
+func NewNodeBase(db kv.KV) *NodeBase {
+	return &NodeBase{db: db}
 }
 
 func (db *NodeBase) node(hash Hash) node {
-	enc, err := db.db.Get(hash.Bytes())
+	enc, err := db.db.Get(MptData, hash.Bytes())
 	if err != nil || enc == nil {
 		return nil
 	}
@@ -30,11 +27,11 @@ func (db *NodeBase) node(hash Hash) node {
 }
 
 func (db *NodeBase) Get(toGet []byte) ([]byte, error) {
-	return db.db.Get(toGet)
+	return db.db.Get(MptData, toGet)
 }
 
 func (db *NodeBase) Put(key []byte, value []byte) error {
-	return db.db.Set(key, value)
+	return db.db.Set(MptData, key, value)
 }
 
 func (db *NodeBase) Close() error {

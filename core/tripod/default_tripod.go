@@ -47,18 +47,14 @@ func (dt *DefaultTripod) VerifyBlock(block *CompactBlock) bool {
 	return dt.blockVerifier(block)
 }
 
-func (*DefaultTripod) InitChain() error {
-	return nil
+func (*DefaultTripod) InitChain() {
 }
 
-func (*DefaultTripod) StartBlock(*CompactBlock) error {
-	return nil
+func (*DefaultTripod) StartBlock(*CompactBlock) {
 }
 
-func (*DefaultTripod) EndBlock(*CompactBlock) error {
-	return nil
+func (*DefaultTripod) EndBlock(*CompactBlock) {
 }
 
-func (*DefaultTripod) FinalizeBlock(*CompactBlock) error {
-	return nil
+func (*DefaultTripod) FinalizeBlock(*CompactBlock) {
 }

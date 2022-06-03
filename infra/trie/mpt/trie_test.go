@@ -4,6 +4,7 @@ import (
 	"bytes"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"testing"
 )
 
@@ -12,7 +13,12 @@ func TestTrieSetPutandGet(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	db, err := NewNodeBase(cfg)
+	kvdb, err := kv.NewKV(cfg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	db := NewNodeBase(kvdb)
 	if err != nil {
 		t.Error(err)
 		return

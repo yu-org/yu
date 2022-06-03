@@ -22,6 +22,7 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
+	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
 	YuDB       YuDBConf       `toml:"yu_db"`

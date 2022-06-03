@@ -116,7 +116,8 @@ func (m *Kernel) InitChain() error {
 	switch m.RunMode {
 	case LocalNode:
 		return m.land.RangeList(func(tri Tripod) error {
-			return tri.InitChain()
+			tri.InitChain()
+			return nil
 		})
 	case MasterWorker:
 		// todo: init chain

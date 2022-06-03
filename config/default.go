@@ -35,6 +35,11 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 		NodeKeyBits:     0,
 		NodeKeyFile:     "",
 	}
+	cfg.KVDB = KVconf{
+		KvType: "bolt",
+		Path:   "yu.db",
+		Hosts:  nil,
+	}
 	cfg.BlockChain = BlockchainConf{
 		ChainDB: SqlDbConf{
 			SqlDbType: "sqlite",

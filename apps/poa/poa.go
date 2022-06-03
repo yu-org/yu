@@ -106,12 +106,12 @@ func (h *Poa) VerifyBlock(block *CompactBlock) bool {
 	return minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature)
 }
 
-func (h *Poa) InitChain() error {
+func (h *Poa) InitChain() {
 	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")
 	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
 	if err != nil {
-		return err
+		logrus.Panic("sign genesis block failed: ", err)
 	}
 
 	chain := h.Chain
@@ -126,11 +126,11 @@ func (h *Poa) InitChain() error {
 
 	err = chain.SetGenesis(gensisBlock)
 	if err != nil {
-		return err
+		logrus.Panic("set genesis block failed: ", err)
 	}
 	err = chain.Finalize(genesisHash)
 	if err != nil {
-		return err
+		logrus.Panic("finalize genesis block failed: ", err)
 	}
 	go func() {
 		for {
@@ -164,10 +164,9 @@ func (h *Poa) InitChain() error {
 			h.recvChan <- p2pBlock
 		}
 	}()
-	return nil
 }
 
-func (h *Poa) StartBlock(block *CompactBlock) error {
+func (h *Poa) StartBlock(block *CompactBlock) {
 	now := time.Now()
 	defer func() {
 		duration := time.Since(now)
@@ -182,20 +181,20 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 		if h.useP2pOrSkip(block) {
 			logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
 				block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
-			return nil
+			return
 		}
 	}
 
 	txns, err := h.Pool.Pack(3000)
 	if err != nil {
-		return err
+		logrus.Panic("pack txns from pool: ", err)
 	}
 	hashes := FromArray(txns...).Hashes()
 	block.TxnsHashes = hashes
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
-		return err
+		logrus.Panic("make txn-root failed: ", err)
 	}
 	block.TxnRoot = txnRoot
 
@@ -205,7 +204,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 	// miner signs block
 	block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
 	if err != nil {
-		return err
+		logrus.Panic("sign block failed: ", err)
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
@@ -216,44 +215,45 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 
 	err = h.Pool.Reset(rawBlock)
 	if err != nil {
-		return err
+		logrus.Panic("reset pool failed: ", err)
 	}
 
 	h.State.StartBlock(block.Hash)
 
 	rawBlockByt, err := rawBlock.Encode()
 	if err != nil {
-		return err
+		logrus.Panic("encode raw-block failed: ", err)
 	}
 
-	return h.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
+	err = h.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
+	if err != nil {
+		logrus.Panic("publish block to p2p failed: ", err)
+	}
 }
 
-func (h *Poa) EndBlock(block *CompactBlock) error {
+func (h *Poa) EndBlock(block *CompactBlock) {
 	chain := h.Chain
 
 	err := h.Execute(block)
 	if err != nil {
-		return err
+		logrus.Panic("execute block failed: ", err)
 	}
 
 	err = chain.AppendBlock(block)
 	if err != nil {
-		return err
+		logrus.Panic("append block failed: ", err)
 	}
 
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("append block")
 
 	h.State.FinalizeBlock(block.Hash)
-
-	return nil
 }
 
-func (h *Poa) FinalizeBlock(block *CompactBlock) error {
+func (h *Poa) FinalizeBlock(block *CompactBlock) {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("finalize block")
-	return h.Chain.Finalize(block.Hash)
+	h.Chain.Finalize(block.Hash)
 }
 
 func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {

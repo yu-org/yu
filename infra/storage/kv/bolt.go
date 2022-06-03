@@ -37,7 +37,8 @@ func (*boltKV) Kind() storage.StoreKind {
 	return storage.KV
 }
 
-func (b *boltKV) Get(key []byte) ([]byte, error) {
+func (b *boltKV) Get(prefix string, key []byte) ([]byte, error) {
+	key = makeKey(prefix, key)
 	var value []byte
 	err := b.db.View(func(tx *bbolt.Tx) error {
 		bu := tx.Bucket(bucket)
@@ -47,33 +48,36 @@ func (b *boltKV) Get(key []byte) ([]byte, error) {
 	return value, err
 }
 
-func (b *boltKV) Set(key []byte, value []byte) error {
+func (b *boltKV) Set(prefix string, key []byte, value []byte) error {
+	key = makeKey(prefix, key)
 	return b.db.Update(func(tx *bbolt.Tx) error {
 		return tx.Bucket(bucket).Put(key, value)
 	})
 }
 
-func (b *boltKV) Delete(key []byte) error {
+func (b *boltKV) Delete(prefix string, key []byte) error {
+	key = makeKey(prefix, key)
 	return b.db.Update(func(tx *bbolt.Tx) error {
 		return tx.Bucket(bucket).Delete(key)
 	})
 }
 
-func (b *boltKV) Exist(key []byte) bool {
-	value, _ := b.Get(key)
+func (b *boltKV) Exist(prefix string, key []byte) bool {
+	value, _ := b.Get(prefix, key)
 	return value != nil
 }
 
-func (b *boltKV) Iter(keyPrefix []byte) (Iterator, error) {
+func (b *boltKV) Iter(prefix string, key []byte) (Iterator, error) {
+	key = makeKey(prefix, key)
 	var c *bbolt.Cursor
 	err := b.db.View(func(tx *bbolt.Tx) error {
 		c = tx.Bucket(bucket).Cursor()
-		c.Seek(keyPrefix)
+		c.Seek(key)
 		return nil
 	})
 	return &boltIterator{
 		c:         c,
-		keyPrefix: keyPrefix,
+		keyPrefix: key,
 	}, err
 }
 
@@ -115,15 +119,18 @@ type boltTxn struct {
 	tx *bbolt.Tx
 }
 
-func (bot *boltTxn) Get(key []byte) ([]byte, error) {
+func (bot *boltTxn) Get(prefix string, key []byte) ([]byte, error) {
+	key = makeKey(prefix, key)
 	return bot.tx.Bucket(bucket).Get(key), nil
 }
 
-func (bot *boltTxn) Set(key, value []byte) error {
+func (bot *boltTxn) Set(prefix string, key, value []byte) error {
+	key = makeKey(prefix, key)
 	return bot.tx.Bucket(bucket).Put(key, value)
 }
 
-func (bot *boltTxn) Delete(key []byte) error {
+func (bot *boltTxn) Delete(prefix string, key []byte) error {
+	key = makeKey(prefix, key)
 	return bot.tx.Bucket(bucket).Delete(key)
 }
 

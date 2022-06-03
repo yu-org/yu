@@ -8,11 +8,11 @@ import (
 
 type KV interface {
 	storage.StorageType
-	Get(key []byte) ([]byte, error)
-	Set(key []byte, value []byte) error
-	Delete(key []byte) error
-	Exist(key []byte) bool
-	Iter(key []byte) (Iterator, error)
+	Get(prefix string, key []byte) ([]byte, error)
+	Set(prefix string, key []byte, value []byte) error
+	Delete(prefix string, key []byte) error
+	Exist(prefix string, key []byte) bool
+	Iter(prefix string, key []byte) (Iterator, error)
 	NewKvTxn() (KvTxn, error)
 }
 
@@ -38,9 +38,13 @@ type Iterator interface {
 }
 
 type KvTxn interface {
-	Get([]byte) ([]byte, error)
-	Set(key, value []byte) error
-	Delete(key []byte) error
+	Get(prefix string, key []byte) ([]byte, error)
+	Set(prefix string, key, value []byte) error
+	Delete(preifx string, key []byte) error
 	Commit() error
 	Rollback() error
+}
+
+func makeKey(prefix string, key []byte) []byte {
+	return append([]byte(prefix), key...)
 }

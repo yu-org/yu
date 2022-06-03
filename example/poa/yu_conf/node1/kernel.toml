@@ -12,6 +12,9 @@ protocol_id = "yu"
 node_key_type = 1
 node_key_rand_seed = 1
 
+[kvdb]
+kv_type = "bolt"
+path = "./yu.db"
 
 [block_chain.chain_db]
 sql_db_type = "sqlite"

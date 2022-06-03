@@ -27,7 +27,9 @@ type EvmKV struct {
 	stashes []*EvmTxnStashes
 }
 
-func NewEvmKV(root Hash, cfg *EvmKvConf) IState {
+const EVMKV = "evmkv"
+
+func NewEvmKV(root Hash, kvdb KV, cfg *EvmKvConf) IState {
 	ethdb, err := rawdb.NewLevelDBDatabase(cfg.Fpath, cfg.Cache, cfg.Handles, cfg.Namespace, cfg.ReadOnly)
 	if err != nil {
 		logrus.Fatal("init geth rawdb error: ", err)
@@ -41,10 +43,7 @@ func NewEvmKV(root Hash, cfg *EvmKvConf) IState {
 		logrus.Fatal("init EvmKV indexDB error: ", err)
 	}
 
-	nodeBase, err := NewNodeBase(&cfg.NodeBase)
-	if err != nil {
-		logrus.Fatal("init EvmKV nodeBase error: ", err)
-	}
+	nodeBase := NewNodeBase(kvdb)
 
 	return &EvmKV{
 		DB:           db,
@@ -219,11 +218,11 @@ func (db *EvmKV) FinalizeBlock(blockHash Hash) {
 }
 
 func (db *EvmKV) setIndexDB(blockHash, stateRoot Hash) error {
-	return db.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
+	return db.indexDB.Set(EVMKV, blockHash.Bytes(), stateRoot.Bytes())
 }
 
 func (db *EvmKV) getIndexDB(blockHash Hash) (Hash, error) {
-	stateRoot, err := db.indexDB.Get(blockHash.Bytes())
+	stateRoot, err := db.indexDB.Get(EVMKV, blockHash.Bytes())
 	if err != nil {
 		return NullHash, err
 	}

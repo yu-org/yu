@@ -5,8 +5,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"io"
 	"testing"
 	"unicode/utf8"
@@ -134,7 +136,11 @@ func TestGenerateProof(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	db, err := NewNodeBase(cfg)
+	kvdb, err := kv.NewKV(cfg)
+	if err != nil {
+		assert.NoError(t, err)
+	}
+	db := NewNodeBase(kvdb)
 	if err != nil {
 		t.Error(err)
 		return
@@ -172,11 +178,11 @@ func TestGenerateLongProof(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	db, err := NewNodeBase(cfg)
+	kvdb, err := kv.NewKV(cfg)
 	if err != nil {
-		t.Error(err)
-		return
+		assert.NoError(t, err)
 	}
+	db := NewNodeBase(kvdb)
 	defer db.Close()
 	var tr *Trie
 	tr, err = NewTrie(HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"), db)

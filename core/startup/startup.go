@@ -14,6 +14,7 @@ import (
 	"github.com/yu-org/yu/core/txpool"
 	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
 	"os"
 )
@@ -32,11 +33,16 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	land := tripod.NewLand()
 
+	kvdb, err := kv.NewKV(&kernelCfg.KVDB)
+	if err != nil {
+		logrus.Fatal("init kvdb error: ", err)
+	}
+
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
 	base := yudb.NewYuDB(&kernelCfg.YuDB)
 
-	statedb := state.NewStateDB(&kernelCfg.State)
+	statedb := state.NewStateDB(kvdb)
 
 	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
 	for _, tri := range tripods {

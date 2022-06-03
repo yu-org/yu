@@ -27,7 +27,8 @@ func (*badgerKV) Kind() storage.StoreKind {
 	return storage.KV
 }
 
-func (bg *badgerKV) Get(key []byte) ([]byte, error) {
+func (bg *badgerKV) Get(prefix string, key []byte) ([]byte, error) {
+	key = makeKey(prefix, key)
 	var valCopy []byte
 	err := bg.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
@@ -40,27 +41,33 @@ func (bg *badgerKV) Get(key []byte) ([]byte, error) {
 		})
 		return nil
 	})
+	if err != nil && err == badger.ErrKeyNotFound {
+		return nil, nil
+	}
 	return valCopy, err
 }
 
-func (bg *badgerKV) Set(key, value []byte) error {
+func (bg *badgerKV) Set(prefix string, key, value []byte) error {
+	key = makeKey(prefix, key)
 	return bg.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(key, value)
 	})
 }
 
-func (bg *badgerKV) Delete(key []byte) error {
+func (bg *badgerKV) Delete(prefix string, key []byte) error {
+	key = makeKey(prefix, key)
 	return bg.db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(key)
 	})
 }
 
-func (bg *badgerKV) Exist(key []byte) bool {
-	value, _ := bg.Get(key)
+func (bg *badgerKV) Exist(prefix string, key []byte) bool {
+	value, _ := bg.Get(prefix, key)
 	return value != nil
 }
 
-func (bg *badgerKV) Iter(key []byte) (Iterator, error) {
+func (bg *badgerKV) Iter(prefix string, key []byte) (Iterator, error) {
+	key = makeKey(prefix, key)
 	var iter *badger.Iterator
 	err := bg.db.View(func(txn *badger.Txn) error {
 		iter = txn.NewIterator(badger.DefaultIteratorOptions)
@@ -113,7 +120,8 @@ type badgerTxn struct {
 	tx *badger.Txn
 }
 
-func (bt *badgerTxn) Get(key []byte) ([]byte, error) {
+func (bt *badgerTxn) Get(prefix string, key []byte) ([]byte, error) {
+	key = makeKey(prefix, key)
 	item, err := bt.tx.Get(key)
 	if err != nil {
 		return nil, err
@@ -126,11 +134,13 @@ func (bt *badgerTxn) Get(key []byte) ([]byte, error) {
 	return value, err
 }
 
-func (bt *badgerTxn) Set(key, value []byte) error {
+func (bt *badgerTxn) Set(prefix string, key, value []byte) error {
+	key = makeKey(prefix, key)
 	return bt.tx.Set(key, value)
 }
 
-func (bt *badgerTxn) Delete(key []byte) error {
+func (bt *badgerTxn) Delete(prefix string, key []byte) error {
+	key = makeKey(prefix, key)
 	return bt.tx.Delete(key)
 }
 

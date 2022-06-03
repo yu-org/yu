@@ -2,7 +2,7 @@ package state
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/infra/storage/kv"
 )
 
 type IState interface {
@@ -20,6 +20,6 @@ type IState interface {
 	FinalizeBlock(blockHash Hash)
 }
 
-func NewStateDB(cfg *StateConf) IState {
-	return NewMptKV(&cfg.KV)
+func NewStateDB(kvdb kv.KV) IState {
+	return NewMptKV(kvdb)
 }

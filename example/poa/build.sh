@@ -21,6 +21,6 @@ cp $node2_cfg_path  $node2_path/$yu_cfg_path
 mv poa $node3_path/
 cp $node3_cfg_path  $node3_path/$yu_cfg_path
 
-rm -f $node1_path/*.*
-rm -f $node2_path/*.*
-rm -f $node3_path/*.*
+rm -rf $node1_path/*.*
+rm -rf $node2_path/*.*
+rm -rf $node3_path/*.*

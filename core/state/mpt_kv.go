@@ -3,7 +3,6 @@ package state
 import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/infra/storage/kv"
 	. "github.com/yu-org/yu/infra/trie/mpt"
 )
@@ -29,19 +28,14 @@ type MptKV struct {
 	stashes []*TxnStashes
 }
 
-func NewMptKV(cfg *MptKvConf) IState {
-	indexDB, err := NewKV(&cfg.IndexDB)
-	if err != nil {
-		logrus.Fatal("init stateKV indexDB error: ", err)
-	}
+const MptIndex = "mpt-index"
 
-	nodeBase, err := NewNodeBase(&cfg.NodeBase)
-	if err != nil {
-		logrus.Fatal("init stateKV nodeBase error: ", err)
-	}
+func NewMptKV(kvdb KV) IState {
+
+	nodeBase := NewNodeBase(kvdb)
 
 	return &MptKV{
-		indexDB:      indexDB,
+		indexDB:      kvdb,
 		nodeBase:     nodeBase,
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
@@ -103,7 +97,7 @@ func (skv *MptKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash)
 	return mpt.TryGet(makeKey(triName, key))
 }
 
-// return StateRoot or error
+// Commit returns StateRoot or error
 func (skv *MptKV) Commit() (Hash, error) {
 	lastStateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
@@ -173,11 +167,11 @@ func (skv *MptKV) FinalizeBlock(blockHash Hash) {
 }
 
 func (skv *MptKV) setIndexDB(blockHash, stateRoot Hash) error {
-	return skv.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
+	return skv.indexDB.Set(MptIndex, blockHash.Bytes(), stateRoot.Bytes())
 }
 
 func (skv *MptKV) getIndexDB(blockHash Hash) (Hash, error) {
-	stateRoot, err := skv.indexDB.Get(blockHash.Bytes())
+	stateRoot, err := skv.indexDB.Get(MptIndex, blockHash.Bytes())
 	if err != nil {
 		return NullHash, err
 	}

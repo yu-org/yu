@@ -10,8 +10,8 @@ type Tripod interface {
 	CheckTxn(*SignedTxn) error
 	VerifyBlock(block *CompactBlock) bool
 
-	InitChain() error
-	StartBlock(block *CompactBlock) error
-	EndBlock(block *CompactBlock) error
-	FinalizeBlock(block *CompactBlock) error
+	InitChain()
+	StartBlock(block *CompactBlock)
+	EndBlock(block *CompactBlock)
+	FinalizeBlock(block *CompactBlock)
 }
