@@ -17,13 +17,13 @@ type TxPool struct {
 	startTS    uint64
 
 	unpackedTxns *orderedTxns
-	yudb         IyuDB
+	yudb         ItxDB
 
 	baseChecks   []TxnCheckFn
 	tripodChecks []TxnCheckFn
 }
 
-func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
+func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
@@ -38,7 +38,7 @@ func NewTxPool(cfg *TxpoolConf, base IyuDB) *TxPool {
 	return tp
 }
 
-func WithDefaultChecks(cfg *TxpoolConf, base IyuDB) *TxPool {
+func WithDefaultChecks(cfg *TxpoolConf, base ItxDB) *TxPool {
 	tp := NewTxPool(cfg, base)
 	return tp.withDefaultBaseChecks()
 }

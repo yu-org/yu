@@ -11,7 +11,7 @@ type Sqlite struct {
 }
 
 func NewSqlite(dsn string) (*Sqlite, error) {
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{CreateBatchSize: 50000})
 	if err != nil {
 		return nil, err
 	}

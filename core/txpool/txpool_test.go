@@ -4,14 +4,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/types"
-	"github.com/yu-org/yu/core/yudb"
 	"testing"
 )
 
 func initTxpool() *TxPool {
 	cfg := config.InitDefaultCfgWithDir("test-txpool")
-	base := yudb.NewYuDB(&cfg.YuDB)
+	base := txdb.NewYuDB(&cfg.YuDB)
 	return WithDefaultChecks(&cfg.Txpool, base)
 }
 

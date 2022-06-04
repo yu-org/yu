@@ -216,7 +216,7 @@ func (p *Pow) useP2pBlock(msg []byte, block *types.CompactBlock) bool {
 
 		block.CopyFrom(p2pBlock)
 		stxns := p2pRawBlock.Txns
-		err = p.env.YuDB.SetTxns(block.Hash, stxns)
+		err = p.env.TxDB.SetTxns(block.Hash, stxns)
 		if err != nil {
 			logrus.Error("set txns of p2p-block into base error: ", err)
 			return false

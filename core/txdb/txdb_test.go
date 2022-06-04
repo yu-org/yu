@@ -1,4 +1,4 @@
-package yudb
+package txdb
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -68,7 +68,7 @@ func TestPacks(t *testing.T) {
 	assert.Equal(t, txn3.TxnHash.String(), unpacks[0].TxnHash.String())
 }
 
-func insertTxns(yudb *YuDB) {
+func insertTxns(yudb *TxDB) {
 	err := yudb.SetTxn(txn1)
 	if err != nil {
 		panic(err)

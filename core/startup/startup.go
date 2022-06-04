@@ -11,8 +11,8 @@ import (
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
 	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/txpool"
-	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
@@ -40,7 +40,7 @@ func StartUp(tripods ...tripod.Tripod) {
 
 	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
 
-	base := yudb.NewYuDB(&kernelCfg.YuDB)
+	base := txdb.NewYuDB(&kernelCfg.YuDB)
 
 	statedb := state.NewStateDB(kvdb)
 
@@ -52,7 +52,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
-		YuDB:       base,
+		TxDB:       base,
 		Pool:       pool,
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),

@@ -1,4 +1,4 @@
-package yudb
+package txdb
 
 import (
 	. "github.com/yu-org/yu/common"
@@ -14,7 +14,6 @@ type TxnScheme struct {
 	Signature string
 	RawTxn    string
 	BlockHash string
-	IsPacked  bool
 }
 
 func (TxnScheme) TableName() string {

@@ -81,7 +81,7 @@ type IBlockChain interface {
 	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*CompactBlock, error)
 }
 
-type IyuDB interface {
+type ItxDB interface {
 	GetTxn(txnHash Hash) (*SignedTxn, error)
 	ExistTxn(hash Hash) bool
 

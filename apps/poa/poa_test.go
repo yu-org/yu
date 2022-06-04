@@ -11,9 +11,9 @@ import (
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
 	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
-	"github.com/yu-org/yu/core/yudb"
 	"github.com/yu-org/yu/infra/p2p"
 	"sync"
 	"testing"
@@ -124,13 +124,13 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 	land.SetTripods(poaNode)
 
 	chain := blockchain.NewBlockChain(&cfg.BlockChain)
-	base := yudb.NewYuDB(&cfg.YuDB)
+	base := txdb.NewYuDB(&cfg.YuDB)
 	statedb := state.NewStateDB(&cfg.State)
 
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
-		YuDB:       base,
+		TxDB:       base,
 		Pool:       txpool.WithDefaultChecks(&cfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
