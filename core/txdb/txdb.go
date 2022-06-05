@@ -1,129 +1,84 @@
 package txdb
 
 import (
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/types"
-	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"github.com/yu-org/yu/infra/storage/kv"
 )
 
 type TxDB struct {
-	db ysql.SqlDB
+	kvdb kv.KV
 }
 
-func NewYuDB(cfg *config.YuDBConf) *TxDB {
-	db, err := ysql.NewSqlDB(&cfg.BaseDB)
-	if err != nil {
-		logrus.Fatal("init blockbase SQL db error: ", err)
-	}
+const (
+	Txns    = "txns"
+	Results = "results"
+)
 
-	err = db.CreateIfNotExist(&TxnScheme{})
-	if err != nil {
-		logrus.Fatal("create blockbase TXN scheme error: ", err)
-	}
-
-	err = db.CreateIfNotExist(&EventScheme{})
-	if err != nil {
-		logrus.Fatal("create blockbase Event scheme error: ", err)
-	}
-
-	err = db.CreateIfNotExist(&ErrorScheme{})
-	if err != nil {
-		logrus.Fatal("create blockbase Error scheme error: ", err)
-	}
-
+func NewTxDB(kvdb kv.KV) *TxDB {
 	return &TxDB{
-		db: db,
+		kvdb: kvdb,
 	}
 }
 
 func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
-	var ts TxnScheme
-	bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
-	return ts.toTxn()
+	byt, err := bb.kvdb.Get(Txns, txnHash.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return DecodeSignedTxn(byt)
 }
 
 func (bb *TxDB) ExistTxn(txnHash Hash) bool {
-	var ts TxnScheme
-	result := bb.db.Db().Where(TxnScheme{TxnHash: txnHash.String()}).Find(&ts)
-	return result.RowsAffected > 0
+	return bb.kvdb.Exist(Txns, txnHash.Bytes())
 }
 
-func (bb *TxDB) GetTxns(blockHash Hash) ([]*SignedTxn, error) {
-	var tss []TxnScheme
-	bb.db.Db().Where(&TxnScheme{BlockHash: blockHash.String()}).Find(&tss)
-	itxns := make([]*SignedTxn, 0)
-	for _, ts := range tss {
-		stxn, err := ts.toTxn()
-		if err != nil {
-			return nil, err
-		}
-		itxns = append(itxns, stxn)
+func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
+	kvtx, err := bb.kvdb.NewKvTxn()
+	if err != nil {
+		return err
 	}
-	return itxns, nil
-}
-
-func (bb *TxDB) SetTxns(blockHash Hash, txns []*SignedTxn) error {
-	txnSms := make([]TxnScheme, 0)
-	for _, stxn := range txns {
-		txnSm, err := newTxnScheme(blockHash, stxn)
+	for _, txn := range txns {
+		txbyt, err := txn.Encode()
 		if err != nil {
 			return err
 		}
-		txnSms = append(txnSms, txnSm)
-	}
-	if len(txnSms) == 0 {
-		return nil
-	}
-	return bb.db.Db().Create(txnSms).Error
-}
-
-func (bb *TxDB) GetEvents(blockHash Hash) ([]*Event, error) {
-	var ess []EventScheme
-	bb.db.Db().Where(&EventScheme{BlockHash: blockHash.String()}).Find(&ess)
-	events := make([]*Event, 0)
-	for _, es := range ess {
-		e, err := es.toEvent()
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, e)
-	}
-	return events, nil
-}
-
-func (bb *TxDB) SetEvents(events []*Event) error {
-	eventSms := make([]EventScheme, 0)
-	for _, event := range events {
-		eventSm, err := toEventScheme(event)
+		err = kvtx.Set(Txns, txn.TxnHash.Bytes(), txbyt)
 		if err != nil {
 			return err
 		}
-		eventSms = append(eventSms, eventSm)
 	}
-	if len(eventSms) > 0 {
-		bb.db.Db().Create(&eventSms)
-	}
-	return nil
+	return kvtx.Commit()
 }
 
-func (bb *TxDB) GetErrors(blockHash Hash) ([]*Error, error) {
-	var ess []ErrorScheme
-	bb.db.Db().Where(&ErrorScheme{BlockHash: blockHash.String()}).Find(&ess)
-	errs := make([]*Error, 0)
-	for _, es := range ess {
-		errs = append(errs, es.toError())
+func (bb *TxDB) SetResults(results []Result) error {
+	kvtx, err := bb.kvdb.NewKvTxn()
+	if err != nil {
+		return err
 	}
-	return errs, nil
+	for _, result := range results {
+		byt, err := result.Encode()
+		if err != nil {
+			return err
+		}
+		hash, err := result.Hash()
+		if err != nil {
+			return err
+		}
+		err = kvtx.Set(Results, hash.Bytes(), byt)
+	}
+	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetError(err *Error) error {
-	if err == nil {
-		return nil
+func (bb *TxDB) SetResult(result Result) error {
+	byt, err := result.Encode()
+	if err != nil {
+		return err
 	}
-	errscm := toErrorScheme(err)
-	bb.db.Db().Create(&errscm)
-	return nil
+	hash, err := result.Hash()
+	if err != nil {
+		return err
+	}
+	return bb.kvdb.Set(Results, hash.Bytes(), byt)
 }

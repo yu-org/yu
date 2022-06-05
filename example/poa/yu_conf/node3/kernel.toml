@@ -20,7 +20,7 @@ path = "./yu.db"
 sql_db_type = "sqlite"
 dsn = "chain.db"
 
-[yu_db.base_db]
+[tx_db.base_db]
 sql_db_type = "sqlite"
 dsn = "yudb.db"
 

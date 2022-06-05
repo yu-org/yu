@@ -32,7 +32,7 @@ func (m *Kernel) SyncHistory() error {
 		}
 
 		if resp.BlocksByt != nil {
-			blocks, err := m.chain.DecodeBlocks(resp.BlocksByt)
+			blocks, err := types.DecodeCompactBlocks(resp.BlocksByt)
 			if err != nil {
 				return err
 			}
@@ -46,12 +46,12 @@ func (m *Kernel) SyncHistory() error {
 		}
 
 		if resp.TxnsByt != nil {
-			for blockHash, byt := range resp.TxnsByt {
+			for _, byt := range resp.TxnsByt {
 				txns, err := types.DecodeSignedTxns(byt)
 				if err != nil {
 					return err
 				}
-				err = m.base.SetTxns(blockHash, txns)
+				err = m.base.SetTxns(txns)
 				if err != nil {
 					return err
 				}
@@ -131,23 +131,22 @@ func (m *Kernel) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[
 	if err != nil {
 		return nil, nil, err
 	}
-	blocksByt, err := m.chain.EncodeBlocks(blocks)
+	var cbs []*types.CompactBlock
+	for _, block := range blocks {
+		cbs = append(cbs, block.Compact())
+	}
+	blocksByt, err := types.EncodeCompactBlocks(cbs)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	txnsByt := make(map[Hash][]byte)
 	for _, block := range blocks {
-		blockHash := block.Hash
-		txns, err := m.base.GetTxns(blockHash)
+		byt, err := block.Txns.Encode()
 		if err != nil {
 			return nil, nil, err
 		}
-		byt, err := types.FromArray(txns...).Encode()
-		if err != nil {
-			return nil, nil, err
-		}
-		txnsByt[blockHash] = byt
+		txnsByt[block.Hash] = byt
 	}
 
 	return blocksByt, txnsByt, nil

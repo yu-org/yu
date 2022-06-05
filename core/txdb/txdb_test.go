@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var yudbCfg = &config.YuDBConf{BaseDB: config.SqlDbConf{
+var yudbCfg = &config.TxDBConf{BaseDB: config.SqlDbConf{
 	SqlDbType: "sqlite",
 	Dsn:       "./test_yudb",
 }}
@@ -45,7 +45,7 @@ func init() {
 }
 
 func TestExistTxn(t *testing.T) {
-	yudb := NewYuDB(yudbCfg)
+	yudb := NewTxDB(yudbCfg)
 	err := yudb.SetTxn(txn1)
 	if err != nil {
 		panic(err)
@@ -55,7 +55,7 @@ func TestExistTxn(t *testing.T) {
 }
 
 func TestPacks(t *testing.T) {
-	yudb := NewYuDB(yudbCfg)
+	yudb := NewTxDB(yudbCfg)
 	insertTxns(yudb)
 	err := yudb.Packs(blockHash, []common.Hash{txn1.TxnHash, txn2.TxnHash})
 	if err != nil {

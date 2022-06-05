@@ -38,13 +38,11 @@ func StartUp(tripods ...tripod.Tripod) {
 		logrus.Fatal("init kvdb error: ", err)
 	}
 
-	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain)
-
-	base := txdb.NewYuDB(&kernelCfg.YuDB)
-
+	base := txdb.NewTxDB(kvdb)
+	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain, base)
 	statedb := state.NewStateDB(kvdb)
-
 	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
+
 	for _, tri := range tripods {
 		pool.WithTripodCheck(tri)
 	}

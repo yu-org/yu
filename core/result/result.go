@@ -9,6 +9,7 @@ import (
 
 type Result interface {
 	Type() ResultType
+	Hash() (Hash, error)
 	Encode() ([]byte, error)
 	Decode(data []byte) error
 }

@@ -6,14 +6,14 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
-	. "github.com/yu-org/yu/utils/codec"
 )
 
 type BlockChain struct {
 	chain ysql.SqlDB
+	txns  ItxDB
 }
 
-func NewBlockChain(cfg *config.BlockchainConf) *BlockChain {
+func NewBlockChain(cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
 	if err != nil {
 		logrus.Fatal("init blockchain SQL db error: ", err)
@@ -26,6 +26,7 @@ func NewBlockChain(cfg *config.BlockchainConf) *BlockChain {
 
 	return &BlockChain{
 		chain: chain,
+		txns:  txdb,
 	}
 }
 
@@ -33,29 +34,8 @@ func (bc *BlockChain) ConvergeType() ConvergeType {
 	return Longest
 }
 
-func (bc *BlockChain) NewEmptyBlock() *CompactBlock {
-	return &CompactBlock{Header: &Header{}}
-}
-
-func (bc *BlockChain) EncodeBlocks(blocks []*CompactBlock) ([]byte, error) {
-	var bs []*CompactBlock
-	for _, b := range blocks {
-		bs = append(bs, b)
-	}
-	return GlobalCodec.EncodeToBytes(bs)
-}
-
-func (bc *BlockChain) DecodeBlocks(data []byte) ([]*CompactBlock, error) {
-	var bs []*CompactBlock
-	err := GlobalCodec.DecodeBytes(data, &bs)
-	if err != nil {
-		return nil, err
-	}
-	var blocks []*CompactBlock
-	for _, b := range bs {
-		blocks = append(blocks, b)
-	}
-	return blocks, nil
+func (bc *BlockChain) NewEmptyBlock() *Block {
+	return &Block{Header: &Header{}, Txns: nil}
 }
 
 func (bc *BlockChain) GetGenesis() (*CompactBlock, error) {
@@ -69,12 +49,20 @@ func (bc *BlockChain) SetGenesis(b *CompactBlock) error {
 	bc.chain.Db().Where("height = ?", 0).Find(&blocks)
 
 	if len(blocks) == 0 {
-		return bc.AppendBlock(b)
+		return bc.AppendCompactBlock(b)
 	}
 	return nil
 }
 
-func (bc *BlockChain) AppendBlock(b *CompactBlock) error {
+func (bc *BlockChain) AppendBlock(b *Block) error {
+	err := bc.AppendCompactBlock(b.Compact())
+	if err != nil {
+		return err
+	}
+	return bc.txns.SetTxns(b.Txns)
+}
+
+func (bc *BlockChain) AppendCompactBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
@@ -182,8 +170,24 @@ func (bc *BlockChain) GetAllBlocks() ([]*CompactBlock, error) {
 	return blocks, nil
 }
 
-func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) ([]*CompactBlock, error) {
+func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) (blocks []*Block, err error) {
 	var bss []BlocksScheme
 	bc.chain.Db().Where("height BETWEEN ? AND ?", startHeight, endHeight).Find(&bss)
-	return bssToBlocks(bss), nil
+	compactblocks := bssToBlocks(bss)
+	for _, compactblock := range compactblocks {
+		var txns SignedTxns
+		for _, txnHash := range compactblock.TxnsHashes {
+			txn, err := bc.txns.GetTxn(txnHash)
+			if err != nil {
+				return nil, err
+			}
+			txns = append(txns, txn)
+		}
+		block := &Block{
+			Header: compactblock.Header,
+			Txns:   txns,
+		}
+		blocks = append(blocks, block)
+	}
+	return
 }

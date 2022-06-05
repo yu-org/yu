@@ -156,7 +156,7 @@ func (p *Pow) EndBlock(block *types.CompactBlock) error {
 		return err
 	}
 
-	err = chain.AppendBlock(block)
+	err = chain.AppendCompactBlock(block)
 	if err != nil {
 		return err
 	}

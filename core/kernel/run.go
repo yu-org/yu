@@ -64,8 +64,8 @@ func (m *Kernel) LocalRun() (err error) {
 	})
 }
 
-func (m *Kernel) makeNewBasicBlock() (*CompactBlock, error) {
-	var newBlock *CompactBlock = m.chain.NewEmptyBlock()
+func (m *Kernel) makeNewBasicBlock() (*Block, error) {
+	newBlock := m.chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowNanoTsU64()
 	prevBlock, err := m.chain.GetEndBlock()
@@ -79,11 +79,8 @@ func (m *Kernel) makeNewBasicBlock() (*CompactBlock, error) {
 	return newBlock, nil
 }
 
-func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
-	stxns, err := m.base.GetTxns(block.Hash)
-	if err != nil {
-		return err
-	}
+func (m *Kernel) ExecuteTxns(block *Block) error {
+	stxns := block.Txns
 
 	var results []Result
 	for _, stxn := range stxns {
@@ -122,12 +119,15 @@ func (m *Kernel) ExecuteTxns(block *CompactBlock) error {
 		if ctx.Error != nil {
 			results = append(results, ctx.Error)
 		}
-
-		err = m.base.SetEvents(ctx.Events)
+		var results []Result
+		for _, event := range ctx.Events {
+			results = append(results, event)
+		}
+		err = m.base.SetResults(results)
 		if err != nil {
 			return err
 		}
-		err = m.base.SetError(ctx.Error)
+		err = m.base.SetResult(ctx.Error)
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func (m *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Kernel) handleError(err error, ctx *context.Context, block *CompactBlock, stxn *SignedTxn) {
+func (m *Kernel) handleError(err error, ctx *context.Context, block *Block, stxn *SignedTxn) {
 	ctx.EmitError(err)
 	ecall := stxn.Raw.Ecall
 
@@ -198,7 +198,7 @@ func (m *Kernel) handleError(err error, ctx *context.Context, block *CompactBloc
 
 }
 
-func (m *Kernel) handleEvent(ctx *context.Context, block *CompactBlock, stxn *SignedTxn) {
+func (m *Kernel) handleEvent(ctx *context.Context, block *Block, stxn *SignedTxn) {
 	for _, event := range ctx.Events {
 		ecall := stxn.Raw.Ecall
 

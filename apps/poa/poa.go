@@ -155,7 +155,7 @@ func (h *Poa) InitChain() {
 				continue
 			}
 
-			ok := h.VerifyBlock(p2pBlock.CompactBlock)
+			ok := h.VerifyBlock(p2pBlock.Compact())
 			if !ok {
 				logrus.Warnf("p2pBlock(%s) verify failed", p2pBlock.Hash.String())
 				continue
@@ -166,7 +166,7 @@ func (h *Poa) InitChain() {
 	}()
 }
 
-func (h *Poa) StartBlock(block *CompactBlock) {
+func (h *Poa) StartBlock(block *Block) {
 	now := time.Now()
 	defer func() {
 		duration := time.Since(now)
@@ -189,8 +189,6 @@ func (h *Poa) StartBlock(block *CompactBlock) {
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
-	hashes := FromArray(txns...).Hashes()
-	block.TxnsHashes = hashes
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
@@ -209,13 +207,8 @@ func (h *Poa) StartBlock(block *CompactBlock) {
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
 	rawBlock := &Block{
-		CompactBlock: block,
-		Txns:         txns,
-	}
-
-	err = h.Pool.Reset(rawBlock)
-	if err != nil {
-		logrus.Panic("reset pool failed: ", err)
+		Header: block.Header,
+		Txns:   txns,
 	}
 
 	h.State.StartBlock(block.Hash)
@@ -231,7 +224,7 @@ func (h *Poa) StartBlock(block *CompactBlock) {
 	}
 }
 
-func (h *Poa) EndBlock(block *CompactBlock) {
+func (h *Poa) EndBlock(block *Block) {
 	chain := h.Chain
 
 	err := h.Execute(block)
@@ -244,13 +237,18 @@ func (h *Poa) EndBlock(block *CompactBlock) {
 		logrus.Panic("append block failed: ", err)
 	}
 
+	err = h.Pool.Reset(block.Txns)
+	if err != nil {
+		logrus.Panic("reset pool failed: ", err)
+	}
+
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("append block")
 
 	h.State.FinalizeBlock(block.Hash)
 }
 
-func (h *Poa) FinalizeBlock(block *CompactBlock) {
+func (h *Poa) FinalizeBlock(block *Block) {
 	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 		Info("finalize block")
 	h.Chain.Finalize(block.Hash)
@@ -267,30 +265,22 @@ func (h *Poa) AmILeader(blockHeight BlockNum) bool {
 	return h.CompeteLeader(blockHeight) == h.LocalAddress()
 }
 
-func (h *Poa) useP2pOrSkip(localBlock *CompactBlock) bool {
+func (h *Poa) useP2pOrSkip(localBlock *Block) bool {
 LOOP:
 	select {
 	case p2pBlock := <-h.recvChan:
 		if h.getCurrentHeight() > p2pBlock.Height {
 			goto LOOP
 		}
-		return h.useP2pBlock(localBlock, p2pBlock)
+		localBlock.CopyFrom(p2pBlock)
+		h.State.StartBlock(localBlock.Hash)
+		return true
 	case <-time.NewTicker(h.calulateWaitTime(localBlock)).C:
 		return false
 	}
 }
 
-func (h *Poa) useP2pBlock(localBlock *CompactBlock, p2pBlock *Block) bool {
-	localBlock.CopyFrom(p2pBlock.CompactBlock)
-	h.State.StartBlock(localBlock.Hash)
-	err := h.Pool.Reset(p2pBlock)
-	if err != nil {
-		logrus.Error("clear txpool error: ", err)
-	}
-	return true
-}
-
-func (h *Poa) calulateWaitTime(block *CompactBlock) time.Duration {
+func (h *Poa) calulateWaitTime(block *Block) time.Duration {
 	height := int(block.Height)
 	shouldLeaderIdx := (height - 1) % len(h.validatorsList)
 	n := shouldLeaderIdx - h.nodeIdx

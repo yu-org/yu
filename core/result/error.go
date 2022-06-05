@@ -1,6 +1,7 @@
 package result
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	. "github.com/yu-org/yu/common"
@@ -18,6 +19,15 @@ type Error struct {
 
 func (e *Error) Type() ResultType {
 	return ErrorType
+}
+
+func (e *Error) Hash() (Hash, error) {
+	byt, err := e.Encode()
+	if err != nil {
+		return NullHash, err
+	}
+	hash := sha256.Sum256(byt)
+	return hash, nil
 }
 
 func (e *Error) Error() (str string) {

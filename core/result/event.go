@@ -1,6 +1,7 @@
 package result
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	. "github.com/yu-org/yu/common"
@@ -14,6 +15,15 @@ type Event struct {
 	TripodName string   `json:"tripod_name"`
 	ExecName   string   `json:"exec_name"`
 	Value      string   `json:"value"`
+}
+
+func (e *Event) Hash() (Hash, error) {
+	byt, err := e.Encode()
+	if err != nil {
+		return NullHash, err
+	}
+	hash := sha256.Sum256(byt)
+	return hash, nil
 }
 
 func (e *Event) Encode() ([]byte, error) {

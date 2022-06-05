@@ -153,7 +153,7 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 }
 
 // SyncTxns sync txns of P2P-network
-func (m *Kernel) SyncTxns(block *CompactBlock) error {
+func (m *Kernel) SyncTxns(block *CompactBlock) ([]*SignedTxn, error) {
 	txnsHashes := block.TxnsHashes
 
 	needFetch := make([]Hash, 0)
@@ -161,7 +161,7 @@ func (m *Kernel) SyncTxns(block *CompactBlock) error {
 	for _, txnHash := range txnsHashes {
 		stxn, err := m.txPool.GetTxn(txnHash)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if stxn == nil {
 			logrus.Infof("need fetch packed-txn(%s)", txnHash.String())
@@ -183,27 +183,27 @@ func (m *Kernel) SyncTxns(block *CompactBlock) error {
 
 		fetchedTxns, err := m.requestTxns(fetchPeer, block.PeerID, needFetch)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, txnHash := range needFetch {
 			_, exist := existTxnHash(txnHash, fetchedTxns)
 			if !exist {
-				return NoTxnInP2P(txnHash)
+				return nil, NoTxnInP2P(txnHash)
 			}
 		}
 
 		for _, fetchedTxn := range fetchedTxns {
 			err = m.txPool.NecessaryCheck(fetchedTxn)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
-		return m.base.SetTxns(block.Hash, fetchedTxns)
+		return fetchedTxns, nil
 	}
 
-	return m.base.SetTxns(block.Hash, txns)
+	return txns, nil
 }
 
 func (m *Kernel) SyncHistoryBlocks(blocks []*CompactBlock) error {
@@ -222,12 +222,8 @@ func (m *Kernel) SyncHistoryBlocks(blocks []*CompactBlock) error {
 				return err
 			}
 
-			err = m.ExecuteTxns(block)
-			if err != nil {
-				return err
-			}
-
-			err = m.chain.AppendBlock(block)
+			// todo: sync state trie
+			err = m.chain.AppendCompactBlock(block)
 			if err != nil {
 				return err
 			}

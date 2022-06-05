@@ -11,7 +11,7 @@ import (
 
 func initTxpool() *TxPool {
 	cfg := config.InitDefaultCfgWithDir("test-txpool")
-	base := txdb.NewYuDB(&cfg.YuDB)
+	base := txdb.NewTxDB(&cfg.TxDB)
 	return WithDefaultChecks(&cfg.Txpool, base)
 }
 

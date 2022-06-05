@@ -31,5 +31,5 @@ type ItxPool interface {
 	// GetTxn returns unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
 	// Reset deletes packed txns
-	Reset(*Block) error
+	Reset(txns SignedTxns) error
 }

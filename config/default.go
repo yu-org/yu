@@ -46,7 +46,7 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 			Dsn:       path.Join(dir, "chain.db"),
 		},
 	}
-	cfg.YuDB = YuDBConf{
+	cfg.TxDB = TxDBConf{
 		BaseDB: SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       path.Join(dir, "blockbase.db"),

@@ -16,7 +16,7 @@ type ChainEnv struct {
 
 	Sub *Subscription
 
-	Execute func(block *CompactBlock) error
+	Execute func(block *Block) error
 
 	P2pNetwork p2p.P2pNetwork
 }

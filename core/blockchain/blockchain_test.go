@@ -82,7 +82,7 @@ func TestEndBlock(t *testing.T) {
 	insertedBlocks := []*CompactBlock{block1, block2, block3}
 
 	for i, block := range insertedBlocks {
-		err := chain.AppendBlock(block)
+		err := chain.AppendCompactBlock(block)
 		if err != nil {
 			t.Fatalf("append block(%d) error: %v", i, err)
 		}
@@ -100,7 +100,7 @@ func TestLastFinalized(t *testing.T) {
 	insertedBlocks := []*CompactBlock{block1, block2}
 
 	for i, block := range insertedBlocks {
-		err := chain.AppendBlock(block)
+		err := chain.AppendCompactBlock(block)
 		if err != nil {
 			t.Fatalf("append block(%d) error: %v", i, err)
 		}
@@ -109,7 +109,7 @@ func TestLastFinalized(t *testing.T) {
 			t.Fatalf("finalize block(%d) error: %v", i, err)
 		}
 	}
-	err := chain.AppendBlock(block3)
+	err := chain.AppendCompactBlock(block3)
 	if err != nil {
 		t.Fatal("append block3 failed: ", err)
 	}
@@ -127,7 +127,7 @@ func TestAllBlock(t *testing.T) {
 	blockchain := append([]*CompactBlock{genesisBlock}, insertedBlocks...)
 
 	for i, block := range insertedBlocks {
-		err := chain.AppendBlock(block)
+		err := chain.AppendCompactBlock(block)
 		if err != nil {
 			t.Fatalf("append block(%d) error: %v", i, err)
 		}
@@ -144,11 +144,11 @@ func TestAllBlock(t *testing.T) {
 
 func TestChildrenBlocks(t *testing.T) {
 	chain := initChain(t)
-	err := chain.AppendBlock(block1)
+	err := chain.AppendCompactBlock(block1)
 	if err != nil {
 		t.Fatal("append block1 failed: ", err)
 	}
-	err = chain.AppendBlock(uncleBlock1)
+	err = chain.AppendCompactBlock(uncleBlock1)
 	if err != nil {
 		t.Fatal("append uncleBlock1 failed: ", err)
 	}
@@ -164,15 +164,15 @@ func TestChildrenBlocks(t *testing.T) {
 
 func TestRangeBlocks(t *testing.T) {
 	chain := initChain(t)
-	err := chain.AppendBlock(block1)
+	err := chain.AppendCompactBlock(block1)
 	if err != nil {
 		t.Fatal("append block1 failed: ", err)
 	}
-	err = chain.AppendBlock(block2)
+	err = chain.AppendCompactBlock(block2)
 	if err != nil {
 		t.Fatal("append block2 failed: ", err)
 	}
-	err = chain.AppendBlock(block3)
+	err = chain.AppendCompactBlock(block3)
 	if err != nil {
 		t.Fatal("append block3 failed: ", err)
 	}

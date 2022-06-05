@@ -25,7 +25,7 @@ type KernelConf struct {
 	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
-	YuDB       YuDBConf       `toml:"yu_db"`
+	TxDB       TxDBConf       `toml:"tx_db"`
 	State      StateConf      `toml:"state"`
 	Txpool     TxpoolConf     `toml:"txpool"`
 	P2P        P2pConf        `toml:"p2p"`
@@ -58,7 +58,7 @@ type BlockchainConf struct {
 	ChainDB SqlDbConf `toml:"chain_db"`
 }
 
-type YuDBConf struct {
+type TxDBConf struct {
 	BaseDB SqlDbConf `toml:"base_db"`
 }
 

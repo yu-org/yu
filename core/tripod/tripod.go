@@ -11,7 +11,7 @@ type Tripod interface {
 	VerifyBlock(block *CompactBlock) bool
 
 	InitChain()
-	StartBlock(block *CompactBlock)
-	EndBlock(block *CompactBlock)
-	FinalizeBlock(block *CompactBlock)
+	StartBlock(block *Block)
+	EndBlock(block *Block)
+	FinalizeBlock(block *Block)
 }

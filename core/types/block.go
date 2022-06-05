@@ -10,8 +10,23 @@ import (
 )
 
 type Block struct {
-	*CompactBlock
+	*Header
 	Txns SignedTxns
+}
+
+func (b *Block) Compact() *CompactBlock {
+	return &CompactBlock{
+		Header:     b.Header,
+		TxnsHashes: b.Txns.Hashes(),
+	}
+}
+
+func (b *Block) CopyFrom(other *Block) {
+	*b = *other
+}
+
+func (b *Block) UseLei(lei uint64) {
+	b.Header.LeiUsed += lei
 }
 
 func (b *Block) Encode() ([]byte, error) {
@@ -29,8 +44,8 @@ func DecodeBlock(data []byte) (*Block, error) {
 
 func (b *Block) ToPb() *goproto.Block {
 	return &goproto.Block{
-		CompactBlock: b.CompactBlock.ToPb(),
-		Txns:         b.Txns.ToPb(),
+		Header: b.Header.ToPb(),
+		Txns:   b.Txns.ToPb(),
 	}
 }
 
@@ -40,8 +55,8 @@ func BlockFromPb(pb *goproto.Block) (*Block, error) {
 		return nil, err
 	}
 	return &Block{
-		CompactBlock: CompactBlockFromPb(pb.CompactBlock),
-		Txns:         txns,
+		Header: HeaderFromPb(pb.Header),
+		Txns:   txns,
 	}, nil
 }
 
@@ -50,12 +65,32 @@ type CompactBlock struct {
 	TxnsHashes []Hash
 }
 
-func (b *CompactBlock) CopyFrom(other *CompactBlock) {
-	*b = *other
+func EncodeCompactBlocks(blocks []*CompactBlock) ([]byte, error) {
+	cbs := make([]*goproto.CompactBlock, 0)
+	for _, cb := range blocks {
+		cbs = append(cbs, cb.ToPb())
+	}
+	pb := &goproto.CompactBlocks{
+		Blocks: cbs,
+	}
+	return proto.Marshal(pb)
 }
 
-func (b *CompactBlock) UseLei(lei uint64) {
-	b.Header.LeiUsed += lei
+func DecodeCompactBlocks(data []byte) ([]*CompactBlock, error) {
+	var bs goproto.CompactBlocks
+	err := proto.Unmarshal(data, &bs)
+	if err != nil {
+		return nil, err
+	}
+	cbs := make([]*CompactBlock, 0)
+	for _, b := range bs.Blocks {
+		cbs = append(cbs, CompactBlockFromPb(b))
+	}
+	return cbs, nil
+}
+
+func (b *CompactBlock) CopyFrom(other *CompactBlock) {
+	*b = *other
 }
 
 func (cb *CompactBlock) Encode() ([]byte, error) {
@@ -86,7 +121,7 @@ func CompactBlockFromPb(pb *goproto.CompactBlock) *CompactBlock {
 	}
 }
 
-func IfLeiOut(Lei uint64, block *CompactBlock) bool {
+func IfLeiOut(Lei uint64, block *Block) bool {
 	return Lei+block.LeiUsed > block.LeiLimit
 }
 

@@ -47,6 +47,15 @@ func (ot *orderedTxns) deletes(hashes []Hash) {
 	}
 }
 
+func (ot *orderedTxns) get(txnHash Hash) *SignedTxn {
+	for _, txn := range ot.txns {
+		if txn.TxnHash == txnHash {
+			return txn
+		}
+	}
+	return nil
+}
+
 func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
 	txns := make([]*SignedTxn, 0)
 	if numLimit > uint64(ot.size()) {

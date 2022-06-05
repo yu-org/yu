@@ -64,7 +64,7 @@ func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context, _ *CompactBlock) (err error) {
+func (a *Asset) Transfer(ctx *Context, _ *Block) (err error) {
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
@@ -101,7 +101,7 @@ func (a *Asset) transfer(from, to Address, amount *big.Int) error {
 	return nil
 }
 
-func (a *Asset) CreateAccount(ctx *Context, _ *CompactBlock) error {
+func (a *Asset) CreateAccount(ctx *Context, _ *Block) error {
 	addr := ctx.Caller
 	//if !a.isValidator(addr) {
 	//	return NoPermission

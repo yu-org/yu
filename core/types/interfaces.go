@@ -59,15 +59,13 @@ const (
 type IBlockChain interface {
 	ConvergeType() ConvergeType
 
-	NewEmptyBlock() *CompactBlock
-
-	EncodeBlocks(blocks []*CompactBlock) ([]byte, error)
-	DecodeBlocks(data []byte) ([]*CompactBlock, error)
+	NewEmptyBlock() *Block
 
 	GetGenesis() (*CompactBlock, error)
 	SetGenesis(b *CompactBlock) error
 
-	AppendBlock(b *CompactBlock) error
+	AppendBlock(b *Block) error
+	AppendCompactBlock(b *CompactBlock) error
 	GetBlock(blockHash Hash) (*CompactBlock, error)
 	ExistsBlock(blockHash Hash) bool
 	UpdateBlock(b *CompactBlock) error
@@ -78,19 +76,14 @@ type IBlockChain interface {
 	GetEndBlock() (*CompactBlock, error)
 	GetAllBlocks() ([]*CompactBlock, error)
 
-	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*CompactBlock, error)
+	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*Block, error)
 }
 
 type ItxDB interface {
 	GetTxn(txnHash Hash) (*SignedTxn, error)
-	ExistTxn(hash Hash) bool
+	ExistTxn(txnHash Hash) bool
+	SetTxns(txns []*SignedTxn) error
 
-	GetTxns(blockHash Hash) ([]*SignedTxn, error)
-	SetTxns(blockHash Hash, txns []*SignedTxn) error
-
-	GetEvents(blockHash Hash) ([]*Event, error)
-	SetEvents(events []*Event) error
-
-	GetErrors(blockHash Hash) ([]*Error, error)
-	SetError(err *Error) error
+	SetResults(results []Result) error
+	SetResult(result Result) error
 }

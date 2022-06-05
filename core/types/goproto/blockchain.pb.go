@@ -271,7 +271,7 @@ var file_blockchain_proto_depIdxs = []int32{
 	3,  // 1: BlocksResponse.blocks:type_name -> CompactBlock
 	4,  // 2: BlockChain.GetGenesis:input_type -> google.protobuf.Empty
 	3,  // 3: BlockChain.SetGenesis:input_type -> CompactBlock
-	3,  // 4: BlockChain.AppendBlock:input_type -> CompactBlock
+	3,  // 4: BlockChain.AppendCompactBlock:input_type -> CompactBlock
 	5,  // 5: BlockChain.GetBlock:input_type -> BlockHash
 	5,  // 6: BlockChain.ExistsBlock:input_type -> BlockHash
 	3,  // 7: BlockChain.UpdateBlock:input_type -> CompactBlock
@@ -282,7 +282,7 @@ var file_blockchain_proto_depIdxs = []int32{
 	2,  // 12: BlockChain.GetRangeBlocks:input_type -> RangeRequest
 	0,  // 13: BlockChain.GetGenesis:output_type -> BlockResponse
 	6,  // 14: BlockChain.SetGenesis:output_type -> Err
-	6,  // 15: BlockChain.AppendBlock:output_type -> Err
+	6,  // 15: BlockChain.AppendCompactBlock:output_type -> Err
 	0,  // 16: BlockChain.GetBlock:output_type -> BlockResponse
 	7,  // 17: BlockChain.ExistsBlock:output_type -> Bool
 	6,  // 18: BlockChain.UpdateBlock:output_type -> Err

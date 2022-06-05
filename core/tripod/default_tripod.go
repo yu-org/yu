@@ -50,11 +50,11 @@ func (dt *DefaultTripod) VerifyBlock(block *CompactBlock) bool {
 func (*DefaultTripod) InitChain() {
 }
 
-func (*DefaultTripod) StartBlock(*CompactBlock) {
+func (*DefaultTripod) StartBlock(*Block) {
 }
 
-func (*DefaultTripod) EndBlock(*CompactBlock) {
+func (*DefaultTripod) EndBlock(*Block) {
 }
 
-func (*DefaultTripod) FinalizeBlock(*CompactBlock) {
+func (*DefaultTripod) FinalizeBlock(*Block) {
 }
