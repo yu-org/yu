@@ -206,7 +206,7 @@ func (m *Kernel) SyncTxns(block *CompactBlock) ([]*SignedTxn, error) {
 	return txns, nil
 }
 
-func (m *Kernel) SyncHistoryBlocks(blocks []*CompactBlock) error {
+func (m *Kernel) SyncHistoryBlocks(blocks []*Block) error {
 	switch m.RunMode {
 	case LocalNode:
 		for _, block := range blocks {
@@ -223,7 +223,7 @@ func (m *Kernel) SyncHistoryBlocks(blocks []*CompactBlock) error {
 			}
 
 			// todo: sync state trie
-			err = m.chain.AppendCompactBlock(block)
+			err = m.chain.AppendBlock(block)
 			if err != nil {
 				return err
 			}

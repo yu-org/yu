@@ -32,7 +32,7 @@ func (m *Kernel) SyncHistory() error {
 		}
 
 		if resp.BlocksByt != nil {
-			blocks, err := types.DecodeCompactBlocks(resp.BlocksByt)
+			blocks, err := types.DecodeBlocks(resp.BlocksByt)
 			if err != nil {
 				return err
 			}
@@ -44,20 +44,6 @@ func (m *Kernel) SyncHistory() error {
 
 			resp.MissingRange = nil
 		}
-
-		if resp.TxnsByt != nil {
-			for _, byt := range resp.TxnsByt {
-				txns, err := types.DecodeSignedTxns(byt)
-				if err != nil {
-					return err
-				}
-				err = m.base.SetTxns(txns)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
 	}
 
 	return nil
@@ -71,10 +57,9 @@ func (m *Kernel) handleHsReq(byt []byte) ([]byte, error) {
 
 	var (
 		blocksByt []byte
-		txnsByt   map[Hash][]byte
 	)
 	if remoteReq.FetchRange != nil {
-		blocksByt, txnsByt, err = m.getMissingBlocksTxns(remoteReq)
+		blocksByt, err = m.getMissingBlocks(remoteReq)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +74,6 @@ func (m *Kernel) handleHsReq(byt []byte) ([]byte, error) {
 	hsResp := &HandShakeResp{
 		MissingRange: missingRange,
 		BlocksByt:    blocksByt,
-		TxnsByt:      txnsByt,
 		Err:          err,
 	}
 	return hsResp.Encode()
@@ -125,31 +109,13 @@ func (m *Kernel) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, e
 	return localInfo.Compare(remoteInfo)
 }
 
-func (m *Kernel) getMissingBlocksTxns(remoteReq *HandShakeRequest) ([]byte, map[Hash][]byte, error) {
+func (m *Kernel) getMissingBlocks(remoteReq *HandShakeRequest) ([]byte, error) {
 	fetchRange := remoteReq.FetchRange
 	blocks, err := m.chain.GetRangeBlocks(fetchRange.StartHeight, fetchRange.EndHeight)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	var cbs []*types.CompactBlock
-	for _, block := range blocks {
-		cbs = append(cbs, block.Compact())
-	}
-	blocksByt, err := types.EncodeCompactBlocks(cbs)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	txnsByt := make(map[Hash][]byte)
-	for _, block := range blocks {
-		byt, err := block.Txns.Encode()
-		if err != nil {
-			return nil, nil, err
-		}
-		txnsByt[block.Hash] = byt
-	}
-
-	return blocksByt, txnsByt, nil
+	return types.EncodeBlocks(blocks)
 }
 
 func (m *Kernel) pubUnpackedTxns(txns types.SignedTxns) error {

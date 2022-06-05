@@ -12,7 +12,7 @@ type DefaultTripod struct {
 	blockVerifier BlockVerifier
 }
 
-type BlockVerifier func(block *CompactBlock) bool
+type BlockVerifier func(block *Block) bool
 
 func NewDefaultTripod(name string) *DefaultTripod {
 	meta := NewTripodHeader(name)
@@ -40,7 +40,7 @@ func (dt *DefaultTripod) CheckTxn(txn *SignedTxn) error {
 	return dt.txnChecker(txn)
 }
 
-func (dt *DefaultTripod) VerifyBlock(block *CompactBlock) bool {
+func (dt *DefaultTripod) VerifyBlock(block *Block) bool {
 	if dt.blockVerifier == nil {
 		return true
 	}

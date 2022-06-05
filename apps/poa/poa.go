@@ -93,7 +93,7 @@ func (h *Poa) CheckTxn(txn *SignedTxn) error {
 	return CheckSignature(txn)
 }
 
-func (h *Poa) VerifyBlock(block *CompactBlock) bool {
+func (h *Poa) VerifyBlock(block *Block) bool {
 	minerPubkey, err := PubKeyFromBytes(block.MinerPubkey)
 	if err != nil {
 		logrus.Warnf("parse pubkey(%s) error: %v", block.MinerPubkey, err)
@@ -155,7 +155,7 @@ func (h *Poa) InitChain() {
 				continue
 			}
 
-			ok := h.VerifyBlock(p2pBlock.Compact())
+			ok := h.VerifyBlock(p2pBlock)
 			if !ok {
 				logrus.Warnf("p2pBlock(%s) verify failed", p2pBlock.Hash.String())
 				continue

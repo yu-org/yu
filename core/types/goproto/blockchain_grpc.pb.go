@@ -60,7 +60,7 @@ func (c *blockChainClient) SetGenesis(ctx context.Context, in *CompactBlock, opt
 
 func (c *blockChainClient) AppendBlock(ctx context.Context, in *CompactBlock, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/BlockChain/AppendCompactBlock", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/BlockChain/AppendBlock", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (UnimplementedBlockChainServer) SetGenesis(context.Context, *CompactBlock) 
 	return nil, status.Errorf(codes.Unimplemented, "method SetGenesis not implemented")
 }
 func (UnimplementedBlockChainServer) AppendBlock(context.Context, *CompactBlock) (*Err, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AppendCompactBlock not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method AppendBlock not implemented")
 }
 func (UnimplementedBlockChainServer) GetBlock(context.Context, *BlockHash) (*BlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlock not implemented")
@@ -253,7 +253,7 @@ func _BlockChain_AppendBlock_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BlockChain/AppendCompactBlock",
+		FullMethod: "/BlockChain/AppendBlock",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BlockChainServer).AppendBlock(ctx, req.(*CompactBlock))
@@ -421,7 +421,7 @@ var BlockChain_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BlockChain_SetGenesis_Handler,
 		},
 		{
-			MethodName: "AppendCompactBlock",
+			MethodName: "AppendBlock",
 			Handler:    _BlockChain_AppendBlock_Handler,
 		},
 		{

@@ -86,12 +86,9 @@ func (hs *HandShakeInfo) Compare(other *HandShakeInfo) (*BlocksRange, error) {
 type HandShakeResp struct {
 	// missing blocks range
 	MissingRange *BlocksRange
-	// compressed blocks bytes
+	// blocks bytes
 	BlocksByt []byte
-	// key: block-hash,
-	// value: compressed txns bytes
-	TxnsByt map[Hash][]byte
-	Err     error
+	Err       error
 }
 
 func (hs *HandShakeResp) Encode() ([]byte, error) {

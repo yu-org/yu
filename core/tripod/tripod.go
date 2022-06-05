@@ -8,7 +8,7 @@ type Tripod interface {
 	GetTripodHeader() *TripodHeader
 
 	CheckTxn(*SignedTxn) error
-	VerifyBlock(block *CompactBlock) bool
+	VerifyBlock(block *Block) bool
 
 	InitChain()
 	StartBlock(block *Block)

@@ -42,6 +42,34 @@ func DecodeBlock(data []byte) (*Block, error) {
 	return BlockFromPb(&b)
 }
 
+func EncodeBlocks(blocks []*Block) ([]byte, error) {
+	bs := make([]*goproto.Block, 0)
+	for _, cb := range blocks {
+		bs = append(bs, cb.ToPb())
+	}
+	pb := &goproto.Blocks{
+		Blocks: bs,
+	}
+	return proto.Marshal(pb)
+}
+
+func DecodeBlocks(data []byte) ([]*Block, error) {
+	var bs goproto.Blocks
+	err := proto.Unmarshal(data, &bs)
+	if err != nil {
+		return nil, err
+	}
+	blocks := make([]*Block, 0)
+	for _, b := range bs.Blocks {
+		block, err := BlockFromPb(b)
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks, nil
+}
+
 func (b *Block) ToPb() *goproto.Block {
 	return &goproto.Block{
 		Header: b.Header.ToPb(),
