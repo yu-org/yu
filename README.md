@@ -21,7 +21,7 @@ Third level is define `basic components`, such as `block data structures`, `bloc
 
 ```go
 type (
-    Execution func(ctx *context.Context, currentBlock *types.CompactBlock) error
+    Execution func(ctx *context.Context, currentBlock *types.Block) error
 	
     Query func(ctx *context.Context, blockHash Hash) (respObj interface{}, err error)
 
@@ -44,15 +44,15 @@ type Tripod interface {
     
     CheckTxn(*txn.SignedTxn)    
 
-    VerifyBlock(block *types.CompactBlock) bool
+    VerifyBlock(block *types.Block) bool
 
-    InitChain() error
+    InitChain() 
 
-    StartBlock(block *types.CompactBlock) error
+    StartBlock(block *types.Block) 
 
-    EndBlock(block *types.CompactBlock) error
+    EndBlock(block *types.Block) 
 
-    FinalizeBlock(block *types.CompactBlock) error
+    FinalizeBlock(block *types.Block) 
 }
 ```
 
@@ -75,7 +75,7 @@ func (a *Asset) QueryBalance(ctx *context.Context, _ Hash) (interface{}, error) 
 `EmitEvent` will emit an event out of the chain.  
 The error returned will emit out of the chain.
 ```go
-func (a *Asset) CreateAccount(ctx *context.Context, _ *CompactBlock) error {
+func (a *Asset) CreateAccount(ctx *context.Context, _ *Block) error {
     addr := ctx.Caller
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
@@ -115,7 +115,7 @@ func main() {
 - Start a new block  
 If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
 ```go
-func (h *Poa) StartBlock(block *CompactBlock) error {
+func (h *Poa) StartBlock(block *Block) error {
     ......
 	
     // Get a leader who produce the block of this round. 
@@ -169,7 +169,7 @@ func (h *Poa) StartBlock(block *CompactBlock) error {
 - End the block  
 We execute the txns of the block and append the block into the chain.
 ```go
-func (h *Pow) EndBlock(block *CompactBlock) error {
+func (h *Pow) EndBlock(block *Block) error {
     ......
     // Execute all transactions(executions) of this block.
     err := h.env.Execute(block)
@@ -188,7 +188,7 @@ func (h *Pow) EndBlock(block *CompactBlock) error {
 
 - Finalize the block   
 ```go
-func (h *Poa) FinalizeBlock(block *CompactBlock) error {
+func (h *Poa) FinalizeBlock(block *Block) error {
     return h.env.Chain.Finalize(block.Hash)
 }
 ```
