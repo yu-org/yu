@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/asset"
-	"github.com/yu-org/yu/apps/hotstuff"
+	"github.com/yu-org/yu/apps/hotstuff-old"
 	keypair2 "github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/startup"
 	"os"
@@ -54,5 +54,5 @@ func main() {
 		pub2.Address().String(): "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH",
 	}
 
-	startup.StartUp(hotstuff.NewHotstuff(myPubkey, myPrivkey, validatorsMap), asset.NewAsset("YuCoin", nil))
+	startup.StartUp(hotstuff_old.NewHotstuff(myPubkey, myPrivkey, validatorsMap), asset.NewAsset("YuCoin", nil))
 }

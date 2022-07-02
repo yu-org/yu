@@ -1,4 +1,4 @@
-package hotstuff
+package hotstuff_old
 
 type SimpleElection struct {
 	addrs []string
