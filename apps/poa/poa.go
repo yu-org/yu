@@ -166,6 +166,10 @@ func (h *Poa) InitChain() {
 	}()
 }
 
+func (h *Poa) SyncHistory() {
+
+}
+
 func (h *Poa) StartBlock(block *Block) {
 	now := time.Now()
 	defer func() {

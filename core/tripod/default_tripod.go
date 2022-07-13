@@ -50,6 +50,10 @@ func (dt *DefaultTripod) VerifyBlock(block *Block) bool {
 func (*DefaultTripod) InitChain() {
 }
 
+func (*DefaultTripod) SyncHistory() {
+
+}
+
 func (*DefaultTripod) StartBlock(*Block) {
 }
 

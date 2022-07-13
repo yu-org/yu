@@ -90,10 +90,14 @@ func NewKernel(
 func (m *Kernel) Startup() {
 
 	if len(m.p2pNetwork.GetBootNodes()) > 0 {
-		err := m.SyncHistory()
-		if err != nil {
-			logrus.Fatal("sync history error: ", err)
-		}
+		//err := m.SyncHistory()
+		//if err != nil {
+		//	logrus.Fatal("sync history error: ", err)
+		//}
+		m.land.RangeList(func(tri Tripod) error {
+			tri.SyncHistory()
+			return nil
+		})
 	}
 
 	go m.HandleHttp()

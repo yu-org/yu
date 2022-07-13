@@ -11,6 +11,7 @@ type Tripod interface {
 	VerifyBlock(block *Block) bool
 
 	InitChain()
+	SyncHistory()
 	StartBlock(block *Block)
 	EndBlock(block *Block)
 	FinalizeBlock(block *Block)
