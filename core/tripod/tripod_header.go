@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/tripod/dev"
+	. "github.com/yu-org/yu/core/types"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -13,6 +14,9 @@ import (
 type TripodHeader struct {
 	*ChainEnv
 	*Land
+	BlockCycle
+	BlockVerifier
+	TxnChecker
 
 	name string
 	// Key: Execution Name
@@ -42,6 +46,18 @@ func (t *TripodHeader) SetChainEnv(env *ChainEnv) {
 
 func (t *TripodHeader) SetLand(land *Land) {
 	t.Land = land
+}
+
+func (t *TripodHeader) SetBlockCycle(bc BlockCycle) {
+	t.BlockCycle = bc
+}
+
+func (t *TripodHeader) SetBlockVerifier(bv BlockVerifier) {
+	t.BlockVerifier = bv
+}
+
+func (t *TripodHeader) SetTxnChecker(tc TxnChecker) {
+	t.TxnChecker = tc
 }
 
 func (t *TripodHeader) SetExec(fn dev.Execution, lei uint64) *TripodHeader {

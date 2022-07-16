@@ -71,6 +71,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
+	h.SetBlockCycle(h)
 	return h
 }
 

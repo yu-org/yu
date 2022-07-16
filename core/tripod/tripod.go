@@ -7,11 +7,14 @@ import (
 type Tripod interface {
 	GetTripodHeader() *TripodHeader
 
-	CheckTxn(*SignedTxn) error
-	VerifyBlock(block *Block) bool
-
 	InitChain()
-	SyncHistory()
+}
+
+type BlockVerifier interface {
+	VerifyBlock(block *Block) bool
+}
+
+type BlockCycle interface {
 	StartBlock(block *Block)
 	EndBlock(block *Block)
 	FinalizeBlock(block *Block)

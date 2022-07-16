@@ -44,7 +44,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
 
 	for _, tri := range tripods {
-		pool.WithTripodCheck(tri)
+		pool.WithTripodCheck(tri.GetTripodHeader())
 	}
 
 	env := &chain_env.ChainEnv{

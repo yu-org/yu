@@ -17,6 +17,10 @@ type SignedTxn struct {
 	Signature []byte
 }
 
+type TxnChecker interface {
+	CheckTxn(*SignedTxn) error
+}
+
 func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*SignedTxn, error) {
 	raw, err := NewUnsignedTxn(caller, ecall)
 	if err != nil {
