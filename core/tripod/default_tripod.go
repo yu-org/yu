@@ -5,22 +5,23 @@ import (
 )
 
 type DefaultTripod struct {
-	*TripodHeader
+	*Tripod
 }
 
 func NewDefaultTripod(name string) *DefaultTripod {
-	meta := NewTripodHeader(name)
+	meta := NewTripod(name)
 	dt := &DefaultTripod{
-		TripodHeader: meta,
+		Tripod: meta,
 	}
+	dt.SetInit(dt)
 	dt.SetBlockCycle(dt)
 	dt.SetTxnChecker(dt)
 	dt.SetBlockVerifier(dt)
 	return dt
 }
 
-func (dt *DefaultTripod) GetTripodHeader() *TripodHeader {
-	return dt.TripodHeader
+func (dt *DefaultTripod) GetTripodHeader() *Tripod {
+	return dt.Tripod
 }
 
 func (dt *DefaultTripod) CheckTxn(*SignedTxn) error {
@@ -32,9 +33,6 @@ func (dt *DefaultTripod) VerifyBlock(*Block) bool {
 }
 
 func (*DefaultTripod) InitChain() {
-}
-
-func (*DefaultTripod) SyncHistory() {
 }
 
 func (*DefaultTripod) StartBlock(*Block) {

@@ -1,4 +1,4 @@
-package kernel
+package history
 
 import (
 	"encoding/json"
@@ -17,8 +17,8 @@ type HandShakeRequest struct {
 	Info       *HandShakeInfo
 }
 
-func (m *Kernel) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
-	info, err := m.NewHsInfo()
+func (h *History) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
+	info, err := h.NewHsInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +49,13 @@ type HandShakeInfo struct {
 	EndBlockHash Hash
 }
 
-func (m *Kernel) NewHsInfo() (*HandShakeInfo, error) {
-	gBlock, err := m.chain.GetGenesis()
+func (h *History) NewHsInfo() (*HandShakeInfo, error) {
+	gBlock, err := h.Chain.GetGenesis()
 	if err != nil {
 		return nil, err
 	}
 
-	eBlock, err := m.chain.GetEndBlock()
+	eBlock, err := h.Chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
@@ -105,30 +105,6 @@ type BlocksRange struct {
 	StartHeight BlockNum
 	EndHeight   BlockNum
 }
-
-//type PackedTxns struct {
-//	BlockHash string
-//	TxnsBytes []byte
-//}
-//
-//func NewPackedTxns(blockHash Hash, txns SignedTxns) (*PackedTxns, error) {
-//	byt, err := txns.Encode()
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &PackedTxns{
-//		BlockHash: blockHash.String(),
-//		TxnsBytes: byt,
-//	}, nil
-//}
-//
-//func (pt *PackedTxns) Resolve() (Hash, SignedTxns, error) {
-//	stxns, err := DecodeSignedTxns(pt.TxnsBytes)
-//	if err != nil {
-//		return NullHash, nil, err
-//	}
-//	return HexToHash(pt.BlockHash), stxns, nil
-//}
 
 type TxnsRequest struct {
 	Hashes        []Hash

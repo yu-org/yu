@@ -24,7 +24,7 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-func StartUp(tripods ...tripod.Tripod) {
+func StartUp(tripods ...*tripod.Tripod) {
 	initCfgFromFlags()
 	initLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
 
@@ -44,7 +44,7 @@ func StartUp(tripods ...tripod.Tripod) {
 	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
 
 	for _, tri := range tripods {
-		pool.WithTripodCheck(tri.GetTripodHeader())
+		pool.WithTripodCheck(tri)
 	}
 
 	env := &chain_env.ChainEnv{
@@ -57,8 +57,8 @@ func StartUp(tripods ...tripod.Tripod) {
 	}
 
 	for _, t := range tripods {
-		t.GetTripodHeader().SetChainEnv(env)
-		t.GetTripodHeader().SetLand(land)
+		t.SetChainEnv(env)
+		t.SetLand(land)
 	}
 
 	land.SetTripods(tripods...)
