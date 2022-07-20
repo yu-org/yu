@@ -12,19 +12,22 @@ const (
 )
 
 type History struct {
-	*Tripod
+	*DefaultTripod
 	mode int
 }
 
 func NewHistory(mode int) *History {
-	tri := NewTripod("full_history")
-	fh := &History{Tripod: tri, mode: mode}
+	tri := NewDefaultTripod("full_history")
+	fh := &History{DefaultTripod: tri, mode: mode}
 	tri.SetInit(fh)
 	tri.SetP2pHandler(HandshakeCode, fh.handleHsReq).SetP2pHandler(SyncTxnsCode, fh.handleSyncTxnsReq)
 	return fh
 }
 
 func (h *History) InitChain() {
+	if len(h.P2pNetwork.GetBootNodes()) == 0 {
+		return
+	}
 	switch h.mode {
 	case Full:
 		err := h.SyncFullHistory()
