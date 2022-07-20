@@ -12,13 +12,13 @@ const (
 )
 
 type History struct {
-	*DefaultTripod
+	*Tripod
 	mode int
 }
 
 func NewHistory(mode int) *History {
-	tri := NewDefaultTripod("full_history")
-	fh := &History{DefaultTripod: tri, mode: mode}
+	tri := NewTripod("full_history")
+	fh := &History{Tripod: tri, mode: mode}
 	tri.SetInit(fh)
 	tri.SetP2pHandler(HandshakeCode, fh.handleHsReq).SetP2pHandler(SyncTxnsCode, fh.handleSyncTxnsReq)
 	return fh

@@ -92,7 +92,9 @@ func (m *Kernel) Startup() {
 	//	}
 	//}
 	m.land.RangeList(func(tri *Tripod) error {
-		tri.InitChain()
+		if tri.Init != nil {
+			tri.InitChain()
+		}
 		return nil
 	})
 
