@@ -36,6 +36,11 @@ func NewTripod(name string) *Tripod {
 		execs:       make(map[string]ExecAndLei),
 		queries:     make(map[string]dev.Query),
 		P2pHandlers: make(map[int]dev.P2pHandler),
+
+		BlockVerifier: &DefaultBlockVerifier{},
+		TxnChecker:    &DefaultTxnChecker{},
+		Init:          &DefaultInit{},
+		BlockCycle:    &DefaultBlockCycle{},
 	}
 }
 
