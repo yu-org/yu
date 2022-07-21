@@ -1,4 +1,4 @@
-package history
+package base
 
 import (
 	"encoding/json"
@@ -17,8 +17,8 @@ type HandShakeRequest struct {
 	Info       *HandShakeInfo
 }
 
-func (h *History) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
-	info, err := h.NewHsInfo()
+func (b *Base) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
+	info, err := b.NewHsInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +49,13 @@ type HandShakeInfo struct {
 	EndBlockHash Hash
 }
 
-func (h *History) NewHsInfo() (*HandShakeInfo, error) {
-	gBlock, err := h.Chain.GetGenesis()
+func (b *Base) NewHsInfo() (*HandShakeInfo, error) {
+	gBlock, err := b.Chain.GetGenesis()
 	if err != nil {
 		return nil, err
 	}
 
-	eBlock, err := h.Chain.GetEndBlock()
+	eBlock, err := b.Chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (h *History) NewHsInfo() (*HandShakeInfo, error) {
 	}, nil
 }
 
-// return a BlocksRange if other node's height is lower
+// Compare return a BlocksRange if other node's height is lower
 func (hs *HandShakeInfo) Compare(other *HandShakeInfo) (*BlocksRange, error) {
 	if hs.GenesisBlockHash != other.GenesisBlockHash {
 		return nil, yerror.GenesisBlockIllegal

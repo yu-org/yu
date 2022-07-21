@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/asset"
-	"github.com/yu-org/yu/apps/history"
+	"github.com/yu-org/yu/apps/base"
 	"github.com/yu-org/yu/apps/poa"
 	"github.com/yu-org/yu/core/startup"
 	"os"
@@ -24,7 +24,7 @@ func main() {
 
 	logrus.Info("My Address is ", myPubkey.Address().String())
 	startup.StartUp(
-		history.NewHistory(history.Full).Tripod,
+		base.NewBase(base.Full).Tripod,
 		poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs).Tripod,
 		asset.NewAsset("YuCoin").Tripod,
 	)

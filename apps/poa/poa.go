@@ -111,31 +111,7 @@ func (h *Poa) VerifyBlock(block *Block) bool {
 }
 
 func (h *Poa) InitChain() {
-	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
-	genesisHash := HexToHash("genesis")
-	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
-	if err != nil {
-		logrus.Panic("sign genesis block failed: ", err)
-	}
 
-	chain := h.Chain
-
-	gensisBlock := &CompactBlock{
-		Header: &Header{
-			Hash:           genesisHash,
-			MinerPubkey:    rootPubkey.BytesWithType(),
-			MinerSignature: signer,
-		},
-	}
-
-	err = chain.SetGenesis(gensisBlock)
-	if err != nil {
-		logrus.Panic("set genesis block failed: ", err)
-	}
-	err = chain.Finalize(genesisHash)
-	if err != nil {
-		logrus.Panic("finalize genesis block failed: ", err)
-	}
 	go func() {
 		for {
 			msg, err := h.P2pNetwork.SubP2P(StartBlockTopic)
@@ -168,10 +144,6 @@ func (h *Poa) InitChain() {
 			h.recvChan <- p2pBlock
 		}
 	}()
-}
-
-func (h *Poa) SyncHistory() {
-
 }
 
 func (h *Poa) StartBlock(block *Block) {
