@@ -63,13 +63,13 @@ func (tp *TxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
 
-func (tp *TxPool) WithBaseCheck(checkFn TxnCheckFn) ItxPool {
-	tp.baseChecks = append(tp.baseChecks, checkFn)
+func (tp *TxPool) WithBaseCheck(tc TxnChecker) ItxPool {
+	tp.baseChecks = append(tp.baseChecks, tc.CheckTxn)
 	return tp
 }
 
-func (tp *TxPool) WithTripodCheck(tri TxnCheckTripod) ItxPool {
-	tp.tripodChecks = append(tp.tripodChecks, tri.CheckTxn)
+func (tp *TxPool) WithTripodCheck(tc TxnChecker) ItxPool {
+	tp.tripodChecks = append(tp.tripodChecks, tc.CheckTxn)
 	return tp
 }
 
@@ -155,10 +155,6 @@ func (tp *TxPool) checkTxnSize(stxn *SignedTxn) error {
 }
 
 type TxnCheckFn func(*SignedTxn) error
-
-type TxnCheckTripod interface {
-	CheckTxn(*SignedTxn) error
-}
 
 func Check(checks []TxnCheckFn, stxn *SignedTxn) error {
 	for _, check := range checks {

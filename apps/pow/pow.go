@@ -13,7 +13,7 @@ import (
 )
 
 type Pow struct {
-	meta       *TripodHeader
+	meta       *Tripod
 	target     *big.Int
 	targetBits int64
 
@@ -29,7 +29,7 @@ type Pow struct {
 }
 
 func NewPow(packLimit uint64) *Pow {
-	meta := NewTripodHeader("pow")
+	meta := NewTripod("pow")
 	var targetBits int64 = 16
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
@@ -53,7 +53,7 @@ func NewPow(packLimit uint64) *Pow {
 	}
 }
 
-func (p *Pow) GetTripodHeader() *TripodHeader {
+func (p *Pow) GetTripodHeader() *Tripod {
 	return p.meta
 }
 

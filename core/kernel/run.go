@@ -40,7 +40,7 @@ func (m *Kernel) LocalRun() (err error) {
 	}
 
 	// start a new block
-	err = m.land.RangeList(func(tri Tripod) error {
+	err = m.land.RangeList(func(tri *Tripod) error {
 		tri.StartBlock(newBlock)
 		return nil
 	})
@@ -49,7 +49,7 @@ func (m *Kernel) LocalRun() (err error) {
 	}
 
 	// end block and append to chain
-	err = m.land.RangeList(func(tri Tripod) error {
+	err = m.land.RangeList(func(tri *Tripod) error {
 		tri.EndBlock(newBlock)
 		return nil
 	})
@@ -58,7 +58,7 @@ func (m *Kernel) LocalRun() (err error) {
 	}
 
 	// finalize this block
-	return m.land.RangeList(func(tri Tripod) error {
+	return m.land.RangeList(func(tri *Tripod) error {
 		tri.FinalizeBlock(newBlock)
 		return nil
 	})

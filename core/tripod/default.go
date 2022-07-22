@@ -1,0 +1,27 @@
+package tripod
+
+import (
+	. "github.com/yu-org/yu/core/types"
+)
+
+type DefaultTxnChecker struct{}
+
+func (*DefaultTxnChecker) CheckTxn(*SignedTxn) error {
+	return nil
+}
+
+type DefaultBlockVerifier struct{}
+
+func (*DefaultBlockVerifier) VerifyBlock(*Block) bool {
+	return true
+}
+
+type DefaultInit struct{}
+
+func (*DefaultInit) InitChain() {}
+
+type DefaultBlockCycle struct{}
+
+func (*DefaultBlockCycle) StartBlock(*Block)    {}
+func (*DefaultBlockCycle) EndBlock(*Block)      {}
+func (*DefaultBlockCycle) FinalizeBlock(*Block) {}

@@ -11,12 +11,12 @@ import (
 )
 
 type Asset struct {
-	*DefaultTripod
+	*Tripod
 	TokenName string
 }
 
 func NewAsset(tokenName string) *Asset {
-	df := NewDefaultTripod("asset")
+	df := NewTripod("asset")
 
 	a := &Asset{df, tokenName}
 	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
