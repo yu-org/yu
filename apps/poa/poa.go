@@ -89,10 +89,6 @@ func (h *Poa) LocalAddress() Address {
 	return h.myPubkey.Address()
 }
 
-func (h *Poa) GetTripodHeader() *Tripod {
-	return h.Tripod
-}
-
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
 	return CheckSignature(txn)
 }
