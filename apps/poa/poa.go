@@ -16,7 +16,7 @@ import (
 const BlockTime = 3
 
 type Poa struct {
-	*TripodHeader
+	*Tripod
 
 	// key: crypto address, generate from pubkey
 	validatorsMap map[Address]peer.ID
@@ -38,7 +38,7 @@ type ValidatorInfo struct {
 }
 
 func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
-	header := NewTripodHeader("Poa")
+	header := NewTripod("Poa")
 
 	var nodeIdx int
 
@@ -62,7 +62,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 	}
 
 	h := &Poa{
-		TripodHeader:   header,
+		Tripod:         header,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,
@@ -71,6 +71,10 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
+	h.SetInit(h)
+	h.SetBlockCycle(h)
+	h.SetBlockVerifier(h)
+	h.SetTxnChecker(h)
 	return h
 }
 
@@ -83,10 +87,6 @@ func (h *Poa) ValidatorsP2pID() (peers []peer.ID) {
 
 func (h *Poa) LocalAddress() Address {
 	return h.myPubkey.Address()
-}
-
-func (h *Poa) GetTripodHeader() *TripodHeader {
-	return h.TripodHeader
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
@@ -107,31 +107,7 @@ func (h *Poa) VerifyBlock(block *Block) bool {
 }
 
 func (h *Poa) InitChain() {
-	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
-	genesisHash := HexToHash("genesis")
-	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
-	if err != nil {
-		logrus.Panic("sign genesis block failed: ", err)
-	}
 
-	chain := h.Chain
-
-	gensisBlock := &CompactBlock{
-		Header: &Header{
-			Hash:           genesisHash,
-			MinerPubkey:    rootPubkey.BytesWithType(),
-			MinerSignature: signer,
-		},
-	}
-
-	err = chain.SetGenesis(gensisBlock)
-	if err != nil {
-		logrus.Panic("set genesis block failed: ", err)
-	}
-	err = chain.Finalize(genesisHash)
-	if err != nil {
-		logrus.Panic("finalize genesis block failed: ", err)
-	}
 	go func() {
 		for {
 			msg, err := h.P2pNetwork.SubP2P(StartBlockTopic)
