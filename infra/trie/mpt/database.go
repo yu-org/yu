@@ -13,12 +13,12 @@ type NodeBase struct {
 
 const MptData = "mpt-data"
 
-func NewNodeBase(db kv.KV) *NodeBase {
-	return &NodeBase{db: db}
+func NewNodeBase(db kv.Kvdb) *NodeBase {
+	return &NodeBase{db: db.NewKVInstance(MptData)}
 }
 
 func (db *NodeBase) node(hash Hash) node {
-	enc, err := db.db.Get(MptData, hash.Bytes())
+	enc, err := db.db.Get(hash.Bytes())
 	if err != nil || enc == nil {
 		return nil
 	}
@@ -27,11 +27,11 @@ func (db *NodeBase) node(hash Hash) node {
 }
 
 func (db *NodeBase) Get(toGet []byte) ([]byte, error) {
-	return db.db.Get(MptData, toGet)
+	return db.db.Get(toGet)
 }
 
 func (db *NodeBase) Put(key []byte, value []byte) error {
-	return db.db.Set(MptData, key, value)
+	return db.db.Set(key, value)
 }
 
 func (db *NodeBase) Close() error {

@@ -7,23 +7,25 @@ import (
 	"github.com/yu-org/yu/infra/storage/kv"
 )
 
-type TxDB struct {
-	kvdb kv.KV
-}
-
 const (
 	Txns    = "txns"
 	Results = "results"
 )
 
-func NewTxDB(kvdb kv.KV) *TxDB {
+type TxDB struct {
+	txnKV    kv.KV
+	resultKV kv.KV
+}
+
+func NewTxDB(kvdb kv.Kvdb) *TxDB {
 	return &TxDB{
-		kvdb: kvdb,
+		txnKV:    kvdb.NewKVInstance(Txns),
+		resultKV: kvdb.NewKVInstance(Results),
 	}
 }
 
 func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
-	byt, err := bb.kvdb.Get(Txns, txnHash.Bytes())
+	byt, err := bb.txnKV.Get(txnHash.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -31,11 +33,11 @@ func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 }
 
 func (bb *TxDB) ExistTxn(txnHash Hash) bool {
-	return bb.kvdb.Exist(Txns, txnHash.Bytes())
+	return bb.txnKV.Exist(txnHash.Bytes())
 }
 
 func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
-	kvtx, err := bb.kvdb.NewKvTxn()
+	kvtx, err := bb.txnKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
@@ -44,7 +46,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 		if err != nil {
 			return err
 		}
-		err = kvtx.Set(Txns, txn.TxnHash.Bytes(), txbyt)
+		err = kvtx.Set(txn.TxnHash.Bytes(), txbyt)
 		if err != nil {
 			return err
 		}
@@ -53,7 +55,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 }
 
 func (bb *TxDB) SetResults(results []Result) error {
-	kvtx, err := bb.kvdb.NewKvTxn()
+	kvtx, err := bb.resultKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
@@ -66,7 +68,7 @@ func (bb *TxDB) SetResults(results []Result) error {
 		if err != nil {
 			return err
 		}
-		err = kvtx.Set(Results, hash.Bytes(), byt)
+		err = kvtx.Set(hash.Bytes(), byt)
 	}
 	return kvtx.Commit()
 }
@@ -80,5 +82,5 @@ func (bb *TxDB) SetResult(result Result) error {
 	if err != nil {
 		return err
 	}
-	return bb.kvdb.Set(Results, hash.Bytes(), byt)
+	return bb.resultKV.Set(hash.Bytes(), byt)
 }

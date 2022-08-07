@@ -33,7 +33,7 @@ func StartUp(tripods ...*tripod.Tripod) {
 
 	land := tripod.NewLand()
 
-	kvdb, err := kv.NewKV(&kernelCfg.KVDB)
+	kvdb, err := kv.NewKvdb(&kernelCfg.KVDB)
 	if err != nil {
 		logrus.Fatal("init kvdb error: ", err)
 	}

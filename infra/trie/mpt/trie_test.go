@@ -13,7 +13,7 @@ func TestTrieSetPutandGet(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	kvdb, err := kv.NewKV(cfg)
+	kvdb, err := kv.NewKvdb(cfg)
 	if err != nil {
 		t.Error(err)
 		return

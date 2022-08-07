@@ -28,7 +28,7 @@ package kv
 //}
 //
 //func (*tiKV) Kind() storage.StoreKind {
-//	return storage.KV
+//	return storage.Kvdb
 //}
 //
 //func (t *tiKV) get(key []byte) ([]byte, error) {

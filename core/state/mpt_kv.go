@@ -30,12 +30,12 @@ type MptKV struct {
 
 const MptIndex = "mpt-index"
 
-func NewMptKV(kvdb KV) IState {
+func NewMptKV(kvdb Kvdb) IState {
 
 	nodeBase := NewNodeBase(kvdb)
 
 	return &MptKV{
-		indexDB:      kvdb,
+		indexDB:      kvdb.NewKVInstance(MptIndex),
 		nodeBase:     nodeBase,
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
@@ -167,11 +167,11 @@ func (skv *MptKV) FinalizeBlock(blockHash Hash) {
 }
 
 func (skv *MptKV) setIndexDB(blockHash, stateRoot Hash) error {
-	return skv.indexDB.Set(MptIndex, blockHash.Bytes(), stateRoot.Bytes())
+	return skv.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
 }
 
 func (skv *MptKV) getIndexDB(blockHash Hash) (Hash, error) {
-	stateRoot, err := skv.indexDB.Get(MptIndex, blockHash.Bytes())
+	stateRoot, err := skv.indexDB.Get(blockHash.Bytes())
 	if err != nil {
 		return NullHash, err
 	}

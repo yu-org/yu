@@ -19,6 +19,10 @@ func NewBadger(path string) (*badgerKV, error) {
 	}, nil
 }
 
+func (b *badgerKV) NewKVInstance(prefix string) KV {
+	return NewKV(prefix, b)
+}
+
 func (*badgerKV) Type() storage.StoreType {
 	return storage.Embedded
 }
@@ -80,10 +84,11 @@ func (bg *badgerKV) Iter(prefix string, key []byte) (Iterator, error) {
 	}, err
 }
 
-func (bg *badgerKV) NewKvTxn() (KvTxn, error) {
+func (bg *badgerKV) NewKvTxn(prefix string) (KvTxn, error) {
 	tx := bg.db.NewTransaction(true)
 	return &badgerTxn{
-		tx: tx,
+		prefix: prefix,
+		tx:     tx,
 	}, nil
 }
 
@@ -117,11 +122,12 @@ func (bgi *badgerIterator) Close() {
 }
 
 type badgerTxn struct {
-	tx *badger.Txn
+	prefix string
+	tx     *badger.Txn
 }
 
-func (bt *badgerTxn) Get(prefix string, key []byte) ([]byte, error) {
-	key = makeKey(prefix, key)
+func (bt *badgerTxn) Get(key []byte) ([]byte, error) {
+	key = makeKey(bt.prefix, key)
 	item, err := bt.tx.Get(key)
 	if err != nil {
 		return nil, err
@@ -134,13 +140,13 @@ func (bt *badgerTxn) Get(prefix string, key []byte) ([]byte, error) {
 	return value, err
 }
 
-func (bt *badgerTxn) Set(prefix string, key, value []byte) error {
-	key = makeKey(prefix, key)
+func (bt *badgerTxn) Set(key, value []byte) error {
+	key = makeKey(bt.prefix, key)
 	return bt.tx.Set(key, value)
 }
 
-func (bt *badgerTxn) Delete(prefix string, key []byte) error {
-	key = makeKey(prefix, key)
+func (bt *badgerTxn) Delete(key []byte) error {
+	key = makeKey(bt.prefix, key)
 	return bt.tx.Delete(key)
 }
 

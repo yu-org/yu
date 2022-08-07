@@ -20,6 +20,6 @@ type IState interface {
 	FinalizeBlock(blockHash Hash)
 }
 
-func NewStateDB(kvdb kv.KV) IState {
+func NewStateDB(kvdb kv.Kvdb) IState {
 	return NewMptKV(kvdb)
 }
