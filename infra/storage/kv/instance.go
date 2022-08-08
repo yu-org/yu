@@ -1,14 +1,5 @@
 package kv
 
-type KV interface {
-	Get(key []byte) ([]byte, error)
-	Set(key []byte, value []byte) error
-	Delete(key []byte) error
-	Exist(key []byte) bool
-	Iter(key []byte) (Iterator, error)
-	NewKvTxn() (KvTxn, error)
-}
-
 type KvInstance struct {
 	prefix string
 	kvdb   Kvdb

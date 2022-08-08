@@ -14,7 +14,7 @@ type NodeBase struct {
 const MptData = "mpt-data"
 
 func NewNodeBase(db kv.Kvdb) *NodeBase {
-	return &NodeBase{db: db.NewKVInstance(MptData)}
+	return &NodeBase{db: db.New(MptData)}
 }
 
 func (db *NodeBase) node(hash Hash) node {

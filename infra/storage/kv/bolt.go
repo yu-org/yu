@@ -29,7 +29,7 @@ func NewBolt(fpath string) (*boltKV, error) {
 	return &boltKV{db: db}, nil
 }
 
-func (b *boltKV) NewKVInstance(prefix string) KV {
+func (b *boltKV) New(prefix string) KV {
 	return NewKV(prefix, b)
 }
 

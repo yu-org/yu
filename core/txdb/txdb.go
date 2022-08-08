@@ -19,8 +19,8 @@ type TxDB struct {
 
 func NewTxDB(kvdb kv.Kvdb) *TxDB {
 	return &TxDB{
-		txnKV:    kvdb.NewKVInstance(Txns),
-		resultKV: kvdb.NewKVInstance(Results),
+		txnKV:    kvdb.New(Txns),
+		resultKV: kvdb.New(Results),
 	}
 }
 

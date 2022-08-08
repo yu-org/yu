@@ -19,7 +19,7 @@ func NewBadger(path string) (*badgerKV, error) {
 	}, nil
 }
 
-func (b *badgerKV) NewKVInstance(prefix string) KV {
+func (b *badgerKV) New(prefix string) KV {
 	return NewKV(prefix, b)
 }
 

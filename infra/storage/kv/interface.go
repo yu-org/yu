@@ -10,7 +10,7 @@ import (
 
 type Kvdb interface {
 	storage.StorageType
-	NewKVInstance(prefix string) KV
+	New(prefix string) KV
 	Get(prefix string, key []byte) ([]byte, error)
 	Set(prefix string, key []byte, value []byte) error
 	Delete(prefix string, key []byte) error
@@ -31,6 +31,15 @@ func NewKvdb(cfg *KVconf) (Kvdb, error) {
 	default:
 		return nil, NoKvdbType
 	}
+}
+
+type KV interface {
+	Get(key []byte) ([]byte, error)
+	Set(key []byte, value []byte) error
+	Delete(key []byte) error
+	Exist(key []byte) bool
+	Iter(key []byte) (Iterator, error)
+	NewKvTxn() (KvTxn, error)
 }
 
 type Iterator interface {

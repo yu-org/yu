@@ -35,7 +35,7 @@ func NewMptKV(kvdb Kvdb) IState {
 	nodeBase := NewNodeBase(kvdb)
 
 	return &MptKV{
-		indexDB:      kvdb.NewKVInstance(MptIndex),
+		indexDB:      kvdb.New(MptIndex),
 		nodeBase:     nodeBase,
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
