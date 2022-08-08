@@ -6,17 +6,20 @@ import (
 	"github.com/yu-org/yu/infra/storage"
 )
 
-type KV interface {
+// todo: We need DB connection pool
+
+type Kvdb interface {
 	storage.StorageType
+	New(prefix string) KV
 	Get(prefix string, key []byte) ([]byte, error)
 	Set(prefix string, key []byte, value []byte) error
 	Delete(prefix string, key []byte) error
 	Exist(prefix string, key []byte) bool
 	Iter(prefix string, key []byte) (Iterator, error)
-	NewKvTxn() (KvTxn, error)
+	NewKvTxn(prefix string) (KvTxn, error)
 }
 
-func NewKV(cfg *KVconf) (KV, error) {
+func NewKvdb(cfg *KVconf) (Kvdb, error) {
 	switch cfg.KvType {
 	case "badger":
 		return NewBadger(cfg.Path)
@@ -30,6 +33,15 @@ func NewKV(cfg *KVconf) (KV, error) {
 	}
 }
 
+type KV interface {
+	Get(key []byte) ([]byte, error)
+	Set(key []byte, value []byte) error
+	Delete(key []byte) error
+	Exist(key []byte) bool
+	Iter(key []byte) (Iterator, error)
+	NewKvTxn() (KvTxn, error)
+}
+
 type Iterator interface {
 	Valid() bool
 	Next() error
@@ -38,9 +50,9 @@ type Iterator interface {
 }
 
 type KvTxn interface {
-	Get(prefix string, key []byte) ([]byte, error)
-	Set(prefix string, key, value []byte) error
-	Delete(preifx string, key []byte) error
+	Get(key []byte) ([]byte, error)
+	Set(key, value []byte) error
+	Delete(key []byte) error
 	Commit() error
 	Rollback() error
 }

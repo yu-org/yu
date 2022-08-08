@@ -136,7 +136,7 @@ func TestGenerateProof(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	kvdb, err := kv.NewKV(cfg)
+	kvdb, err := kv.NewKvdb(cfg)
 	if err != nil {
 		assert.NoError(t, err)
 	}
@@ -178,7 +178,7 @@ func TestGenerateLongProof(t *testing.T) {
 		KvType: "badger",
 		Path:   "./testdb",
 	}
-	kvdb, err := kv.NewKV(cfg)
+	kvdb, err := kv.NewKvdb(cfg)
 	if err != nil {
 		assert.NoError(t, err)
 	}

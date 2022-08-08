@@ -29,6 +29,10 @@ func NewBolt(fpath string) (*boltKV, error) {
 	return &boltKV{db: db}, nil
 }
 
+func (b *boltKV) New(prefix string) KV {
+	return NewKV(prefix, b)
+}
+
 func (*boltKV) Type() storage.StoreType {
 	return storage.Embedded
 }
@@ -81,13 +85,14 @@ func (b *boltKV) Iter(prefix string, key []byte) (Iterator, error) {
 	}, err
 }
 
-func (b *boltKV) NewKvTxn() (KvTxn, error) {
+func (b *boltKV) NewKvTxn(prefix string) (KvTxn, error) {
 	tx, err := b.db.Begin(true)
 	if err != nil {
 		return nil, err
 	}
 	return &boltTxn{
-		tx: tx,
+		prefix: prefix,
+		tx:     tx,
 	}, nil
 }
 
@@ -116,21 +121,22 @@ func (bi *boltIterator) Close() {
 }
 
 type boltTxn struct {
-	tx *bbolt.Tx
+	prefix string
+	tx     *bbolt.Tx
 }
 
-func (bot *boltTxn) Get(prefix string, key []byte) ([]byte, error) {
-	key = makeKey(prefix, key)
+func (bot *boltTxn) Get(key []byte) ([]byte, error) {
+	key = makeKey(bot.prefix, key)
 	return bot.tx.Bucket(bucket).Get(key), nil
 }
 
-func (bot *boltTxn) Set(prefix string, key, value []byte) error {
-	key = makeKey(prefix, key)
+func (bot *boltTxn) Set(key, value []byte) error {
+	key = makeKey(bot.prefix, key)
 	return bot.tx.Bucket(bucket).Put(key, value)
 }
 
-func (bot *boltTxn) Delete(prefix string, key []byte) error {
-	key = makeKey(prefix, key)
+func (bot *boltTxn) Delete(key []byte) error {
+	key = makeKey(bot.prefix, key)
 	return bot.tx.Bucket(bucket).Delete(key)
 }
 

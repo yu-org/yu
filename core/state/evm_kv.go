@@ -14,7 +14,7 @@ import (
 
 type EvmKV struct {
 	// blockHash -> stateRoot
-	indexDB KV
+	indexDB Kvdb
 
 	nodeBase *NodeBase
 
@@ -29,7 +29,7 @@ type EvmKV struct {
 
 const EVMKV = "evmkv"
 
-func NewEvmKV(root Hash, kvdb KV, cfg *EvmKvConf) IState {
+func NewEvmKV(root Hash, kvdb Kvdb, cfg *EvmKvConf) IState {
 	ethdb, err := rawdb.NewLevelDBDatabase(cfg.Fpath, cfg.Cache, cfg.Handles, cfg.Namespace, cfg.ReadOnly)
 	if err != nil {
 		logrus.Fatal("init geth rawdb error: ", err)
@@ -38,7 +38,7 @@ func NewEvmKV(root Hash, kvdb KV, cfg *EvmKvConf) IState {
 	if err != nil {
 		logrus.Fatal("init geth statedb error: ", err)
 	}
-	indexDB, err := NewKV(&cfg.IndexDB)
+	indexDB, err := NewKvdb(&cfg.IndexDB)
 	if err != nil {
 		logrus.Fatal("init EvmKV indexDB error: ", err)
 	}
