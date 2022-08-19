@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
@@ -76,6 +77,9 @@ func (tp *TxPool) WithTripodCheck(tc TxnChecker) ItxPool {
 func (tp *TxPool) Exist(stxn *SignedTxn) bool {
 	tp.RLock()
 	defer tp.RUnlock()
+	if tp.unpackedTxns.exist(stxn.TxnHash) {
+		return true
+	}
 	// check replay attack
 	return tp.txdb.ExistTxn(stxn.TxnHash)
 }
@@ -117,6 +121,9 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 func (tp *TxPool) Reset(txns SignedTxns) error {
 	tp.Lock()
 	defer tp.Unlock()
+	for _, tx := range txns {
+		logrus.Debug("**************** reset txpool: ", tx.Raw.Ecall)
+	}
 	tp.unpackedTxns.deletes(txns.Hashes())
 	return nil
 }

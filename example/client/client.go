@@ -27,7 +27,7 @@ func main() {
 	time.Sleep(4 * time.Second)
 
 	logrus.Info("--- send Transfering 1 ---")
-	TransferBalance(Websocket, privkey, pubkey, toPubkey.Address(), 100, 0)
+	TransferBalance(Websocket, privkey, pubkey, toPubkey.Address(), 50, 0)
 	time.Sleep(4 * time.Second)
 
 	logrus.Info("--- send Transfering 2 ---")

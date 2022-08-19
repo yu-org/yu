@@ -20,6 +20,7 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 	if len(ot.txns) == 0 {
 		ot.txns = []*SignedTxn{input}
 	}
+	logrus.Debugf("####################### Insert txn(%v) to Txpool", input.Raw.Ecall)
 	for i, tx := range ot.txns {
 		if tx == nil {
 			continue
@@ -34,7 +35,7 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 func (ot *orderedTxns) delete(hash Hash) {
 	for idx, txn := range ot.txns {
 		if txn.TxnHash == hash {
-			logrus.Tracef("DELETE txn(%s) from txpool", hash.String())
+			logrus.Debugf("############# DELETE txn(%v) from txpool", txn.Raw.Ecall)
 			ot.txns = append(ot.txns[:idx], ot.txns[idx+1:]...)
 			return
 		}
@@ -45,6 +46,10 @@ func (ot *orderedTxns) deletes(hashes []Hash) {
 	for _, hash := range hashes {
 		ot.delete(hash)
 	}
+}
+
+func (ot *orderedTxns) exist(txnHash Hash) bool {
+	return ot.get(txnHash) != nil
 }
 
 func (ot *orderedTxns) get(txnHash Hash) *SignedTxn {
@@ -63,7 +68,7 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	}
 	for _, txn := range ot.txns[:numLimit] {
 		if filter(txn) && txn != nil {
-			logrus.Tracef("Pack txn(%s) from Txpool", txn.TxnHash.String())
+			logrus.Debugf("#######################Pack txn(%v) from Txpool", txn.Raw.Ecall)
 			txns = append(txns, txn)
 		}
 	}

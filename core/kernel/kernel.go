@@ -127,6 +127,7 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 			logrus.Error("check txn from P2P into txpool error: ", err)
 			continue
 		}
+		logrus.Debug("   Accept txn from [P2P] into txpool: ", txn.Raw.Ecall)
 		err = m.txPool.Insert(txn)
 		if err != nil {
 			logrus.Error("insert txn from P2P into txpool error: ", err)
