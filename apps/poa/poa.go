@@ -161,10 +161,12 @@ func (h *Poa) StartBlock(block *Block) {
 		}
 	}
 
+	logrus.Info(" I am Leader! I mine the block! ")
 	txns, err := h.Pool.Pack(3000)
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
+	logrus.Debugf("pack txns from pool: %d", len(txns))
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
