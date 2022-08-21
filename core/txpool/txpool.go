@@ -6,7 +6,6 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
-	ytime "github.com/yu-org/yu/utils/time"
 	"sync"
 )
 
@@ -15,7 +14,6 @@ type TxPool struct {
 
 	poolSize   uint64
 	TxnMaxSize int
-	startTS    uint64
 
 	unpackedTxns *orderedTxns
 	txdb         ItxDB
@@ -31,7 +29,6 @@ func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
-		startTS:      ytime.NowNanoTsU64(),
 		txdb:         base,
 		baseChecks:   make([]TxnCheckFn, 0),
 		tripodChecks: make([]TxnCheckFn, 0),
