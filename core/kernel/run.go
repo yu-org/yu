@@ -79,7 +79,7 @@ func (m *Kernel) makeNewBasicBlock() (*Block, error) {
 	return newBlock, nil
 }
 
-func (m *Kernel) ExecuteTxns(block *Block) error {
+func (m *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
 	var results []Result

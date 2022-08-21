@@ -59,7 +59,7 @@ func NewKernel(
 		land: land,
 	}
 
-	env.Execute = m.ExecuteTxns
+	env.Execute = m.OrderedExecute
 
 	//err := m.InitChain()
 	//if err != nil {
