@@ -29,6 +29,10 @@ func (b *Block) UseLei(lei uint64) {
 	b.Header.LeiUsed += lei
 }
 
+func (b *Block) SetTxns(txns SignedTxns) {
+	b.Txns = txns
+}
+
 func (b *Block) Encode() ([]byte, error) {
 	return proto.Marshal(b.ToPb())
 }

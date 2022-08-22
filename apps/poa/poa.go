@@ -184,19 +184,16 @@ func (h *Poa) StartBlock(block *Block) {
 	}
 	block.MinerPubkey = h.myPubkey.BytesWithType()
 
-	rawBlock := &Block{
-		Header: block.Header,
-		Txns:   txns,
-	}
+	block.SetTxns(txns)
 
 	h.State.StartBlock(block.Hash)
 
-	rawBlockByt, err := rawBlock.Encode()
+	blockByt, err := block.Encode()
 	if err != nil {
 		logrus.Panic("encode raw-block failed: ", err)
 	}
 
-	err = h.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
+	err = h.P2pNetwork.PubP2P(StartBlockTopic, blockByt)
 	if err != nil {
 		logrus.Panic("publish block to p2p failed: ", err)
 	}
