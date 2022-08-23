@@ -1,44 +1,43 @@
 package txpool
 
 import (
+	"container/list"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
 )
 
 type orderedTxns struct {
-	txns []*SignedTxn
+	txns *list.List
+	idx  map[Hash]*list.Element
 }
 
 func newOrderedTxns() *orderedTxns {
 	return &orderedTxns{
-		txns: make([]*SignedTxn, 0),
+		txns: list.New(),
+		idx:  make(map[Hash]*list.Element),
 	}
 }
 
 func (ot *orderedTxns) insert(input *SignedTxn) {
-	if len(ot.txns) == 0 {
-		ot.txns = []*SignedTxn{input}
-	}
-	logrus.Debugf("####################### Insert txn(%v) to Txpool", input.Raw.Ecall)
-	for i, tx := range ot.txns {
-		if tx == nil {
-			continue
-		}
+	logrus.WithField("txpool", "ordered-txns").Tracef("Insert txn(%v) to Txpool", input.Raw.Ecall)
+	for element := ot.txns.Front(); element != nil; element = element.Next() {
+		tx := element.Value.(*SignedTxn)
 		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
-			ot.txns = append(ot.txns[:i], append([]*SignedTxn{input}, ot.txns[i:]...)...)
+			e := ot.txns.InsertBefore(input, element)
+			ot.idx[input.TxnHash] = e
 			return
 		}
 	}
+	e := ot.txns.PushBack(input)
+	ot.idx[input.TxnHash] = e
 }
 
-func (ot *orderedTxns) delete(hash Hash) {
-	for idx, txn := range ot.txns {
-		if txn.TxnHash == hash {
-			logrus.Debugf("############# DELETE txn(%v) from txpool", txn.Raw.Ecall)
-			ot.txns = append(ot.txns[:idx], ot.txns[idx+1:]...)
-			return
-		}
+func (ot *orderedTxns) delete(txnHash Hash) {
+	if e, ok := ot.idx[txnHash]; ok {
+		logrus.WithField("txpool", "ordered-txns").Tracef("DELETE txn(%v) from txpool", e.Value.(*SignedTxn).Raw.Ecall)
+		ot.txns.Remove(e)
+		delete(ot.idx, txnHash)
 	}
 }
 
@@ -49,14 +48,13 @@ func (ot *orderedTxns) deletes(hashes []Hash) {
 }
 
 func (ot *orderedTxns) exist(txnHash Hash) bool {
-	return ot.get(txnHash) != nil
+	_, ok := ot.idx[txnHash]
+	return ok
 }
 
 func (ot *orderedTxns) get(txnHash Hash) *SignedTxn {
-	for _, txn := range ot.txns {
-		if txn.TxnHash == txnHash {
-			return txn
-		}
+	if e, ok := ot.idx[txnHash]; ok {
+		return e.Value.(*SignedTxn)
 	}
 	return nil
 }
@@ -66,15 +64,18 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	if numLimit > uint64(ot.size()) {
 		numLimit = uint64(ot.size())
 	}
-	for _, txn := range ot.txns[:numLimit] {
-		if filter(txn) && txn != nil {
-			logrus.Debugf("#######################Pack txn(%v) from Txpool", txn.Raw.Ecall)
+	var packedNum uint64 = 0
+	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element.Next() {
+		txn := element.Value.(*SignedTxn)
+		if filter(txn) {
+			logrus.WithField("txpool", "ordered-txns").Tracef("Pack txn(%v) from Txpool", txn.Raw.Ecall)
 			txns = append(txns, txn)
+			packedNum++
 		}
 	}
 	return txns
 }
 
 func (ot *orderedTxns) size() int {
-	return len(ot.txns)
+	return ot.txns.Len()
 }
