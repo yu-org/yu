@@ -166,7 +166,6 @@ func (h *Poa) StartBlock(block *Block) {
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
-	logrus.Debugf("pack txns from pool: %d", len(txns))
 
 	txnRoot, err := MakeTxnRoot(txns)
 	if err != nil {
