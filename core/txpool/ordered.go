@@ -8,6 +8,7 @@ import (
 )
 
 type orderedTxns struct {
+	// FIXME: use ArrayList
 	txns *list.List
 	idx  map[Hash]*list.Element
 }
@@ -21,13 +22,16 @@ func newOrderedTxns() *orderedTxns {
 
 func (ot *orderedTxns) insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").Tracef("Insert txn(%v) to Txpool", input.Raw.Ecall)
-	for element := ot.txns.Front(); element != nil; element = element.Next() {
+	length := ot.txns.Len()
+	i := 0
+	for element := ot.txns.Front(); element != nil && i < length; element = element.Next() {
 		tx := element.Value.(*SignedTxn)
 		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
 			e := ot.txns.InsertBefore(input, element)
 			ot.idx[input.TxnHash] = e
 			return
 		}
+		i++
 	}
 	e := ot.txns.PushBack(input)
 	ot.idx[input.TxnHash] = e

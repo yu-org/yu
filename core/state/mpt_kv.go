@@ -1,6 +1,7 @@
 package state
 
 import (
+	"container/list"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/infra/storage/kv"
@@ -25,7 +26,8 @@ type MptKV struct {
 	currentBlock   Hash
 	finalizedBlock Hash
 
-	stashes []*TxnStashes
+	// FIXME: use ArrayList
+	stashes *list.List // []*TxnStashes
 }
 
 const MptIndex = "mpt-index"
@@ -39,12 +41,12 @@ func NewMptKV(kvdb Kvdb) IState {
 		nodeBase:     nodeBase,
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
-		stashes:      make([]*TxnStashes, 0),
+		stashes:      list.New(),
 	}
 }
 
 func (skv *MptKV) NextTxn() {
-	skv.stashes = append(skv.stashes, newTxnStashes())
+	skv.stashes.PushBack(newTxnStashes())
 }
 
 func (skv *MptKV) Set(triName NameString, key, value []byte) {
@@ -56,22 +58,27 @@ func (skv *MptKV) Delete(triName NameString, key []byte) {
 }
 
 func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
-	if len(skv.stashes) == 0 {
-		skv.stashes = append(skv.stashes, newTxnStashes())
+	if skv.stashes.Len() == 0 {
+		skv.stashes.PushBack(newTxnStashes())
 	}
-	currentTxnStashes := skv.stashes[len(skv.stashes)-1]
-	currentTxnStashes.append(op, makeKey(triName, key), value)
+	skv.stashes.Back().Value.(*TxnStashes).append(op, makeKey(triName, key), value)
 }
 
 func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
-	for i := len(skv.stashes) - 1; i >= 0; i-- {
-		ops, value := skv.stashes[i].get(makeKey(triName, key))
-		if *ops == DeleteOp {
-			return nil, nil
+	length := skv.stashes.Len()
+	i := 0
+	for element := skv.stashes.Back(); element != nil && i < length; element.Prev() {
+		stashes := element.Value.(*TxnStashes)
+		ops, value := stashes.get(makeKey(triName, key))
+		if ops != nil {
+			if *ops == DeleteOp {
+				return nil, nil
+			}
+			if value != nil {
+				return value, nil
+			}
 		}
-		if value != nil {
-			return value, nil
-		}
+		i++
 	}
 	return skv.GetByBlockHash(triName, key, skv.prevBlock)
 }
@@ -113,12 +120,16 @@ func (skv *MptKV) Commit() (Hash, error) {
 	}
 
 	// todo: optimize combine all key-values stashes
-	for _, stash := range skv.stashes {
-		err = stash.commit(mpt)
+	length := skv.stashes.Len()
+	i := 0
+	for element := skv.stashes.Front(); element != nil && i < length; element.Next() {
+		stashes := element.Value.(*TxnStashes)
+		err = stashes.commit(mpt)
 		if err != nil {
 			skv.DiscardAll()
 			return NullHash, err
 		}
+		i++
 	}
 
 	stateRoot, err := mpt.Commit(nil)
@@ -133,15 +144,15 @@ func (skv *MptKV) Commit() (Hash, error) {
 		return NullHash, err
 	}
 
-	skv.stashes = nil
+	skv.stashes.Init()
 	return stateRoot, nil
 }
 
 func (skv *MptKV) Discard() {
-	if len(skv.stashes) == 0 {
-		return
+	last := skv.stashes.Back()
+	if last != nil {
+		skv.stashes.Remove(last)
 	}
-	skv.stashes = skv.stashes[:len(skv.stashes)-1]
 }
 
 func (skv *MptKV) DiscardAll() {
@@ -154,7 +165,7 @@ func (skv *MptKV) DiscardAll() {
 		logrus.Panic("DiscardAll: set stateRoot error: ", err)
 	}
 
-	skv.stashes = nil
+	skv.stashes.Init()
 }
 
 func (skv *MptKV) StartBlock(blockHash Hash) {
@@ -197,16 +208,15 @@ type KvStash struct {
 }
 
 type TxnStashes struct {
-	stashes []*KvStash
+	stashes *list.List // []*KvStash
 	// key: string(key bytes)
-	// value: index of stashes
-	indexes map[string]int
+	indexes map[string]*list.Element
 }
 
 func newTxnStashes() *TxnStashes {
 	return &TxnStashes{
-		stashes: make([]*KvStash, 0),
-		indexes: make(map[string]int),
+		stashes: list.New(),
+		indexes: make(map[string]*list.Element),
 	}
 }
 
@@ -216,26 +226,23 @@ func (k *TxnStashes) append(ops Ops, key, value []byte) {
 		Key:   key,
 		Value: value,
 	}
-	if idx, ok := k.indexes[string(key)]; ok {
-		// k.stashes = append(k.stashes[:idx], k.stashes[idx+1:]...)
-		k.stashes[idx] = nil
-	}
-	k.stashes = append(k.stashes, newKvStash)
-	k.indexes[string(key)] = len(k.stashes) - 1
+	last := k.stashes.PushBack(newKvStash)
+	k.indexes[string(key)] = last
 }
 
 func (k *TxnStashes) get(key []byte) (*Ops, []byte) {
-	if idx, ok := k.indexes[string(key)]; ok {
-		return &k.stashes[idx].ops, k.stashes[idx].Value
+	if element, ok := k.indexes[string(key)]; ok {
+		kvStash := element.Value.(*KvStash)
+		return &kvStash.ops, kvStash.Value
 	}
 	return nil, nil
 }
 
 func (k *TxnStashes) commit(mpt *Trie) error {
-	for _, stash := range k.stashes {
-		if stash == nil {
-			continue
-		}
+	length := k.stashes.Len()
+	i := 0
+	for element := k.stashes.Front(); element != nil && i < length; element.Next() {
+		stash := element.Value.(*KvStash)
 		switch stash.ops {
 		case SetOp:
 			err := mpt.TryUpdate(stash.Key, stash.Value)
@@ -248,6 +255,7 @@ func (k *TxnStashes) commit(mpt *Trie) error {
 				return err
 			}
 		}
+		i++
 	}
 	return nil
 }
