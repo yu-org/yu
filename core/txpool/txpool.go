@@ -1,7 +1,6 @@
 package txpool
 
 import (
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
@@ -118,9 +117,6 @@ func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]
 func (tp *TxPool) Reset(txns SignedTxns) error {
 	tp.Lock()
 	defer tp.Unlock()
-	for _, tx := range txns {
-		logrus.Debug("**************** reset txpool: ", tx.Raw.Ecall)
-	}
 	tp.unpackedTxns.deletes(txns.Hashes())
 	return nil
 }
