@@ -1,7 +1,7 @@
 run_mode = 0
 http_port = "7998"
 ws_port = "8998"
-log_level = "info"
+log_level = "trace"
 # log_output = "yu.log"
 lei_limit = 50000
 timeout = 60

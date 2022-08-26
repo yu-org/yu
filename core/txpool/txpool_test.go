@@ -6,17 +6,26 @@ import (
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"testing"
 )
 
-func initTxpool() *TxPool {
+func initTxpool(t *testing.T) *TxPool {
 	cfg := config.InitDefaultCfgWithDir("test-txpool")
-	base := txdb.NewTxDB(&cfg.TxDB)
+	kvdb, err := kv.NewKvdb(&config.KVconf{
+		KvType: "bolt",
+		Path:   "./test-txpool.db",
+		Hosts:  nil,
+	})
+	if err != nil {
+		t.Fatal("init kvdb error: ", err)
+	}
+	base := txdb.NewTxDB(kvdb)
 	return WithDefaultChecks(&cfg.Txpool, base)
 }
 
 func TestCheckPoolSize(t *testing.T) {
-	pool := initTxpool()
+	pool := initTxpool(t)
 	pool.poolSize = 1
 	err := pool.Insert(tx1)
 	if err != nil {
@@ -29,7 +38,7 @@ func TestCheckPoolSize(t *testing.T) {
 }
 
 func TestCheckTxnSize(t *testing.T) {
-	pool := initTxpool()
+	pool := initTxpool(t)
 	pool.TxnMaxSize = 1
 	err := pool.Insert(tx1)
 	if err != nil {
@@ -38,7 +47,7 @@ func TestCheckTxnSize(t *testing.T) {
 }
 
 func TestPackFor(t *testing.T) {
-	pool := initTxpool()
+	pool := initTxpool(t)
 	err := pool.Insert(tx1)
 	if err != nil {
 		t.Fatalf("insert tx1 failed: %v", err)

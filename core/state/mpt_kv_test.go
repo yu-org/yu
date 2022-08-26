@@ -3,6 +3,7 @@ package state
 import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"os"
 	"testing"
 )
@@ -23,7 +24,12 @@ func (tt *TestTripod) Name() string {
 }
 
 func TestKvCommit(t *testing.T) {
-	statekv := NewMptKV(TestStateKvCfg)
+	kvdb, err := kv.NewKvdb(&config.KVconf{
+		KvType: "bolt",
+		Path:   "./test-mpt-kv.db",
+		Hosts:  nil,
+	})
+	statekv := NewMptKV(kvdb)
 
 	tri := &TestTripod{}
 

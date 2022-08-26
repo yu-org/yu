@@ -59,7 +59,7 @@ func NewKernel(
 		land: land,
 	}
 
-	env.Execute = m.ExecuteTxns
+	env.Execute = m.OrderedExecute
 
 	//err := m.InitChain()
 	//if err != nil {
@@ -122,6 +122,10 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 		if m.txPool.Exist(txn) {
 			continue
 		}
+
+		logrus.WithField("p2p", "accept-txn").
+			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.Ecall)
+
 		err = m.txPool.CheckTxn(txn)
 		if err != nil {
 			logrus.Error("check txn from P2P into txpool error: ", err)

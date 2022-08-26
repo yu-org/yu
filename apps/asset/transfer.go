@@ -69,6 +69,7 @@ func (a *Asset) Transfer(ctx *Context, _ *Block) (err error) {
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
+	logrus.WithField("asset", "transfer").Debugf("from(%s) to(%s) amount(%d)", from.String(), to.String(), amount)
 	err = a.transfer(from, to, amount)
 	if err != nil {
 		return
@@ -108,7 +109,7 @@ func (a *Asset) CreateAccount(ctx *Context, _ *Block) error {
 	//}
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
-	logrus.Debugf("Create ACCOUNT(%s) amount(%d)", addr.String(), amount)
+	logrus.WithField("asset", "create-account").Debugf("ACCOUNT(%s) amount(%d)", addr.String(), amount)
 
 	if a.existAccount(addr) {
 		_ = ctx.EmitEvent("Account Exists!")
