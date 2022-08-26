@@ -8,7 +8,6 @@ import (
 )
 
 type orderedTxns struct {
-	// FIXME: use ArrayList
 	txns *list.List
 	idx  map[Hash]*list.Element
 }
@@ -21,7 +20,8 @@ func newOrderedTxns() *orderedTxns {
 }
 
 func (ot *orderedTxns) insert(input *SignedTxn) {
-	logrus.WithField("txpool", "ordered-txns").Tracef("Insert txn(%v) to Txpool", input.Raw.Ecall)
+	logrus.WithField("txpool", "ordered-txns").
+		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.Ecall)
 	for element := ot.txns.Front(); element != nil; element = element.Next() {
 		tx := element.Value.(*SignedTxn)
 		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
@@ -36,7 +36,9 @@ func (ot *orderedTxns) insert(input *SignedTxn) {
 
 func (ot *orderedTxns) delete(txnHash Hash) {
 	if e, ok := ot.idx[txnHash]; ok {
-		logrus.WithField("txpool", "ordered-txns").Tracef("DELETE txn(%v) from txpool", e.Value.(*SignedTxn).Raw.Ecall)
+		stxn := e.Value.(*SignedTxn)
+		logrus.WithField("txpool", "ordered-txns").
+			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.Ecall)
 		ot.txns.Remove(e)
 		delete(ot.idx, txnHash)
 	}
@@ -69,7 +71,8 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element = element.Next() {
 		txn := element.Value.(*SignedTxn)
 		if filter(txn) {
-			logrus.WithField("txpool", "ordered-txns").Tracef("Pack txn(%v) from Txpool", txn.Raw.Ecall)
+			logrus.WithField("txpool", "ordered-txns").
+				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash.String(), txn.Raw.Ecall)
 			txns = append(txns, txn)
 			packedNum++
 		}

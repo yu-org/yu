@@ -2,7 +2,6 @@ package kernel
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
@@ -62,7 +61,6 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 		}
 	}()
 
-	logrus.Debug("  [Http] txn  into txpool: ", stxn.Raw.Ecall)
 	err = m.txPool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
