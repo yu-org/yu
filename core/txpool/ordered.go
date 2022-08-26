@@ -22,16 +22,13 @@ func newOrderedTxns() *orderedTxns {
 
 func (ot *orderedTxns) insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").Tracef("Insert txn(%v) to Txpool", input.Raw.Ecall)
-	length := ot.txns.Len()
-	i := 0
-	for element := ot.txns.Front(); element != nil && i < length; element = element.Next() {
+	for element := ot.txns.Front(); element != nil; element = element.Next() {
 		tx := element.Value.(*SignedTxn)
 		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
 			e := ot.txns.InsertBefore(input, element)
 			ot.idx[input.TxnHash] = e
 			return
 		}
-		i++
 	}
 	e := ot.txns.PushBack(input)
 	ot.idx[input.TxnHash] = e
@@ -69,7 +66,7 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		numLimit = uint64(ot.size())
 	}
 	var packedNum uint64 = 0
-	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element.Next() {
+	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element = element.Next() {
 		txn := element.Value.(*SignedTxn)
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").Tracef("Pack txn(%v) from Txpool", txn.Raw.Ecall)

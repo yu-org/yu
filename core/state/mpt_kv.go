@@ -65,9 +65,7 @@ func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
 }
 
 func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
-	length := skv.stashes.Len()
-	i := 0
-	for element := skv.stashes.Back(); element != nil && i < length; element.Prev() {
+	for element := skv.stashes.Back(); element != nil; element = element.Prev() {
 		stashes := element.Value.(*TxnStashes)
 		ops, value := stashes.get(makeKey(triName, key))
 		if ops != nil {
@@ -78,7 +76,6 @@ func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
 				return value, nil
 			}
 		}
-		i++
 	}
 	return skv.GetByBlockHash(triName, key, skv.prevBlock)
 }
@@ -120,16 +117,13 @@ func (skv *MptKV) Commit() (Hash, error) {
 	}
 
 	// todo: optimize combine all key-values stashes
-	length := skv.stashes.Len()
-	i := 0
-	for element := skv.stashes.Front(); element != nil && i < length; element.Next() {
+	for element := skv.stashes.Front(); element != nil; element = element.Next() {
 		stashes := element.Value.(*TxnStashes)
 		err = stashes.commit(mpt)
 		if err != nil {
 			skv.DiscardAll()
 			return NullHash, err
 		}
-		i++
 	}
 
 	stateRoot, err := mpt.Commit(nil)
@@ -239,9 +233,7 @@ func (k *TxnStashes) get(key []byte) (*Ops, []byte) {
 }
 
 func (k *TxnStashes) commit(mpt *Trie) error {
-	length := k.stashes.Len()
-	i := 0
-	for element := k.stashes.Front(); element != nil && i < length; element.Next() {
+	for element := k.stashes.Front(); element != nil; element = element.Next() {
 		stash := element.Value.(*KvStash)
 		switch stash.ops {
 		case SetOp:
@@ -255,7 +247,6 @@ func (k *TxnStashes) commit(mpt *Trie) error {
 				return err
 			}
 		}
-		i++
 	}
 	return nil
 }
