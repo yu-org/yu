@@ -19,7 +19,7 @@ func NewAsset(tokenName string) *Asset {
 	df := NewTripod("asset")
 
 	a := &Asset{df, tokenName}
-	a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
+	a.SetExec(a.Transfer).SetExec(a.CreateAccount)
 	a.SetQueries(a.QueryBalance)
 
 	//a.SetTxnChecker(func(txn *SignedTxn) error {
@@ -65,6 +65,7 @@ func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 }
 
 func (a *Asset) Transfer(ctx *Context, _ *Block) (err error) {
+	ctx.SetLei(100)
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
@@ -103,6 +104,7 @@ func (a *Asset) transfer(from, to Address, amount *big.Int) error {
 }
 
 func (a *Asset) CreateAccount(ctx *Context, _ *Block) error {
+	ctx.SetLei(10)
 	addr := ctx.Caller
 	//if !a.isValidator(addr) {
 	//	return NoPermission

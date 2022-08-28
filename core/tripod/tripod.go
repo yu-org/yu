@@ -25,7 +25,7 @@ type Tripod struct {
 
 	name string
 	// Key: Execution Name
-	execs map[string]ExecAndLei
+	execs map[string]dev.Execution
 	// Key: Query Name
 	queries map[string]dev.Query
 	// key: p2p-handler type code
@@ -35,7 +35,7 @@ type Tripod struct {
 func NewTripod(name string) *Tripod {
 	return &Tripod{
 		name:        name,
-		execs:       make(map[string]ExecAndLei),
+		execs:       make(map[string]dev.Execution),
 		queries:     make(map[string]dev.Query),
 		P2pHandlers: make(map[int]dev.P2pHandler),
 
@@ -74,12 +74,9 @@ func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 	t.TxnChecker = tc
 }
 
-func (t *Tripod) SetExec(fn dev.Execution, lei uint64) *Tripod {
+func (t *Tripod) SetExec(fn dev.Execution) *Tripod {
 	name := getFuncName(fn)
-	t.execs[name] = ExecAndLei{
-		exec: fn,
-		lei:  lei,
-	}
+	t.execs[name] = fn
 	logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
 	return t
 }
@@ -111,12 +108,8 @@ func (t *Tripod) ExistExec(execName string) bool {
 	return ok
 }
 
-func (t *Tripod) GetExec(name string) (dev.Execution, uint64) {
-	execEne, ok := t.execs[name]
-	if ok {
-		return execEne.exec, execEne.lei
-	}
-	return nil, 0
+func (t *Tripod) GetExec(name string) dev.Execution {
+	return t.execs[name]
 }
 
 func (t *Tripod) GetQuery(name string) dev.Query {
@@ -137,9 +130,4 @@ func (t *Tripod) AllExecNames() []string {
 		allNames = append(allNames, name)
 	}
 	return allNames
-}
-
-type ExecAndLei struct {
-	exec dev.Execution
-	lei  uint64
 }

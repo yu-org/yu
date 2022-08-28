@@ -38,7 +38,7 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
+	_, err = m.land.GetExec(stxn.Raw.Ecall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

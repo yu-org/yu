@@ -29,17 +29,17 @@ func (l *Land) SetTripods(Tripods ...*Tripod) {
 	}
 }
 
-func (l *Land) GetExecLei(c *Ecall) (dev.Execution, uint64, error) {
+func (l *Land) GetExec(c *Ecall) (dev.Execution, error) {
 	tripod, ok := l.TripodsMap[c.TripodName]
 	if !ok {
-		return nil, 0, TripodNotFound(c.TripodName)
+		return nil, TripodNotFound(c.TripodName)
 	}
 	ph := tripod
-	fn, lei := ph.GetExec(c.ExecName)
+	fn := ph.GetExec(c.ExecName)
 	if fn == nil {
-		return nil, 0, ExecNotFound(c.ExecName)
+		return nil, ExecNotFound(c.ExecName)
 	}
-	return fn, lei, nil
+	return fn, nil
 }
 
 func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
