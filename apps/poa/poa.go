@@ -38,7 +38,7 @@ type ValidatorInfo struct {
 }
 
 func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
-	header := NewTripod("Poa")
+	tri := NewTripod("Poa")
 
 	var nodeIdx int
 
@@ -62,7 +62,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 	}
 
 	h := &Poa{
-		Tripod:         header,
+		Tripod:         tri,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,

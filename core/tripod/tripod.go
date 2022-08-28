@@ -21,6 +21,8 @@ type Tripod struct {
 	Init
 	BlockCycle
 
+	instance interface{}
+
 	name string
 	// Key: Execution Name
 	execs map[string]ExecAndLei
