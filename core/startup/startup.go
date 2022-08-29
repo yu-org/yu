@@ -2,6 +2,7 @@ package startup
 
 import (
 	"flag"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/config"
@@ -13,10 +14,12 @@ import (
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/txpool"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
 	"os"
+	"reflect"
 )
 
 var (
@@ -24,7 +27,12 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-func StartUp(tripods ...*tripod.Tripod) {
+func StartUp(tripodInterfaces ...interface{}) {
+	tripods := make([]*tripod.Tripod, 0)
+	for _, v := range tripodInterfaces {
+		tripods = append(tripods, ResolveTripod(v))
+	}
+
 	initCfgFromFlags()
 	initLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
 
@@ -56,9 +64,11 @@ func StartUp(tripods ...*tripod.Tripod) {
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
 
-	for _, t := range tripods {
+	for i, t := range tripods {
 		t.SetChainEnv(env)
 		t.SetLand(land)
+		t.SetInstance(tripodInterfaces[i])
+		fmt.Println("tripod = ", t)
 	}
 
 	land.SetTripods(tripods...)
@@ -66,6 +76,26 @@ func StartUp(tripods ...*tripod.Tripod) {
 	k := kernel.NewKernel(&kernelCfg, env, land)
 
 	k.Startup()
+}
+
+func ResolveTripod(v interface{}) *tripod.Tripod {
+	tri := reflect.Indirect(reflect.ValueOf(v)).FieldByName("Tripod")
+	trip := tri.Interface().(*tripod.Tripod)
+
+	if sv, ok := v.(tripod.Init); ok {
+		trip.SetInit(sv)
+	}
+	if sv, ok := v.(tripod.BlockCycle); ok {
+		trip.SetBlockCycle(sv)
+	}
+	if sv, ok := v.(tripod.BlockVerifier); ok {
+		trip.SetBlockVerifier(sv)
+	}
+	if sv, ok := v.(types.TxnChecker); ok {
+		trip.SetTxnChecker(sv)
+	}
+
+	return trip
 }
 
 func initCfgFromFlags() {

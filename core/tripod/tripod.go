@@ -21,7 +21,7 @@ type Tripod struct {
 	Init
 	BlockCycle
 
-	instance interface{}
+	Instance interface{}
 
 	name string
 	// Key: Execution Name
@@ -44,6 +44,10 @@ func NewTripod(name string) *Tripod {
 		Init:          &DefaultInit{},
 		BlockCycle:    &DefaultBlockCycle{},
 	}
+}
+
+func (t *Tripod) SetInstance(instance interface{}) {
+	t.Instance = instance
 }
 
 func (t *Tripod) Name() string {

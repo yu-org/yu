@@ -24,8 +24,8 @@ func main() {
 
 	logrus.Info("My Address is ", myPubkey.Address().String())
 	startup.StartUp(
-		base.NewBase(base.Full).Tripod,
-		poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs).Tripod,
-		asset.NewAsset("YuCoin").Tripod,
+		base.NewBase(base.Full),
+		poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs),
+		asset.NewAsset("YuCoin"),
 	)
 }
