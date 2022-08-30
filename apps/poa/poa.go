@@ -61,7 +61,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		validatorsAddr = append(validatorsAddr, addr)
 	}
 
-	return &Poa{
+	p := &Poa{
 		Tripod:         tri,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
@@ -71,6 +71,11 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
+	p.SetInit(p)
+	p.SetTxnChecker(p)
+	p.SetBlockCycle(p)
+	p.SetBlockVerifier(p)
+	return p
 }
 
 func (h *Poa) ValidatorsP2pID() (peers []peer.ID) {
