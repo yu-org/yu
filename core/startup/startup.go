@@ -17,6 +17,7 @@ import (
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
 	"os"
+	"reflect"
 )
 
 var (
@@ -24,7 +25,12 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-func StartUp(tripods ...*tripod.Tripod) {
+func StartUp(tripodInterfaces ...interface{}) {
+	tripods := make([]*tripod.Tripod, 0)
+	for _, v := range tripodInterfaces {
+		tripods = append(tripods, ResolveTripod(v))
+	}
+
 	initCfgFromFlags()
 	initLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
 
@@ -56,9 +62,10 @@ func StartUp(tripods ...*tripod.Tripod) {
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}
 
-	for _, t := range tripods {
+	for i, t := range tripods {
 		t.SetChainEnv(env)
 		t.SetLand(land)
+		t.SetInstance(tripodInterfaces[i])
 	}
 
 	land.SetTripods(tripods...)
@@ -66,6 +73,12 @@ func StartUp(tripods ...*tripod.Tripod) {
 	k := kernel.NewKernel(&kernelCfg, env, land)
 
 	k.Startup()
+}
+
+func ResolveTripod(v interface{}) *tripod.Tripod {
+	tri := reflect.Indirect(reflect.ValueOf(v)).FieldByName("Tripod")
+	trip := tri.Interface().(*tripod.Tripod)
+	return trip
 }
 
 func initCfgFromFlags() {

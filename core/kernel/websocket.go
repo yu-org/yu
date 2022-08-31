@@ -68,7 +68,7 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 		return
 	}
 
-	_, _, err = m.land.GetExecLei(stxn.Raw.Ecall)
+	_, err = m.land.GetExec(stxn.Raw.Ecall)
 	if err != nil {
 		m.errorAndClose(c, err.Error())
 		return

@@ -38,7 +38,7 @@ type ValidatorInfo struct {
 }
 
 func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
-	header := NewTripod("Poa")
+	tri := NewTripod("Poa")
 
 	var nodeIdx int
 
@@ -61,8 +61,8 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		validatorsAddr = append(validatorsAddr, addr)
 	}
 
-	h := &Poa{
-		Tripod:         header,
+	p := &Poa{
+		Tripod:         tri,
 		validatorsMap:  validators,
 		validatorsList: validatorsAddr,
 		myPubkey:       myPubkey,
@@ -71,11 +71,11 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
-	h.SetInit(h)
-	h.SetBlockCycle(h)
-	h.SetBlockVerifier(h)
-	h.SetTxnChecker(h)
-	return h
+	p.SetInit(p)
+	p.SetTxnChecker(p)
+	p.SetBlockCycle(p)
+	p.SetBlockVerifier(p)
+	return p
 }
 
 func (h *Poa) ValidatorsP2pID() (peers []peer.ID) {

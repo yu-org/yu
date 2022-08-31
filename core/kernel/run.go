@@ -90,18 +90,18 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 			return err
 		}
 
-		exec, lei, err := m.land.GetExecLei(ecall)
+		exec, err := m.land.GetExec(ecall)
 		if err != nil {
 			m.handleError(err, ctx, block, stxn)
 			continue
 		}
 
-		if IfLeiOut(lei, block) {
+		err = exec(ctx, block)
+		if IfLeiOut(ctx.LeiCost, block) {
+			m.stateDB.Discard()
 			m.handleError(OutOfLei, ctx, block, stxn)
 			break
 		}
-
-		err = exec(ctx, block)
 		if err != nil {
 			m.stateDB.Discard()
 			m.handleError(err, ctx, block, stxn)
@@ -109,7 +109,7 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 			m.stateDB.NextTxn()
 		}
 
-		block.UseLei(lei)
+		block.UseLei(ctx.LeiCost)
 
 		m.handleEvent(ctx, block, stxn)
 

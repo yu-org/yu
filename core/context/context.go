@@ -15,6 +15,7 @@ type Context struct {
 	paramsStr string
 	Events    []*Event
 	Error     *Error
+	LeiCost   uint64
 }
 
 func NewContext(caller Address, paramsStr string) (*Context, error) {
@@ -31,6 +32,14 @@ func NewContext(caller Address, paramsStr string) (*Context, error) {
 		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),
 	}, nil
+}
+
+func (c *Context) SetLei(lei uint64) {
+	c.LeiCost = lei
+}
+
+func (c *Context) SetLeiFn(fn func() uint64) {
+	c.LeiCost = fn()
 }
 
 func (c *Context) EmitEvent(value interface{}) error {
