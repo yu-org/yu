@@ -7,19 +7,23 @@ import (
 )
 
 const (
-	Sr25519   = "sr25519"
-	Ed25519   = "ed25519"
-	Secp256k1 = "secp256k1"
+	SecretFree = "secret-free"
+	Sr25519    = "sr25519"
+	Ed25519    = "ed25519"
+	Secp256k1  = "secp256k1"
 
-	Sr25519Idx   = "1"
-	Ed25519Idx   = "2"
-	Secp256k1Idx = "3"
+	SecretFreeIdx = "0"
+	Sr25519Idx    = "1"
+	Ed25519Idx    = "2"
+	Secp256k1Idx  = "3"
 )
 
 var KeyTypeBytLen = 1
 
 func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	switch keyType {
+	case SecretFree:
+		return nil, nil, nil
 	case Sr25519:
 		pub, priv := GenSrKey()
 		return pub, priv, nil
@@ -41,6 +45,8 @@ func PubKeyFromBytes(data []byte) (PubKey, error) {
 	}
 	keyTypeByt := data[:KeyTypeBytLen]
 	switch string(keyTypeByt) {
+	case SecretFreeIdx:
+		return nil, nil
 	case Sr25519Idx:
 		return SrPubKeyFromBytes(data[KeyTypeBytLen:]), nil
 	case Ed25519Idx:
