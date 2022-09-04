@@ -162,6 +162,8 @@ type UnsignedTxn struct {
 	Caller    Address
 	Ecall     *Ecall
 	Timestamp uint64
+	// Nonce is unnecessary
+	Nonce uint64
 }
 
 func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {

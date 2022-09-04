@@ -14,7 +14,7 @@ type TxPool struct {
 	poolSize   uint64
 	TxnMaxSize int
 
-	unpackedTxns *orderedTxns
+	unpackedTxns IunpackedTxns
 	txdb         ItxDB
 
 	baseChecks   []TxnCheckFn
@@ -73,7 +73,7 @@ func (tp *TxPool) WithTripodCheck(tc TxnChecker) ItxPool {
 func (tp *TxPool) Exist(stxn *SignedTxn) bool {
 	tp.RLock()
 	defer tp.RUnlock()
-	if tp.unpackedTxns.exist(stxn.TxnHash) {
+	if tp.unpackedTxns.Exist(stxn.TxnHash) {
 		return true
 	}
 	// check replay attack
@@ -91,14 +91,14 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	tp.Lock()
 	defer tp.Unlock()
-	tp.unpackedTxns.insert(stxn)
+	tp.unpackedTxns.Insert(stxn)
 	return nil
 }
 
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
-	return tp.unpackedTxns.get(hash), nil
+	return tp.unpackedTxns.Get(hash), nil
 }
 
 func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
@@ -110,14 +110,14 @@ func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
 func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
 	tp.Lock()
 	defer tp.Unlock()
-	txns := tp.unpackedTxns.gets(numLimit, filter)
+	txns := tp.unpackedTxns.Gets(numLimit, filter)
 	return txns, nil
 }
 
 func (tp *TxPool) Reset(txns SignedTxns) error {
 	tp.Lock()
 	defer tp.Unlock()
-	tp.unpackedTxns.deletes(txns.Hashes())
+	tp.unpackedTxns.Deletes(txns.Hashes())
 	return nil
 }
 
@@ -141,7 +141,7 @@ func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 }
 
 func (tp *TxPool) checkPoolLimit(*SignedTxn) error {
-	if uint64(tp.unpackedTxns.size()) >= tp.poolSize {
+	if uint64(tp.unpackedTxns.Size()) >= tp.poolSize {
 		return PoolOverflow
 	}
 	return nil
