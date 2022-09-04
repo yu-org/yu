@@ -65,10 +65,10 @@ func TestOrdered(t *testing.T) {
 	correctOrder := []*SignedTxn{tx2, tx3, tx1}
 
 	otxns := newOrderedTxns()
-	otxns.insert(tx1)
-	otxns.insert(tx2)
-	otxns.insert(tx3)
-	txns := otxns.gets(3, func(txn *SignedTxn) bool {
+	otxns.Insert(tx1)
+	otxns.Insert(tx2)
+	otxns.Insert(tx3)
+	txns := otxns.Gets(3, func(txn *SignedTxn) bool {
 		return true
 	})
 	for i, txn := range txns {

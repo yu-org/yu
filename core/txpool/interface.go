@@ -6,7 +6,7 @@ import (
 )
 
 type ItxPool interface {
-	// PoolSize return pool size of txpool
+	// PoolSize return pool Size of txpool
 	PoolSize() uint64
 
 	WithBaseCheck(checkFn TxnChecker) ItxPool
@@ -30,6 +30,15 @@ type ItxPool interface {
 
 	// GetTxn returns unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
-	// Reset deletes packed txns
+	// Reset Deletes packed txns
 	Reset(txns SignedTxns) error
+}
+
+type IunpackedTxns interface {
+	Insert(input *SignedTxn)
+	Deletes(txnHashes []Hash)
+	Exist(txnHash Hash) bool
+	Get(txnHash Hash) *SignedTxn
+	Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn
+	Size() int
 }

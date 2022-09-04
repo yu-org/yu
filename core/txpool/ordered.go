@@ -19,7 +19,7 @@ func newOrderedTxns() *orderedTxns {
 	}
 }
 
-func (ot *orderedTxns) insert(input *SignedTxn) {
+func (ot *orderedTxns) Insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").
 		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.Ecall)
 	for element := ot.txns.Front(); element != nil; element = element.Next() {
@@ -44,28 +44,28 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 	}
 }
 
-func (ot *orderedTxns) deletes(hashes []Hash) {
-	for _, hash := range hashes {
+func (ot *orderedTxns) Deletes(txnHashes []Hash) {
+	for _, hash := range txnHashes {
 		ot.delete(hash)
 	}
 }
 
-func (ot *orderedTxns) exist(txnHash Hash) bool {
+func (ot *orderedTxns) Exist(txnHash Hash) bool {
 	_, ok := ot.idx[txnHash]
 	return ok
 }
 
-func (ot *orderedTxns) get(txnHash Hash) *SignedTxn {
+func (ot *orderedTxns) Get(txnHash Hash) *SignedTxn {
 	if e, ok := ot.idx[txnHash]; ok {
 		return e.Value.(*SignedTxn)
 	}
 	return nil
 }
 
-func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
 	txns := make([]*SignedTxn, 0)
-	if numLimit > uint64(ot.size()) {
-		numLimit = uint64(ot.size())
+	if numLimit > uint64(ot.Size()) {
+		numLimit = uint64(ot.Size())
 	}
 	var packedNum uint64 = 0
 	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element = element.Next() {
@@ -80,6 +80,6 @@ func (ot *orderedTxns) gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	return txns
 }
 
-func (ot *orderedTxns) size() int {
+func (ot *orderedTxns) Size() int {
 	return ot.txns.Len()
 }

@@ -29,7 +29,7 @@ func TestCheckPoolSize(t *testing.T) {
 	pool.poolSize = 1
 	err := pool.Insert(tx1)
 	if err != nil {
-		t.Fatalf("insert tx1 failed: %v", err)
+		t.Fatalf("Insert tx1 failed: %v", err)
 	}
 	err = pool.Insert(tx2)
 	if err != nil {
@@ -50,15 +50,15 @@ func TestPackFor(t *testing.T) {
 	pool := initTxpool(t)
 	err := pool.Insert(tx1)
 	if err != nil {
-		t.Fatalf("insert tx1 failed: %v", err)
+		t.Fatalf("Insert tx1 failed: %v", err)
 	}
 	err = pool.Insert(tx2)
 	if err != nil {
-		t.Fatalf("insert tx2 failed: %v", err)
+		t.Fatalf("Insert tx2 failed: %v", err)
 	}
 	err = pool.Insert(tx3)
 	if err != nil {
-		t.Fatalf("insert tx3 failed: %v", err)
+		t.Fatalf("Insert tx3 failed: %v", err)
 	}
 
 	txns, err := pool.PackFor(3, func(tx *types.SignedTxn) bool {
