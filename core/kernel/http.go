@@ -87,7 +87,7 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 
 			return
 		}
-		ctx, err := context.NewContext(pubkey.Address(), qcall.Params)
+		ctx, err := context.NewContext(pubkey.Address(), qcall.Params, nil)
 		if err != nil {
 			c.String(http.StatusBadRequest, err.Error())
 			return

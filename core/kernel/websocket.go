@@ -107,7 +107,7 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string
 
 	switch m.RunMode {
 	case LocalNode:
-		ctx, err := context.NewContext(NullAddress, qcall.Params)
+		ctx, err := context.NewContext(NullAddress, qcall.Params, nil)
 		if err != nil {
 			m.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
 			return

@@ -6,7 +6,6 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/types"
 	"math/big"
 )
 
@@ -55,7 +54,7 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
-func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *Context) (interface{}, error) {
 	account := ctx.GetAddress("account")
 	if !a.existAccount(account) {
 		return nil, AccountNotFound(account)
@@ -64,7 +63,7 @@ func (a *Asset) QueryBalance(ctx *Context, _ Hash) (interface{}, error) {
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context, _ *Block) (err error) {
+func (a *Asset) Transfer(ctx *Context) (err error) {
 	ctx.SetLei(100)
 	from := ctx.Caller
 	to := ctx.GetAddress("to")
@@ -103,7 +102,7 @@ func (a *Asset) transfer(from, to Address, amount *big.Int) error {
 	return nil
 }
 
-func (a *Asset) CreateAccount(ctx *Context, _ *Block) error {
+func (a *Asset) CreateAccount(ctx *Context) error {
 	ctx.SetLei(10)
 	addr := ctx.Caller
 	//if !a.isValidator(addr) {

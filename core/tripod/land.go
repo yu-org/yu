@@ -58,7 +58,7 @@ func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
 	if qry == nil {
 		return nil, QryNotFound(c.QueryName)
 	}
-	return qry(ctx, c.BlockHash)
+	return qry(ctx)
 }
 
 func (l *Land) RangeMap(fn func(string, *Tripod) error) error {

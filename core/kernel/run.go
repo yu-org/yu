@@ -85,7 +85,7 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 	var results []Result
 	for _, stxn := range stxns {
 		ecall := stxn.Raw.Ecall
-		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params)
+		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params, block)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 			continue
 		}
 
-		err = exec(ctx, block)
+		err = exec(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			m.stateDB.Discard()
 			m.handleError(OutOfLei, ctx, block, stxn)
