@@ -6,11 +6,13 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/utils/codec"
 )
 
 type Context struct {
 	Caller    Address
+	Block     *Block
 	paramsMap map[string]interface{}
 	paramsStr string
 	Events    []*Event
@@ -18,7 +20,7 @@ type Context struct {
 	LeiCost   uint64
 }
 
-func NewContext(caller Address, paramsStr string) (*Context, error) {
+func NewContext(caller Address, paramsStr string, block *Block) (*Context, error) {
 	var i interface{}
 	d := json.NewDecoder(bytes.NewReader([]byte(paramsStr)))
 	d.UseNumber()
@@ -28,6 +30,7 @@ func NewContext(caller Address, paramsStr string) (*Context, error) {
 	}
 	return &Context{
 		Caller:    caller,
+		Block:     block,
 		paramsMap: i.(map[string]interface{}),
 		paramsStr: paramsStr,
 		Events:    make([]*Event, 0),
