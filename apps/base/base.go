@@ -64,8 +64,12 @@ func (b *Base) syncHistoryBlocks(blocks []*Block) error {
 			return err
 		}
 
-		// todo: sync state trie
 		err = b.Chain.AppendBlock(block)
+		if err != nil {
+			return err
+		}
+
+		err = b.Execute(block)
 		if err != nil {
 			return err
 		}
