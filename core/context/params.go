@@ -1,19 +1,12 @@
 package context
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"strconv"
 )
-
-func (c *Context) BindJson(v interface{}) error {
-	d := json.NewDecoder(bytes.NewReader([]byte(c.paramsStr)))
-	d.UseNumber()
-	return d.Decode(v)
-}
 
 func (c *Context) Get(name string) interface{} {
 	return c.paramsMap[name]

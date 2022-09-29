@@ -1,8 +1,6 @@
 package context
 
 import (
-	"bytes"
-	"encoding/json"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/result"
@@ -11,29 +9,31 @@ import (
 )
 
 type Context struct {
-	Caller    Address
-	Block     *Block
-	paramsMap map[string]interface{}
-	paramsStr string
-	Events    []*Event
-	Error     *Error
-	LeiCost   uint64
+	Caller Address
+	Block  *Block
+
+	paramsStr   string
+	paramsMap   map[string]interface{}
+	ParamsValue interface{}
+
+	Events  []*Event
+	Error   *Error
+	LeiCost uint64
 }
 
 func NewContext(caller Address, paramsStr string, block *Block) (*Context, error) {
-	var i interface{}
-	d := json.NewDecoder(bytes.NewReader([]byte(paramsStr)))
-	d.UseNumber()
-	err := d.Decode(&i)
+	var v interface{}
+	err := BindJsonParams(paramsStr, v)
 	if err != nil {
 		return nil, err
 	}
 	return &Context{
-		Caller:    caller,
-		Block:     block,
-		paramsMap: i.(map[string]interface{}),
-		paramsStr: paramsStr,
-		Events:    make([]*Event, 0),
+		Caller:      caller,
+		Block:       block,
+		ParamsValue: v,
+		paramsMap:   v.(map[string]interface{}),
+		paramsStr:   paramsStr,
+		Events:      make([]*Event, 0),
 	}, nil
 }
 
