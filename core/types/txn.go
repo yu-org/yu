@@ -38,6 +38,10 @@ func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*Sig
 	return stx, nil
 }
 
+func (st *SignedTxn) BindJsonParams(v interface{}) error {
+	return st.Raw.BindJsonParams(v)
+}
+
 func (st *SignedTxn) ToPb() *goproto.SignedTxn {
 	return &goproto.SignedTxn{
 		Raw:       st.Raw.ToPb(),
@@ -172,6 +176,10 @@ func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
 		Ecall:     ecall,
 		Timestamp: ytime.NowNanoTsU64(),
 	}, nil
+}
+
+func (ut *UnsignedTxn) BindJsonParams(v interface{}) error {
+	return ut.Ecall.BindJsonParams(v)
 }
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {

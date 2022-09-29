@@ -50,6 +50,10 @@ type (
 	CallType int
 )
 
+func (e *Ecall) BindJsonParams(v interface{}) error {
+	return BindJsonParams(e.Params, v)
+}
+
 func (e *Ecall) Hash() ([]byte, error) {
 	byt, err := json.Marshal(e)
 	if err != nil {
@@ -57,6 +61,16 @@ func (e *Ecall) Hash() ([]byte, error) {
 	}
 	hash := sha256.Sum256(byt)
 	return hash[:], nil
+}
+
+func (q *Qcall) BindJsonParams(v interface{}) error {
+	return BindJsonParams(q.Params, v)
+}
+
+func BindJsonParams(params string, v interface{}) error {
+	d := json.NewDecoder(bytes.NewReader([]byte(params)))
+	d.UseNumber()
+	return d.Decode(v)
 }
 
 const (
