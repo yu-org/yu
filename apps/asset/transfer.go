@@ -26,11 +26,11 @@ func NewAsset(tokenName string) *Asset {
 	//		return nil
 	//	}
 	//
-	//	if !a.existAccount(txn.Raw.Caller) {
+	//	if !a.ExistAccount(txn.Raw.Caller) {
 	//		return AccountNotFound(txn.Raw.Caller)
 	//	}
 	//
-	//	balance := a.getBalance(txn.Raw.Caller)
+	//	balance := a.GetBalance(txn.Raw.Caller)
 	//	leiPrice := new(big.Int).SetUint64(txn.Raw.Ecall.LeiPrice)
 	//	if balance.Cmp(leiPrice) < 0 {
 	//		return InsufficientFunds
@@ -56,10 +56,10 @@ func NewAsset(tokenName string) *Asset {
 
 func (a *Asset) QueryBalance(ctx *Context) (interface{}, error) {
 	account := ctx.GetAddress("account")
-	if !a.existAccount(account) {
+	if !a.ExistAccount(account) {
 		return nil, AccountNotFound(account)
 	}
-	amount := a.getBalance(account)
+	amount := a.GetBalance(account)
 	return amount, nil
 }
 
@@ -80,25 +80,25 @@ func (a *Asset) Transfer(ctx *Context) (err error) {
 }
 
 func (a *Asset) transfer(from, to Address, amount *big.Int) error {
-	if !a.existAccount(from) {
+	if !a.ExistAccount(from) {
 		return AccountNotFound(from)
 	}
 
-	fromBalance := a.getBalance(from)
+	fromBalance := a.GetBalance(from)
 	if fromBalance.Cmp(amount) < 0 {
 		return InsufficientFunds
 	}
 
-	if !a.existAccount(to) {
-		a.setBalance(to, amount)
+	if !a.ExistAccount(to) {
+		a.SetBalance(to, amount)
 	} else {
-		toBalance := a.getBalance(to)
+		toBalance := a.GetBalance(to)
 		toAdd := new(big.Int).Add(toBalance, amount)
-		a.setBalance(to, toAdd)
+		a.SetBalance(to, toAdd)
 	}
 
 	fromSub := new(big.Int).Sub(fromBalance, amount)
-	a.setBalance(from, fromSub)
+	a.SetBalance(from, fromSub)
 	return nil
 }
 
@@ -112,21 +112,21 @@ func (a *Asset) CreateAccount(ctx *Context) error {
 
 	logrus.WithField("asset", "create-account").Debugf("ACCOUNT(%s) amount(%d)", addr.String(), amount)
 
-	if a.existAccount(addr) {
+	if a.ExistAccount(addr) {
 		_ = ctx.EmitEvent("Account Exists!")
 		return nil
 	}
 
-	a.setBalance(addr, amount)
+	a.SetBalance(addr, amount)
 	_ = ctx.EmitEvent("Account Created Success!")
 	return nil
 }
 
-func (a *Asset) existAccount(addr Address) bool {
+func (a *Asset) ExistAccount(addr Address) bool {
 	return a.State.Exist(a, addr.Bytes())
 }
 
-func (a *Asset) getBalance(addr Address) *big.Int {
+func (a *Asset) GetBalance(addr Address) *big.Int {
 	balanceByt, err := a.State.Get(a, addr.Bytes())
 	if err != nil {
 		logrus.Panic("get balance error: ", err)
@@ -135,12 +135,12 @@ func (a *Asset) getBalance(addr Address) *big.Int {
 	b := new(big.Int)
 	err = b.UnmarshalText(balanceByt)
 	if err != nil {
-		logrus.Panic("getBalance marshal error: ", err)
+		logrus.Panic("GetBalance marshal error: ", err)
 	}
 	return b
 }
 
-func (a *Asset) setBalance(addr Address, amount *big.Int) {
+func (a *Asset) SetBalance(addr Address, amount *big.Int) {
 	amountText, err := amount.MarshalText()
 	if err != nil {
 		logrus.Panic("amount marshal error: ", err)

@@ -52,8 +52,8 @@ func TestTransfer(t *testing.T) {
 		panic(err)
 	}
 
-	abalance := asset.getBalance(Aaddr)
-	bbalance := asset.getBalance(Baddr)
+	abalance := asset.GetBalance(Aaddr)
+	bbalance := asset.GetBalance(Baddr)
 
 	assert.Equal(t, big.NewInt(300), abalance)
 	assert.Equal(t, big.NewInt(700), bbalance)
@@ -97,7 +97,7 @@ func newAsset(t *testing.T) *Asset {
 	codec.GlobalCodec = &codec.RlpCodec{}
 	env := &chain_env.ChainEnv{State: statedb}
 	asset.SetChainEnv(env)
-	asset.setBalance(Aaddr, initAamount)
-	asset.setBalance(Baddr, initBamount)
+	asset.SetBalance(Aaddr, initAamount)
+	asset.SetBalance(Baddr, initBamount)
 	return asset
 }
