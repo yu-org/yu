@@ -149,6 +149,26 @@ func (a *Asset) SetBalance(addr Address, amount *big.Int) {
 	a.State.Set(a, addr.Bytes(), amountText)
 }
 
+func (a *Asset) AddBalance(addr Address, amount *big.Int) error {
+	if amount.Sign() < 0 {
+		return AmountNeg(amount)
+	}
+	balance := a.GetBalance(addr)
+	balance.Add(balance, amount)
+	a.SetBalance(addr, balance)
+	return nil
+}
+
+func (a *Asset) SubBalance(addr Address, amount *big.Int) error {
+	if amount.Sign() < 0 {
+		return AmountNeg(amount)
+	}
+	balance := a.GetBalance(addr)
+	balance.Sub(balance, amount)
+	a.SetBalance(addr, balance)
+	return nil
+}
+
 //func (a *Asset) isValidator(addr Address) bool {
 //	for _, validator := range a.validators {
 //		if validator.Address() == addr {

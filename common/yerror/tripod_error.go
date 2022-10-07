@@ -3,6 +3,7 @@ package yerror
 import (
 	"github.com/pkg/errors"
 	"github.com/yu-org/yu/common"
+	"math/big"
 )
 
 var (
@@ -20,6 +21,18 @@ func (an ErrAccountNotFound) Error() string {
 
 func AccountNotFound(addr common.Address) ErrAccountNotFound {
 	return ErrAccountNotFound{account: addr.String()}
+}
+
+type ErrAmountNeg struct {
+	amount *big.Int
+}
+
+func (an ErrAmountNeg) Error() string {
+	return errors.Errorf("amount(%d) is negative", an.amount).Error()
+}
+
+func AmountNeg(amount *big.Int) ErrAmountNeg {
+	return ErrAmountNeg{amount: amount}
 }
 
 // hotstuff errors
