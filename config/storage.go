@@ -1,7 +1,7 @@
 package config
 
 type KVconf struct {
-	// "bolt" "badger" "tikv"
+	// "bolt"
 	KvType string `toml:"kv_type"`
 	// dbpath, such as boltdb, pebble
 	Path string `toml:"path"`
