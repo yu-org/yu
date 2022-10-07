@@ -9,6 +9,7 @@ import (
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/state"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
 	"math/big"
 	"testing"
@@ -37,16 +38,16 @@ type TransferInfo struct {
 }
 
 func TestTransfer(t *testing.T) {
-	asset := newAsset()
+	asset := newAsset(t)
 	byt, _ := json.Marshal(TransferInfo{
 		To:     Baddr.String(),
 		Amount: 200,
 	})
-	ctx, err := context.NewContext(Aaddr, string(byt))
+	ctx, err := context.NewContext(Aaddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
-	err = asset.Transfer(ctx, nil)
+	err = asset.Transfer(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -63,34 +64,36 @@ type QryAccount struct {
 }
 
 func TestQueryBalance(t *testing.T) {
-	asset := newAsset()
+	asset := newAsset(t)
 	byt, _ := json.Marshal(QryAccount{Aaddr.String()})
-	ctx, err := context.NewContext(Aaddr, string(byt))
+	ctx, err := context.NewContext(Aaddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
-	Aamount, err := asset.QueryBalance(ctx, common.NullHash)
+	Aamount, err := asset.QueryBalance(ctx)
 	if err != nil {
 		panic(err)
 	}
 	assert.Equal(t, initAamount, Aamount)
 
 	byt, _ = json.Marshal(QryAccount{Baddr.String()})
-	ctx, err = context.NewContext(Baddr, string(byt))
+	ctx, err = context.NewContext(Baddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
-	Bamount, err := asset.QueryBalance(ctx, common.NullHash)
+	Bamount, err := asset.QueryBalance(ctx)
 	if err != nil {
 		panic(err)
 	}
 	assert.Equal(t, initBamount, Bamount)
 }
 
-func newAsset() *Asset {
+func newAsset(t *testing.T) *Asset {
 	asset := NewAsset("test_asset")
 	cfg := config.InitDefaultCfg()
-	statedb := state.NewStateDB(&cfg.State)
+	kvdb, err := kv.NewKvdb(&cfg.KVDB)
+	assert.NoError(t, err)
+	statedb := state.NewStateDB(kvdb)
 	codec.GlobalCodec = &codec.RlpCodec{}
 	env := &chain_env.ChainEnv{State: statedb}
 	asset.SetChainEnv(env)

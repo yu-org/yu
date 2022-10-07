@@ -10,7 +10,7 @@ import (
 
 func TestTrieSetPutandGet(t *testing.T) {
 	cfg := &config.KVconf{
-		KvType: "badger",
+		KvType: "bolt",
 		Path:   "./testdb",
 	}
 	kvdb, err := kv.NewKvdb(cfg)
