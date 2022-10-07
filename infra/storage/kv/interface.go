@@ -21,8 +21,6 @@ type Kvdb interface {
 
 func NewKvdb(cfg *KVconf) (Kvdb, error) {
 	switch cfg.KvType {
-	case "badger":
-		return NewBadger(cfg.Path)
 	case "bolt":
 		return NewBolt(cfg.Path)
 	//case "tikv":
