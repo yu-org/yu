@@ -18,7 +18,6 @@ import (
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
 	"os"
-	"reflect"
 )
 
 var (
@@ -33,7 +32,7 @@ func StartUpFullNode(tripodInterfaces ...interface{}) {
 func StartUp(tripodInterfaces ...interface{}) {
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInterfaces {
-		tripods = append(tripods, ResolveTripod(v))
+		tripods = append(tripods, tripod.ResolveTripod(v))
 	}
 
 	initCfgFromFlags()
@@ -78,12 +77,6 @@ func StartUp(tripodInterfaces ...interface{}) {
 	k := kernel.NewKernel(&kernelCfg, env, land)
 
 	k.Startup()
-}
-
-func ResolveTripod(v interface{}) *tripod.Tripod {
-	tri := reflect.Indirect(reflect.ValueOf(v)).FieldByName("Tripod")
-	trip := tri.Interface().(*tripod.Tripod)
-	return trip
 }
 
 func initCfgFromFlags() {
