@@ -74,6 +74,13 @@ func StartUp(tripodInterfaces ...interface{}) {
 
 	land.SetTripods(tripods...)
 
+	for _, tripodInterface := range tripodInterfaces {
+		err = tripod.Inject(tripodInterface)
+		if err != nil {
+			logrus.Fatal("inject tripod failed: ", err)
+		}
+	}
+
 	k := kernel.NewKernel(&kernelCfg, env, land)
 
 	k.Startup()

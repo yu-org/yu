@@ -50,9 +50,9 @@ func (*Boyi) String() string {
 func TestInject(t *testing.T) {
 	land := NewLand()
 
-	tri := newTestTripod()
-	tri.SetLand(land)
-	tri.SetInstance(tri)
+	testTri := newTestTripod()
+	testTri.SetLand(land)
+	testTri.SetInstance(testTri)
 
 	dayu := newDayu()
 	dayu.SetLand(land)
@@ -62,10 +62,10 @@ func TestInject(t *testing.T) {
 	boyi.SetLand(land)
 	boyi.SetInstance(boyi)
 
-	land.SetTripods(tri.Tripod, dayu.Tripod, boyi.Tripod)
+	land.SetTripods(testTri.Tripod, dayu.Tripod, boyi.Tripod)
 
-	err := Inject(tri)
+	err := Inject(testTri)
 	assert.NoError(t, err)
-	assert.Equal(t, dayuStr, tri.Dayu.String())
-	assert.Equal(t, boyiStr, tri.boyi.String())
+	assert.Equal(t, dayuStr, testTri.Dayu.String())
+	assert.Equal(t, boyiStr, testTri.boyi.String())
 }
