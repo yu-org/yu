@@ -3,12 +3,18 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/asset"
-	"github.com/yu-org/yu/apps/base"
 	"github.com/yu-org/yu/apps/poa"
+	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/startup"
 	"os"
 	"strconv"
 )
+
+var secrets = []string{
+	"node1",
+	"node2",
+	"node3",
+}
 
 func main() {
 	// dayu, _ := keypair.GenSrKey([]byte("yu"))
@@ -20,12 +26,29 @@ func main() {
 		panic(err)
 	}
 
-	myPubkey, myPrivkey, validatorsAddrs := poa.InitDefaultKeypairs(idx)
+	// myPubkey, myPrivkey, validatorsAddrs := poa.InitDefaultKeypairs(idx)
+	poaConf := &poa.PoaConfig{
+		KeyType:  keypair.Sr25519,
+		MySecret: secrets[idx],
+		Validators: []*poa.ValidatorConf{
+			{Pubkey: "", P2pIp: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+			{Pubkey: "", P2pIp: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
+			{Pubkey: "", P2pIp: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
+		},
+	}
+
+	var myPubkey keypair.PubKey
+	for i, secret := range secrets {
+		pub, _ := keypair.GenSrKeyWithSecret([]byte(secret))
+		poaConf.Validators[i].Pubkey = pub.StringWithType()
+		if idx == i {
+			myPubkey = pub
+		}
+	}
 
 	logrus.Info("My Address is ", myPubkey.Address().String())
-	startup.StartUp(
-		base.NewBase(base.Full),
-		poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs),
+	startup.StartUpFullNode(
+		poa.NewPoa(poaConf),
 		asset.NewAsset("YuCoin"),
 	)
 }

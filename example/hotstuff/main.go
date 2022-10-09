@@ -54,5 +54,5 @@ func main() {
 		pub2.Address().String(): "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH",
 	}
 
-	startup.StartUp(hotstuff_old.NewHotstuff(myPubkey, myPrivkey, validatorsMap), asset.NewAsset("YuCoin", nil))
+	startup.StartUp(hotstuff_old.NewHotstuff(myPubkey, myPrivkey, validatorsMap), asset.NewAsset("YuCoin"))
 }

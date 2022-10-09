@@ -15,6 +15,7 @@ import (
 	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
+	"github.com/yu-org/yu/infra/storage/kv"
 	"sync"
 	"testing"
 )
@@ -28,15 +29,15 @@ var (
 
 func initGlobalVars() {
 	myPubkey1, myPrivkey1, validators = InitDefaultKeypairs(0)
-	node1 = NewPoa(myPubkey1, myPrivkey1, validators)
+	node1 = newPoa(myPubkey1, myPrivkey1, validators)
 	println("addr1 = ", myPubkey1.Address().String())
 
 	myPubkey2, myPrivkey2, validators = InitDefaultKeypairs(1)
-	node2 = NewPoa(myPubkey2, myPrivkey2, validators)
+	node2 = newPoa(myPubkey2, myPrivkey2, validators)
 	println("addr2 = ", myPubkey2.Address().String())
 
 	myPubkey3, myPrivkey3, validators = InitDefaultKeypairs(2)
-	node3 = NewPoa(myPubkey3, myPrivkey3, validators)
+	node3 = newPoa(myPubkey3, myPrivkey3, validators)
 	println("addr3 = ", myPubkey3.Address().String())
 }
 
@@ -71,7 +72,7 @@ func TestVerifyBlock(t *testing.T) {
 		t.Fatal("sign blockhash error: ", err)
 	}
 
-	block := &CompactBlock{
+	cblock := &CompactBlock{
 		Header: &Header{
 			ChainID:        0,
 			PrevHash:       NullHash,
@@ -95,6 +96,10 @@ func TestVerifyBlock(t *testing.T) {
 		},
 		TxnsHashes: nil,
 	}
+	block := &Block{
+		Header: cblock.Header,
+		Txns:   nil,
+	}
 
 	assert.True(t, node1.VerifyBlock(block))
 	assert.True(t, node2.VerifyBlock(block))
@@ -117,15 +122,23 @@ func TestChainNet(t *testing.T) {
 	wg.Wait()
 }
 
-func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
+func runNode(cfgPath string, poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
 	cfg := config.InitDefaultCfgWithDir(cfgPath)
 
 	land := tripod.NewLand()
-	land.SetTripods(poaNode)
+	land.SetTripods(poaNode.Tripod)
 
-	chain := blockchain.NewBlockChain(&cfg.BlockChain)
-	base := txdb.NewTxDB(&cfg.TxDB)
-	statedb := state.NewStateDB(&cfg.State)
+	kvdb, err := kv.NewKvdb(&config.KVconf{
+		KvType: "bolt",
+		Path:   "test_poa",
+	})
+	if err != nil {
+		panic("init kvdb error: " + err.Error())
+	}
+
+	base := txdb.NewTxDB(kvdb)
+	chain := blockchain.NewBlockChain(&cfg.BlockChain, base)
+	statedb := state.NewStateDB(kvdb)
 
 	env := &chain_env.ChainEnv{
 		State:      statedb,
@@ -135,7 +148,7 @@ func runNode(cfgPath string, poaNode tripod.Tripod, mockP2P *p2p.MockP2p, wg *sy
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
 	}
-	poaNode.GetTripodHeader().SetChainEnv(env)
+	poaNode.SetChainEnv(env)
 
 	k := kernel.NewKernel(&cfg, env, land)
 	for i := 0; i < 10; i++ {

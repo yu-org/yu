@@ -34,11 +34,19 @@ type Poa struct {
 
 type ValidatorInfo struct {
 	Pubkey PubKey
-	P2pIP  string
+	P2pID  peer.ID
 }
 
-func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
-	tri := NewTripod("Poa")
+func NewPoa(cfg *PoaConfig) *Poa {
+	pub, priv, infos, err := resolveConfig(cfg)
+	if err != nil {
+		logrus.Fatal("resolve poa config error: ", err)
+	}
+	return newPoa(pub, priv, infos)
+}
+
+func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
+	tri := NewTripod("poa")
 
 	var nodeIdx int
 
@@ -46,13 +54,7 @@ func NewPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 	validators := make(map[Address]peer.ID)
 	for _, addrIp := range addrIps {
 		addr := addrIp.Pubkey.Address()
-		p2pIP := addrIp.P2pIP
-
-		peerID, err := peer.Decode(p2pIP)
-		if err != nil {
-			logrus.Fatalf("decode validatorIP(%s) error: %v", p2pIP, err)
-		}
-		validators[addr] = peerID
+		validators[addr] = addrIp.P2pID
 
 		if addr == myPubkey.Address() {
 			nodeIdx = len(validatorsAddr)
