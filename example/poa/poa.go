@@ -40,6 +40,7 @@ func main() {
 	var myPubkey keypair.PubKey
 	for i, secret := range secrets {
 		pub, _ := keypair.GenSrKeyWithSecret([]byte(secret))
+		logrus.Infof("pub%d is %s", i, pub.String())
 		poaConf.Validators[i].Pubkey = pub.StringWithType()
 		if idx == i {
 			myPubkey = pub
