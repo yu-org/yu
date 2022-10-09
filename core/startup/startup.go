@@ -25,13 +25,14 @@ var (
 	kernelCfg     config.KernelConf
 )
 
-func StartUpFullNode(tripodInterfaces ...interface{}) {
-	StartUp(base.NewBase(base.Full), tripodInterfaces)
+func StartUpFullNode(tripodInstances ...interface{}) {
+	tripodInstances = append([]interface{}{base.NewBase(base.Full)}, tripodInstances...)
+	StartUp(tripodInstances...)
 }
 
-func StartUp(tripodInterfaces ...interface{}) {
+func StartUp(tripodInstances ...interface{}) {
 	tripods := make([]*tripod.Tripod, 0)
-	for _, v := range tripodInterfaces {
+	for _, v := range tripodInstances {
 		tripods = append(tripods, tripod.ResolveTripod(v))
 	}
 
@@ -69,12 +70,12 @@ func StartUp(tripodInterfaces ...interface{}) {
 	for i, t := range tripods {
 		t.SetChainEnv(env)
 		t.SetLand(land)
-		t.SetInstance(tripodInterfaces[i])
+		t.SetInstance(tripodInstances[i])
 	}
 
 	land.SetTripods(tripods...)
 
-	for _, tripodInterface := range tripodInterfaces {
+	for _, tripodInterface := range tripodInstances {
 		err = tripod.Inject(tripodInterface)
 		if err != nil {
 			logrus.Fatal("inject tripod failed: ", err)

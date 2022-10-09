@@ -20,6 +20,24 @@ const (
 
 var KeyTypeBytLen = 1
 
+func GenKeyPairWithSecret(keyType string, secret []byte) (PubKey, PrivKey, error) {
+	switch keyType {
+	case SecretFree:
+		return nil, nil, nil
+	case Sr25519:
+		pub, priv := GenSrKeyWithSecret(secret)
+		return pub, priv, nil
+	case Ed25519:
+		pub, priv := GenEdKeyWithSecret(secret)
+		return pub, priv, nil
+	case Secp256k1:
+		pub, priv := GenSecpKeyWithSecret(secret)
+		return pub, priv, nil
+	default:
+		return nil, nil, NoKeyType
+	}
+}
+
 func GenKeyPair(keyType string) (PubKey, PrivKey, error) {
 	switch keyType {
 	case SecretFree:

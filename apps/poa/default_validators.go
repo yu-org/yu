@@ -37,9 +37,9 @@ func InitDefaultKeypairs(idx int) (PubKey, PrivKey, []ValidatorInfo) {
 	myPubkey := pairArray[idx].pubkey
 	myPrivkey := pairArray[idx].privkey
 	validatorsAddrs := []ValidatorInfo{
-		{Pubkey: pub0, P2pIP: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
-		{Pubkey: pub1, P2pIP: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
-		{Pubkey: pub2, P2pIP: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
+		{Pubkey: pub0, P2pID: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+		{Pubkey: pub1, P2pID: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
+		{Pubkey: pub2, P2pID: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 	}
 
 	return myPubkey, myPrivkey, validatorsAddrs
