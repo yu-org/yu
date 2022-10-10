@@ -6,15 +6,15 @@ import (
 )
 
 type PoaConfig struct {
-	KeyType string `json:"key_type"`
+	KeyType string `toml:"key_type"`
 	// secret for generating keypair.
-	MySecret   string           `json:"my_secret"`
-	Validators []*ValidatorConf `json:"validators"`
+	MySecret   string           `toml:"my_secret"`
+	Validators []*ValidatorConf `toml:"validators"`
 }
 
 type ValidatorConf struct {
-	Pubkey string `json:"pubkey"`
-	P2pIp  string `json:"p2p_ip"`
+	Pubkey string `toml:"pubkey"`
+	P2pIp  string `toml:"p2p_ip"`
 }
 
 func resolveConfig(cfg *PoaConfig) (PubKey, PrivKey, []ValidatorInfo, error) {
