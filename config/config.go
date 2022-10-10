@@ -67,7 +67,7 @@ type TxpoolConf struct {
 	TxnMaxSize int    `toml:"txn_max_size"`
 }
 
-func LoadConf(fpath string, cfg interface{}) {
+func LoadTomlConf(fpath string, cfg interface{}) {
 	_, err := toml.DecodeFile(fpath, cfg)
 	if err != nil {
 		logrus.Panicf("load config-file(%s) error: %s ", fpath, err.Error())

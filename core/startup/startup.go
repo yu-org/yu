@@ -98,7 +98,7 @@ func initCfgFromFlags() {
 		return
 	}
 
-	config.LoadConf(kernelCfgPath, &kernelCfg)
+	config.LoadTomlConf(kernelCfgPath, &kernelCfg)
 }
 
 func initLog(level, output string) {
