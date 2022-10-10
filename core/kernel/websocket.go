@@ -42,7 +42,7 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 		return
 	}
 	if typ == subscription {
-		logrus.Infof("Register a Subscription(%s)", c.RemoteAddr().String())
+		logrus.Debugf("Register a Subscription(%s)", c.RemoteAddr().String())
 		m.sub.Register(c)
 		return
 	}

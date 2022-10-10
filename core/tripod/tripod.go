@@ -81,7 +81,7 @@ func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 func (t *Tripod) SetExec(fn dev.Execution) *Tripod {
 	name := getFuncName(fn)
 	t.execs[name] = fn
-	logrus.Infof("register Execution(%s) into Tripod(%s) \n", name, t.name)
+	logrus.Debugf("register Execution(%s) into Tripod(%s) \n", name, t.name)
 	return t
 }
 
@@ -89,13 +89,13 @@ func (t *Tripod) SetQueries(queries ...dev.Query) {
 	for _, q := range queries {
 		name := getFuncName(q)
 		t.queries[name] = q
-		logrus.Infof("register Query(%s) into Tripod(%s) \n", name, t.name)
+		logrus.Debugf("register Query(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
 
 func (t *Tripod) SetP2pHandler(code int, handler dev.P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
-	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
+	logrus.Debugf("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
 }
 

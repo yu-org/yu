@@ -36,7 +36,7 @@ func Inject(tripodInterface interface{}) error {
 			field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 			field.Set(reflect.ValueOf(triToInject.Instance))
 		}
-		logrus.Infof("inject tripod(%s) into %s", name, tri.name)
+		logrus.Debugf("inject tripod(%s) into %s", name, tri.name)
 	}
 	return nil
 }
