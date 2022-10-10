@@ -23,6 +23,7 @@ import (
 var (
 	kernelCfgPath string
 	kernelCfg     config.KernelConf
+	isInitedLog   bool
 )
 
 func StartUpFullNode(tripodInstances ...interface{}) {
@@ -37,7 +38,9 @@ func StartUp(tripodInstances ...interface{}) {
 	}
 
 	initCfgFromFlags()
-	initLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
+	if !isInitedLog {
+		InitLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
+	}
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
@@ -101,7 +104,7 @@ func initCfgFromFlags() {
 	config.LoadTomlConf(kernelCfgPath, &kernelCfg)
 }
 
-func initLog(level, output string) {
+func InitLog(level, output string) {
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -129,4 +132,5 @@ func initLog(level, output string) {
 	}
 
 	logrus.SetLevel(lvl)
+	isInitedLog = true
 }
