@@ -28,14 +28,20 @@ func resolveConfig(cfg *PoaConfig) (PubKey, PrivKey, []ValidatorInfo, error) {
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		peerID, err := peer.Decode(validator.P2pIp)
-		if err != nil {
-			return nil, nil, nil, err
+		if validator.P2pIp == "" {
+			infos = append(infos, ValidatorInfo{
+				Pubkey: pubkey,
+			})
+		} else {
+			peerID, err := peer.Decode(validator.P2pIp)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			infos = append(infos, ValidatorInfo{
+				Pubkey: pubkey,
+				P2pID:  peerID,
+			})
 		}
-		infos = append(infos, ValidatorInfo{
-			Pubkey: pubkey,
-			P2pID:  peerID,
-		})
 	}
 	return pub, priv, infos, nil
 }
