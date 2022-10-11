@@ -10,6 +10,8 @@ type PoaConfig struct {
 	// secret for generating keypair.
 	MySecret   string           `toml:"my_secret"`
 	Validators []*ValidatorConf `toml:"validators"`
+	// block out interval, seconds
+	BlockInterval int `toml:"block_interval"`
 }
 
 type ValidatorConf struct {
