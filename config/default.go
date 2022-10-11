@@ -5,11 +5,11 @@ import (
 	"path"
 )
 
-func InitDefaultCfg() KernelConf {
+func InitDefaultCfg() *KernelConf {
 	return InitDefaultCfgWithDir("")
 }
 
-func InitDefaultCfgWithDir(dir string) KernelConf {
+func InitDefaultCfgWithDir(dir string) *KernelConf {
 	if dir != "" {
 		err := os.MkdirAll(dir, 0700)
 		if err != nil {
@@ -17,7 +17,7 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 		}
 	}
 
-	cfg := KernelConf{
+	cfg := &KernelConf{
 		RunMode:   0,
 		HttpPort:  "7999",
 		WsPort:    "8999",
@@ -46,26 +46,9 @@ func InitDefaultCfgWithDir(dir string) KernelConf {
 			Dsn:       path.Join(dir, "chain.db"),
 		},
 	}
-	cfg.TxDB = TxDBConf{
-		BaseDB: SqlDbConf{
-			SqlDbType: "sqlite",
-			Dsn:       path.Join(dir, "blockbase.db"),
-		}}
 	cfg.Txpool = TxpoolConf{
 		PoolSize:   2048,
 		TxnMaxSize: 1024000,
 	}
-	cfg.State = StateConf{KV: MptKvConf{
-		IndexDB: KVconf{
-			KvType: "bolt",
-			Path:   path.Join(dir, "state_index.db"),
-			Hosts:  nil,
-		},
-		NodeBase: KVconf{
-			KvType: "bolt",
-			Path:   path.Join(dir, "state_base.db"),
-			Hosts:  nil,
-		},
-	}}
 	return cfg
 }

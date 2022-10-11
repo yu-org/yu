@@ -25,8 +25,6 @@ type KernelConf struct {
 	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
-	TxDB       TxDBConf       `toml:"tx_db"`
-	State      StateConf      `toml:"state"`
 	Txpool     TxpoolConf     `toml:"txpool"`
 	P2P        P2pConf        `toml:"p2p"`
 }

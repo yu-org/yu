@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const BlockTime = 3
-
 type Poa struct {
 	*Tripod
 
@@ -27,7 +25,8 @@ type Poa struct {
 
 	currentHeight *atomic.Uint32
 
-	recvChan chan *Block
+	blockInterval int
+	recvChan      chan *Block
 	// local node index in addrs
 	nodeIdx int
 }
@@ -42,10 +41,10 @@ func NewPoa(cfg *PoaConfig) *Poa {
 	if err != nil {
 		logrus.Fatal("resolve poa config error: ", err)
 	}
-	return newPoa(pub, priv, infos)
+	return newPoa(pub, priv, infos, cfg.BlockInterval)
 }
 
-func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
+func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int) *Poa {
 	tri := NewTripod("poa")
 
 	var nodeIdx int
@@ -70,6 +69,7 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo) *Poa {
 		myPubkey:       myPubkey,
 		myPrivKey:      myPrivkey,
 		currentHeight:  atomic.NewUint32(0),
+		blockInterval:  interval,
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
@@ -148,7 +148,7 @@ func (h *Poa) StartBlock(block *Block) {
 	now := time.Now()
 	defer func() {
 		duration := time.Since(now)
-		time.Sleep(BlockTime*time.Second - duration)
+		time.Sleep(time.Duration(h.blockInterval)*time.Second - duration)
 	}()
 
 	h.setCurrentHeight(block.Height)
@@ -264,7 +264,7 @@ func (h *Poa) calulateWaitTime(block *Block) time.Duration {
 		n = -n
 	}
 
-	return time.Duration(BlockTime+n) * time.Second
+	return time.Duration(h.blockInterval+n) * time.Second
 }
 
 func (h *Poa) getCurrentHeight() BlockNum {

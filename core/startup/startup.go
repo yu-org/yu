@@ -1,7 +1,6 @@
 package startup
 
 import (
-	"flag"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/base"
@@ -21,9 +20,7 @@ import (
 )
 
 var (
-	kernelCfgPath string
-	kernelCfg     config.KernelConf
-	isInitedLog   bool
+	kernelCfg = &config.KernelConf{}
 )
 
 func StartUpFullNode(tripodInstances ...interface{}) {
@@ -37,11 +34,6 @@ func StartUp(tripodInstances ...interface{}) {
 		tripods = append(tripods, tripod.ResolveTripod(v))
 	}
 
-	initCfgFromFlags()
-	if !isInitedLog {
-		InitLog(kernelCfg.LogLevel, kernelCfg.LogOutput)
-	}
-
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
 
@@ -52,10 +44,10 @@ func StartUp(tripodInstances ...interface{}) {
 		logrus.Fatal("init kvdb error: ", err)
 	}
 
-	base := txdb.NewTxDB(kvdb)
-	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain, base)
+	txndb := txdb.NewTxDB(kvdb)
+	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain, txndb)
 	statedb := state.NewStateDB(kvdb)
-	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, base)
+	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, txndb)
 
 	for _, tri := range tripods {
 		pool.WithTripodCheck(tri)
@@ -64,7 +56,7 @@ func StartUp(tripodInstances ...interface{}) {
 	env := &chain_env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
-		TxDB:       base,
+		TxDB:       txndb,
 		Pool:       pool,
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
@@ -85,26 +77,27 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k := kernel.NewKernel(&kernelCfg, env, land)
+	k := kernel.NewKernel(kernelCfg, env, land)
 
 	k.Startup()
 }
 
-func initCfgFromFlags() {
-	useDefaultCfg := flag.Bool("dc", false, "default config files")
-
-	flag.StringVar(&kernelCfgPath, "k", "yu_conf/kernel.toml", "Kernel config file path")
-
-	flag.Parse()
-	if *useDefaultCfg {
-		kernelCfg = config.InitDefaultCfg()
-		return
-	}
-
-	config.LoadTomlConf(kernelCfgPath, &kernelCfg)
+func InitConfigFromPath(cfgPath string) {
+	config.LoadTomlConf(cfgPath, kernelCfg)
+	initLog(kernelCfg)
 }
 
-func InitLog(level, output string) {
+func InitConfig(cfg *config.KernelConf) {
+	kernelCfg = cfg
+	initLog(kernelCfg)
+}
+
+func InitDefaultConfig() {
+	kernelCfg = config.InitDefaultCfg()
+	initLog(kernelCfg)
+}
+
+func initLog(cfg *config.KernelConf) {
 	formatter := &logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "2006-01-02 15:04:05",
@@ -116,21 +109,20 @@ func InitLog(level, output string) {
 		err     error
 	)
 
-	if output == "" {
+	if cfg.LogOutput == "" {
 		logfile = os.Stderr
 	} else {
-		logfile, err = os.OpenFile(output, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+		logfile, err = os.OpenFile(cfg.LogOutput, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
 		if err != nil {
 			panic("init log file error: " + err.Error())
 		}
 	}
 
 	logrus.SetOutput(logfile)
-	lvl, err := logrus.ParseLevel(level)
+	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		panic("parse log level error: " + err.Error())
 	}
 
 	logrus.SetLevel(lvl)
-	isInitedLog = true
 }
