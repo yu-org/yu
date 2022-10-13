@@ -12,9 +12,8 @@ type Context struct {
 	Caller Address
 	Block  *Block
 
-	paramsStr   string
-	paramsMap   map[string]interface{}
-	ParamsValue interface{}
+	paramsStr string
+	paramsMap map[string]interface{}
 
 	Events  []*Event
 	Error   *Error
@@ -22,18 +21,17 @@ type Context struct {
 }
 
 func NewContext(caller Address, paramsStr string, block *Block) (*Context, error) {
-	var v interface{}
-	err := BindJsonParams(paramsStr, &v)
+	var paramsMap = make(map[string]interface{})
+	err := BindJsonParams(paramsStr, &paramsMap)
 	if err != nil {
 		return nil, err
 	}
 	return &Context{
-		Caller:      caller,
-		Block:       block,
-		ParamsValue: v,
-		paramsMap:   v.(map[string]interface{}),
-		paramsStr:   paramsStr,
-		Events:      make([]*Event, 0),
+		Caller:    caller,
+		Block:     block,
+		paramsMap: paramsMap,
+		paramsStr: paramsStr,
+		Events:    make([]*Event, 0),
 	}, nil
 }
 
