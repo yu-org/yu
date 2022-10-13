@@ -132,6 +132,10 @@ func (a *Asset) GetBalance(addr Address) *big.Int {
 		logrus.Panic("get balance error: ", err)
 	}
 
+	if balanceByt == nil {
+		return big.NewInt(0)
+	}
+
 	b := new(big.Int)
 	err = b.UnmarshalText(balanceByt)
 	if err != nil {
