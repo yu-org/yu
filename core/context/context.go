@@ -27,11 +27,16 @@ func NewContext(caller Address, paramsStr string, block *Block) (*Context, error
 	if err != nil {
 		return nil, err
 	}
+	var paramsMap = make(map[string]interface{})
+	err = BindJsonParams(paramsStr, &paramsMap)
+	if err != nil {
+		return nil, err
+	}
 	return &Context{
 		Caller:      caller,
 		Block:       block,
 		ParamsValue: v,
-		paramsMap:   v.(map[string]interface{}),
+		paramsMap:   paramsMap,
 		paramsStr:   paramsStr,
 		Events:      make([]*Event, 0),
 	}, nil

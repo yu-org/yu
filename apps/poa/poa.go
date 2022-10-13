@@ -205,7 +205,7 @@ func (h *Poa) EndBlock(block *Block) {
 
 	err := h.Execute(block)
 	if err != nil {
-		logrus.Panic("execute block failed: ", err)
+		logrus.Error("execute block failed: ", err)
 	}
 
 	err = chain.AppendBlock(block)
