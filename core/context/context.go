@@ -23,7 +23,7 @@ type Context struct {
 
 func NewContext(caller Address, paramsStr string, block *Block) (*Context, error) {
 	var v interface{}
-	err := BindJsonParams(paramsStr, v)
+	err := BindJsonParams(paramsStr, &v)
 	if err != nil {
 		return nil, err
 	}
