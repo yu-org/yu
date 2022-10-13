@@ -8,6 +8,10 @@ import (
 	"strconv"
 )
 
+func (c *Context) Bindjson(v interface{}) error {
+	return BindJsonParams(c.paramsStr, v)
+}
+
 func (c *Context) Get(name string) interface{} {
 	return c.paramsMap[name]
 }
