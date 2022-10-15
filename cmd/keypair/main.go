@@ -18,4 +18,5 @@ func main() {
 	fmt.Println("public key with type: ", pubkey.StringWithType())
 	fmt.Println("private key: ", privkey.String())
 	fmt.Println("private key with type: ", privkey.StringWithType())
+	fmt.Println("address: ", pubkey.Address().String())
 }
