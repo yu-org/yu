@@ -19,7 +19,7 @@ func init() {
 	pubkey2, privkey2 := keypair.GenSrKeyWithSecret([]byte("boyi"))
 	caller2 = pubkey2.Address()
 
-	ecall1 := &Ecall{LeiPrice: 10}
+	ecall1 := &WrCall{LeiPrice: 10}
 	hash1, err := ecall1.Hash()
 	if err != nil {
 		panic(err)
@@ -28,7 +28,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	ecall2 := &Ecall{LeiPrice: 30}
+	ecall2 := &WrCall{LeiPrice: 30}
 	hash2, err := ecall2.Hash()
 	if err != nil {
 		panic(err)
@@ -37,7 +37,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	ecall3 := &Ecall{LeiPrice: 20}
+	ecall3 := &WrCall{LeiPrice: 20}
 	hash3, err := ecall3.Hash()
 	if err != nil {
 		panic(err)

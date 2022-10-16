@@ -168,7 +168,7 @@ func Check(checks []TxnCheckFn, stxn *SignedTxn) error {
 
 func CheckSignature(stxn *SignedTxn) error {
 	sig := stxn.Signature
-	ecall := stxn.Raw.Ecall
+	ecall := stxn.Raw.WrCall
 	hash, err := ecall.Hash()
 	if err != nil {
 		return err

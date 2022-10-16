@@ -18,11 +18,11 @@ func NewAsset(tokenName string) *Asset {
 	df := NewTripod("asset")
 
 	a := &Asset{df, tokenName}
-	a.SetExec(a.Transfer).SetExec(a.CreateAccount)
-	a.SetQueries(a.QueryBalance)
+	a.SetWritings(a.Transfer, a.CreateAccount)
+	a.SetReadings(a.QueryBalance)
 
 	//a.SetTxnChecker(func(txn *SignedTxn) error {
-	//	if txn.Raw.Ecall.LeiPrice == 0 {
+	//	if txn.Raw.WrCall.LeiPrice == 0 {
 	//		return nil
 	//	}
 	//
@@ -31,7 +31,7 @@ func NewAsset(tokenName string) *Asset {
 	//	}
 	//
 	//	balance := a.GetBalance(txn.Raw.Caller)
-	//	leiPrice := new(big.Int).SetUint64(txn.Raw.Ecall.LeiPrice)
+	//	leiPrice := new(big.Int).SetUint64(txn.Raw.WrCall.LeiPrice)
 	//	if balance.Cmp(leiPrice) < 0 {
 	//		return InsufficientFunds
 	//	}
@@ -54,7 +54,7 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
-func (a *Asset) QueryBalance(ctx *Context) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *ReadContext) (interface{}, error) {
 	account := ctx.GetAddress("account")
 	if !a.ExistAccount(account) {
 		return nil, AccountNotFound(account)
@@ -63,9 +63,9 @@ func (a *Asset) QueryBalance(ctx *Context) (interface{}, error) {
 	return amount, nil
 }
 
-func (a *Asset) Transfer(ctx *Context) (err error) {
+func (a *Asset) Transfer(ctx *WriteContext) (err error) {
 	ctx.SetLei(100)
-	from := ctx.Caller
+	from := ctx.GetCaller()
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
@@ -102,9 +102,9 @@ func (a *Asset) transfer(from, to Address, amount *big.Int) error {
 	return nil
 }
 
-func (a *Asset) CreateAccount(ctx *Context) error {
+func (a *Asset) CreateAccount(ctx *WriteContext) error {
 	ctx.SetLei(10)
-	addr := ctx.Caller
+	addr := ctx.GetCaller()
 	//if !a.isValidator(addr) {
 	//	return NoPermission
 	//}

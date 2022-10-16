@@ -84,19 +84,19 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 
 	var results []Result
 	for _, stxn := range stxns {
-		ecall := stxn.Raw.Ecall
-		ctx, err := context.NewContext(stxn.Pubkey.Address(), ecall.Params, block)
+		ecall := stxn.Raw.WrCall
+		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
 			return err
 		}
 
-		exec, err := m.land.GetExec(ecall)
+		writing, err := m.land.GetWriting(ecall)
 		if err != nil {
 			m.handleError(err, ctx, block, stxn)
 			continue
 		}
 
-		err = exec(ctx)
+		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			m.stateDB.Discard()
 			m.handleError(OutOfLei, ctx, block, stxn)
@@ -180,14 +180,14 @@ func (m *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (m *Kernel) handleError(err error, ctx *context.Context, block *Block, stxn *SignedTxn) {
+func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	ctx.EmitError(err)
-	ecall := stxn.Raw.Ecall
+	ecall := stxn.Raw.WrCall
 
 	ctx.Error.Caller = stxn.Raw.Caller
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = ecall.TripodName
-	ctx.Error.ExecName = ecall.ExecName
+	ctx.Error.ExecName = ecall.WritingName
 	ctx.Error.BlockHash = block.Hash
 	ctx.Error.Height = block.Height
 
@@ -198,13 +198,13 @@ func (m *Kernel) handleError(err error, ctx *context.Context, block *Block, stxn
 
 }
 
-func (m *Kernel) handleEvent(ctx *context.Context, block *Block, stxn *SignedTxn) {
+func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	for _, event := range ctx.Events {
-		ecall := stxn.Raw.Ecall
+		ecall := stxn.Raw.WrCall
 
 		event.Height = block.Height
 		event.BlockHash = block.Hash
-		event.ExecName = ecall.ExecName
+		event.ExecName = ecall.WritingName
 		event.TripodName = ecall.TripodName
 		event.BlockStage = ExecuteTxnsStage
 		event.Caller = stxn.Raw.Caller

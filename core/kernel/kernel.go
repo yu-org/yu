@@ -124,7 +124,7 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 		}
 
 		logrus.WithField("p2p", "accept-txn").
-			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.Ecall)
+			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 
 		err = m.txPool.CheckTxn(txn)
 		if err != nil {

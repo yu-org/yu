@@ -19,11 +19,11 @@ func QueryAccount(pubkey PubKey) {
 	if err != nil {
 		panic("json encode qryAccount error: " + err.Error())
 	}
-	qcall := &Qcall{
-		TripodName: "asset",
-		QueryName:  "QueryBalance",
-		BlockHash:  Hash{},
-		Params:     string(paramByt),
+	qcall := &Rdcall{
+		TripodName:  "asset",
+		ReadingName: "QueryBalance",
+		BlockHash:   Hash{},
+		Params:      string(paramByt),
 	}
 	resp := CallChainByQry(Websocket, qcall)
 	amount := new(big.Int)
@@ -45,13 +45,13 @@ func CreateAccount(reqType int, privkey PrivKey, pubkey PubKey, amount uint64) {
 	if err != nil {
 		panic("create-account params marshal error: " + err.Error())
 	}
-	ecall := &Ecall{
-		TripodName: "asset",
-		ExecName:   "CreateAccount",
-		Params:     string(paramsByt),
-		LeiPrice:   0,
+	wrCall := &WrCall{
+		TripodName:  "asset",
+		WritingName: "CreateAccount",
+		Params:      string(paramsByt),
+		LeiPrice:    0,
 	}
-	CallChainByExec(reqType, privkey, pubkey, ecall)
+	CallChainByExec(reqType, privkey, pubkey, wrCall)
 }
 
 type TransferInfo struct {
@@ -68,11 +68,11 @@ func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, am
 	if err != nil {
 		panic("TransferBalance params marshal error: " + err.Error())
 	}
-	ecall := &Ecall{
-		TripodName: "asset",
-		ExecName:   "Transfer",
-		Params:     string(paramsByt),
-		LeiPrice:   leiPrice,
+	wrCall := &WrCall{
+		TripodName:  "asset",
+		WritingName: "Transfer",
+		Params:      string(paramsByt),
+		LeiPrice:    leiPrice,
 	}
-	CallChainByExec(reqType, privkey, pubkey, ecall)
+	CallChainByExec(reqType, privkey, pubkey, wrCall)
 }

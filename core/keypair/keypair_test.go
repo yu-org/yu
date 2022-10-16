@@ -20,10 +20,10 @@ func testKey(t *testing.T, keyType string) {
 	}
 	t.Logf("public key is %s", pubkey.String())
 	t.Logf("private key is %s", privkey.String())
-	ecall := &Ecall{
-		TripodName: "asset",
-		ExecName:   "Transfer",
-		Params:     "params",
+	ecall := &WrCall{
+		TripodName:  "asset",
+		WritingName: "Transfer",
+		Params:      "params",
 	}
 
 	hash, err := ecall.Hash()

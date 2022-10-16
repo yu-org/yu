@@ -239,7 +239,7 @@ func (x *Ecall) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Ecall.ProtoReflect.Descriptor instead.
+// Deprecated: Use WrCall.ProtoReflect.Descriptor instead.
 func (*Ecall) Descriptor() ([]byte, []int) {
 	return file_txn_proto_rawDescGZIP(), []int{3}
 }
@@ -728,7 +728,7 @@ var file_txn_proto_goTypes = []interface{}{
 	(*UnsignedTxn)(nil),     // 0: UnsignedTxn
 	(*SignedTxn)(nil),       // 1: SignedTxn
 	(*SignedTxns)(nil),      // 2: SignedTxns
-	(*Ecall)(nil),           // 3: Ecall
+	(*Ecall)(nil),           // 3: WrCall
 	(*Qcall)(nil),           // 4: Qcall
 	(*TxnsHashes)(nil),      // 5: TxnsHashes
 	(*BatchSignedTxns)(nil), // 6: BatchSignedTxns
@@ -738,7 +738,7 @@ var file_txn_proto_goTypes = []interface{}{
 	(*TxnsResponse)(nil),    // 10: TxnsResponse
 }
 var file_txn_proto_depIdxs = []int32{
-	3, // 0: UnsignedTxn.ecall:type_name -> Ecall
+	3, // 0: UnsignedTxn.ecall:type_name -> WrCall
 	0, // 1: SignedTxn.raw:type_name -> UnsignedTxn
 	1, // 2: SignedTxns.txns:type_name -> SignedTxn
 	1, // 3: BatchSignedTxns.txns:type_name -> SignedTxn

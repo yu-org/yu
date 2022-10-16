@@ -24,19 +24,19 @@ var (
 
 func init() {
 	var err error
-	txn1, err = types.NewSignedTxn(addr, &common.Ecall{
+	txn1, err = types.NewSignedTxn(addr, &common.WrCall{
 		TripodName: "tripod-1",
 	}, pub, nil)
 	if err != nil {
 		panic(err)
 	}
-	txn2, err = types.NewSignedTxn(addr, &common.Ecall{
+	txn2, err = types.NewSignedTxn(addr, &common.WrCall{
 		TripodName: "tripod-2",
 	}, pub, nil)
 	if err != nil {
 		panic(err)
 	}
-	txn3, err = types.NewSignedTxn(addr, &common.Ecall{
+	txn3, err = types.NewSignedTxn(addr, &common.WrCall{
 		TripodName: "tripod-3",
 	}, pub, nil)
 	if err != nil {

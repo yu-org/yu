@@ -21,10 +21,10 @@ func newOrderedTxns() *orderedTxns {
 
 func (ot *orderedTxns) Insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").
-		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.Ecall)
+		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.WrCall)
 	for element := ot.txns.Front(); element != nil; element = element.Next() {
 		tx := element.Value.(*SignedTxn)
-		if input.Raw.Ecall.LeiPrice > tx.Raw.Ecall.LeiPrice {
+		if input.Raw.WrCall.LeiPrice > tx.Raw.WrCall.LeiPrice {
 			e := ot.txns.InsertBefore(input, element)
 			ot.idx[input.TxnHash] = e
 			return
@@ -38,7 +38,7 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 	if e, ok := ot.idx[txnHash]; ok {
 		stxn := e.Value.(*SignedTxn)
 		logrus.WithField("txpool", "ordered-txns").
-			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.Ecall)
+			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.WrCall)
 		ot.txns.Remove(e)
 		delete(ot.idx, txnHash)
 	}
@@ -72,7 +72,7 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		txn := element.Value.(*SignedTxn)
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").
-				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash.String(), txn.Raw.Ecall)
+				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 			txns = append(txns, txn)
 			packedNum++
 		}

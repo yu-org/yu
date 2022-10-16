@@ -21,7 +21,7 @@ type TxnChecker interface {
 	CheckTxn(*SignedTxn) error
 }
 
-func NewSignedTxn(caller Address, ecall *Ecall, pubkey PubKey, sig []byte) (*SignedTxn, error) {
+func NewSignedTxn(caller Address, ecall *WrCall, pubkey PubKey, sig []byte) (*SignedTxn, error) {
 	raw, err := NewUnsignedTxn(caller, ecall)
 	if err != nil {
 		return nil, err
@@ -164,32 +164,32 @@ func DecodeSignedTxns(data []byte) (SignedTxns, error) {
 
 type UnsignedTxn struct {
 	Caller    Address
-	Ecall     *Ecall
+	WrCall    *WrCall
 	Timestamp uint64
 	// Nonce is unnecessary
 	Nonce uint64
 }
 
-func NewUnsignedTxn(caller Address, ecall *Ecall) (*UnsignedTxn, error) {
+func NewUnsignedTxn(caller Address, wrCall *WrCall) (*UnsignedTxn, error) {
 	return &UnsignedTxn{
 		Caller:    caller,
-		Ecall:     ecall,
+		WrCall:    wrCall,
 		Timestamp: ytime.NowNanoTsU64(),
 	}, nil
 }
 
 func (ut *UnsignedTxn) BindJsonParams(v interface{}) error {
-	return ut.Ecall.BindJsonParams(v)
+	return ut.WrCall.BindJsonParams(v)
 }
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
 		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
-			TripodName: ut.Ecall.TripodName,
-			ExecName:   ut.Ecall.ExecName,
-			Params:     ut.Ecall.Params,
-			LeiPrice:   ut.Ecall.LeiPrice,
+			TripodName: ut.WrCall.TripodName,
+			ExecName:   ut.WrCall.WritingName,
+			Params:     ut.WrCall.Params,
+			LeiPrice:   ut.WrCall.LeiPrice,
 		},
 		Timestamp: ut.Timestamp,
 	}
@@ -198,11 +198,11 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
 		Caller: BytesToAddress(pb.Caller),
-		Ecall: &Ecall{
-			TripodName: pb.Ecall.TripodName,
-			ExecName:   pb.Ecall.ExecName,
-			Params:     pb.Ecall.Params,
-			LeiPrice:   pb.Ecall.LeiPrice,
+		WrCall: &WrCall{
+			TripodName:  pb.Ecall.TripodName,
+			WritingName: pb.Ecall.ExecName,
+			Params:      pb.Ecall.Params,
+			LeiPrice:    pb.Ecall.LeiPrice,
 		},
 		Timestamp: pb.Timestamp,
 	}

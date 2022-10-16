@@ -19,11 +19,11 @@ const (
 	Websocket
 )
 
-func CallChainByQry(reqtyp int, qcall *Qcall) []byte {
+func CallChainByQry(reqtyp int, qcall *Rdcall) []byte {
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: QryApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, qcall.TripodName)
-	q.Set(CallNameKey, qcall.QueryName)
+	q.Set(CallNameKey, qcall.ReadingName)
 	q.Set(BlockHashKey, qcall.BlockHash.String())
 
 	u.RawQuery = q.Encode()
@@ -59,7 +59,7 @@ func CallChainByQry(reqtyp int, qcall *Qcall) []byte {
 	return nil
 }
 
-func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) {
+func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall) {
 	hash, err := ecall.Hash()
 	if err != nil {
 		panic("ecall hash error: " + err.Error())
@@ -80,7 +80,7 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *Ecall) 
 	u := url.URL{Scheme: scheme, Host: "localhost:8999", Path: ExecApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, ecall.TripodName)
-	q.Set(CallNameKey, ecall.ExecName)
+	q.Set(CallNameKey, ecall.WritingName)
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
