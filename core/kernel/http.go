@@ -38,7 +38,7 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 		return
 	}
 
-	_, err = m.land.GetExec(stxn.Raw.Ecall)
+	_, err = m.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -82,18 +82,13 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 
 	switch m.RunMode {
 	case LocalNode:
-		pubkey, err := GetPubkey(c.Request)
-		if err != nil {
-
-			return
-		}
-		ctx, err := context.NewContext(pubkey.Address(), qcall.Params, nil)
+		ctx, err := context.NewReadContext(qcall.Params)
 		if err != nil {
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
 
-		respObj, err := m.land.Query(qcall, ctx)
+		respObj, err := m.land.Read(qcall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,

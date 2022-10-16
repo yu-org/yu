@@ -86,7 +86,7 @@ func QryNotFound(name string) ErrQryNotFound {
 }
 
 func (q ErrQryNotFound) Error() string {
-	return errors.Errorf("Query(%s) NOT Found", q.QryName).Error()
+	return errors.Errorf("Read(%s) NOT Found", q.QryName).Error()
 }
 
 //type ErrOutOfEnergy struct {

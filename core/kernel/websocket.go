@@ -68,7 +68,7 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 		return
 	}
 
-	_, err = m.land.GetExec(stxn.Raw.Ecall)
+	_, err = m.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
 		m.errorAndClose(c, err.Error())
 		return
@@ -101,19 +101,19 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string) {
 	qcall, err := getQryInfoFromReq(req, params)
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("get Query info from websocket error: %v", err))
+		m.errorAndClose(c, fmt.Sprintf("get Read info from websocket error: %v", err))
 		return
 	}
 
 	switch m.RunMode {
 	case LocalNode:
-		ctx, err := context.NewContext(NullAddress, qcall.Params, nil)
+		ctx, err := context.NewReadContext(qcall.Params)
 		if err != nil {
 			m.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
 			return
 		}
 
-		respObj, err := m.land.Query(qcall, ctx)
+		respObj, err := m.land.Read(qcall, ctx)
 		if err != nil {
 			m.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
 			return
@@ -125,7 +125,7 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string
 		}
 		err = c.WriteMessage(websocket.BinaryMessage, respByt)
 		if err != nil {
-			logrus.Errorf("response Query result error: %s", err.Error())
+			logrus.Errorf("response Read result error: %s", err.Error())
 		}
 	}
 

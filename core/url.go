@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	// RootApiPath For developers, every customized Execution and Query of tripods
+	// RootApiPath For developers, every customized Execution and Read of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"
 
@@ -23,12 +23,12 @@ const (
 )
 
 var (
-	ExecApiPath    = filepath.Join(RootApiPath, ExecCallType)
-	QryApiPath     = filepath.Join(RootApiPath, QryCallType)
+	ExecApiPath    = filepath.Join(RootApiPath, WrCallType)
+	QryApiPath     = filepath.Join(RootApiPath, RdCallType)
 	SubResultsPath = "/subscribe/results"
 )
 
-// GetTripodCallName return (Tripod Name, Execution/Query Name)
+// GetTripodCallName return (Tripod Name, Execution/Read Name)
 func GetTripodCallName(req *http.Request) (string, string) {
 	query := req.URL.Query()
 	return query.Get(TripodNameKey), query.Get(CallNameKey)

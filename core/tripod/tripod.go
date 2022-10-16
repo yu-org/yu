@@ -24,10 +24,10 @@ type Tripod struct {
 	Instance interface{}
 
 	name string
-	// Key: Execution Name
-	execs map[string]dev.Execution
-	// Key: Query Name
-	queries map[string]dev.Query
+	// Key: Writing Name
+	execs map[string]dev.Writing
+	// Key: Reading Name
+	queries map[string]dev.Reading
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -35,8 +35,8 @@ type Tripod struct {
 func NewTripod(name string) *Tripod {
 	return &Tripod{
 		name:        name,
-		execs:       make(map[string]dev.Execution),
-		queries:     make(map[string]dev.Query),
+		execs:       make(map[string]dev.Writing),
+		queries:     make(map[string]dev.Reading),
 		P2pHandlers: make(map[int]dev.P2pHandler),
 
 		BlockVerifier: &DefaultBlockVerifier{},
@@ -78,18 +78,19 @@ func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 	t.TxnChecker = tc
 }
 
-func (t *Tripod) SetExec(fn dev.Execution) *Tripod {
-	name := getFuncName(fn)
-	t.execs[name] = fn
-	logrus.Debugf("register Execution(%s) into Tripod(%s) \n", name, t.name)
-	return t
+func (t *Tripod) SetWritings(wrs ...dev.Writing) {
+	for _, wr := range wrs {
+		name := getFuncName(wr)
+		t.execs[name] = wr
+		logrus.Debugf("register Writing(%s) into Tripod(%s) \n", name, t.name)
+	}
 }
 
-func (t *Tripod) SetQueries(queries ...dev.Query) {
-	for _, q := range queries {
-		name := getFuncName(q)
-		t.queries[name] = q
-		logrus.Debugf("register Query(%s) into Tripod(%s) \n", name, t.name)
+func (t *Tripod) SetReadings(readings ...dev.Reading) {
+	for _, r := range readings {
+		name := getFuncName(r)
+		t.queries[name] = r
+		logrus.Debugf("register Reading(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
 
@@ -107,20 +108,20 @@ func getFuncName(i interface{}) string {
 	return strings.TrimSuffix(funcName, "-fm")
 }
 
-func (t *Tripod) ExistExec(execName string) bool {
-	_, ok := t.execs[execName]
+func (t *Tripod) ExistWriting(name string) bool {
+	_, ok := t.execs[name]
 	return ok
 }
 
-func (t *Tripod) GetExec(name string) dev.Execution {
+func (t *Tripod) GetWriting(name string) dev.Writing {
 	return t.execs[name]
 }
 
-func (t *Tripod) GetQuery(name string) dev.Query {
+func (t *Tripod) GetReading(name string) dev.Reading {
 	return t.queries[name]
 }
 
-func (t *Tripod) AllQueryNames() []string {
+func (t *Tripod) AllReadingNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.queries {
 		allNames = append(allNames, name)
@@ -128,7 +129,7 @@ func (t *Tripod) AllQueryNames() []string {
 	return allNames
 }
 
-func (t *Tripod) AllExecNames() []string {
+func (t *Tripod) AllWritingNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.execs {
 		allNames = append(allNames, name)

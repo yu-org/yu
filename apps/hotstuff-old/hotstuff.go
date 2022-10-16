@@ -70,7 +70,7 @@ func NewHotstuff(myPubkey PubKey, myPrivkey PrivKey, validatorsMap map[string]st
 		nodeIdx:    nodeIdx,
 	}
 	h.meta.SetP2pHandler(ProposeCode, h.handleRecvProposal).SetP2pHandler(VoteCode, h.handleRecvVoteMsg)
-	h.meta.SetExec(h.JoinValidator, 10000).SetExec(h.QuitValidator, 100)
+	h.meta.SetWritings(h.JoinValidator, 10000).SetWritings(h.QuitValidator, 100)
 	return h
 }
 
@@ -309,12 +309,12 @@ USEP2P:
 	return true
 }
 
-func (h *Hotstuff) JoinValidator(ctx *context.Context, block *CompactBlock) error {
+func (h *Hotstuff) JoinValidator(ctx *context.WriteContext, block *CompactBlock) error {
 
 	return nil
 }
 
-func (h *Hotstuff) QuitValidator(ctx *context.Context, block *CompactBlock) error {
+func (h *Hotstuff) QuitValidator(ctx *context.WriteContext, block *CompactBlock) error {
 
 	return nil
 }

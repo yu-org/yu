@@ -8,10 +8,10 @@ import (
 	"net/http"
 )
 
-func getQryInfoFromReq(req *http.Request, params string) (qcall *Qcall, err error) {
+func getQryInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, qryName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
-	qcall = &Qcall{
+	qcall = &Rdcall{
 		TripodName: tripodName,
 		QueryName:  qryName,
 		Params:     params,
@@ -26,7 +26,7 @@ func getExecInfoFromReq(req *http.Request, params string) (tripodName, execName 
 	if err != nil {
 		return
 	}
-	ecall := &Ecall{
+	wrCall := &WrCall{
 		TripodName: tripodName,
 		ExecName:   execName,
 		Params:     params,
@@ -38,7 +38,7 @@ func getExecInfoFromReq(req *http.Request, params string) (tripodName, execName 
 	if err != nil {
 		return
 	}
-	stxn, err = types.NewSignedTxn(caller, ecall, pubkey, sig)
+	stxn, err = types.NewSignedTxn(caller, wrCall, pubkey, sig)
 	return
 }
 

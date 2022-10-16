@@ -20,7 +20,7 @@ func testKey(t *testing.T, keyType string) {
 	}
 	t.Logf("public key is %s", pubkey.String())
 	t.Logf("private key is %s", privkey.String())
-	ecall := &Ecall{
+	ecall := &WrCall{
 		TripodName: "asset",
 		ExecName:   "Transfer",
 		Params:     "params",

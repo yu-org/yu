@@ -24,7 +24,7 @@ func TestSignedTxns_Remove(t *testing.T) {
 	)
 	for i := 0; i < 3; i++ {
 		istr := strconv.Itoa(i)
-		ecall := &Ecall{
+		ecall := &WrCall{
 			TripodName: istr,
 			ExecName:   istr,
 			Params:     string(istr),
@@ -53,19 +53,19 @@ func TestSignedTxns_Remove(t *testing.T) {
 	removeIdx, restTxns := txns.Remove(hashes[0])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns {
-		t.Logf("After removed 0, txn  %s", stxn.Raw.Ecall)
+		t.Logf("After removed 0, txn  %s", stxn.Raw.WrCall)
 	}
 
 	removeIdx, restTxns1 := txns1.Remove(hashes[1])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns1 {
-		t.Logf("After removed 1, txn  %s", stxn.Raw.Ecall)
+		t.Logf("After removed 1, txn  %s", stxn.Raw.WrCall)
 	}
 
 	removeIdx, restTxns2 := txns2.Remove(hashes[2])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns2 {
-		t.Logf("After removed 2, txn  %s", stxn.Raw.Ecall)
+		t.Logf("After removed 2, txn  %s", stxn.Raw.WrCall)
 	}
 
 }

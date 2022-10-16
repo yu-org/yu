@@ -8,15 +8,32 @@ import (
 	"strconv"
 )
 
-func (c *Context) Bindjson(v interface{}) error {
+type ReadContext struct {
+	paramsStr string
+	paramsMap map[string]interface{}
+}
+
+func NewReadContext(paramsStr string) (*ReadContext, error) {
+	var paramsMap = make(map[string]interface{})
+	err := BindJsonParams(paramsStr, &paramsMap)
+	if err != nil {
+		return nil, err
+	}
+	return &ReadContext{
+		paramsStr: paramsStr,
+		paramsMap: paramsMap,
+	}, nil
+}
+
+func (c *ReadContext) Bindjson(v interface{}) error {
 	return BindJsonParams(c.paramsStr, v)
 }
 
-func (c *Context) Get(name string) interface{} {
+func (c *ReadContext) Get(name string) interface{} {
 	return c.paramsMap[name]
 }
 
-func (c *Context) GetHash(name string) Hash {
+func (c *ReadContext) GetHash(name string) Hash {
 	h, err := c.TryGetHash(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -24,7 +41,7 @@ func (c *Context) GetHash(name string) Hash {
 	return h
 }
 
-func (c *Context) TryGetHash(name string) (Hash, error) {
+func (c *ReadContext) TryGetHash(name string) (Hash, error) {
 	str, err := c.TryGetString(name)
 	if err != nil {
 		return NullHash, err
@@ -32,7 +49,7 @@ func (c *Context) TryGetHash(name string) (Hash, error) {
 	return HexToHash(str), nil
 }
 
-func (c *Context) GetAddress(name string) Address {
+func (c *ReadContext) GetAddress(name string) Address {
 	a, err := c.TryGetAddress(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -40,7 +57,7 @@ func (c *Context) GetAddress(name string) Address {
 	return a
 }
 
-func (c *Context) TryGetAddress(name string) (Address, error) {
+func (c *ReadContext) TryGetAddress(name string) (Address, error) {
 	str, err := c.TryGetString(name)
 	if err != nil {
 		return NullAddress, err
@@ -48,7 +65,7 @@ func (c *Context) TryGetAddress(name string) (Address, error) {
 	return HexToAddress(str), nil
 }
 
-func (c *Context) GetString(name string) string {
+func (c *ReadContext) GetString(name string) string {
 	str, err := c.TryGetString(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -56,7 +73,7 @@ func (c *Context) GetString(name string) string {
 	return str
 }
 
-func (c *Context) TryGetString(name string) (string, error) {
+func (c *ReadContext) TryGetString(name string) (string, error) {
 	pi := c.paramsMap[name]
 	if pis, ok := pi.(string); ok {
 		return pis, nil
@@ -64,7 +81,7 @@ func (c *Context) TryGetString(name string) (string, error) {
 	return "", TypeErr
 }
 
-func (c *Context) GetBytes(name string) []byte {
+func (c *ReadContext) GetBytes(name string) []byte {
 	byt, err := c.TryGetBytes(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -72,12 +89,12 @@ func (c *Context) GetBytes(name string) []byte {
 	return byt
 }
 
-func (c *Context) TryGetBytes(name string) ([]byte, error) {
+func (c *ReadContext) TryGetBytes(name string) ([]byte, error) {
 	str, err := c.TryGetString(name)
 	return []byte(str), err
 }
 
-func (c *Context) GetBoolean(name string) bool {
+func (c *ReadContext) GetBoolean(name string) bool {
 	b, err := c.TryGetBoolean(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -85,7 +102,7 @@ func (c *Context) GetBoolean(name string) bool {
 	return b
 }
 
-func (c *Context) TryGetBoolean(name string) (bool, error) {
+func (c *ReadContext) TryGetBoolean(name string) (bool, error) {
 	pi := c.paramsMap[name]
 	if pis, ok := pi.(bool); ok {
 		return pis, nil
@@ -93,7 +110,7 @@ func (c *Context) TryGetBoolean(name string) (bool, error) {
 	return false, TypeErr
 }
 
-func (c *Context) GetInt(name string) int {
+func (c *ReadContext) GetInt(name string) int {
 	i, err := c.TryGetInt(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -101,12 +118,12 @@ func (c *Context) GetInt(name string) int {
 	return i
 }
 
-func (c *Context) TryGetInt(name string) (int, error) {
+func (c *ReadContext) TryGetInt(name string) (int, error) {
 	pi := c.getNumberStr(name)
 	return strconv.Atoi(pi)
 }
 
-func (c *Context) GetUint(name string) uint {
+func (c *ReadContext) GetUint(name string) uint {
 	u, err := c.TryGetUint(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -114,12 +131,12 @@ func (c *Context) GetUint(name string) uint {
 	return u
 }
 
-func (c *Context) TryGetUint(name string) (uint, error) {
+func (c *ReadContext) TryGetUint(name string) (uint, error) {
 	u, err := c.TryGetUint64(name)
 	return uint(u), err
 }
 
-func (c *Context) GetInt8(name string) int8 {
+func (c *ReadContext) GetInt8(name string) int8 {
 	i, err := c.TryGetInt8(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -127,13 +144,13 @@ func (c *Context) GetInt8(name string) int8 {
 	return i
 }
 
-func (c *Context) TryGetInt8(name string) (int8, error) {
+func (c *ReadContext) TryGetInt8(name string) (int8, error) {
 	pi := c.getNumberStr(name)
 	i, err := strconv.ParseInt(pi, 10, 8)
 	return int8(i), err
 }
 
-func (c *Context) GetUint8(name string) uint8 {
+func (c *ReadContext) GetUint8(name string) uint8 {
 	u, err := c.TryGetUint8(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -141,13 +158,13 @@ func (c *Context) GetUint8(name string) uint8 {
 	return u
 }
 
-func (c *Context) TryGetUint8(name string) (uint8, error) {
+func (c *ReadContext) TryGetUint8(name string) (uint8, error) {
 	pi := c.getNumberStr(name)
 	u, err := strconv.ParseUint(pi, 10, 8)
 	return uint8(u), err
 }
 
-func (c *Context) GetInt16(name string) int16 {
+func (c *ReadContext) GetInt16(name string) int16 {
 	i, err := c.TryGetInt16(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -155,13 +172,13 @@ func (c *Context) GetInt16(name string) int16 {
 	return i
 }
 
-func (c *Context) TryGetInt16(name string) (int16, error) {
+func (c *ReadContext) TryGetInt16(name string) (int16, error) {
 	pi := c.getNumberStr(name)
 	i, err := strconv.ParseInt(pi, 10, 16)
 	return int16(i), err
 }
 
-func (c *Context) GetUint16(name string) uint16 {
+func (c *ReadContext) GetUint16(name string) uint16 {
 	u, err := c.TryGetUint16(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -169,13 +186,13 @@ func (c *Context) GetUint16(name string) uint16 {
 	return u
 }
 
-func (c *Context) TryGetUint16(name string) (uint16, error) {
+func (c *ReadContext) TryGetUint16(name string) (uint16, error) {
 	pi := c.getNumberStr(name)
 	u, err := strconv.ParseUint(pi, 10, 16)
 	return uint16(u), err
 }
 
-func (c *Context) GetInt32(name string) int32 {
+func (c *ReadContext) GetInt32(name string) int32 {
 	i, err := c.TryGetInt32(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -183,13 +200,13 @@ func (c *Context) GetInt32(name string) int32 {
 	return i
 }
 
-func (c *Context) TryGetInt32(name string) (int32, error) {
+func (c *ReadContext) TryGetInt32(name string) (int32, error) {
 	pi := c.getNumberStr(name)
 	i, err := strconv.ParseInt(pi, 10, 32)
 	return int32(i), err
 }
 
-func (c *Context) GetUint32(name string) uint32 {
+func (c *ReadContext) GetUint32(name string) uint32 {
 	u, err := c.TryGetUint32(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -197,13 +214,13 @@ func (c *Context) GetUint32(name string) uint32 {
 	return u
 }
 
-func (c *Context) TryGetUint32(name string) (uint32, error) {
+func (c *ReadContext) TryGetUint32(name string) (uint32, error) {
 	pi := c.getNumberStr(name)
 	u, err := strconv.ParseUint(pi, 10, 32)
 	return uint32(u), err
 }
 
-func (c *Context) GetInt64(name string) int64 {
+func (c *ReadContext) GetInt64(name string) int64 {
 	i, err := c.TryGetInt64(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -211,12 +228,12 @@ func (c *Context) GetInt64(name string) int64 {
 	return i
 }
 
-func (c *Context) TryGetInt64(name string) (int64, error) {
+func (c *ReadContext) TryGetInt64(name string) (int64, error) {
 	pi := c.getNumberStr(name)
 	return strconv.ParseInt(pi, 10, 64)
 }
 
-func (c *Context) GetUint64(name string) uint64 {
+func (c *ReadContext) GetUint64(name string) uint64 {
 	u, err := c.TryGetUint64(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -224,12 +241,12 @@ func (c *Context) GetUint64(name string) uint64 {
 	return u
 }
 
-func (c *Context) TryGetUint64(name string) (uint64, error) {
+func (c *ReadContext) TryGetUint64(name string) (uint64, error) {
 	pi := c.getNumberStr(name)
 	return strconv.ParseUint(pi, 10, 64)
 }
 
-func (c *Context) GetFloat32(name string) float32 {
+func (c *ReadContext) GetFloat32(name string) float32 {
 	f, err := c.TryGetFloat32(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -237,13 +254,13 @@ func (c *Context) GetFloat32(name string) float32 {
 	return f
 }
 
-func (c *Context) TryGetFloat32(name string) (float32, error) {
+func (c *ReadContext) TryGetFloat32(name string) (float32, error) {
 	pi := c.getNumberStr(name)
 	f, err := strconv.ParseFloat(pi, 32)
 	return float32(f), err
 }
 
-func (c *Context) GetFloat64(name string) float64 {
+func (c *ReadContext) GetFloat64(name string) float64 {
 	f, err := c.TryGetFloat64(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
@@ -251,11 +268,11 @@ func (c *Context) GetFloat64(name string) float64 {
 	return f
 }
 
-func (c *Context) TryGetFloat64(name string) (float64, error) {
+func (c *ReadContext) TryGetFloat64(name string) (float64, error) {
 	pi := c.getNumberStr(name)
 	return strconv.ParseFloat(pi, 64)
 }
 
-func (c *Context) getNumberStr(name string) string {
+func (c *ReadContext) getNumberStr(name string) string {
 	return c.paramsMap[name].(json.Number).String()
 }

@@ -29,32 +29,32 @@ func (l *Land) SetTripods(Tripods ...*Tripod) {
 	}
 }
 
-func (l *Land) GetTripod(name string) interface{} {
+func (l *Land) GetTripodInstance(name string) interface{} {
 	if tri, ok := l.TripodsMap[name]; ok {
 		return tri.Instance
 	}
 	return nil
 }
 
-func (l *Land) GetExec(c *Ecall) (dev.Execution, error) {
+func (l *Land) GetWriting(c *WrCall) (dev.Writing, error) {
 	tripod, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
 	ph := tripod
-	fn := ph.GetExec(c.ExecName)
+	fn := ph.GetWriting(c.ExecName)
 	if fn == nil {
 		return nil, ExecNotFound(c.ExecName)
 	}
 	return fn, nil
 }
 
-func (l *Land) Query(c *Qcall, ctx *Context) (interface{}, error) {
+func (l *Land) Read(c *Rdcall, ctx *ReadContext) (interface{}, error) {
 	tri, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
-	qry := tri.GetQuery(c.QueryName)
+	qry := tri.GetReading(c.QueryName)
 	if qry == nil {
 		return nil, QryNotFound(c.QueryName)
 	}

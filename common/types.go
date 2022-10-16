@@ -30,8 +30,8 @@ type (
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
 
-	// The Call from clients, it is an instance of an 'Execution'.
-	Ecall struct {
+	// The Call from clients, it is an instance of an 'Writing'.
+	WrCall struct {
 		TripodName string
 		ExecName   string
 		Params     string
@@ -39,22 +39,22 @@ type (
 		LeiPrice uint64
 	}
 
-	// The Call from clients, it is an instance of an 'Query'.
-	Qcall struct {
+	// The Call from clients, it is an instance of an 'Read'.
+	Rdcall struct {
 		TripodName string
 		QueryName  string
 		BlockHash  Hash
 		Params     string
 	}
-	// Execution or Query
+	// Execution or Read
 	CallType int
 )
 
-func (e *Ecall) BindJsonParams(v interface{}) error {
+func (e *WrCall) BindJsonParams(v interface{}) error {
 	return BindJsonParams(e.Params, v)
 }
 
-func (e *Ecall) Hash() ([]byte, error) {
+func (e *WrCall) Hash() ([]byte, error) {
 	byt, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (e *Ecall) Hash() ([]byte, error) {
 	return hash[:], nil
 }
 
-func (q *Qcall) BindJsonParams(v interface{}) error {
+func (q *Rdcall) BindJsonParams(v interface{}) error {
 	return BindJsonParams(q.Params, v)
 }
 
@@ -74,11 +74,11 @@ func BindJsonParams(params string, v interface{}) error {
 }
 
 const (
-	ExecCall CallType = iota
-	QryCall
+	WritingCall CallType = iota
+	ReadingCall
 
-	ExecCallType = "execution"
-	QryCallType  = "query"
+	WrCallType = "writing"
+	RdCallType = "reading"
 )
 
 func (bn BlockNum) len() int {

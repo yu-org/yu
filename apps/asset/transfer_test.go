@@ -43,7 +43,7 @@ func TestTransfer(t *testing.T) {
 		To:     Baddr.String(),
 		Amount: 200,
 	})
-	ctx, err := context.NewContext(Aaddr, string(byt), nil)
+	ctx, err := context.NewWriteContext(Aaddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -66,7 +66,7 @@ type QryAccount struct {
 func TestQueryBalance(t *testing.T) {
 	asset := newAsset(t)
 	byt, _ := json.Marshal(QryAccount{Aaddr.String()})
-	ctx, err := context.NewContext(Aaddr, string(byt), nil)
+	ctx, err := context.NewWriteContext(Aaddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +77,7 @@ func TestQueryBalance(t *testing.T) {
 	assert.Equal(t, initAamount, Aamount)
 
 	byt, _ = json.Marshal(QryAccount{Baddr.String()})
-	ctx, err = context.NewContext(Baddr, string(byt), nil)
+	ctx, err = context.NewWriteContext(Baddr, string(byt), nil)
 	if err != nil {
 		panic(err)
 	}
