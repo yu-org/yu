@@ -14,11 +14,11 @@ import (
 
 func (m *Kernel) HandleWS() {
 	http.HandleFunc(ExecApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, execution)
+		m.handleWS(w, req, writing)
 	})
 
 	http.HandleFunc(QryApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, query)
+		m.handleWS(w, req, reading)
 	})
 
 	http.HandleFunc(SubResultsPath, func(w http.ResponseWriter, req *http.Request) {
@@ -29,8 +29,8 @@ func (m *Kernel) HandleWS() {
 }
 
 const (
-	query = iota
-	execution
+	reading = iota
+	writing
 	subscription
 )
 
@@ -49,13 +49,13 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 
 	_, params, err := c.ReadMessage()
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("read websocket message from client error: %v", err))
+		m.errorAndClose(c, fmt.Sprintf("reading websocket message from client error: %v", err))
 		return
 	}
 	switch typ {
-	case execution:
+	case writing:
 		m.handleWsExec(c, req, string(params))
-	case query:
+	case reading:
 		m.handleWsQry(c, req, string(params))
 	}
 
@@ -115,7 +115,7 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string
 
 		respObj, err := m.land.Read(qcall, ctx)
 		if err != nil {
-			m.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.QueryName, err))
+			m.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.ReadingName, err))
 			return
 		}
 		respByt, err := json.Marshal(respObj)

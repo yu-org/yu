@@ -9,28 +9,28 @@ import (
 )
 
 func getQryInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
-	tripodName, qryName := GetTripodCallName(req)
+	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
 	qcall = &Rdcall{
-		TripodName: tripodName,
-		QueryName:  qryName,
-		Params:     params,
-		BlockHash:  blockHash,
+		TripodName:  tripodName,
+		ReadingName: rdName,
+		Params:      params,
+		BlockHash:   blockHash,
 	}
 	return
 }
 
-func getExecInfoFromReq(req *http.Request, params string) (tripodName, execName string, stxn *types.SignedTxn, err error) {
-	tripodName, execName = GetTripodCallName(req)
+func getExecInfoFromReq(req *http.Request, params string) (tripodName, wrName string, stxn *types.SignedTxn, err error) {
+	tripodName, wrName = GetTripodCallName(req)
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
 		return
 	}
 	wrCall := &WrCall{
-		TripodName: tripodName,
-		ExecName:   execName,
-		Params:     params,
-		LeiPrice:   leiPrice,
+		TripodName:  tripodName,
+		WritingName: wrName,
+		Params:      params,
+		LeiPrice:    leiPrice,
 	}
 	caller := GetAddress(req)
 	sig := GetSignature(req)

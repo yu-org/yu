@@ -32,19 +32,19 @@ type (
 
 	// The Call from clients, it is an instance of an 'Writing'.
 	WrCall struct {
-		TripodName string
-		ExecName   string
-		Params     string
+		TripodName  string
+		WritingName string
+		Params      string
 		// TODO: make LeiPrice as a sortable interface.
 		LeiPrice uint64
 	}
 
 	// The Call from clients, it is an instance of an 'Read'.
 	Rdcall struct {
-		TripodName string
-		QueryName  string
-		BlockHash  Hash
-		Params     string
+		TripodName  string
+		ReadingName string
+		BlockHash   Hash
+		Params      string
 	}
 	// Execution or Read
 	CallType int

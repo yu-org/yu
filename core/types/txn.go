@@ -187,7 +187,7 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
 			TripodName: ut.WrCall.TripodName,
-			ExecName:   ut.WrCall.ExecName,
+			ExecName:   ut.WrCall.WritingName,
 			Params:     ut.WrCall.Params,
 			LeiPrice:   ut.WrCall.LeiPrice,
 		},
@@ -199,10 +199,10 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
 		Caller: BytesToAddress(pb.Caller),
 		WrCall: &WrCall{
-			TripodName: pb.Ecall.TripodName,
-			ExecName:   pb.Ecall.ExecName,
-			Params:     pb.Ecall.Params,
-			LeiPrice:   pb.Ecall.LeiPrice,
+			TripodName:  pb.Ecall.TripodName,
+			WritingName: pb.Ecall.ExecName,
+			Params:      pb.Ecall.Params,
+			LeiPrice:    pb.Ecall.LeiPrice,
 		},
 		Timestamp: pb.Timestamp,
 	}

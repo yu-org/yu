@@ -92,7 +92,7 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				FindNoCallStr(qcall.TripodName, qcall.QueryName, err),
+				FindNoCallStr(qcall.TripodName, qcall.ReadingName, err),
 			)
 			return
 		}
