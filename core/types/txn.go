@@ -15,6 +15,7 @@ type SignedTxn struct {
 	TxnHash   Hash
 	Pubkey    PubKey
 	Signature []byte
+	FromP2P   bool
 }
 
 type TxnChecker interface {
@@ -40,6 +41,10 @@ func NewSignedTxn(caller Address, ecall *WrCall, pubkey PubKey, sig []byte) (*Si
 
 func (st *SignedTxn) BindJsonParams(v interface{}) error {
 	return st.Raw.BindJsonParams(v)
+}
+
+func (st *SignedTxn) FromP2p() bool {
+	return st.FromP2P
 }
 
 func (st *SignedTxn) ToPb() *goproto.SignedTxn {
