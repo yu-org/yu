@@ -37,6 +37,10 @@ func (c *WriteContext) GetCaller() Address {
 	return c.Txn.Pubkey.Address()
 }
 
+func (c *WriteContext) FromP2P() bool {
+	return c.Txn.FromP2p()
+}
+
 func (c *WriteContext) SetLei(lei uint64) {
 	c.LeiCost = lei
 }
