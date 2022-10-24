@@ -11,25 +11,25 @@ Yu is a highly customizable blockchain framework.
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
 customize their own business.     
-First level is define  `Execution` and `Query` on chain.  
+First level is define  `Writing` and `Reading` on chain.  
 Second level is define `blockchain lifecycle`. ( including customizable Consensus Algorithm )  
 Third level is define `basic components`, such as `block data structures`, `blockchain`, `yudb`, `txpool`. 
-- Define your `Execution` and `Query` on  chain.  
-`Execution` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
-`Query` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
+- Define your `Writing` and `Reading` on  chain.  
+`Writing` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
+`Reading` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
 `P2pHandler` is a p2p server handler. You can define the services in P2P server. Just like TCP handler.  
 
 ```go
 type (
-    Execution func(ctx *context.Context, currentBlock *types.Block) error
+    Writing func(ctx *context.WriteContext) error
 	
-    Query func(ctx *context.Context, blockHash Hash) (respObj interface{}, err error)
+    Reading func(ctx *context.ReadContext) (respObj interface{}, err error)
 
     P2pHandler func([]byte) ([]byte, error)
 )
 ```
 - Define Your `blockchain lifecycle`, this function is in `Tripod` interface.  
-`CheckTxn` defines the rules for checking transactions(Executions) before inserting txpool.  
+`CheckTxn` defines the rules for checking transactions(Writings) before inserting txpool.  
 `VerifyBlock` defines the rules for verifying blocks.   
 `InitChain` defines business when the blockchain starts up. You should use it to define `Genesis Block`.  
 `StartBlock` defines business when a new block starts. In this func, you can set some attributes( including pack txns from txpool, mining ) in the block,
@@ -60,9 +60,9 @@ type Tripod interface {
 
 [Asset Tripod](https://github.com/yu-org/yu/blob/master/apps/asset)  
 `Asset Tripod` imitates an Asset function, it has `transfer accounts`, `create accounts`.  
-`QueryBalance` queries someone's account balance. It implements type func `Query`.
+`QueryBalance` queries someone's account balance. It implements type func `Reading`.
 ```go
-func (a *Asset) QueryBalance(ctx *context.Context, _ Hash) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *context.ReadContext) (interface{}, error) {
     account := ctx.GetAddress("account")
     if !a.existAccount(account) {
         return nil, AccountNotFound(account)
@@ -71,11 +71,12 @@ func (a *Asset) QueryBalance(ctx *context.Context, _ Hash) (interface{}, error) 
     return amount, nil
 }
 ```  
-`CreateAccount` creates an account. It implements type func `Execution`.  
+`CreateAccount` creates an account. It implements type func `Writing`.  
 `EmitEvent` will emit an event out of the chain.  
 The error returned will emit out of the chain.
 ```go
-func (a *Asset) CreateAccount(ctx *context.Context, _ *Block) error {
+func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
+    ctx.SetLei(100)
     addr := ctx.Caller
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
@@ -90,15 +91,15 @@ func (a *Asset) CreateAccount(ctx *context.Context, _ *Block) error {
 }
 ```  
 
-We need use `SetExec` and `SetQueries` to set `Execution` and `Query` into `Asset Tripod`.  
-When we set a `Execution`, we need declare how much `Lei`(耜) it consumes. (`Lei` is the same as `gas` in `ethereum` )
+We need use `SetExec` and `SetQueries` to set `Writing` and `Reading` into `Asset Tripod`.  
+When we set a `Writing`, we need declare how much `Lei`(耜) it consumes. (`Lei` is the same as `gas` in `ethereum` )
 ```go
 func NewAsset(tokenName string) *Asset {
     df := NewDefaultTripod("asset")
 
     a := &Asset{df, tokenName}
-    a.SetExec(a.Transfer, 100).SetExec(a.CreateAccount, 10)
-    a.SetQueries(a.QueryBalance)
+    a.SetWritings(a.Transfer, a.CreateAccount)
+    a.SetReadings(a.QueryBalance)
 
     return a
 }
@@ -115,7 +116,7 @@ func main() {
 - Start a new block  
 If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
 ```go
-func (h *Poa) StartBlock(block *Block) error {
+func (h *Poa) StartBlock(block *Block) {
     ......
 	
     // Get a leader who produce the block of this round. 
@@ -127,21 +128,23 @@ func (h *Poa) StartBlock(block *Block) error {
         if h.useP2pOrSkip(block) {
             logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
             block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
-            return nil
+            return
         }
     }
 	
-    // Pack transactions(Executions) from Txpool. 
+    // Pack transactions(Writings) from Txpool. 
     txns, err := h.env.Pool.Pack(3000)
     if err != nil {
-        return err
+		logrus.Error(err)
+        return 
     }
     // Make blockHash from trasactions. 
     hashes := FromArray(txns...).Hashes()
     block.TxnsHashes = hashes
     txnRoot, err := MakeTxnRoot(txns)
     if err != nil {
-        return err
+        logrus.Error(err)
+        return 
     }
     block.TxnRoot = txnRoot
 	
@@ -150,14 +153,16 @@ func (h *Poa) StartBlock(block *Block) error {
     // signs block
     block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
     if err != nil {
-        return err
+        logrus.Error(err)
+        return 
     }
     block.MinerPubkey = h.myPubkey.BytesWithType()
 	
     // Reset Txpool for the next block.
     err = h.env.Pool.Reset(block)
     if err != nil {
-        return err
+        logrus.Error(err)
+        return
     }
     
     ......
@@ -169,18 +174,20 @@ func (h *Poa) StartBlock(block *Block) error {
 - End the block  
 We execute the txns of the block and append the block into the chain.
 ```go
-func (h *Pow) EndBlock(block *Block) error {
+func (h *Pow) EndBlock(block *Block) {
     ......
-    // Execute all transactions(executions) of this block.
+    // Execute all transactions(Writings) of this block.
     err := h.env.Execute(block)
     if err != nil {
-        return err
+        logrus.Error(err)
+        return 
     }
 
     // Append the block into the chain.
     err = chain.AppendBlock(block)
     if err != nil {
-        return err
+        logrus.Error(err)
+        return 
     }  
     ......
 }
@@ -188,8 +195,8 @@ func (h *Pow) EndBlock(block *Block) error {
 
 - Finalize the block   
 ```go
-func (h *Poa) FinalizeBlock(block *Block) error {
-    return h.env.Chain.Finalize(block.Hash)
+func (h *Poa) FinalizeBlock(block *Block) {
+    h.env.Chain.Finalize(block.Hash)
 }
 ```
 
