@@ -13,7 +13,7 @@ By using Yu, you can customize three levels to develop your own blockchain. The 
 customize their own business.     
 First level is define  `Writing` and `Reading` on chain.  
 Second level is define `blockchain lifecycle`. ( including customizable Consensus Algorithm )  
-Third level is define `basic components`, such as `block data structures`, `blockchain`, `yudb`, `txpool`. 
+Third level is define `basic components`, such as `block data structures`, `blockchain`, `txdb`, `txpool`. 
 - Define your `Writing` and `Reading` on  chain.  
 `Writing` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
 `Reading` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
@@ -107,12 +107,12 @@ func NewAsset(tokenName string) *Asset {
 Finally set `Asset Tripod` into `land` in `main func`. 
 ```go
 func main() {
-    startup.StartUp(pow.NewPow(1024), asset.NewAsset("YuCoin"))
+    startup.StartUpFullNode(asset.NewAsset("YuCoin"))
 }
 ```
 
 [Poa Tripod](https://github.com/yu-org/yu/blob/master/apps/poa/poa.go)  
-`Pow Tripod` imitates a Consensus algorithm for proof of authority. It customizes the lower-level code.
+`Poa Tripod` imitates a Consensus algorithm for proof of authority. It customizes the lower-level code.
 - Start a new block  
 If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
 ```go
@@ -174,7 +174,7 @@ func (h *Poa) StartBlock(block *Block) {
 - End the block  
 We execute the txns of the block and append the block into the chain.
 ```go
-func (h *Pow) EndBlock(block *Block) {
+func (h *Poa) EndBlock(block *Block) {
     ......
     // Execute all transactions(Writings) of this block.
     err := h.env.Execute(block)
@@ -201,10 +201,14 @@ func (h *Poa) FinalizeBlock(block *Block) {
 ```
 
 
-Same as `Asset Tripod` , finally set `Pow Tripod` into `land` in `main function`.    
+Same as `Asset Tripod` , finally set `Poa Tripod` into `land` in `main function`.    
 ```go
 func main() {
-    startup.StartUp(poa.NewPoa(myPubkey, myPrivkey, validatorsAddrs), asset.NewAsset("YuCoin"))
+    startup.InitConfigFromPath("yu_conf/kernel.toml")
+    startup.StartUpFullNode(
+        poa.NewPoa(poaConf),
+        asset.NewAsset("YuCoin"),
+    )
 }
 ```
 
