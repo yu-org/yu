@@ -3,7 +3,7 @@ package startup
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/apps/base"
+	"github.com/yu-org/yu/apps/synchronizer"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
@@ -23,8 +23,8 @@ var (
 	kernelCfg = &config.KernelConf{}
 )
 
-func StartUpFullNode(tripodInstances ...interface{}) {
-	tripodInstances = append([]interface{}{base.NewBase(base.Full)}, tripodInstances...)
+func SyncAndStartup(tripodInstances ...interface{}) {
+	tripodInstances = append([]interface{}{synchronizer.NewSynchronizer(kernelCfg.SyncMode)}, tripodInstances...)
 	StartUp(tripodInstances...)
 }
 

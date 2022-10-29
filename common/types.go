@@ -17,6 +17,14 @@ const (
 	MasterWorker
 )
 
+type NodeType int
+
+const (
+	FullNode NodeType = iota
+	LightNode
+	ArchiveNode
+)
+
 const (
 	StartBlockStage    = "Start Block"
 	ExecuteTxnsStage   = "Execute Txns"

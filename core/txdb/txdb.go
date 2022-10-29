@@ -17,7 +17,7 @@ type TxDB struct {
 	resultKV kv.KV
 }
 
-func NewTxDB(kvdb kv.Kvdb) *TxDB {
+func NewTxDB(kvdb kv.Kvdb) ItxDB {
 	return &TxDB{
 		txnKV:    kvdb.New(Txns),
 		resultKV: kvdb.New(Results),

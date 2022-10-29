@@ -1,4 +1,4 @@
-package base
+package synchronizer
 
 import (
 	peerstore "github.com/libp2p/go-libp2p-core/peer"
@@ -9,7 +9,7 @@ import (
 	. "github.com/yu-org/yu/core/types"
 )
 
-func (b *Base) syncFullHistory() error {
+func (b *Synchronizer) syncFullHistory() error {
 	logrus.Info("start to sync history from other node")
 
 	resp, err := b.requestBlocks(nil)
@@ -50,7 +50,7 @@ func (b *Base) syncFullHistory() error {
 	return nil
 }
 
-func (b *Base) syncHistoryBlocks(blocks []*Block) error {
+func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 	for _, block := range blocks {
 		logrus.Trace("sync history block is ", block.Hash.String())
 
@@ -77,7 +77,7 @@ func (b *Base) syncHistoryBlocks(blocks []*Block) error {
 	return nil
 }
 
-func (b *Base) handleHsReq(byt []byte) ([]byte, error) {
+func (b *Synchronizer) handleHsReq(byt []byte) ([]byte, error) {
 	remoteReq, err := DecodeHsRequest(byt)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (b *Base) handleHsReq(byt []byte) ([]byte, error) {
 	return hsResp.Encode()
 }
 
-func (b *Base) requestBlocks(fetchRange *BlocksRange) (*HandShakeResp, error) {
+func (b *Synchronizer) requestBlocks(fetchRange *BlocksRange) (*HandShakeResp, error) {
 	hs, err := b.NewHsReq(fetchRange)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (b *Base) requestBlocks(fetchRange *BlocksRange) (*HandShakeResp, error) {
 	return DecodeHsResp(respByt)
 }
 
-func (b *Base) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, error) {
+func (b *Synchronizer) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, error) {
 	localInfo, err := b.NewHsInfo()
 	if err != nil {
 		return nil, err
@@ -137,7 +137,7 @@ func (b *Base) compareMissingRange(remoteInfo *HandShakeInfo) (*BlocksRange, err
 	return localInfo.Compare(remoteInfo)
 }
 
-func (b *Base) getMissingBlocks(remoteReq *HandShakeRequest) ([]byte, error) {
+func (b *Synchronizer) getMissingBlocks(remoteReq *HandShakeRequest) ([]byte, error) {
 	fetchRange := remoteReq.FetchRange
 	blocks, err := b.Chain.GetRangeBlocks(fetchRange.StartHeight, fetchRange.EndHeight)
 	if err != nil {
@@ -146,7 +146,7 @@ func (b *Base) getMissingBlocks(remoteReq *HandShakeRequest) ([]byte, error) {
 	return EncodeBlocks(blocks)
 }
 
-func (b *Base) handleSyncTxnsReq(byt []byte) ([]byte, error) {
+func (b *Synchronizer) handleSyncTxnsReq(byt []byte) ([]byte, error) {
 	txnsReq, err := DecodeTxnsRequest(byt)
 	if err != nil {
 		return nil, err
@@ -189,7 +189,7 @@ func (b *Base) handleSyncTxnsReq(byt []byte) ([]byte, error) {
 	return txnsByt, nil
 }
 
-func (b *Base) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (SignedTxns, error) {
+func (b *Synchronizer) requestTxns(connectPeer, blockProducer peerstore.ID, txnHashes []Hash) (SignedTxns, error) {
 	txnsRequest := TxnsRequest{
 		Hashes:        txnHashes,
 		BlockProducer: blockProducer,

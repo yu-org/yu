@@ -1,4 +1,4 @@
-package base
+package synchronizer
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ type HandShakeRequest struct {
 	Info       *HandShakeInfo
 }
 
-func (b *Base) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
+func (b *Synchronizer) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, error) {
 	info, err := b.NewHsInfo()
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ type HandShakeInfo struct {
 	EndBlockHash Hash
 }
 
-func (b *Base) NewHsInfo() (*HandShakeInfo, error) {
+func (b *Synchronizer) NewHsInfo() (*HandShakeInfo, error) {
 	gBlock, err := b.Chain.GetGenesis()
 	if err != nil {
 		return nil, err
