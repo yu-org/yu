@@ -17,10 +17,8 @@ const (
 	MasterWorker
 )
 
-type NodeType int
-
 const (
-	FullNode NodeType = iota
+	FullNode int = iota
 	LightNode
 	ArchiveNode
 )

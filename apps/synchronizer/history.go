@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	FullSync = iota
+	FullSync int = iota
 	FastSync
 	LightSync
 )

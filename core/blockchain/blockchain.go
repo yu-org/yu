@@ -49,20 +49,20 @@ func (bc *BlockChain) SetGenesis(b *CompactBlock) error {
 	bc.chain.Db().Where("height = ?", 0).Find(&blocks)
 
 	if len(blocks) == 0 {
-		return bc.AppendCompactBlock(b)
+		return bc.appendCompactBlock(b)
 	}
 	return nil
 }
 
 func (bc *BlockChain) AppendBlock(b *Block) error {
-	err := bc.AppendCompactBlock(b.Compact())
+	err := bc.appendCompactBlock(b.Compact())
 	if err != nil {
 		return err
 	}
 	return bc.txns.SetTxns(b.Txns)
 }
 
-func (bc *BlockChain) AppendCompactBlock(b *CompactBlock) error {
+func (bc *BlockChain) appendCompactBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err
