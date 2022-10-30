@@ -17,7 +17,7 @@ type TxDB struct {
 	resultKV kv.KV
 }
 
-func NewTxDB(nodeTyp NodeType, kvdb kv.Kvdb) ItxDB {
+func NewTxDB(nodeTyp int, kvdb kv.Kvdb) ItxDB {
 	if nodeTyp == LightNode {
 		return &LightTxDB{resultKV: kvdb.New(Results)}
 	}

@@ -62,13 +62,13 @@ func validateMerklePatriciaTrie(
 		hashChain = hashChain[1:]
 
 		switch n := curNode.(type) {
-		case *FullNode:
+		case *TrieFullNode:
 			keyrune, _, err = keybuf.ReadRune()
 			if err == io.EOF {
 				if len(hashChain) != 0 {
 					return false
 				}
-				cld, ok := n.Children[16].(ValueNode)
+				cld, ok := n.Children[16].(TrieValueNode)
 				if !ok {
 					return false
 				}
@@ -83,12 +83,12 @@ func validateMerklePatriciaTrie(
 			if keyrune == utf8.RuneError {
 				return false
 			}
-			cld, ok := n.Children[int(keyrune)].(HashNode)
+			cld, ok := n.Children[int(keyrune)].(TrieHashNode)
 			if !ok {
 				return false
 			}
 			curHash = cld[:]
-		case *ShortNode:
+		case *TrieShortNode:
 			for idx := 0; idx < len(n.Key); idx++ {
 				keybyte, err = keybuf.ReadByte()
 				if err == io.EOF {
@@ -102,7 +102,7 @@ func validateMerklePatriciaTrie(
 						if len(hashChain) != 0 {
 							return false
 						}
-						cld, ok := n.Val.(ValueNode)
+						cld, ok := n.Val.(TrieValueNode)
 						if !ok {
 							return false
 						}
@@ -119,7 +119,7 @@ func validateMerklePatriciaTrie(
 					return Value == nil
 				}
 			}
-			cld, ok := n.Val.(ValueNode)
+			cld, ok := n.Val.(TrieValueNode)
 			if !ok {
 				return false
 			}

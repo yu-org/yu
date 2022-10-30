@@ -52,7 +52,7 @@ type (
 		BlockHash   Hash
 		Params      string
 	}
-	// Execution or Read
+	// Writing or Reading
 	CallType int
 )
 

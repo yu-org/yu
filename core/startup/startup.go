@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/synchronizer"
-	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
 	"github.com/yu-org/yu/core/chain_env"
@@ -14,6 +13,7 @@ import (
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/txpool"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
@@ -22,6 +22,11 @@ import (
 
 var (
 	kernelCfg = &config.KernelConf{}
+
+	Chain   types.IBlockChain
+	TxnDB   types.ItxDB
+	Pool    txpool.ItxPool
+	StateDB state.IState
 )
 
 func SyncAndStartup(tripodInstances ...interface{}) {
@@ -45,20 +50,28 @@ func StartUp(tripodInstances ...interface{}) {
 		logrus.Fatal("init kvdb error: ", err)
 	}
 
-	txndb := txdb.NewTxDB(kernelCfg.NodeType, kvdb)
-	chain := blockchain.NewBlockChain(&kernelCfg.BlockChain, txndb)
-	statedb := state.NewStateDB(kvdb)
-	pool := txpool.WithDefaultChecks(&kernelCfg.Txpool, txndb)
+	if Chain == nil {
+		Chain = blockchain.NewBlockChain(&kernelCfg.BlockChain, TxnDB)
+	}
+	if TxnDB == nil {
+		TxnDB = txdb.NewTxDB(kernelCfg.NodeType, kvdb)
+	}
+	if Pool == nil {
+		Pool = txpool.WithDefaultChecks(&kernelCfg.Txpool, TxnDB)
+	}
+	if StateDB == nil {
+		StateDB = state.NewStateDB(kvdb)
+	}
 
 	for _, tri := range tripods {
-		pool.WithTripodCheck(tri)
+		Pool.WithTripodCheck(tri)
 	}
 
 	env := &chain_env.ChainEnv{
-		State:      statedb,
-		Chain:      chain,
-		TxDB:       txndb,
-		Pool:       pool,
+		State:      StateDB,
+		Chain:      Chain,
+		TxDB:       TxnDB,
+		Pool:       Pool,
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&kernelCfg.P2P),
 	}

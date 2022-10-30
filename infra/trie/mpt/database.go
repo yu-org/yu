@@ -1,7 +1,7 @@
 package mpt
 
 import (
-	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"sync"
 )
@@ -17,7 +17,7 @@ func NewNodeBase(db kv.Kvdb) *NodeBase {
 	return &NodeBase{db: db.New(MptData)}
 }
 
-func (db *NodeBase) node(hash Hash) node {
+func (db *NodeBase) node(hash common.Hash) node {
 	enc, err := db.db.Get(hash.Bytes())
 	if err != nil || enc == nil {
 		return nil
@@ -38,7 +38,7 @@ func (db *NodeBase) Close() error {
 	return nil
 }
 
-func (db *NodeBase) insert(hash Hash, blob []byte) {
+func (db *NodeBase) insert(hash common.Hash, blob []byte) {
 	// fmt.Println("inserting", hash, blob)
 	db.Put(hash.Bytes(), blob)
 }
