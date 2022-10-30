@@ -40,7 +40,7 @@ func (b *Synchronizer) defineGenesis() {
 		logrus.Panic("sign genesis block failed: ", err)
 	}
 
-	gensisBlock := &CompactBlock{
+	gensisBlock := &Block{
 		Header: &Header{
 			Hash:           genesisHash,
 			MinerPubkey:    rootPubkey.BytesWithType(),

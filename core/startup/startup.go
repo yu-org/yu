@@ -51,7 +51,7 @@ func StartUp(tripodInstances ...interface{}) {
 	}
 
 	if Chain == nil {
-		Chain = blockchain.NewBlockChain(&kernelCfg.BlockChain, TxnDB)
+		Chain = blockchain.NewBlockChain(kernelCfg.NodeType, &kernelCfg.BlockChain, TxnDB)
 	}
 	if TxnDB == nil {
 		TxnDB = txdb.NewTxDB(kernelCfg.NodeType, kvdb)
