@@ -51,14 +51,6 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	return tp
 }
 
-func (tp *TxPool) NewEmptySignedTxn() *SignedTxn {
-	return &SignedTxn{}
-}
-
-func (tp *TxPool) NewEmptySignedTxns() SignedTxns {
-	return make([]*SignedTxn, 0)
-}
-
 func (tp *TxPool) PoolSize() uint64 {
 	return tp.poolSize
 }
@@ -94,6 +86,9 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	tp.Lock()
 	defer tp.Unlock()
+	if tp.nodeType == LightNode {
+		return nil
+	}
 	tp.unpackedTxns.Insert(stxn)
 	return nil
 }
