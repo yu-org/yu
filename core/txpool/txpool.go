@@ -11,6 +11,8 @@ import (
 type TxPool struct {
 	sync.RWMutex
 
+	nodeType int
+
 	poolSize   uint64
 	TxnMaxSize int
 
@@ -21,10 +23,11 @@ type TxPool struct {
 	tripodChecks []TxnCheckFn
 }
 
-func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
+func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
+		nodeType:     nodeType,
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
@@ -35,8 +38,8 @@ func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
 	return tp
 }
 
-func WithDefaultChecks(cfg *TxpoolConf, base ItxDB) *TxPool {
-	tp := NewTxPool(cfg, base)
+func WithDefaultChecks(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
+	tp := NewTxPool(nodeType, cfg, base)
 	return tp.withDefaultBaseChecks()
 }
 

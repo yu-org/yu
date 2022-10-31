@@ -57,7 +57,7 @@ func StartUp(tripodInstances ...interface{}) {
 		TxnDB = txdb.NewTxDB(kernelCfg.NodeType, kvdb)
 	}
 	if Pool == nil {
-		Pool = txpool.WithDefaultChecks(&kernelCfg.Txpool, TxnDB)
+		Pool = txpool.WithDefaultChecks(kernelCfg.NodeType, &kernelCfg.Txpool, TxnDB)
 	}
 	if StateDB == nil {
 		StateDB = state.NewStateDB(kvdb)

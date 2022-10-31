@@ -33,6 +33,7 @@ func (b *Synchronizer) InitChain() {
 }
 
 func (b *Synchronizer) defineGenesis() {
+	// FIXME: must NOT generate private key onchain.
 	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")
 	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
