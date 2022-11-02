@@ -13,18 +13,23 @@ const (
 )
 
 type TxDB struct {
+	nodeType int
 	txnKV    kv.KV
 	resultKV kv.KV
 }
 
-func NewTxDB(kvdb kv.Kvdb) *TxDB {
+func NewTxDB(nodeTyp int, kvdb kv.Kvdb) ItxDB {
 	return &TxDB{
+		nodeType: nodeTyp,
 		txnKV:    kvdb.New(Txns),
 		resultKV: kvdb.New(Results),
 	}
 }
 
 func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
+	if bb.nodeType == LightNode {
+		return nil, nil
+	}
 	byt, err := bb.txnKV.Get(txnHash.Bytes())
 	if err != nil {
 		return nil, err
@@ -33,10 +38,16 @@ func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 }
 
 func (bb *TxDB) ExistTxn(txnHash Hash) bool {
+	if bb.nodeType == LightNode {
+		return false
+	}
 	return bb.txnKV.Exist(txnHash.Bytes())
 }
 
 func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
+	if bb.nodeType == LightNode {
+		return nil
+	}
 	kvtx, err := bb.txnKV.NewKvTxn()
 	if err != nil {
 		return err

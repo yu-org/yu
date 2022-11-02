@@ -61,11 +61,10 @@ type IBlockChain interface {
 
 	NewEmptyBlock() *Block
 
-	GetGenesis() (*CompactBlock, error)
-	SetGenesis(b *CompactBlock) error
+	GetGenesis() (*Block, error)
+	SetGenesis(b *Block) error
 
 	AppendBlock(b *Block) error
-	AppendCompactBlock(b *CompactBlock) error
 	GetBlock(blockHash Hash) (*CompactBlock, error)
 	ExistsBlock(blockHash Hash) bool
 	UpdateBlock(b *CompactBlock) error

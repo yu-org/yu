@@ -9,11 +9,12 @@ import (
 )
 
 type BlockChain struct {
-	chain ysql.SqlDB
-	txns  ItxDB
+	nodeType int
+	chain    ysql.SqlDB
+	txns     ItxDB
 }
 
-func NewBlockChain(cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
+func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
 	if err != nil {
 		logrus.Fatal("init blockchain SQL db error: ", err)
@@ -25,8 +26,9 @@ func NewBlockChain(cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
 	}
 
 	return &BlockChain{
-		chain: chain,
-		txns:  txdb,
+		nodeType: nodeType,
+		chain:    chain,
+		txns:     txdb,
 	}
 }
 
@@ -38,31 +40,49 @@ func (bc *BlockChain) NewEmptyBlock() *Block {
 	return &Block{Header: &Header{}, Txns: nil}
 }
 
-func (bc *BlockChain) GetGenesis() (*CompactBlock, error) {
+func (bc *BlockChain) GetGenesis() (*Block, error) {
 	var block BlocksScheme
 	bc.chain.Db().Where("height = ?", 0).First(&block)
-	return block.toBlock()
+	cb, err := block.toBlock()
+	if err != nil {
+		return nil, err
+	}
+	b := &Block{
+		Header: cb.Header,
+	}
+	for _, hash := range cb.TxnsHashes {
+		txn, err := bc.txns.GetTxn(hash)
+		if err != nil {
+			return nil, err
+		}
+		b.Txns = append(b.Txns, txn)
+	}
+	return b, nil
 }
 
-func (bc *BlockChain) SetGenesis(b *CompactBlock) error {
+func (bc *BlockChain) SetGenesis(b *Block) error {
 	var blocks []BlocksScheme
 	bc.chain.Db().Where("height = ?", 0).Find(&blocks)
 
 	if len(blocks) == 0 {
-		return bc.AppendCompactBlock(b)
+		return bc.AppendBlock(b)
 	}
 	return nil
 }
 
 func (bc *BlockChain) AppendBlock(b *Block) error {
-	err := bc.AppendCompactBlock(b.Compact())
+	cb := b.Compact()
+	if bc.nodeType == LightNode {
+		cb.TxnsHashes = nil
+	}
+	err := bc.appendCompactBlock(cb)
 	if err != nil {
 		return err
 	}
 	return bc.txns.SetTxns(b.Txns)
 }
 
-func (bc *BlockChain) AppendCompactBlock(b *CompactBlock) error {
+func (bc *BlockChain) appendCompactBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {
 		return err

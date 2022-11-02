@@ -7,6 +7,14 @@ import (
 )
 
 type KernelConf struct {
+	// 0: FullNode
+	// 1: LightNode
+	// 2: ArchiveNode
+	NodeType int `toml:"node_type"`
+	// 0: FullSync
+	// 1: FastSync
+	// 2: LightSync
+	SyncMode int `toml:"sync_mode"`
 	// 0: local-node
 	// 1: master-worker
 	RunMode RunMode `toml:"run_mode"`
@@ -54,10 +62,6 @@ type P2pConf struct {
 
 type BlockchainConf struct {
 	ChainDB SqlDbConf `toml:"chain_db"`
-}
-
-type TxDBConf struct {
-	BaseDB SqlDbConf `toml:"base_db"`
 }
 
 type TxpoolConf struct {

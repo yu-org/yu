@@ -11,6 +11,8 @@ import (
 type TxPool struct {
 	sync.RWMutex
 
+	nodeType int
+
 	poolSize   uint64
 	TxnMaxSize int
 
@@ -21,10 +23,11 @@ type TxPool struct {
 	tripodChecks []TxnCheckFn
 }
 
-func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
+func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
+		nodeType:     nodeType,
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
@@ -35,8 +38,8 @@ func NewTxPool(cfg *TxpoolConf, base ItxDB) *TxPool {
 	return tp
 }
 
-func WithDefaultChecks(cfg *TxpoolConf, base ItxDB) *TxPool {
-	tp := NewTxPool(cfg, base)
+func WithDefaultChecks(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
+	tp := NewTxPool(nodeType, cfg, base)
 	return tp.withDefaultBaseChecks()
 }
 
@@ -46,14 +49,6 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 		tp.checkTxnSize,
 	}
 	return tp
-}
-
-func (tp *TxPool) NewEmptySignedTxn() *SignedTxn {
-	return &SignedTxn{}
-}
-
-func (tp *TxPool) NewEmptySignedTxns() SignedTxns {
-	return make([]*SignedTxn, 0)
 }
 
 func (tp *TxPool) PoolSize() uint64 {
@@ -91,6 +86,9 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	tp.Lock()
 	defer tp.Unlock()
+	if tp.nodeType == LightNode {
+		return nil
+	}
 	tp.unpackedTxns.Insert(stxn)
 	return nil
 }

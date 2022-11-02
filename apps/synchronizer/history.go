@@ -1,4 +1,4 @@
-package base
+package synchronizer
 
 import (
 	"github.com/sirupsen/logrus"
@@ -9,30 +9,31 @@ import (
 )
 
 const (
-	Full = iota
-	Snapshot
-	Light
+	FullSync int = iota
+	FastSync
+	LightSync
 )
 
-type Base struct {
+type Synchronizer struct {
 	*Tripod
-	mode int
+	syncMode int
 }
 
-func NewBase(mode int) *Base {
-	tri := NewTripod("base")
-	fh := &Base{Tripod: tri, mode: mode}
+func NewSynchronizer(syncMode int) *Synchronizer {
+	tri := NewTripod("synchronizer")
+	fh := &Synchronizer{Tripod: tri, syncMode: syncMode}
 	tri.SetInit(fh)
 	tri.SetP2pHandler(HandshakeCode, fh.handleHsReq).SetP2pHandler(SyncTxnsCode, fh.handleSyncTxnsReq)
 	return fh
 }
 
-func (b *Base) InitChain() {
+func (b *Synchronizer) InitChain() {
 	b.defineGenesis()
 	b.syncHistory()
 }
 
-func (b *Base) defineGenesis() {
+func (b *Synchronizer) defineGenesis() {
+	// FIXME: must NOT generate private key onchain.
 	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")
 	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
@@ -40,7 +41,7 @@ func (b *Base) defineGenesis() {
 		logrus.Panic("sign genesis block failed: ", err)
 	}
 
-	gensisBlock := &CompactBlock{
+	gensisBlock := &Block{
 		Header: &Header{
 			Hash:           genesisHash,
 			MinerPubkey:    rootPubkey.BytesWithType(),
@@ -58,19 +59,19 @@ func (b *Base) defineGenesis() {
 	}
 }
 
-func (b *Base) syncHistory() {
+func (b *Synchronizer) syncHistory() {
 	if len(b.P2pNetwork.GetBootNodes()) == 0 {
 		return
 	}
-	switch b.mode {
-	case Full:
+	switch b.syncMode {
+	case FullSync:
 		err := b.syncFullHistory()
 		if err != nil {
 			logrus.Panic("sync full history failed, err: ", err)
 		}
-	case Snapshot:
+	case FastSync:
 
-	case Light:
+	case LightSync:
 
 	}
 }

@@ -18,6 +18,12 @@ const (
 )
 
 const (
+	FullNode int = iota
+	LightNode
+	ArchiveNode
+)
+
+const (
 	StartBlockStage    = "Start Block"
 	ExecuteTxnsStage   = "Execute Txns"
 	EndBlockStage      = "End Block"
@@ -46,7 +52,7 @@ type (
 		BlockHash   Hash
 		Params      string
 	}
-	// Execution or Read
+	// Writing or Reading
 	CallType int
 )
 

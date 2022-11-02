@@ -35,6 +35,7 @@ func main() {
 			{Pubkey: "", P2pIp: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
 			{Pubkey: "", P2pIp: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 		},
+		BlockInterval: 3,
 	}
 
 	var myPubkey keypair.PubKey
@@ -50,7 +51,7 @@ func main() {
 	logrus.Info("My Address is ", myPubkey.Address().String())
 
 	startup.InitConfigFromPath("yu_conf/kernel.toml")
-	startup.StartUpFullNode(
+	startup.SyncAndStartup(
 		poa.NewPoa(poaConf),
 		asset.NewAsset("YuCoin"),
 	)
