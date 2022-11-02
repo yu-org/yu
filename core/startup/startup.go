@@ -50,11 +50,11 @@ func StartUp(tripodInstances ...interface{}) {
 		logrus.Fatal("init kvdb error: ", err)
 	}
 
-	if Chain == nil {
-		Chain = blockchain.NewBlockChain(kernelCfg.NodeType, &kernelCfg.BlockChain, TxnDB)
-	}
 	if TxnDB == nil {
 		TxnDB = txdb.NewTxDB(kernelCfg.NodeType, kvdb)
+	}
+	if Chain == nil {
+		Chain = blockchain.NewBlockChain(kernelCfg.NodeType, &kernelCfg.BlockChain, TxnDB)
 	}
 	if Pool == nil {
 		Pool = txpool.WithDefaultChecks(kernelCfg.NodeType, &kernelCfg.Txpool, TxnDB)
