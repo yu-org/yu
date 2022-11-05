@@ -206,6 +206,7 @@ func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 		event.BlockHash = block.Hash
 		event.ExecName = ecall.WritingName
 		event.TripodName = ecall.TripodName
+		event.LeiCost = ctx.LeiCost
 		event.BlockStage = ExecuteTxnsStage
 		event.Caller = stxn.Raw.Caller
 
