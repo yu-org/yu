@@ -15,6 +15,7 @@ type Event struct {
 	TripodName string   `json:"tripod_name"`
 	ExecName   string   `json:"exec_name"`
 	Value      string   `json:"value"`
+	LeiCost    uint64   `json:"lei_cost"`
 }
 
 func (e *Event) Hash() (Hash, error) {

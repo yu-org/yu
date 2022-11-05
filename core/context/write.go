@@ -1,6 +1,7 @@
 package context
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/result"
@@ -49,15 +50,30 @@ func (c *WriteContext) SetLeiFn(fn func() uint64) {
 	c.LeiCost = fn()
 }
 
-func (c *WriteContext) EmitEvent(value interface{}) error {
+func (c *WriteContext) EmitEvent(value any) error {
 	byt, err := codec.GlobalCodec.EncodeToBytes(value)
 	if err != nil {
-		logrus.Errorf("encode event to bytes error: %s", err.Error())
+		logrus.Error("encode event to bytes error: ", err)
 		return err
 	}
-	event := &Event{
-		Value: string(byt),
+	event := &Event{Value: string(byt)}
+	c.Events = append(c.Events, event)
+	return nil
+}
+
+func (c *WriteContext) EmitStringValue(valueStr string) error {
+	event := &Event{Value: valueStr}
+	c.Events = append(c.Events, event)
+	return nil
+}
+
+func (c *WriteContext) EmitJsonValue(value any) error {
+	byt, err := json.Marshal(value)
+	if err != nil {
+		logrus.Error("json encode to bytes error: ", err)
+		return err
 	}
+	event := &Event{Value: string(byt)}
 	c.Events = append(c.Events, event)
 	return nil
 }

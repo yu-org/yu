@@ -24,7 +24,7 @@ func NewEvm(sdb *state.StateDB, chainId int64, gasLimit, gasPrice uint64) *Evm {
 	return e
 }
 
-//Get evm dump
+// Get evm dump
 func (e *Evm) RawDump() state.Dump {
 	if e.cfg.State != nil {
 		return e.cfg.State.RawDump(nil)
@@ -32,18 +32,18 @@ func (e *Evm) RawDump() state.Dump {
 	return state.Dump{}
 }
 
-//Create a contract
+// Create a contract
 func (e *Evm) Create(code []byte, origin common.Address) ([]byte, common.Address, uint64, error) {
 	return runtime.Create(code, e.cfg)
 }
 
-//Call contract
+// Call contract
 func (e *Evm) Call(contAddr common.Address, origin common.Address, inputCode []byte) ([]byte, uint64, error) {
 	e.cfg.State.SetCode(contAddr, e.cfg.State.GetCode(contAddr))
 	return runtime.Call(contAddr, inputCode, e.cfg)
 }
 
-//Get contract bytecode
+// Get contract bytecode
 func (e *Evm) GetCode(contAddr common.Address) []byte {
 	return e.cfg.State.GetCode(contAddr)
 }
@@ -53,28 +53,28 @@ func (e *Evm) SetCode(contAddr common.Address, code []byte) {
 	return
 }
 
-//Prepare hash into evm
+// Prepare hash into evm
 func (e *Evm) Prepare(txhash, blhash common.Hash, txindex int) {
 	e.cfg.State.Prepare(txhash, txindex)
 }
 
-//Add log
+// Add log
 func (e *Evm) AddLog(log *types.Log) {
 	e.cfg.State.AddLog(log)
 }
 
-//Get logs
+// Get logs
 func (e *Evm) GetLogs(txHash, blockH common.Hash) []*types.Log {
 	log := e.cfg.State.GetLogs(txHash, blockH)
 	return log
 }
 
-//Get logs
+// Get logs
 func (e *Evm) Logs() []*types.Log {
 	return e.cfg.State.Logs()
 }
 
-//SetBlockInfo set block info into evm
+// SetBlockInfo set block info into evm
 func (e *Evm) SetBlockInfo(num, tm uint64, miner common.Address, difficulty *big.Int) {
 	e.cfg.BlockNumber = new(big.Int).SetUint64(num)
 	e.cfg.Coinbase = miner
@@ -82,7 +82,7 @@ func (e *Evm) SetBlockInfo(num, tm uint64, miner common.Address, difficulty *big
 	e.cfg.Difficulty = difficulty
 }
 
-//Set evm cfg
+// Set evm cfg
 func (e *Evm) SetConfig(val, price *big.Int, limit uint64, origin common.Address) {
 	e.cfg.Value = val
 	e.cfg.GasPrice = price
@@ -90,62 +90,62 @@ func (e *Evm) SetConfig(val, price *big.Int, limit uint64, origin common.Address
 	e.cfg.Origin = origin
 }
 
-//Get evm Config
+// Get evm Config
 func (e *Evm) GetConfig() *runtime.Config {
 	return e.cfg
 }
 
-//Add Balance
+// Add Balance
 func (e *Evm) AddBalance(addr common.Address, amount *big.Int) {
 	e.cfg.State.AddBalance(addr, amount)
 }
 
-//Sub Balance
+// Sub Balance
 func (e *Evm) SubBalance(addr common.Address, amount *big.Int) {
 	e.cfg.State.SubBalance(addr, amount)
 }
 
-//Set Balance
+// Set Balance
 func (e *Evm) SetBalance(addr common.Address, amount *big.Int) {
 	e.cfg.State.SetBalance(addr, amount)
 }
 
-//Get Balance
+// Get Balance
 func (e *Evm) GetBalance(addr common.Address) *big.Int {
 	bi := e.cfg.State.GetBalance(addr)
 	return bi
 
 }
 
-//Get Nonce
+// Get Nonce
 func (e *Evm) GetNonce(addr common.Address) uint64 {
 	non := e.cfg.State.GetNonce(addr)
 	return non
 }
 
-//Set Nonce
+// Set Nonce
 func (e *Evm) SetNonce(addr common.Address, nonce uint64) {
 	e.cfg.State.SetNonce(addr, nonce)
 }
 
-//Get Storage At address
+// Get Storage At address
 func (e *Evm) GetStorageAt(addr common.Address, hash common.Hash) common.Hash {
 	proof := e.cfg.State.GetState(addr, hash)
 	return proof
 }
 
-//Get Snapshot
+// Get Snapshot
 func (e *Evm) GetSnapshot() int {
 	i := e.cfg.State.Snapshot()
 	return i
 }
 
-//Revert Snapshot to a position
+// Revert Snapshot to a position
 func (e *Evm) RevertToSnapshot(sp int) {
 	e.cfg.State.RevertToSnapshot(sp)
 }
 
-//sets defaults config
+// sets defaults config
 func setDefaults(chainId int64, gasLimit, gasPrice uint64) *runtime.Config {
 	cfg := new(runtime.Config)
 	if cfg.ChainConfig == nil {
@@ -193,7 +193,7 @@ func setDefaults(chainId int64, gasLimit, gasPrice uint64) *runtime.Config {
 	return cfg
 }
 
-//parse token name or symbol by call result.
+// parse token name or symbol by call result.
 func ParseCallResultToString(result string) string {
 	var res string
 	resBt := common.Hex2Bytes(result)
@@ -204,7 +204,7 @@ func ParseCallResultToString(result string) string {
 	return res
 }
 
-//parse token decimal or totalSupply by call result.
+// parse token decimal or totalSupply by call result.
 func ParseCallResultToBig(result string) *big.Int {
 	if res, ok := big.NewInt(0).SetString(result, 16); ok {
 		return res

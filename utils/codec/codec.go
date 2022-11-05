@@ -9,7 +9,7 @@ import (
 var GlobalCodec Codec
 
 type Codec interface {
-	EncodeToBytes(val interface{}) ([]byte, error)
+	EncodeToBytes(val any) ([]byte, error)
 	DecodeBytes(data []byte, val interface{}) error
 }
 
