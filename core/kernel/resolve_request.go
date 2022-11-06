@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func getQryInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
+func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
 	qcall = &Rdcall{

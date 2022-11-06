@@ -1,7 +1,6 @@
 package kernel
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -13,11 +12,11 @@ import (
 )
 
 func (m *Kernel) HandleWS() {
-	http.HandleFunc(ExecApiPath, func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc(WrApiPath, func(w http.ResponseWriter, req *http.Request) {
 		m.handleWS(w, req, writing)
 	})
 
-	http.HandleFunc(QryApiPath, func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc(RdApiPath, func(w http.ResponseWriter, req *http.Request) {
 		m.handleWS(w, req, reading)
 	})
 
@@ -56,7 +55,7 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	case writing:
 		m.handleWsExec(c, req, string(params))
 	case reading:
-		m.handleWsQry(c, req, string(params))
+		m.handleWsRd(c, req, string(params))
 	}
 
 }
@@ -98,8 +97,8 @@ func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params strin
 	}
 }
 
-func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string) {
-	qcall, err := getQryInfoFromReq(req, params)
+func (m *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
+	qcall, err := getRdInfoFromReq(req, params)
 	if err != nil {
 		m.errorAndClose(c, fmt.Sprintf("get Read info from websocket error: %v", err))
 		return
@@ -113,17 +112,12 @@ func (m *Kernel) handleWsQry(c *websocket.Conn, req *http.Request, params string
 			return
 		}
 
-		respObj, err := m.land.Read(qcall, ctx)
+		err = m.land.Read(qcall, ctx)
 		if err != nil {
 			m.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.ReadingName, err))
 			return
 		}
-		respByt, err := json.Marshal(respObj)
-		if err != nil {
-			m.errorAndClose(c, err.Error())
-			return
-		}
-		err = c.WriteMessage(websocket.BinaryMessage, respByt)
+		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
 		if err != nil {
 			logrus.Errorf("response Read result error: %s", err.Error())
 		}

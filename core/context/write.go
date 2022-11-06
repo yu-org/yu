@@ -2,6 +2,7 @@ package context
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/result"
@@ -61,8 +62,8 @@ func (c *WriteContext) EmitEvent(value any) error {
 	return nil
 }
 
-func (c *WriteContext) EmitStringValue(valueStr string) error {
-	event := &Event{Value: valueStr}
+func (c *WriteContext) EmitStringValue(format string, values ...any) error {
+	event := &Event{Value: fmt.Sprintf(format, values...)}
 	c.Events = append(c.Events, event)
 	return nil
 }

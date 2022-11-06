@@ -49,16 +49,16 @@ func (l *Land) GetWriting(c *WrCall) (dev.Writing, error) {
 	return fn, nil
 }
 
-func (l *Land) Read(c *Rdcall, ctx *ReadContext) (interface{}, error) {
+func (l *Land) Read(c *Rdcall, ctx *ReadContext) error {
 	tri, ok := l.TripodsMap[c.TripodName]
 	if !ok {
-		return nil, TripodNotFound(c.TripodName)
+		return TripodNotFound(c.TripodName)
 	}
-	qry := tri.GetReading(c.ReadingName)
-	if qry == nil {
-		return nil, QryNotFound(c.ReadingName)
+	rd := tri.GetReading(c.ReadingName)
+	if rd == nil {
+		return QryNotFound(c.ReadingName)
 	}
-	return qry(ctx)
+	return rd(ctx)
 }
 
 func (l *Land) RangeMap(fn func(string, *Tripod) error) error {

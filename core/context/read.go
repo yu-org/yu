@@ -2,6 +2,7 @@ package context
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
@@ -11,6 +12,8 @@ import (
 type ReadContext struct {
 	paramsStr string
 	paramsMap map[string]interface{}
+
+	response []byte
 }
 
 func NewReadContext(paramsStr string) (*ReadContext, error) {
@@ -25,8 +28,27 @@ func NewReadContext(paramsStr string) (*ReadContext, error) {
 	}, nil
 }
 
-func (c *ReadContext) Bindjson(v interface{}) error {
+func (c *ReadContext) Bindjson(v any) error {
 	return BindJsonParams(c.paramsStr, v)
+}
+
+func (c *ReadContext) Response() []byte {
+	return c.response
+}
+
+func (c *ReadContext) Bytes(byt []byte) {
+	c.response = byt
+}
+
+func (c *ReadContext) String(format string, values ...any) {
+	c.response = []byte(fmt.Sprintf(format, values...))
+}
+
+type H map[string]interface{}
+
+func (c *ReadContext) Json(v any) (err error) {
+	c.response, err = json.Marshal(v)
+	return
 }
 
 func (c *ReadContext) Get(name string) interface{} {

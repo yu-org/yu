@@ -23,8 +23,8 @@ const (
 )
 
 var (
-	ExecApiPath    = filepath.Join(RootApiPath, WrCallType)
-	QryApiPath     = filepath.Join(RootApiPath, RdCallType)
+	WrApiPath      = filepath.Join(RootApiPath, WrCallType)
+	RdApiPath      = filepath.Join(RootApiPath, RdCallType)
 	SubResultsPath = "/subscribe/results"
 )
 
