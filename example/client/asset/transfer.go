@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/example/client/callchain"
-	"math/big"
 )
 
 type QryAccount struct {
@@ -26,12 +26,17 @@ func QueryAccount(pubkey PubKey) {
 		Params:      string(paramByt),
 	}
 	resp := CallChainByQry(Websocket, qcall)
-	amount := new(big.Int)
-	err = amount.UnmarshalText(resp)
+	respMap := make(context.H)
+	err = json.Unmarshal(resp, &respMap)
 	if err != nil {
-		panic(err)
+		panic("json decode qryAccount response error: " + err.Error())
 	}
-	logrus.Infof("get account(%s) balance(%d)", pubkey.Address().String(), amount)
+	//amount := new(big.Int)
+	//err = amount.UnmarshalText(resp)
+	//if err != nil {
+	//	panic(err)
+	//}
+	logrus.Infof("get account(%s) balance(%v)", pubkey.Address().String(), respMap["amount"])
 }
 
 type CreateAccountInfo struct {

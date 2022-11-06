@@ -13,7 +13,7 @@ type ReadContext struct {
 	paramsStr string
 	paramsMap map[string]interface{}
 
-	resp []byte
+	response []byte
 }
 
 func NewReadContext(paramsStr string) (*ReadContext, error) {
@@ -33,15 +33,22 @@ func (c *ReadContext) Bindjson(v any) error {
 }
 
 func (c *ReadContext) Response() []byte {
-	return c.resp
+	return c.response
+}
+
+func (c *ReadContext) Bytes(byt []byte) {
+	c.response = byt
 }
 
 func (c *ReadContext) String(format string, values ...any) {
-	c.resp = []byte(fmt.Sprintf(format, values))
+	c.response = []byte(fmt.Sprintf(format, values...))
 }
 
-func (c *ReadContext) Json(v any) {
+type H map[string]interface{}
 
+func (c *ReadContext) Json(v any) (err error) {
+	c.response, err = json.Marshal(v)
+	return
 }
 
 func (c *ReadContext) Get(name string) interface{} {

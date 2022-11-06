@@ -10,22 +10,21 @@ import (
 	"net/http"
 )
 
-// FIXME: conflict websocket
 func (m *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	r.POST(ExecApiPath, func(c *gin.Context) {
-		m.handleHttpExec(c)
+	r.POST(WrApiPath, func(c *gin.Context) {
+		m.handleHttpWr(c)
 	})
-	r.POST(QryApiPath, func(c *gin.Context) {
-		m.handleHttpQry(c)
+	r.POST(RdApiPath, func(c *gin.Context) {
+		m.handleHttpRd(c)
 	})
 
 	r.Run(m.httpPort)
 }
 
-func (m *Kernel) handleHttpExec(c *gin.Context) {
+func (m *Kernel) handleHttpWr(c *gin.Context) {
 	params, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -68,13 +67,13 @@ func (m *Kernel) handleHttpExec(c *gin.Context) {
 	}
 }
 
-func (m *Kernel) handleHttpQry(c *gin.Context) {
+func (m *Kernel) handleHttpRd(c *gin.Context) {
 	params, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	qcall, err := getQryInfoFromReq(c.Request, string(params))
+	qcall, err := getRdInfoFromReq(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -88,7 +87,7 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 			return
 		}
 
-		respObj, err := m.land.Read(qcall, ctx)
+		err = m.land.Read(qcall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
@@ -96,6 +95,7 @@ func (m *Kernel) handleHttpQry(c *gin.Context) {
 			)
 			return
 		}
-		c.JSON(http.StatusOK, respObj)
+		// FIXME: not only json type.
+		c.JSON(http.StatusOK, ctx.Response())
 	}
 }

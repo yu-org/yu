@@ -20,7 +20,7 @@ const (
 )
 
 func CallChainByQry(reqtyp int, qcall *Rdcall) []byte {
-	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: QryApiPath}
+	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: RdApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, qcall.TripodName)
 	q.Set(CallNameKey, qcall.ReadingName)
@@ -77,7 +77,7 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall)
 		scheme = "ws"
 	}
 
-	u := url.URL{Scheme: scheme, Host: "localhost:8999", Path: ExecApiPath}
+	u := url.URL{Scheme: scheme, Host: "localhost:8999", Path: WrApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, ecall.TripodName)
 	q.Set(CallNameKey, ecall.WritingName)

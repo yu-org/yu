@@ -63,7 +63,7 @@ func (c *WriteContext) EmitEvent(value any) error {
 }
 
 func (c *WriteContext) EmitStringValue(format string, values ...any) error {
-	event := &Event{Value: fmt.Sprintf(format, values)}
+	event := &Event{Value: fmt.Sprintf(format, values...)}
 	c.Events = append(c.Events, event)
 	return nil
 }
