@@ -23,7 +23,7 @@ Third level is define `basic components`, such as `block data structures`, `bloc
 type (
     Writing func(ctx *context.WriteContext) error
 	
-    Reading func(ctx *context.ReadContext) (respObj interface{}, err error)
+    Reading func(ctx *context.ReadContext) error
 
     P2pHandler func([]byte) ([]byte, error)
 )
@@ -32,8 +32,7 @@ type (
 `CheckTxn` defines the rules for checking transactions(Writings) before inserting txpool.  
 `VerifyBlock` defines the rules for verifying blocks.   
 `InitChain` defines business when the blockchain starts up. You should use it to define `Genesis Block`.  
-`StartBlock` defines business when a new block starts. In this func, you can set some attributes( including pack txns from txpool, mining ) in the block,
-then you should tell the framework whether broadcast the block to other nodes or not.    
+`StartBlock` defines business when a new block starts. In this func, you can set some attributes (including pack txns from txpool, mining) in the block.    
 `EndBlock` defines business when all nodes accept the new block, usually we execute the txns of new block and append  block into the chain.  
 `FinalizeBlock` defines business when the block is finalized in the chain by all nodes.
  
@@ -62,17 +61,17 @@ type Tripod interface {
 `Asset Tripod` imitates an Asset function, it has `transfer accounts`, `create accounts`.  
 `QueryBalance` queries someone's account balance. It implements type func `Reading`.
 ```go
-func (a *Asset) QueryBalance(ctx *context.ReadContext) (interface{}, error) {
+func (a *Asset) QueryBalance(ctx *context.ReadContext) error {
     account := ctx.GetAddress("account")
     if !a.existAccount(account) {
         return nil, AccountNotFound(account)
     }
     amount := a.getBalance(account)
-    return amount, nil
+    return ctx.Json(context.H{"amount": amount})
 }
 ```  
 `CreateAccount` creates an account. It implements type func `Writing`.  
-`EmitEvent` will emit an event out of the chain.  
+`EmitStringValue` will emit a string event out of the chain.  
 The error returned will emit out of the chain.
 ```go
 func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
@@ -81,12 +80,12 @@ func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
     if a.existAccount(addr) {
-    _ = ctx.EmitEvent("Account Exists!")
+    _ = ctx.EmitStringValue("Account Exists!")
     return nil
     }
 
     a.setBalance(addr, amount)
-    _ = ctx.EmitEvent("Account Created Success!")
+    _ = ctx.EmitStringValue("Account Created Success!")
     return nil
 }
 ```  
@@ -107,7 +106,7 @@ func NewAsset(tokenName string) *Asset {
 Finally set `Asset Tripod` into `land` in `main func`. 
 ```go
 func main() {
-    startup.StartUpFullNode(asset.NewAsset("YuCoin"))
+    startup.SyncAndStartup(asset.NewAsset("YuCoin"))
 }
 ```
 
@@ -205,7 +204,7 @@ Same as `Asset Tripod` , finally set `Poa Tripod` into `land` in `main function`
 ```go
 func main() {
     startup.InitConfigFromPath("yu_conf/kernel.toml")
-    startup.StartUpFullNode(
+    startup.SyncAndStartup(
         poa.NewPoa(poaConf),
         asset.NewAsset("YuCoin"),
     )
