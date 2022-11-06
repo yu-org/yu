@@ -77,15 +77,15 @@ The error returned will emit out of the chain.
 func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
     ctx.SetLei(100)
     addr := ctx.Caller
-	amount := big.NewInt(int64(ctx.GetUint64("amount")))
+    amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
     if a.existAccount(addr) {
-    _ = ctx.EmitStringEvent("Account Exists!")
-    return nil
+        ctx.EmitStringEvent("Account Exists!")
+        return nil
     }
 
     a.setBalance(addr, amount)
-    _ = ctx.EmitStringEvent("Account Created Success!")
+    ctx.EmitStringEvent("Account Created Success!")
     return nil
 }
 ```  

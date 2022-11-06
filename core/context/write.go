@@ -62,10 +62,9 @@ func (c *WriteContext) EmitEvent(value any) error {
 	return nil
 }
 
-func (c *WriteContext) EmitStringEvent(format string, values ...any) error {
+func (c *WriteContext) EmitStringEvent(format string, values ...any) {
 	event := &Event{Value: fmt.Sprintf(format, values...)}
 	c.Events = append(c.Events, event)
-	return nil
 }
 
 func (c *WriteContext) EmitJsonEvent(value any) error {
