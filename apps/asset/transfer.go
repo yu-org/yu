@@ -74,7 +74,7 @@ func (a *Asset) Transfer(ctx *WriteContext) (err error) {
 	if err != nil {
 		return
 	}
-	_ = ctx.EmitStringValue("Transfer Completed!")
+	_ = ctx.EmitStringEvent("Transfer Completed!")
 
 	return
 }
@@ -113,12 +113,12 @@ func (a *Asset) CreateAccount(ctx *WriteContext) error {
 	logrus.WithField("asset", "create-account").Debugf("ACCOUNT(%s) amount(%d)", addr.String(), amount)
 
 	if a.ExistAccount(addr) {
-		_ = ctx.EmitStringValue("Account Exists!")
+		_ = ctx.EmitStringEvent("Account Exists!")
 		return nil
 	}
 
 	a.SetBalance(addr, amount)
-	_ = ctx.EmitStringValue("Account Created Success!")
+	_ = ctx.EmitStringEvent("Account Created Success!")
 	return nil
 }
 
