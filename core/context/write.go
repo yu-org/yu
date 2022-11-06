@@ -62,13 +62,13 @@ func (c *WriteContext) EmitEvent(value any) error {
 	return nil
 }
 
-func (c *WriteContext) EmitStringValue(format string, values ...any) error {
+func (c *WriteContext) EmitStringEvent(format string, values ...any) error {
 	event := &Event{Value: fmt.Sprintf(format, values...)}
 	c.Events = append(c.Events, event)
 	return nil
 }
 
-func (c *WriteContext) EmitJsonValue(value any) error {
+func (c *WriteContext) EmitJsonEvent(value any) error {
 	byt, err := json.Marshal(value)
 	if err != nil {
 		logrus.Error("json encode to bytes error: ", err)

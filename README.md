@@ -71,7 +71,7 @@ func (a *Asset) QueryBalance(ctx *context.ReadContext) error {
 }
 ```  
 `CreateAccount` creates an account. It implements type func `Writing`.  
-`EmitStringValue` will emit a string event out of the chain.  
+`EmitStringEvent` will emit a string event out of the chain.  
 The error returned will emit out of the chain.
 ```go
 func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
@@ -80,12 +80,12 @@ func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
     if a.existAccount(addr) {
-    _ = ctx.EmitStringValue("Account Exists!")
+    _ = ctx.EmitStringEvent("Account Exists!")
     return nil
     }
 
     a.setBalance(addr, amount)
-    _ = ctx.EmitStringValue("Account Created Success!")
+    _ = ctx.EmitStringEvent("Account Created Success!")
     return nil
 }
 ```  
