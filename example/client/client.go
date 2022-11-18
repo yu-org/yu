@@ -23,7 +23,7 @@ func main() {
 	go SubEvent()
 
 	logrus.Info("--- send Creating Account ---")
-	CreateAccount(Websocket, privkey, pubkey, 500)
+	CreateAccount(Http, privkey, pubkey, 500)
 	time.Sleep(4 * time.Second)
 
 	logrus.Info("--- send Transfering 1 ---")
