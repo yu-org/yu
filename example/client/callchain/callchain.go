@@ -1,6 +1,7 @@
 package callchain
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -69,15 +70,19 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall)
 		panic("sign data error: " + err.Error())
 	}
 
-	var scheme string
+	var (
+		scheme, port string
+	)
 	switch reqType {
 	case Http:
 		scheme = "http"
+		port = "7999"
 	case Websocket:
 		scheme = "ws"
+		port = "8999"
 	}
 
-	u := url.URL{Scheme: scheme, Host: "localhost:8999", Path: WrApiPath}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: WrApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, ecall.TripodName)
 	q.Set(CallNameKey, ecall.WritingName)
