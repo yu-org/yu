@@ -53,15 +53,15 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	}
 	switch typ {
 	case writing:
-		m.handleWsExec(c, req, string(params))
+		m.handleWsWr(c, req, string(params))
 	case reading:
 		m.handleWsRd(c, req, string(params))
 	}
 
 }
 
-func (m *Kernel) handleWsExec(c *websocket.Conn, req *http.Request, params string) {
-	_, _, stxn, err := getExecInfoFromReq(req, params)
+func (m *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string) {
+	_, _, stxn, err := getWrInfoFromReq(req, params)
 	if err != nil {
 		m.errorAndClose(c, fmt.Sprintf("get Execution info from websocket error: %v", err))
 		return

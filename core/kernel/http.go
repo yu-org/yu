@@ -31,7 +31,7 @@ func (m *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	_, _, stxn, err := getExecInfoFromReq(c.Request, string(params))
+	_, _, stxn, err := getWrInfoFromReq(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
