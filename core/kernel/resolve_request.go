@@ -20,7 +20,7 @@ func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err erro
 	return
 }
 
-func getExecInfoFromReq(req *http.Request, params string) (tripodName, wrName string, stxn *types.SignedTxn, err error) {
+func getWrInfoFromReq(req *http.Request, params string) (tripodName, wrName string, stxn *types.SignedTxn, err error) {
 	tripodName, wrName = GetTripodCallName(req)
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
