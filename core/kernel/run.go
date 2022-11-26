@@ -187,7 +187,7 @@ func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	ctx.Error.Caller = stxn.Raw.Caller
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = ecall.TripodName
-	ctx.Error.ExecName = ecall.WritingName
+	ctx.Error.WritingName = ecall.WritingName
 	ctx.Error.BlockHash = block.Hash
 	ctx.Error.Height = block.Height
 
@@ -204,7 +204,7 @@ func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 
 		event.Height = block.Height
 		event.BlockHash = block.Hash
-		event.ExecName = ecall.WritingName
+		event.WritingName = ecall.WritingName
 		event.TripodName = ecall.TripodName
 		event.LeiCost = ctx.LeiCost
 		event.BlockStage = ExecuteTxnsStage

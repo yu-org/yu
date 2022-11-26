@@ -8,13 +8,13 @@ import (
 )
 
 type Error struct {
-	Caller     Address  `json:"caller"`
-	BlockStage string   `json:"block_stage"`
-	BlockHash  Hash     `json:"block_hash"`
-	Height     BlockNum `json:"height"`
-	TripodName string   `json:"tripod_name"`
-	ExecName   string   `json:"exec_name"`
-	Err        string   `json:"err"`
+	Caller      Address  `json:"caller"`
+	BlockStage  string   `json:"block_stage"`
+	BlockHash   Hash     `json:"block_hash"`
+	Height      BlockNum `json:"height"`
+	TripodName  string   `json:"tripod_name"`
+	WritingName string   `json:"writing_name"`
+	Err         string   `json:"err"`
 }
 
 func (e *Error) Type() ResultType {
@@ -36,7 +36,7 @@ func (e *Error) Error() (str string) {
 			"[Error] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
 			e.Caller.String(),
 			e.TripodName,
-			e.ExecName,
+			e.WritingName,
 			e.BlockHash.String(),
 			e.Height,
 			e.Err,

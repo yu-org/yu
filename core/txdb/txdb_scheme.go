@@ -82,20 +82,20 @@ func toEventScheme(event *Event) (EventScheme, error) {
 		BlockHash:  event.BlockHash.String(),
 		Height:     event.Height,
 		TripodName: event.TripodName,
-		ExecName:   event.ExecName,
+		ExecName:   event.WritingName,
 		Value:      event.Value,
 	}, nil
 }
 
 func (e EventScheme) toEvent() (*Event, error) {
 	return &Event{
-		Caller:     HexToAddress(e.Caller),
-		BlockStage: e.BlockStage,
-		BlockHash:  HexToHash(e.BlockHash),
-		Height:     e.Height,
-		TripodName: e.TripodName,
-		ExecName:   e.ExecName,
-		Value:      e.Value,
+		Caller:      HexToAddress(e.Caller),
+		BlockStage:  e.BlockStage,
+		BlockHash:   HexToHash(e.BlockHash),
+		Height:      e.Height,
+		TripodName:  e.TripodName,
+		WritingName: e.ExecName,
+		Value:       e.Value,
 	}, nil
 
 }
@@ -122,19 +122,19 @@ func toErrorScheme(err *Error) ErrorScheme {
 		BlockHash:  err.BlockHash.String(),
 		Height:     err.Height,
 		TripodName: err.TripodName,
-		ExecName:   err.ExecName,
+		ExecName:   err.WritingName,
 		Error:      err.Err,
 	}
 }
 
 func (e ErrorScheme) toError() *Error {
 	return &Error{
-		Caller:     HexToAddress(e.Caller),
-		BlockStage: e.BlockStage,
-		BlockHash:  HexToHash(e.BlockHash),
-		Height:     e.Height,
-		TripodName: e.TripodName,
-		ExecName:   e.ExecName,
-		Err:        e.Error,
+		Caller:      HexToAddress(e.Caller),
+		BlockStage:  e.BlockStage,
+		BlockHash:   HexToHash(e.BlockHash),
+		Height:      e.Height,
+		TripodName:  e.TripodName,
+		WritingName: e.ExecName,
+		Err:         e.Error,
 	}
 }

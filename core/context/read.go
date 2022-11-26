@@ -28,7 +28,7 @@ func NewReadContext(paramsStr string) (*ReadContext, error) {
 	}, nil
 }
 
-func (c *ReadContext) Bindjson(v any) error {
+func (c *ReadContext) BindJson(v any) error {
 	return BindJsonParams(c.paramsStr, v)
 }
 

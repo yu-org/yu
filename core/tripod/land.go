@@ -41,10 +41,9 @@ func (l *Land) GetWriting(c *WrCall) (dev.Writing, error) {
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
 	}
-	ph := tripod
-	fn := ph.GetWriting(c.WritingName)
+	fn := tripod.GetWriting(c.WritingName)
 	if fn == nil {
-		return nil, ExecNotFound(c.WritingName)
+		return nil, WritingNotFound(c.WritingName)
 	}
 	return fn, nil
 }
@@ -56,7 +55,7 @@ func (l *Land) Read(c *Rdcall, ctx *ReadContext) error {
 	}
 	rd := tri.GetReading(c.ReadingName)
 	if rd == nil {
-		return QryNotFound(c.ReadingName)
+		return ReadingNotFound(c.ReadingName)
 	}
 	return rd(ctx)
 }

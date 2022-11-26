@@ -8,14 +8,14 @@ import (
 )
 
 type Event struct {
-	Caller     Address  `json:"caller"`
-	BlockStage string   `json:"block_stage"`
-	BlockHash  Hash     `json:"block_hash"`
-	Height     BlockNum `json:"height"`
-	TripodName string   `json:"tripod_name"`
-	ExecName   string   `json:"exec_name"`
-	Value      string   `json:"value"`
-	LeiCost    uint64   `json:"lei_cost"`
+	Caller      Address  `json:"caller"`
+	BlockStage  string   `json:"block_stage"`
+	BlockHash   Hash     `json:"block_hash"`
+	Height      BlockNum `json:"height"`
+	TripodName  string   `json:"tripod_name"`
+	WritingName string   `json:"writing_name"`
+	Value       string   `json:"value"`
+	LeiCost     uint64   `json:"lei_cost"`
 }
 
 func (e *Event) Hash() (Hash, error) {
@@ -49,7 +49,7 @@ func (e *Event) Sprint() (str string) {
 			"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
 			e.Caller.String(),
 			e.TripodName,
-			e.ExecName,
+			e.WritingName,
 			e.BlockHash.String(),
 			e.Height,
 			e.Value,

@@ -25,9 +25,9 @@ type Tripod struct {
 
 	name string
 	// Key: Writing Name
-	execs map[string]dev.Writing
+	writings map[string]dev.Writing
 	// Key: Reading Name
-	queries map[string]dev.Reading
+	readings map[string]dev.Reading
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -35,8 +35,8 @@ type Tripod struct {
 func NewTripod(name string) *Tripod {
 	return &Tripod{
 		name:        name,
-		execs:       make(map[string]dev.Writing),
-		queries:     make(map[string]dev.Reading),
+		writings:    make(map[string]dev.Writing),
+		readings:    make(map[string]dev.Reading),
 		P2pHandlers: make(map[int]dev.P2pHandler),
 
 		BlockVerifier: &DefaultBlockVerifier{},
@@ -81,7 +81,7 @@ func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
-		t.execs[name] = wr
+		t.writings[name] = wr
 		logrus.Debugf("register Writing(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
@@ -89,7 +89,7 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 func (t *Tripod) SetReadings(readings ...dev.Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
-		t.queries[name] = r
+		t.readings[name] = r
 		logrus.Debugf("register Reading(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
@@ -109,21 +109,21 @@ func getFuncName(i interface{}) string {
 }
 
 func (t *Tripod) ExistWriting(name string) bool {
-	_, ok := t.execs[name]
+	_, ok := t.writings[name]
 	return ok
 }
 
 func (t *Tripod) GetWriting(name string) dev.Writing {
-	return t.execs[name]
+	return t.writings[name]
 }
 
 func (t *Tripod) GetReading(name string) dev.Reading {
-	return t.queries[name]
+	return t.readings[name]
 }
 
 func (t *Tripod) AllReadingNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range t.queries {
+	for name, _ := range t.readings {
 		allNames = append(allNames, name)
 	}
 	return allNames
@@ -131,7 +131,7 @@ func (t *Tripod) AllReadingNames() []string {
 
 func (t *Tripod) AllWritingNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range t.execs {
+	for name, _ := range t.writings {
 		allNames = append(allNames, name)
 	}
 	return allNames

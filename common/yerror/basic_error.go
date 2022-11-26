@@ -62,31 +62,31 @@ func TripodNotFound(name string) ErrTripodNotFound {
 }
 
 func (t ErrTripodNotFound) Error() string {
-	return errors.Errorf("Tripod (%s) NOT Found", t.TripodName).Error()
+	return errors.Errorf("Tripod(%s) NOT Found", t.TripodName).Error()
 }
 
-type ErrExecNotFound struct {
-	ExecName string
+type ErrWritingNotFound struct {
+	WritingName string
 }
 
-func ExecNotFound(name string) ErrExecNotFound {
-	return ErrExecNotFound{ExecName: name}
+func WritingNotFound(name string) ErrWritingNotFound {
+	return ErrWritingNotFound{WritingName: name}
 }
 
-func (e ErrExecNotFound) Error() string {
-	return errors.Errorf("Execution(%s) NOT Found", e.ExecName).Error()
+func (e ErrWritingNotFound) Error() string {
+	return errors.Errorf("Writing(%s) NOT Found", e.WritingName).Error()
 }
 
-type ErrQryNotFound struct {
-	QryName string
+type ErrReadingNotFound struct {
+	ReadingName string
 }
 
-func QryNotFound(name string) ErrQryNotFound {
-	return ErrQryNotFound{QryName: name}
+func ReadingNotFound(name string) ErrReadingNotFound {
+	return ErrReadingNotFound{ReadingName: name}
 }
 
-func (q ErrQryNotFound) Error() string {
-	return errors.Errorf("Read(%s) NOT Found", q.QryName).Error()
+func (q ErrReadingNotFound) Error() string {
+	return errors.Errorf("Reading(%s) NOT Found", q.ReadingName).Error()
 }
 
 //type ErrOutOfEnergy struct {
@@ -104,18 +104,6 @@ func (q ErrQryNotFound) Error() string {
 //func (oe ErrOutOfEnergy) Error() string {
 //	return errors.Errorf("Energy out! txns(%v) ")
 //}
-
-type ErrNodeKeeperDead struct {
-	IP string
-}
-
-func NodeKeeperDead(ip string) ErrNodeKeeperDead {
-	return ErrNodeKeeperDead{IP: ip}
-}
-
-func (n ErrNodeKeeperDead) Error() string {
-	return errors.Errorf("NodeKeeper(%s) is dead", n.IP).Error()
-}
 
 type ErrWorkerDead struct {
 	Name string
