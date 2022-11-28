@@ -140,7 +140,7 @@ func (c *blockChainClient) GetRangeBlocks(ctx context.Context, in *RangeRequest,
 }
 
 // BlockChainServer is the server API for BlockChain service.
-// All implementations must embed UnimplementedBlockChainServer
+// All implementations should embed UnimplementedBlockChainServer
 // for forward compatibility
 type BlockChainServer interface {
 	GetGenesis(context.Context, *emptypb.Empty) (*BlockResponse, error)
@@ -154,10 +154,9 @@ type BlockChainServer interface {
 	GetFinalizedBlock(context.Context, *emptypb.Empty) (*BlockResponse, error)
 	GetEndBlock(context.Context, *emptypb.Empty) (*BlockResponse, error)
 	GetRangeBlocks(context.Context, *RangeRequest) (*BlocksResponse, error)
-	mustEmbedUnimplementedBlockChainServer()
 }
 
-// UnimplementedBlockChainServer must be embedded to have forward compatible implementations.
+// UnimplementedBlockChainServer should be embedded to have forward compatible implementations.
 type UnimplementedBlockChainServer struct {
 }
 
@@ -194,7 +193,6 @@ func (UnimplementedBlockChainServer) GetEndBlock(context.Context, *emptypb.Empty
 func (UnimplementedBlockChainServer) GetRangeBlocks(context.Context, *RangeRequest) (*BlocksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRangeBlocks not implemented")
 }
-func (UnimplementedBlockChainServer) mustEmbedUnimplementedBlockChainServer() {}
 
 // UnsafeBlockChainServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to BlockChainServer will

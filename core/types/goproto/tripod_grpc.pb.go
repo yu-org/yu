@@ -80,7 +80,7 @@ func (c *tripodClient) FinalizeBlock(ctx context.Context, in *TripodBlockRequest
 }
 
 // TripodServer is the server API for Tripod service.
-// All implementations must embed UnimplementedTripodServer
+// All implementations should embed UnimplementedTripodServer
 // for forward compatibility
 type TripodServer interface {
 	CheckTxn(context.Context, *TripodTxnRequest) (*Err, error)
@@ -88,10 +88,9 @@ type TripodServer interface {
 	StartBlock(context.Context, *TripodBlockRequest) (*Err, error)
 	EndBlock(context.Context, *TripodBlockRequest) (*Err, error)
 	FinalizeBlock(context.Context, *TripodBlockRequest) (*Err, error)
-	mustEmbedUnimplementedTripodServer()
 }
 
-// UnimplementedTripodServer must be embedded to have forward compatible implementations.
+// UnimplementedTripodServer should be embedded to have forward compatible implementations.
 type UnimplementedTripodServer struct {
 }
 
@@ -110,7 +109,6 @@ func (UnimplementedTripodServer) EndBlock(context.Context, *TripodBlockRequest) 
 func (UnimplementedTripodServer) FinalizeBlock(context.Context, *TripodBlockRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizeBlock not implemented")
 }
-func (UnimplementedTripodServer) mustEmbedUnimplementedTripodServer() {}
 
 // UnsafeTripodServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TripodServer will
@@ -270,21 +268,19 @@ func (c *landClient) SetTripods(ctx context.Context, in *TripodsInfo, opts ...gr
 }
 
 // LandServer is the server API for Land service.
-// All implementations must embed UnimplementedLandServer
+// All implementations should embed UnimplementedLandServer
 // for forward compatibility
 type LandServer interface {
 	SetTripods(context.Context, *TripodsInfo) (*emptypb.Empty, error)
-	mustEmbedUnimplementedLandServer()
 }
 
-// UnimplementedLandServer must be embedded to have forward compatible implementations.
+// UnimplementedLandServer should be embedded to have forward compatible implementations.
 type UnimplementedLandServer struct {
 }
 
 func (UnimplementedLandServer) SetTripods(context.Context, *TripodsInfo) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetTripods not implemented")
 }
-func (UnimplementedLandServer) mustEmbedUnimplementedLandServer() {}
 
 // UnsafeLandServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to LandServer will

@@ -109,7 +109,7 @@ func (c *txDBClient) SetError(ctx context.Context, in *Error, opts ...grpc.CallO
 }
 
 // TxDBServer is the server API for TxDB service.
-// All implementations must embed UnimplementedTxDBServer
+// All implementations should embed UnimplementedTxDBServer
 // for forward compatibility
 type TxDBServer interface {
 	GetTxn(context.Context, *TxnHash) (*TxnResponse, error)
@@ -120,10 +120,9 @@ type TxDBServer interface {
 	SetEvents(context.Context, *EventsRequest) (*Err, error)
 	GetErrors(context.Context, *BlockHash) (*ErrorsResponse, error)
 	SetError(context.Context, *Error) (*Err, error)
-	mustEmbedUnimplementedTxDBServer()
 }
 
-// UnimplementedTxDBServer must be embedded to have forward compatible implementations.
+// UnimplementedTxDBServer should be embedded to have forward compatible implementations.
 type UnimplementedTxDBServer struct {
 }
 
@@ -151,7 +150,6 @@ func (UnimplementedTxDBServer) GetErrors(context.Context, *BlockHash) (*ErrorsRe
 func (UnimplementedTxDBServer) SetError(context.Context, *Error) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetError not implemented")
 }
-func (UnimplementedTxDBServer) mustEmbedUnimplementedTxDBServer() {}
 
 // UnsafeTxDBServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TxDBServer will

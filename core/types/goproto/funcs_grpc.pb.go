@@ -39,21 +39,19 @@ func (c *writingClient) Write(ctx context.Context, in *WriteContext, opts ...grp
 }
 
 // WritingServer is the server API for Writing service.
-// All implementations must embed UnimplementedWritingServer
+// All implementations should embed UnimplementedWritingServer
 // for forward compatibility
 type WritingServer interface {
 	Write(context.Context, *WriteContext) (*Err, error)
-	mustEmbedUnimplementedWritingServer()
 }
 
-// UnimplementedWritingServer must be embedded to have forward compatible implementations.
+// UnimplementedWritingServer should be embedded to have forward compatible implementations.
 type UnimplementedWritingServer struct {
 }
 
 func (UnimplementedWritingServer) Write(context.Context, *WriteContext) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
-func (UnimplementedWritingServer) mustEmbedUnimplementedWritingServer() {}
 
 // UnsafeWritingServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to WritingServer will
@@ -125,21 +123,19 @@ func (c *readingClient) Read(ctx context.Context, in *ReadContext, opts ...grpc.
 }
 
 // ReadingServer is the server API for Reading service.
-// All implementations must embed UnimplementedReadingServer
+// All implementations should embed UnimplementedReadingServer
 // for forward compatibility
 type ReadingServer interface {
 	Read(context.Context, *ReadContext) (*Err, error)
-	mustEmbedUnimplementedReadingServer()
 }
 
-// UnimplementedReadingServer must be embedded to have forward compatible implementations.
+// UnimplementedReadingServer should be embedded to have forward compatible implementations.
 type UnimplementedReadingServer struct {
 }
 
 func (UnimplementedReadingServer) Read(context.Context, *ReadContext) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
-func (UnimplementedReadingServer) mustEmbedUnimplementedReadingServer() {}
 
 // UnsafeReadingServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to ReadingServer will

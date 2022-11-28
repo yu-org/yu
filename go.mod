@@ -23,7 +23,7 @@ require (
 	go.etcd.io/bbolt v1.3.5
 	go.uber.org/atomic v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	google.golang.org/grpc v1.35.0
+	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.27.1
 	gorm.io/driver/mysql v1.0.5
 	gorm.io/driver/postgres v1.0.8
@@ -151,10 +151,10 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/genproto v0.0.0-20201111145450-ac7456db90a6 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
