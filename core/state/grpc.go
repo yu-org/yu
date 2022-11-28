@@ -15,7 +15,7 @@ func NewGrpcMptKV(kv *MptKV) *GrpcMptKV {
 	return &GrpcMptKV{kv}
 }
 
-func (g *GrpcMptKV) Get(ctx context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
+func (g *GrpcMptKV) Get(_ context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
 	value, err := g.kv.get(key.GetTripodName(), key.GetKey())
 	if err != nil {
 		return nil, err
@@ -23,22 +23,22 @@ func (g *GrpcMptKV) Get(ctx context.Context, key *goproto.Key) (*goproto.ValueRe
 	return &goproto.ValueResponse{Value: value}, nil
 }
 
-func (g *GrpcMptKV) Set(ctx context.Context, keyValue *goproto.KeyValue) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) Set(_ context.Context, keyValue *goproto.KeyValue) (*emptypb.Empty, error) {
 	g.kv.set(keyValue.GetTripodName(), keyValue.GetKey(), keyValue.GetValue())
 	return nil, nil
 }
 
-func (g *GrpcMptKV) Delete(ctx context.Context, key *goproto.Key) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) Delete(_ context.Context, key *goproto.Key) (*emptypb.Empty, error) {
 	g.kv.delete(key.GetTripodName(), key.GetKey())
 	return nil, nil
 }
 
-func (g *GrpcMptKV) Exist(ctx context.Context, key *goproto.Key) (*goproto.Bool, error) {
+func (g *GrpcMptKV) Exist(_ context.Context, key *goproto.Key) (*goproto.Bool, error) {
 	ok := g.kv.exist(key.GetTripodName(), key.GetKey())
 	return &goproto.Bool{Ok: ok}, nil
 }
 
-func (g *GrpcMptKV) GetByBlockHash(ctx context.Context, hash *goproto.KeyByHash) (*goproto.ValueResponse, error) {
+func (g *GrpcMptKV) GetByBlockHash(_ context.Context, hash *goproto.KeyByHash) (*goproto.ValueResponse, error) {
 	value, err := g.kv.getByBlockHash(hash.GetTripodName(), hash.GetKey(), common.BytesToHash(hash.GetBlockHash()))
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (g *GrpcMptKV) GetByBlockHash(ctx context.Context, hash *goproto.KeyByHash)
 	return &goproto.ValueResponse{Value: value}, nil
 }
 
-func (g *GrpcMptKV) GetFinalized(ctx context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
+func (g *GrpcMptKV) GetFinalized(_ context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
 	value, err := g.kv.getFinalized(key.GetTripodName(), key.GetKey())
 	if err != nil {
 		return nil, err
@@ -54,12 +54,12 @@ func (g *GrpcMptKV) GetFinalized(ctx context.Context, key *goproto.Key) (*goprot
 	return &goproto.ValueResponse{Value: value}, nil
 }
 
-func (g *GrpcMptKV) StartBlock(ctx context.Context, hash *goproto.TxnHash) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) StartBlock(_ context.Context, hash *goproto.TxnHash) (*emptypb.Empty, error) {
 	g.kv.StartBlock(common.BytesToHash(hash.Hash))
 	return nil, nil
 }
 
-func (g *GrpcMptKV) Commit(ctx context.Context, empty *emptypb.Empty) (*goproto.TxnHashResponse, error) {
+func (g *GrpcMptKV) Commit(context.Context, *emptypb.Empty) (*goproto.TxnHashResponse, error) {
 	hash, err := g.kv.Commit()
 	if err != nil {
 		return nil, err
@@ -67,17 +67,17 @@ func (g *GrpcMptKV) Commit(ctx context.Context, empty *emptypb.Empty) (*goproto.
 	return &goproto.TxnHashResponse{Hash: hash.Bytes()}, nil
 }
 
-func (g *GrpcMptKV) Discard(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) Discard(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	g.kv.Discard()
 	return nil, nil
 }
 
-func (g *GrpcMptKV) DiscardAll(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) DiscardAll(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	g.kv.DiscardAll()
 	return nil, nil
 }
 
-func (g *GrpcMptKV) NextTxn(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
+func (g *GrpcMptKV) NextTxn(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	g.kv.NextTxn()
 	return nil, nil
 }
