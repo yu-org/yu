@@ -41,11 +41,3 @@ func (t *Tripod) Discard() {
 func (t *Tripod) DiscardAll() {
 	t.State.DiscardAll()
 }
-
-func (t *Tripod) StartBlock(blockHash Hash) {
-	t.State.StartBlock(blockHash)
-}
-
-func (t *Tripod) FinalizeBlock(blockHash Hash) {
-	t.State.FinalizeBlock(blockHash)
-}
