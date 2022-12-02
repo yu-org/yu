@@ -4,7 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
-	. "github.com/yu-org/yu/core/chain_env"
+	. "github.com/yu-org/yu/core/env"
 	. "github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
 	. "github.com/yu-org/yu/core/tripod"

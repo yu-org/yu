@@ -6,7 +6,7 @@ import (
 	"github.com/yu-org/yu/apps/synchronizer"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
-	"github.com/yu-org/yu/core/chain_env"
+	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
@@ -67,7 +67,7 @@ func StartUp(tripodInstances ...interface{}) {
 		Pool.WithTripodCheck(tri)
 	}
 
-	env := &chain_env.ChainEnv{
+	env := &env.ChainEnv{
 		State:      StateDB,
 		Chain:      Chain,
 		TxDB:       TxnDB,

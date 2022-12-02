@@ -5,7 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
-	"github.com/yu-org/yu/core/chain_env"
+	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/kernel"
 	. "github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/state"
@@ -140,7 +140,7 @@ func runNode(cfgPath string, poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGr
 	chain := blockchain.NewBlockChain(&cfg.BlockChain, base)
 	statedb := state.NewStateDB(kvdb)
 
-	env := &chain_env.ChainEnv{
+	env := &env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
 		TxDB:       base,

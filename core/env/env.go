@@ -1,4 +1,4 @@
-package chain_env
+package env
 
 import (
 	. "github.com/yu-org/yu/core/state"

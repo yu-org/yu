@@ -6,7 +6,6 @@ import (
 )
 
 type IState interface {
-	NextTxn()
 	Set(triName NameString, key, value []byte)
 	Delete(triName NameString, key []byte)
 	Get(triName NameString, key []byte) ([]byte, error)
@@ -14,6 +13,7 @@ type IState interface {
 	Exist(triName NameString, key []byte) bool
 	GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error)
 	Commit() (Hash, error)
+	NextTxn()
 	Discard()
 	DiscardAll()
 	StartBlock(blockHash Hash)

@@ -2,7 +2,7 @@ package tripod
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/core/chain_env"
+	. "github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
 	"path/filepath"
