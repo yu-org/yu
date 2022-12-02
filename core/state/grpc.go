@@ -11,8 +11,8 @@ type GrpcMptKV struct {
 	kv *MptKV
 }
 
-func NewGrpcMptKV(kv *MptKV) *GrpcMptKV {
-	return &GrpcMptKV{kv}
+func NewGrpcMptKV(kv IState) *GrpcMptKV {
+	return &GrpcMptKV{kv.(*MptKV)}
 }
 
 func (g *GrpcMptKV) Get(_ context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
