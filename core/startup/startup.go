@@ -67,7 +67,7 @@ func StartUp(tripodInstances ...interface{}) {
 		Pool.WithTripodCheck(tri)
 	}
 
-	env := &env.ChainEnv{
+	chainEnv := &env.ChainEnv{
 		State:      StateDB,
 		Chain:      Chain,
 		TxDB:       TxnDB,
@@ -77,7 +77,7 @@ func StartUp(tripodInstances ...interface{}) {
 	}
 
 	for i, t := range tripods {
-		t.SetChainEnv(env)
+		t.SetChainEnv(chainEnv)
 		t.SetLand(land)
 		t.SetInstance(tripodInstances[i])
 	}
@@ -91,7 +91,7 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k := kernel.NewKernel(kernelCfg, env, land)
+	k := kernel.NewKernel(kernelCfg, chainEnv, land)
 
 	k.Startup()
 }
