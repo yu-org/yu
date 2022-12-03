@@ -84,13 +84,13 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 
 	var results []Result
 	for _, stxn := range stxns {
-		ecall := stxn.Raw.WrCall
+		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
 			return err
 		}
 
-		writing, err := m.land.GetWriting(ecall)
+		writing, err := m.land.GetWriting(wrCall)
 		if err != nil {
 			m.handleError(err, ctx, block, stxn)
 			continue
@@ -182,12 +182,12 @@ func (m *Kernel) MasterWokrerRun() error {
 
 func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	ctx.EmitError(err)
-	ecall := stxn.Raw.WrCall
+	wrCall := stxn.Raw.WrCall
 
 	ctx.Error.Caller = stxn.Raw.Caller
 	ctx.Error.BlockStage = ExecuteTxnsStage
-	ctx.Error.TripodName = ecall.TripodName
-	ctx.Error.WritingName = ecall.WritingName
+	ctx.Error.TripodName = wrCall.TripodName
+	ctx.Error.WritingName = wrCall.WritingName
 	ctx.Error.BlockHash = block.Hash
 	ctx.Error.Height = block.Height
 
@@ -200,12 +200,12 @@ func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 
 func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	for _, event := range ctx.Events {
-		ecall := stxn.Raw.WrCall
+		wrCall := stxn.Raw.WrCall
 
 		event.Height = block.Height
 		event.BlockHash = block.Hash
-		event.WritingName = ecall.WritingName
-		event.TripodName = ecall.TripodName
+		event.WritingName = wrCall.WritingName
+		event.TripodName = wrCall.TripodName
 		event.LeiCost = ctx.LeiCost
 		event.BlockStage = ExecuteTxnsStage
 		event.Caller = stxn.Raw.Caller

@@ -26,6 +26,8 @@ var (
 	TxnDB   types.ItxDB
 	Pool    txpool.ItxPool
 	StateDB state.IState
+
+	Land = tripod.NewLand()
 )
 
 func SyncAndStartup(tripodInstances ...interface{}) {
@@ -41,8 +43,6 @@ func StartUp(tripodInstances ...interface{}) {
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
-
-	land := tripod.NewLand()
 
 	kvdb, err := kv.NewKvdb(&kernelCfg.KVDB)
 	if err != nil {
@@ -79,11 +79,11 @@ func StartUp(tripodInstances ...interface{}) {
 
 	for i, t := range tripods {
 		t.SetChainEnv(chainEnv)
-		t.SetLand(land)
+		t.SetLand(Land)
 		t.SetInstance(tripodInstances[i])
 	}
 
-	land.SetTripods(tripods...)
+	Land.SetTripods(tripods...)
 
 	for _, tripodInterface := range tripodInstances {
 		err = tripod.Inject(tripodInterface)
@@ -92,7 +92,7 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k := kernel.NewKernel(kernelCfg, chainEnv, land)
+	k := kernel.NewKernel(kernelCfg, chainEnv, Land)
 
 	k.Startup()
 }

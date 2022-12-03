@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WritingClient interface {
-	Write(ctx context.Context, in *WriteContext, opts ...grpc.CallOption) (*Err, error)
+	Write(ctx context.Context, in *WriteContext, opts ...grpc.CallOption) (*WriteResult, error)
 }
 
 type writingClient struct {
@@ -29,8 +29,8 @@ func NewWritingClient(cc grpc.ClientConnInterface) WritingClient {
 	return &writingClient{cc}
 }
 
-func (c *writingClient) Write(ctx context.Context, in *WriteContext, opts ...grpc.CallOption) (*Err, error) {
-	out := new(Err)
+func (c *writingClient) Write(ctx context.Context, in *WriteContext, opts ...grpc.CallOption) (*WriteResult, error) {
+	out := new(WriteResult)
 	err := c.cc.Invoke(ctx, "/Writing/Write", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,14 +42,14 @@ func (c *writingClient) Write(ctx context.Context, in *WriteContext, opts ...grp
 // All implementations should embed UnimplementedWritingServer
 // for forward compatibility
 type WritingServer interface {
-	Write(context.Context, *WriteContext) (*Err, error)
+	Write(context.Context, *WriteContext) (*WriteResult, error)
 }
 
 // UnimplementedWritingServer should be embedded to have forward compatible implementations.
 type UnimplementedWritingServer struct {
 }
 
-func (UnimplementedWritingServer) Write(context.Context, *WriteContext) (*Err, error) {
+func (UnimplementedWritingServer) Write(context.Context, *WriteContext) (*WriteResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
 
@@ -102,7 +102,7 @@ var Writing_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReadingClient interface {
-	Read(ctx context.Context, in *ReadContext, opts ...grpc.CallOption) (*Err, error)
+	Read(ctx context.Context, in *ReadContext, opts ...grpc.CallOption) (*ReadResult, error)
 }
 
 type readingClient struct {
@@ -113,8 +113,8 @@ func NewReadingClient(cc grpc.ClientConnInterface) ReadingClient {
 	return &readingClient{cc}
 }
 
-func (c *readingClient) Read(ctx context.Context, in *ReadContext, opts ...grpc.CallOption) (*Err, error) {
-	out := new(Err)
+func (c *readingClient) Read(ctx context.Context, in *ReadContext, opts ...grpc.CallOption) (*ReadResult, error) {
+	out := new(ReadResult)
 	err := c.cc.Invoke(ctx, "/Reading/Read", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -126,14 +126,14 @@ func (c *readingClient) Read(ctx context.Context, in *ReadContext, opts ...grpc.
 // All implementations should embed UnimplementedReadingServer
 // for forward compatibility
 type ReadingServer interface {
-	Read(context.Context, *ReadContext) (*Err, error)
+	Read(context.Context, *ReadContext) (*ReadResult, error)
 }
 
 // UnimplementedReadingServer should be embedded to have forward compatible implementations.
 type UnimplementedReadingServer struct {
 }
 
-func (UnimplementedReadingServer) Read(context.Context, *ReadContext) (*Err, error) {
+func (UnimplementedReadingServer) Read(context.Context, *ReadContext) (*ReadResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
 }
 

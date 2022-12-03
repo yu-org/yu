@@ -51,12 +51,12 @@ func (c *WriteContext) SetLeiFn(fn func() uint64) {
 }
 
 func (c *WriteContext) EmitEvent(bytes []byte) {
-	event := &Event{Value: string(bytes)}
+	event := &Event{Value: bytes}
 	c.Events = append(c.Events, event)
 }
 
 func (c *WriteContext) EmitStringEvent(format string, values ...any) {
-	event := &Event{Value: fmt.Sprintf(format, values...)}
+	event := &Event{Value: []byte(fmt.Sprintf(format, values...))}
 	c.Events = append(c.Events, event)
 }
 
@@ -66,7 +66,7 @@ func (c *WriteContext) EmitJsonEvent(value any) error {
 		logrus.Error("json encode to bytes error: ", err)
 		return err
 	}
-	event := &Event{Value: string(byt)}
+	event := &Event{Value: byt}
 	c.Events = append(c.Events, event)
 	return nil
 }

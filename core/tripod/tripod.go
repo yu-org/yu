@@ -3,7 +3,7 @@ package tripod
 import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/env"
-	"github.com/yu-org/yu/core/tripod/dev"
+	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
 	"path/filepath"
 	"reflect"
@@ -25,19 +25,19 @@ type Tripod struct {
 
 	name string
 	// Key: Writing Name
-	writings map[string]dev.Writing
+	writings map[string]Writing
 	// Key: Reading Name
-	readings map[string]dev.Reading
+	readings map[string]Reading
 	// key: p2p-handler type code
-	P2pHandlers map[int]dev.P2pHandler
+	P2pHandlers map[int]P2pHandler
 }
 
 func NewTripod(name string) *Tripod {
 	return &Tripod{
 		name:        name,
-		writings:    make(map[string]dev.Writing),
-		readings:    make(map[string]dev.Reading),
-		P2pHandlers: make(map[int]dev.P2pHandler),
+		writings:    make(map[string]Writing),
+		readings:    make(map[string]Reading),
+		P2pHandlers: make(map[int]P2pHandler),
 
 		BlockVerifier: &DefaultBlockVerifier{},
 		TxnChecker:    &DefaultTxnChecker{},
@@ -78,7 +78,7 @@ func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 	t.TxnChecker = tc
 }
 
-func (t *Tripod) SetWritings(wrs ...dev.Writing) {
+func (t *Tripod) SetWritings(wrs ...Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
 		t.writings[name] = wr
@@ -86,7 +86,7 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	}
 }
 
-func (t *Tripod) SetReadings(readings ...dev.Reading) {
+func (t *Tripod) SetReadings(readings ...Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
 		t.readings[name] = r
@@ -94,7 +94,7 @@ func (t *Tripod) SetReadings(readings ...dev.Reading) {
 	}
 }
 
-func (t *Tripod) SetP2pHandler(code int, handler dev.P2pHandler) *Tripod {
+func (t *Tripod) SetP2pHandler(code int, handler P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
 	logrus.Debugf("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
@@ -113,11 +113,11 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) GetWriting(name string) dev.Writing {
+func (t *Tripod) GetWriting(name string) Writing {
 	return t.writings[name]
 }
 
-func (t *Tripod) GetReading(name string) dev.Reading {
+func (t *Tripod) GetReading(name string) Reading {
 	return t.readings[name]
 }
 

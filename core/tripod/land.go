@@ -4,7 +4,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/context"
-	"github.com/yu-org/yu/core/tripod/dev"
+	. "github.com/yu-org/yu/core/tripod/dev"
 )
 
 type Land struct {
@@ -36,7 +36,7 @@ func (l *Land) GetTripodInstance(name string) interface{} {
 	return nil
 }
 
-func (l *Land) GetWriting(c *WrCall) (dev.Writing, error) {
+func (l *Land) GetWriting(c *WrCall) (Writing, error) {
 	tripod, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return nil, TripodNotFound(c.TripodName)
