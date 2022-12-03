@@ -14,7 +14,7 @@ type Event struct {
 	Height      BlockNum `json:"height"`
 	TripodName  string   `json:"tripod_name"`
 	WritingName string   `json:"writing_name"`
-	Value       string   `json:"value"`
+	Value       []byte   `json:"value"`
 	LeiCost     uint64   `json:"lei_cost"`
 }
 

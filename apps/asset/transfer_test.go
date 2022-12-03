@@ -5,8 +5,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
-	"github.com/yu-org/yu/core/chain_env"
 	"github.com/yu-org/yu/core/context"
+	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/infra/storage/kv"
@@ -95,7 +95,7 @@ func newAsset(t *testing.T) *Asset {
 	assert.NoError(t, err)
 	statedb := state.NewStateDB(kvdb)
 	codec.GlobalCodec = &codec.RlpCodec{}
-	env := &chain_env.ChainEnv{State: statedb}
+	env := &env.ChainEnv{State: statedb}
 	asset.SetChainEnv(env)
 	asset.SetBalance(Aaddr, initAamount)
 	asset.SetBalance(Baddr, initBamount)

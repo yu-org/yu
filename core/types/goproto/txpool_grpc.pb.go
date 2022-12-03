@@ -120,7 +120,7 @@ func (c *txpoolClient) Reset(ctx context.Context, in *emptypb.Empty, opts ...grp
 }
 
 // TxpoolServer is the server API for Txpool service.
-// All implementations must embed UnimplementedTxpoolServer
+// All implementations should embed UnimplementedTxpoolServer
 // for forward compatibility
 type TxpoolServer interface {
 	PoolSize(context.Context, *emptypb.Empty) (*U64, error)
@@ -132,10 +132,9 @@ type TxpoolServer interface {
 	RemovesTxns(context.Context, *TxnsHashes) (*Err, error)
 	Pack(context.Context, *U64) (*TxnsResponse, error)
 	Reset(context.Context, *emptypb.Empty) (*Err, error)
-	mustEmbedUnimplementedTxpoolServer()
 }
 
-// UnimplementedTxpoolServer must be embedded to have forward compatible implementations.
+// UnimplementedTxpoolServer should be embedded to have forward compatible implementations.
 type UnimplementedTxpoolServer struct {
 }
 
@@ -166,7 +165,6 @@ func (UnimplementedTxpoolServer) Pack(context.Context, *U64) (*TxnsResponse, err
 func (UnimplementedTxpoolServer) Reset(context.Context, *emptypb.Empty) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Reset not implemented")
 }
-func (UnimplementedTxpoolServer) mustEmbedUnimplementedTxpoolServer() {}
 
 // UnsafeTxpoolServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TxpoolServer will

@@ -6,7 +6,7 @@ import (
 
 type (
 	// Writing Developers define the 'Writing' in the pod to let clients call.
-	// Just like transactions in ETH, extrinsic in Substrate
+	// Just like transactions in ETH
 	Writing func(ctx *WriteContext) error
 	// Reading Developers define the 'Reading' in the pod to let clients query the blockchain.
 	// This operation has no consensus reached in the blockchain network.

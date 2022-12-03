@@ -149,7 +149,7 @@ func (a *Asset) SetBalance(addr Address, amount *big.Int) {
 		logrus.Panic("amount marshal error: ", err)
 	}
 
-	a.State.Set(a, addr.Bytes(), amountText)
+	a.Set(addr.Bytes(), amountText)
 }
 
 func (a *Asset) AddBalance(addr Address, amount *big.Int) error {

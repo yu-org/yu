@@ -10,7 +10,7 @@ import (
 )
 
 type ReadContext struct {
-	paramsStr string
+	ParamsStr string
 	paramsMap map[string]interface{}
 
 	response []byte
@@ -23,13 +23,13 @@ func NewReadContext(paramsStr string) (*ReadContext, error) {
 		return nil, err
 	}
 	return &ReadContext{
-		paramsStr: paramsStr,
+		ParamsStr: paramsStr,
 		paramsMap: paramsMap,
 	}, nil
 }
 
 func (c *ReadContext) BindJson(v any) error {
-	return BindJsonParams(c.paramsStr, v)
+	return BindJsonParams(c.ParamsStr, v)
 }
 
 func (c *ReadContext) Response() []byte {

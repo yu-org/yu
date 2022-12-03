@@ -6,7 +6,7 @@ import (
 	"github.com/yu-org/yu/apps/synchronizer"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
-	"github.com/yu-org/yu/core/chain_env"
+	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/subscribe"
@@ -17,7 +17,6 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
-	"os"
 )
 
 var (
@@ -27,6 +26,8 @@ var (
 	TxnDB   types.ItxDB
 	Pool    txpool.ItxPool
 	StateDB state.IState
+
+	Land = tripod.NewLand()
 )
 
 func SyncAndStartup(tripodInstances ...interface{}) {
@@ -42,8 +43,6 @@ func StartUp(tripodInstances ...interface{}) {
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
-
-	land := tripod.NewLand()
 
 	kvdb, err := kv.NewKvdb(&kernelCfg.KVDB)
 	if err != nil {
@@ -63,11 +62,13 @@ func StartUp(tripodInstances ...interface{}) {
 		StateDB = state.NewStateDB(kvdb)
 	}
 
+	StartGrpcServer()
+
 	for _, tri := range tripods {
 		Pool.WithTripodCheck(tri)
 	}
 
-	env := &chain_env.ChainEnv{
+	chainEnv := &env.ChainEnv{
 		State:      StateDB,
 		Chain:      Chain,
 		TxDB:       TxnDB,
@@ -77,12 +78,12 @@ func StartUp(tripodInstances ...interface{}) {
 	}
 
 	for i, t := range tripods {
-		t.SetChainEnv(env)
-		t.SetLand(land)
+		t.SetChainEnv(chainEnv)
+		t.SetLand(Land)
 		t.SetInstance(tripodInstances[i])
 	}
 
-	land.SetTripods(tripods...)
+	Land.SetTripods(tripods...)
 
 	for _, tripodInterface := range tripodInstances {
 		err = tripod.Inject(tripodInterface)
@@ -91,52 +92,7 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k := kernel.NewKernel(kernelCfg, env, land)
+	k := kernel.NewKernel(kernelCfg, chainEnv, Land)
 
 	k.Startup()
-}
-
-func InitConfigFromPath(cfgPath string) {
-	config.LoadTomlConf(cfgPath, kernelCfg)
-	initLog(kernelCfg)
-}
-
-func InitConfig(cfg *config.KernelConf) {
-	kernelCfg = cfg
-	initLog(kernelCfg)
-}
-
-func InitDefaultConfig() {
-	kernelCfg = config.InitDefaultCfg()
-	initLog(kernelCfg)
-}
-
-func initLog(cfg *config.KernelConf) {
-	formatter := &logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-	}
-	logrus.SetFormatter(formatter)
-
-	var (
-		logfile *os.File
-		err     error
-	)
-
-	if cfg.LogOutput == "" {
-		logfile = os.Stderr
-	} else {
-		logfile, err = os.OpenFile(cfg.LogOutput, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
-		if err != nil {
-			panic("init log file error: " + err.Error())
-		}
-	}
-
-	logrus.SetOutput(logfile)
-	lvl, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		panic("parse log level error: " + err.Error())
-	}
-
-	logrus.SetLevel(lvl)
 }

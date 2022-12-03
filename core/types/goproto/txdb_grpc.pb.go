@@ -14,10 +14,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// YuDBClient is the client API for YuDB service.
+// TxDBClient is the client API for TxDB service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type YuDBClient interface {
+type TxDBClient interface {
 	GetTxn(ctx context.Context, in *TxnHash, opts ...grpc.CallOption) (*TxnResponse, error)
 	SetTxn(ctx context.Context, in *SignedTxn, opts ...grpc.CallOption) (*Err, error)
 	GetTxns(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*TxnsResponse, error)
@@ -28,90 +28,90 @@ type YuDBClient interface {
 	SetError(ctx context.Context, in *Error, opts ...grpc.CallOption) (*Err, error)
 }
 
-type yuDBClient struct {
+type txDBClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewYuDBClient(cc grpc.ClientConnInterface) YuDBClient {
-	return &yuDBClient{cc}
+func NewTxDBClient(cc grpc.ClientConnInterface) TxDBClient {
+	return &txDBClient{cc}
 }
 
-func (c *yuDBClient) GetTxn(ctx context.Context, in *TxnHash, opts ...grpc.CallOption) (*TxnResponse, error) {
+func (c *txDBClient) GetTxn(ctx context.Context, in *TxnHash, opts ...grpc.CallOption) (*TxnResponse, error) {
 	out := new(TxnResponse)
-	err := c.cc.Invoke(ctx, "/YuDB/GetTxn", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/GetTxn", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) SetTxn(ctx context.Context, in *SignedTxn, opts ...grpc.CallOption) (*Err, error) {
+func (c *txDBClient) SetTxn(ctx context.Context, in *SignedTxn, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/YuDB/SetTxn", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/SetTxn", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) GetTxns(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*TxnsResponse, error) {
+func (c *txDBClient) GetTxns(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*TxnsResponse, error) {
 	out := new(TxnsResponse)
-	err := c.cc.Invoke(ctx, "/YuDB/GetTxns", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/GetTxns", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) SetTxns(ctx context.Context, in *TxnsRequest, opts ...grpc.CallOption) (*Err, error) {
+func (c *txDBClient) SetTxns(ctx context.Context, in *TxnsRequest, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/YuDB/SetTxns", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/SetTxns", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) GetEvents(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*EventsResponse, error) {
+func (c *txDBClient) GetEvents(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*EventsResponse, error) {
 	out := new(EventsResponse)
-	err := c.cc.Invoke(ctx, "/YuDB/GetEvents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/GetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) SetEvents(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*Err, error) {
+func (c *txDBClient) SetEvents(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/YuDB/SetEvents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/SetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) GetErrors(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*ErrorsResponse, error) {
+func (c *txDBClient) GetErrors(ctx context.Context, in *BlockHash, opts ...grpc.CallOption) (*ErrorsResponse, error) {
 	out := new(ErrorsResponse)
-	err := c.cc.Invoke(ctx, "/YuDB/GetErrors", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/GetErrors", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *yuDBClient) SetError(ctx context.Context, in *Error, opts ...grpc.CallOption) (*Err, error) {
+func (c *txDBClient) SetError(ctx context.Context, in *Error, opts ...grpc.CallOption) (*Err, error) {
 	out := new(Err)
-	err := c.cc.Invoke(ctx, "/YuDB/SetError", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/TxDB/SetError", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// YuDBServer is the server API for YuDB service.
-// All implementations must embed UnimplementedYuDBServer
+// TxDBServer is the server API for TxDB service.
+// All implementations should embed UnimplementedTxDBServer
 // for forward compatibility
-type YuDBServer interface {
+type TxDBServer interface {
 	GetTxn(context.Context, *TxnHash) (*TxnResponse, error)
 	SetTxn(context.Context, *SignedTxn) (*Err, error)
 	GetTxns(context.Context, *BlockHash) (*TxnsResponse, error)
@@ -120,234 +120,232 @@ type YuDBServer interface {
 	SetEvents(context.Context, *EventsRequest) (*Err, error)
 	GetErrors(context.Context, *BlockHash) (*ErrorsResponse, error)
 	SetError(context.Context, *Error) (*Err, error)
-	mustEmbedUnimplementedYuDBServer()
 }
 
-// UnimplementedYuDBServer must be embedded to have forward compatible implementations.
-type UnimplementedYuDBServer struct {
+// UnimplementedTxDBServer should be embedded to have forward compatible implementations.
+type UnimplementedTxDBServer struct {
 }
 
-func (UnimplementedYuDBServer) GetTxn(context.Context, *TxnHash) (*TxnResponse, error) {
+func (UnimplementedTxDBServer) GetTxn(context.Context, *TxnHash) (*TxnResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTxn not implemented")
 }
-func (UnimplementedYuDBServer) SetTxn(context.Context, *SignedTxn) (*Err, error) {
+func (UnimplementedTxDBServer) SetTxn(context.Context, *SignedTxn) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetTxn not implemented")
 }
-func (UnimplementedYuDBServer) GetTxns(context.Context, *BlockHash) (*TxnsResponse, error) {
+func (UnimplementedTxDBServer) GetTxns(context.Context, *BlockHash) (*TxnsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTxns not implemented")
 }
-func (UnimplementedYuDBServer) SetTxns(context.Context, *TxnsRequest) (*Err, error) {
+func (UnimplementedTxDBServer) SetTxns(context.Context, *TxnsRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetTxns not implemented")
 }
-func (UnimplementedYuDBServer) GetEvents(context.Context, *BlockHash) (*EventsResponse, error) {
+func (UnimplementedTxDBServer) GetEvents(context.Context, *BlockHash) (*EventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
 }
-func (UnimplementedYuDBServer) SetEvents(context.Context, *EventsRequest) (*Err, error) {
+func (UnimplementedTxDBServer) SetEvents(context.Context, *EventsRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetEvents not implemented")
 }
-func (UnimplementedYuDBServer) GetErrors(context.Context, *BlockHash) (*ErrorsResponse, error) {
+func (UnimplementedTxDBServer) GetErrors(context.Context, *BlockHash) (*ErrorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetErrors not implemented")
 }
-func (UnimplementedYuDBServer) SetError(context.Context, *Error) (*Err, error) {
+func (UnimplementedTxDBServer) SetError(context.Context, *Error) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetError not implemented")
 }
-func (UnimplementedYuDBServer) mustEmbedUnimplementedYuDBServer() {}
 
-// UnsafeYuDBServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to YuDBServer will
+// UnsafeTxDBServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TxDBServer will
 // result in compilation errors.
-type UnsafeYuDBServer interface {
-	mustEmbedUnimplementedYuDBServer()
+type UnsafeTxDBServer interface {
+	mustEmbedUnimplementedTxDBServer()
 }
 
-func RegisterYuDBServer(s grpc.ServiceRegistrar, srv YuDBServer) {
-	s.RegisterService(&YuDB_ServiceDesc, srv)
+func RegisterTxDBServer(s grpc.ServiceRegistrar, srv TxDBServer) {
+	s.RegisterService(&TxDB_ServiceDesc, srv)
 }
 
-func _YuDB_GetTxn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_GetTxn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TxnHash)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).GetTxn(ctx, in)
+		return srv.(TxDBServer).GetTxn(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/GetTxn",
+		FullMethod: "/TxDB/GetTxn",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).GetTxn(ctx, req.(*TxnHash))
+		return srv.(TxDBServer).GetTxn(ctx, req.(*TxnHash))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_SetTxn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_SetTxn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SignedTxn)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).SetTxn(ctx, in)
+		return srv.(TxDBServer).SetTxn(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/SetTxn",
+		FullMethod: "/TxDB/SetTxn",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).SetTxn(ctx, req.(*SignedTxn))
+		return srv.(TxDBServer).SetTxn(ctx, req.(*SignedTxn))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_GetTxns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_GetTxns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BlockHash)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).GetTxns(ctx, in)
+		return srv.(TxDBServer).GetTxns(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/GetTxns",
+		FullMethod: "/TxDB/GetTxns",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).GetTxns(ctx, req.(*BlockHash))
+		return srv.(TxDBServer).GetTxns(ctx, req.(*BlockHash))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_SetTxns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_SetTxns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TxnsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).SetTxns(ctx, in)
+		return srv.(TxDBServer).SetTxns(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/SetTxns",
+		FullMethod: "/TxDB/SetTxns",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).SetTxns(ctx, req.(*TxnsRequest))
+		return srv.(TxDBServer).SetTxns(ctx, req.(*TxnsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BlockHash)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).GetEvents(ctx, in)
+		return srv.(TxDBServer).GetEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/GetEvents",
+		FullMethod: "/TxDB/GetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).GetEvents(ctx, req.(*BlockHash))
+		return srv.(TxDBServer).GetEvents(ctx, req.(*BlockHash))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_SetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_SetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).SetEvents(ctx, in)
+		return srv.(TxDBServer).SetEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/SetEvents",
+		FullMethod: "/TxDB/SetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).SetEvents(ctx, req.(*EventsRequest))
+		return srv.(TxDBServer).SetEvents(ctx, req.(*EventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_GetErrors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_GetErrors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BlockHash)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).GetErrors(ctx, in)
+		return srv.(TxDBServer).GetErrors(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/GetErrors",
+		FullMethod: "/TxDB/GetErrors",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).GetErrors(ctx, req.(*BlockHash))
+		return srv.(TxDBServer).GetErrors(ctx, req.(*BlockHash))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _YuDB_SetError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TxDB_SetError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Error)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(YuDBServer).SetError(ctx, in)
+		return srv.(TxDBServer).SetError(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/YuDB/SetError",
+		FullMethod: "/TxDB/SetError",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YuDBServer).SetError(ctx, req.(*Error))
+		return srv.(TxDBServer).SetError(ctx, req.(*Error))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// YuDB_ServiceDesc is the grpc.ServiceDesc for YuDB service.
+// TxDB_ServiceDesc is the grpc.ServiceDesc for TxDB service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var YuDB_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "YuDB",
-	HandlerType: (*YuDBServer)(nil),
+var TxDB_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "TxDB",
+	HandlerType: (*TxDBServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetTxn",
-			Handler:    _YuDB_GetTxn_Handler,
+			Handler:    _TxDB_GetTxn_Handler,
 		},
 		{
 			MethodName: "SetTxn",
-			Handler:    _YuDB_SetTxn_Handler,
+			Handler:    _TxDB_SetTxn_Handler,
 		},
 		{
 			MethodName: "GetTxns",
-			Handler:    _YuDB_GetTxns_Handler,
+			Handler:    _TxDB_GetTxns_Handler,
 		},
 		{
 			MethodName: "SetTxns",
-			Handler:    _YuDB_SetTxns_Handler,
+			Handler:    _TxDB_SetTxns_Handler,
 		},
 		{
 			MethodName: "GetEvents",
-			Handler:    _YuDB_GetEvents_Handler,
+			Handler:    _TxDB_GetEvents_Handler,
 		},
 		{
 			MethodName: "SetEvents",
-			Handler:    _YuDB_SetEvents_Handler,
+			Handler:    _TxDB_SetEvents_Handler,
 		},
 		{
 			MethodName: "GetErrors",
-			Handler:    _YuDB_GetErrors_Handler,
+			Handler:    _TxDB_GetErrors_Handler,
 		},
 		{
 			MethodName: "SetError",
-			Handler:    _YuDB_SetError_Handler,
+			Handler:    _TxDB_SetError_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "yudb.proto",
+	Metadata: "txdb.proto",
 }

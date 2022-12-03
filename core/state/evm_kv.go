@@ -74,7 +74,7 @@ func (db *EvmKV) muteBalance(op Ops, addr Address, b *big.Int) {
 }
 
 func (db *EvmKV) muteKV(op Ops, triName NameString, key, value []byte) {
-	db.mute().append(op, makeKey(triName, key), value)
+	db.mute().append(op, makeKey(triName.Name(), key), value)
 }
 
 func (db *EvmKV) mute() *EvmTxnStashes {
@@ -98,7 +98,7 @@ func (db *EvmKV) Delete(triName NameString, key []byte) {
 
 func (db *EvmKV) Get(triName NameString, key []byte) ([]byte, error) {
 	for i := len(db.stashes) - 1; i >= 0; i-- {
-		value := db.stashes[i].get(makeKey(triName, key))
+		value := db.stashes[i].get(makeKey(triName.Name(), key))
 		if value != nil {
 			return value, nil
 		}
@@ -124,7 +124,7 @@ func (db *EvmKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) 
 	if err != nil {
 		return nil, err
 	}
-	return mpt.TryGet(makeKey(triName, key))
+	return mpt.TryGet(makeKey(triName.Name(), key))
 }
 
 func (db *EvmKV) Commit() (Hash, error) {

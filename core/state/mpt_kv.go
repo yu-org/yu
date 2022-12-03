@@ -50,14 +50,22 @@ func (skv *MptKV) NextTxn() {
 }
 
 func (skv *MptKV) Set(triName NameString, key, value []byte) {
+	skv.set(triName.Name(), key, value)
+}
+
+func (skv *MptKV) set(triName string, key, value []byte) {
 	skv.mute(SetOp, triName, key, value)
 }
 
 func (skv *MptKV) Delete(triName NameString, key []byte) {
+	skv.delete(triName.Name(), key)
+}
+
+func (skv *MptKV) delete(triName string, key []byte) {
 	skv.mute(DeleteOp, triName, key, nil)
 }
 
-func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
+func (skv *MptKV) mute(op Ops, triName string, key, value []byte) {
 	if skv.stashes.Len() == 0 {
 		skv.stashes.PushBack(newTxnStashes())
 	}
@@ -65,6 +73,10 @@ func (skv *MptKV) mute(op Ops, triName NameString, key, value []byte) {
 }
 
 func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
+	return skv.get(triName.Name(), key)
+}
+
+func (skv *MptKV) get(triName string, key []byte) ([]byte, error) {
 	for element := skv.stashes.Back(); element != nil; element = element.Prev() {
 		stashes := element.Value.(*TxnStashes)
 		ops, value := stashes.get(makeKey(triName, key))
@@ -77,19 +89,31 @@ func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
 			}
 		}
 	}
-	return skv.GetByBlockHash(triName, key, skv.prevBlock)
+	return skv.getByBlockHash(triName, key, skv.prevBlock)
 }
 
 func (skv *MptKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
 	return skv.GetByBlockHash(triName, key, skv.finalizedBlock)
 }
 
+func (skv *MptKV) getFinalized(triName string, key []byte) ([]byte, error) {
+	return skv.getByBlockHash(triName, key, skv.finalizedBlock)
+}
+
 func (skv *MptKV) Exist(triName NameString, key []byte) bool {
-	value, _ := skv.Get(triName, key)
+	return skv.exist(triName.Name(), key)
+}
+
+func (skv *MptKV) exist(triName string, key []byte) bool {
+	value, _ := skv.get(triName, key)
 	return value != nil
 }
 
 func (skv *MptKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
+	return skv.getByBlockHash(triName.Name(), key, blockHash)
+}
+
+func (skv *MptKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
 	stateRoot, err := skv.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
@@ -183,8 +207,8 @@ func (skv *MptKV) getIndexDB(blockHash Hash) (Hash, error) {
 	return BytesToHash(stateRoot), nil
 }
 
-func makeKey(triName NameString, key []byte) []byte {
-	tripodName := []byte(triName.Name())
+func makeKey(triName string, key []byte) []byte {
+	tripodName := []byte(triName)
 	return append(tripodName, key...)
 }
 

@@ -39,21 +39,19 @@ func (c *subscriptionClient) Emit(ctx context.Context, in *Bytes, opts ...grpc.C
 }
 
 // SubscriptionServer is the server API for Subscription service.
-// All implementations must embed UnimplementedSubscriptionServer
+// All implementations should embed UnimplementedSubscriptionServer
 // for forward compatibility
 type SubscriptionServer interface {
 	Emit(context.Context, *Bytes) (*Err, error)
-	mustEmbedUnimplementedSubscriptionServer()
 }
 
-// UnimplementedSubscriptionServer must be embedded to have forward compatible implementations.
+// UnimplementedSubscriptionServer should be embedded to have forward compatible implementations.
 type UnimplementedSubscriptionServer struct {
 }
 
 func (UnimplementedSubscriptionServer) Emit(context.Context, *Bytes) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Emit not implemented")
 }
-func (UnimplementedSubscriptionServer) mustEmbedUnimplementedSubscriptionServer() {}
 
 // UnsafeSubscriptionServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to SubscriptionServer will

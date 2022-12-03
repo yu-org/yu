@@ -18,6 +18,8 @@ type KernelConf struct {
 	// 0: local-node
 	// 1: master-worker
 	RunMode RunMode `toml:"run_mode"`
+	// grpc endpoint, only master-worker has it.
+	GrpcPort string `toml:"grpc_port"`
 	// serve http port
 	HttpPort string `toml:"http_port"`
 	// serve websocket port

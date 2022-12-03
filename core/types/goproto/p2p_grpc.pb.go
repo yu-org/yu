@@ -84,7 +84,7 @@ func (c *p2PNetworkClient) SubP2P(ctx context.Context, in *SubRequest, opts ...g
 }
 
 // P2PNetworkServer is the server API for P2PNetwork service.
-// All implementations must embed UnimplementedP2PNetworkServer
+// All implementations should embed UnimplementedP2PNetworkServer
 // for forward compatibility
 type P2PNetworkServer interface {
 	// kernel(rpc server)
@@ -96,10 +96,9 @@ type P2PNetworkServer interface {
 	AddTopic(context.Context, *String) (*emptypb.Empty, error)
 	PubP2P(context.Context, *PubRequest) (*Err, error)
 	SubP2P(context.Context, *SubRequest) (*SubResponse, error)
-	mustEmbedUnimplementedP2PNetworkServer()
 }
 
-// UnimplementedP2PNetworkServer must be embedded to have forward compatible implementations.
+// UnimplementedP2PNetworkServer should be embedded to have forward compatible implementations.
 type UnimplementedP2PNetworkServer struct {
 }
 
@@ -118,7 +117,6 @@ func (UnimplementedP2PNetworkServer) PubP2P(context.Context, *PubRequest) (*Err,
 func (UnimplementedP2PNetworkServer) SubP2P(context.Context, *SubRequest) (*SubResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubP2P not implemented")
 }
-func (UnimplementedP2PNetworkServer) mustEmbedUnimplementedP2PNetworkServer() {}
 
 // UnsafeP2PNetworkServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to P2PNetworkServer will
