@@ -155,7 +155,7 @@ func (h *Poa) StartBlock(block *Block) {
 
 	logrus.Info("====== start a new block ", block.Height)
 
-	if h.AmILeader(block.Height) {
+	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
 			logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
 				block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
