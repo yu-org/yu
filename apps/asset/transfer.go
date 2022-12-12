@@ -122,7 +122,7 @@ func (a *Asset) CreateAccount(ctx *WriteContext) error {
 }
 
 func (a *Asset) ExistAccount(addr Address) bool {
-	return a.State.Exist(a, addr.Bytes())
+	return a.Exist(addr.Bytes())
 }
 
 func (a *Asset) GetBalance(addr Address) *big.Int {

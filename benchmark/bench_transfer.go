@@ -38,7 +38,7 @@ func main() {
 		time.Sleep(10 * time.Microsecond)
 	}
 
-	logrus.Infof("create accounts (%d) cost %d", len(users), time.Since(start).Milliseconds())
+	logrus.Infof("create accounts (%d) cost %d ms", len(users), time.Since(start).Milliseconds())
 
 	for {
 		for i, user := range users {
@@ -49,9 +49,9 @@ func main() {
 				to = users[i+1].pub.Address()
 			}
 
-			TransferBalance(Websocket, user.prv, user.pub, to, 10, 1)
+			TransferBalance(Websocket, user.prv, user.pub, to, 10, 0)
 			counter.Inc()
-			time.Sleep(10 * time.Microsecond)
+			time.Sleep(100 * time.Microsecond)
 		}
 	}
 }
