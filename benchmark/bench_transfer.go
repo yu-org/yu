@@ -19,7 +19,7 @@ var counter = atomic.NewInt64(0)
 
 func main() {
 	var users []pair
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 1000; i++ {
 		pub, priv := GenSrKey()
 		users = append(users, pair{
 			prv: priv,
@@ -40,7 +40,7 @@ func main() {
 
 	logrus.Infof("create accounts (%d) cost %d ms", len(users), time.Since(start).Milliseconds())
 
-	for j := 0; j < 1; j++ {
+	for {
 		for i, user := range users {
 			var to common.Address
 			if i == len(users)-1 {
@@ -51,10 +51,9 @@ func main() {
 
 			TransferBalance(Websocket, user.prv, user.pub, to, 10, 0)
 			counter.Inc()
-			time.Sleep(10 * time.Microsecond)
+			time.Sleep(100 * time.Microsecond)
 		}
 	}
-	select {}
 }
 
 func caculateTPS() {
