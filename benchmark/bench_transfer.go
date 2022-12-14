@@ -19,7 +19,7 @@ var counter = atomic.NewInt64(0)
 
 func main() {
 	var users []pair
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100; i++ {
 		pub, priv := GenSrKey()
 		users = append(users, pair{
 			prv: priv,
