@@ -126,6 +126,7 @@ func (m *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string)
 }
 
 func (m *Kernel) errorAndClose(c *websocket.Conn, text string) {
-	logrus.Error(text)
+	// FIXEME
 	c.WriteMessage(websocket.CloseMessage, []byte(text))
+	c.Close()
 }

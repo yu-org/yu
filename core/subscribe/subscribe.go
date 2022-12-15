@@ -54,6 +54,8 @@ func (s *Subscription) emitToClients() {
 				err = conn.WriteMessage(TextMessage, byt)
 				if err != nil {
 					logrus.Errorf("emit result to client(%s) error: %s", conn.RemoteAddr().String(), err.Error())
+					conn.Close()
+					s.subscribers.Delete(connI)
 				}
 				return true
 			})
