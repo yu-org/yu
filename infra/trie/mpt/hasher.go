@@ -183,7 +183,7 @@ func (h *hasher) store(n node, db *NodeBase, force bool) (node, error) {
 		hash := common.BytesToHash(hash)
 
 		db.lock.Lock()
-		db.insert(hash, h.tmp)
+		db.Insert(hash, h.tmp)
 		db.lock.Unlock()
 
 		// Track external references from account->storage trie
