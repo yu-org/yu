@@ -9,6 +9,7 @@ import (
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
+	"time"
 )
 
 func (m *Kernel) Run() {
@@ -123,14 +124,23 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 		for _, event := range ctx.Events {
 			results = append(results, event)
 		}
+
+		resultsStart := time.Now()
+
 		err = m.base.SetResults(results)
 		if err != nil {
 			return err
 		}
-		err = m.base.SetResult(ctx.Error)
-		if err != nil {
-			return err
+		logrus.Infof("----- set results for %d ms", time.Since(resultsStart).Milliseconds())
+
+		errStart := time.Now()
+		if ctx.Error != nil {
+			err = m.base.SetResult(ctx.Error)
+			if err != nil {
+				return err
+			}
 		}
+		logrus.Infof("----- set error for %d ms", time.Since(errStart).Milliseconds())
 	}
 
 	stateRoot, err := m.stateDB.Commit()

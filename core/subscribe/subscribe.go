@@ -16,7 +16,7 @@ type Subscription struct {
 func NewSubscription() *Subscription {
 	s := &Subscription{
 		subscribers: sync.Map{},
-		resultChan:  make(chan Result, 10),
+		resultChan:  make(chan Result, 3096),
 	}
 	go s.emitToClients()
 	return s

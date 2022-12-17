@@ -20,6 +20,8 @@ func main() {
 	// dayu, _ := keypair.GenSrKey([]byte("yu"))
 	// boyi, _ := keypair.GenSrKey([]byte("boyi"))
 
+	// defer profile.Start(profile.MutexProfile).Stop()
+
 	idxStr := os.Args[1]
 	idx, err := strconv.Atoi(idxStr)
 	if err != nil {

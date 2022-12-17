@@ -1,6 +1,7 @@
 package txdb
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/types"
@@ -66,10 +67,15 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 }
 
 func (bb *TxDB) SetResults(results []Result) error {
+	if len(results) == 0 {
+		return nil
+	}
 	kvtx, err := bb.resultKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
+
+	var keyLens, valueLens int
 	for _, result := range results {
 		byt, err := result.Encode()
 		if err != nil {
@@ -79,8 +85,15 @@ func (bb *TxDB) SetResults(results []Result) error {
 		if err != nil {
 			return err
 		}
+		keyLens += len(hash.Bytes())
+		valueLens += len(byt)
 		err = kvtx.Set(hash.Bytes(), byt)
+		if err != nil {
+			return err
+		}
 	}
+
+	logrus.Infof("--- key length is %d, value length is %d ", keyLens, valueLens)
 	return kvtx.Commit()
 }
 
