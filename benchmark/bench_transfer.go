@@ -53,7 +53,6 @@ func main() {
 			counter.Inc()
 			time.Sleep(100 * time.Microsecond)
 		}
-		logrus.Info("----- transfer one turn")
 	}
 	select {}
 }
