@@ -21,5 +21,5 @@ sql_db_type = "sqlite"
 dsn = "chain.db"
 
 [txpool]
-pool_size = 20000
+pool_size = 200000
 txn_max_size = 1024000

@@ -122,15 +122,22 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 		}
 	}
 
-	err := m.base.SetResults(results)
-	if err != nil {
-		return err
+	// resStart := time.Now()
+	if len(results) > 0 {
+		err := m.base.SetResults(results)
+		if err != nil {
+			return err
+		}
 	}
+	// logrus.Infof("----- setResults costs %d ms", time.Since(resStart).Milliseconds())
 
+	// sStart := time.Now()
 	stateRoot, err := m.stateDB.Commit()
 	if err != nil {
 		return err
 	}
+	// logrus.Infof("---!!!--- stateDB costs %d ms", time.Since(sStart).Milliseconds())
+
 	block.StateRoot = stateRoot
 
 	block.ReceiptRoot, err = CaculateReceiptRoot(results)
