@@ -64,7 +64,7 @@ func (a *Asset) QueryBalance(ctx *ReadContext) error {
 }
 
 func (a *Asset) Transfer(ctx *WriteContext) (err error) {
-	ctx.SetLei(100)
+	ctx.SetLei(1)
 	from := ctx.GetCaller()
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
