@@ -106,8 +106,8 @@ func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
 }
 
 func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
-	tp.Lock()
-	defer tp.Unlock()
+	tp.RLock()
+	defer tp.RUnlock()
 	txns := tp.unpackedTxns.Gets(numLimit, filter)
 	return txns, nil
 }

@@ -70,6 +70,7 @@ func (bb *TxDB) SetResults(results []Result) error {
 	if err != nil {
 		return err
 	}
+
 	for _, result := range results {
 		byt, err := result.Encode()
 		if err != nil {
@@ -80,7 +81,11 @@ func (bb *TxDB) SetResults(results []Result) error {
 			return err
 		}
 		err = kvtx.Set(hash.Bytes(), byt)
+		if err != nil {
+			return err
+		}
 	}
+
 	return kvtx.Commit()
 }
 

@@ -40,7 +40,7 @@ func main() {
 
 	logrus.Infof("create accounts (%d) cost %d ms", len(users), time.Since(start).Milliseconds())
 
-	for {
+	for j := 0; j < 100; j++ {
 		for i, user := range users {
 			var to common.Address
 			if i == len(users)-1 {
@@ -54,6 +54,7 @@ func main() {
 			time.Sleep(100 * time.Microsecond)
 		}
 	}
+	select {}
 }
 
 func caculateTPS() {
