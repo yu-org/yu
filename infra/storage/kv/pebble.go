@@ -31,8 +31,11 @@ func (p *Pebble) New(prefix string) KV {
 
 func (p *Pebble) Get(prefix string, key []byte) ([]byte, error) {
 	key = makeKey(prefix, key)
-	// pebble only return ErrNotFound, if no value, we should return nil []byte.
-	value, closer, _ := p.db.Get(key)
+	// pebble only returns ErrNotFound, if no value, we should return nil []byte.
+	value, closer, err := p.db.Get(key)
+	if err != nil {
+		return value, nil
+	}
 	return value, closer.Close()
 }
 
@@ -95,7 +98,10 @@ type PebbleTxn struct {
 
 func (p *PebbleTxn) Get(key []byte) ([]byte, error) {
 	key = makeKey(p.prefix, key)
-	value, closer, _ := p.batch.Get(key)
+	value, closer, err := p.batch.Get(key)
+	if err != nil {
+		return value, nil
+	}
 	return value, closer.Close()
 }
 
