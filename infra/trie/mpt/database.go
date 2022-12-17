@@ -8,6 +8,7 @@ import (
 
 type NodeBase struct {
 	db   kv.KV
+	tx   kv.KvTxn
 	lock sync.RWMutex
 }
 
@@ -30,15 +31,19 @@ func (db *NodeBase) Get(toGet []byte) ([]byte, error) {
 	return db.db.Get(toGet)
 }
 
-func (db *NodeBase) Put(key []byte, value []byte) error {
-	return db.db.Set(key, value)
-}
-
 func (db *NodeBase) Close() error {
 	return nil
 }
 
-func (db *NodeBase) insert(hash common.Hash, blob []byte) {
-	// fmt.Println("inserting", hash, blob)
-	db.Put(hash.Bytes(), blob)
+func (db *NodeBase) Begin() (err error) {
+	db.tx, err = db.db.NewKvTxn()
+	return
+}
+
+func (db *NodeBase) Insert(hash common.Hash, blob []byte) error {
+	return db.tx.Set(hash.Bytes(), blob)
+}
+
+func (db *NodeBase) Commit() error {
+	return db.tx.Commit()
 }

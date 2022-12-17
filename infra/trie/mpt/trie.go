@@ -51,7 +51,7 @@ func (t *Trie) newFlag() nodeFlag {
 	return nodeFlag{dirty: true}
 }
 
-// New creates a trie with an existing root node from db.
+// NewTrie creates a trie with an existing root node from db.
 //
 // If root is the zero hash or the sha3 hash of an empty string, the
 // trie is initially empty and does not require a database. Otherwise,
@@ -146,9 +146,6 @@ func (t *Trie) Prove(key []byte) [][]byte {
 	return res
 }
 
-// TryGet returns the value for key stored in the trie.
-// The value bytes must not be modified by the caller.
-// If a node was not found in the database, a MissingNodeError is returned.
 func (t *Trie) TryProve(key []byte) ([][]byte, error) {
 	key = keybytesToHex(key)
 	trieHash, err := t.Commit(nil)
@@ -298,7 +295,7 @@ func (t *Trie) insert(n node, prefix, key []byte, value node) (bool, node, error
 
 	case TrieHashNode:
 		// We've hit a part of the trie that isn't loaded yet. Load
-		// the node and insert into it. This leaves all child nodes on
+		// the node and Insert into it. This leaves all child nodes on
 		// the path to the value in the trie.
 		rn, err := t.resolveHash(n, prefix)
 		if err != nil {
@@ -476,15 +473,23 @@ func (t *Trie) Hash() Hash {
 	return BytesToHash(hash.(TrieHashNode))
 }
 
-// // Commit writes all nodes to the trie's memory database, tracking the internal
-// // and external (for account tries) references.
+// Commit writes all nodes to the trie's memory database, tracking the internal
+// and external (for account tries) references.
 func (t *Trie) Commit(onleaf LeafCallback) (root Hash, err error) {
 	if t.db == nil {
 		panic("commit called on trie with nil database")
 	}
+	err = t.db.Begin()
+	if err != nil {
+		return
+	}
 	hash, cached, err := t.hashRoot(t.db, onleaf)
 	if err != nil {
 		return Hash{}, err
+	}
+	err = t.db.Commit()
+	if err != nil {
+		return
 	}
 	t.root = cached
 	return BytesToHash(hash.(TrieHashNode)), nil
@@ -496,5 +501,6 @@ func (t *Trie) hashRoot(db *NodeBase, onleaf LeafCallback) (node, node, error) {
 	}
 	h := newHasher(onleaf)
 	defer returnHasherToPool(h)
+
 	return h.hash(t.root, db, true)
 }
