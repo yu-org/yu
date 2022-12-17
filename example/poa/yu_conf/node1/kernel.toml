@@ -13,7 +13,7 @@ node_key_type = 1
 node_key_rand_seed = 1
 
 [kvdb]
-kv_type = "bolt"
+kv_type = "pebble"
 path = "./yu.db"
 
 [block_chain.chain_db]

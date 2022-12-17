@@ -23,6 +23,8 @@ func NewKvdb(cfg *KVconf) (Kvdb, error) {
 	switch cfg.KvType {
 	case "bolt":
 		return NewBolt(cfg.Path)
+	case "pebble":
+		return NewPebble(cfg.Path)
 	//case "tikv":
 	//	return NewTiKV(cfg.Path)
 
