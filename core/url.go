@@ -20,6 +20,7 @@ const (
 	PubkeyKey     = "pubkey"
 	SignatureKey  = "signature"
 	LeiPriceKey   = "lei_price"
+	TipsKey       = "tips"
 )
 
 var (
@@ -55,4 +56,8 @@ func GetSignature(req *http.Request) []byte {
 
 func GetLeiPrice(req *http.Request) (uint64, error) {
 	return hexutil.DecodeUint64(req.URL.Query().Get(LeiPriceKey))
+}
+
+func GetTips(req *http.Request) (uint64, error) {
+	return hexutil.DecodeUint64(req.URL.Query().Get(TipsKey))
 }

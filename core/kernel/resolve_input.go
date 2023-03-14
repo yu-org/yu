@@ -31,11 +31,13 @@ func getWrInfoFromReq(req *http.Request, params string) (stxn *types.SignedTxn, 
 	if err != nil {
 		return
 	}
+	tips, err := GetTips(req)
 	wrCall := &WrCall{
 		TripodName:  tripodName,
 		WritingName: wrName,
 		Params:      params,
 		LeiPrice:    leiPrice,
+		Tips:        tips,
 	}
 	caller := GetAddress(req)
 	sig := GetSignature(req)
