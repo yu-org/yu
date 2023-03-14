@@ -203,6 +203,7 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 			ExecName:   ut.WrCall.WritingName,
 			Params:     ut.WrCall.Params,
 			LeiPrice:   ut.WrCall.LeiPrice,
+			Tips:       ut.WrCall.Tips,
 		},
 		Timestamp: ut.Timestamp,
 	}
@@ -216,6 +217,7 @@ func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 			WritingName: pb.Ecall.ExecName,
 			Params:      pb.Ecall.Params,
 			LeiPrice:    pb.Ecall.LeiPrice,
+			Tips:        pb.Ecall.Tips,
 		},
 		Timestamp: pb.Timestamp,
 	}

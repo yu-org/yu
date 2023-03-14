@@ -41,8 +41,9 @@ type (
 		TripodName  string
 		WritingName string
 		Params      string
-		// TODO: make LeiPrice as a sortable interface.
+		// TODO: make LeiPrice and Tips as a sortable interface.
 		LeiPrice uint64
+		Tips     uint64
 	}
 
 	// The Call from clients, it is an instance of an 'Read'.
