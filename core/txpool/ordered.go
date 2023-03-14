@@ -24,8 +24,8 @@ func (ot *orderedTxns) Insert(input *SignedTxn) {
 		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.WrCall)
 	for element := ot.txns.Front(); element != nil; element = element.Next() {
 		tx := element.Value.(*SignedTxn)
-		// fixme: cannot only use lei_price to judge.
-		if input.Raw.WrCall.LeiPrice > tx.Raw.WrCall.LeiPrice {
+		// fixme: cannot only use tips to judge.
+		if input.Raw.WrCall.Tips > tx.Raw.WrCall.Tips {
 			e := ot.txns.InsertBefore(input, element)
 			ot.idx[input.TxnHash] = e
 			return
