@@ -39,6 +39,14 @@ func NewSignedTxn(caller Address, ecall *WrCall, pubkey PubKey, sig []byte) (*Si
 	return stx, nil
 }
 
+func (st *SignedTxn) TripodName() string {
+	return st.Raw.WrCall.TripodName
+}
+
+func (st *SignedTxn) WrName() string {
+	return st.Raw.WrCall.WritingName
+}
+
 func (st *SignedTxn) BindJsonParams(v interface{}) error {
 	return st.Raw.BindJsonParams(v)
 }

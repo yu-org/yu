@@ -8,6 +8,11 @@ import (
 	"net/http"
 )
 
+type (
+	ResolveReading func(input any, a ...any) (*Rdcall, error)
+	ResolveWriting func(input any, a ...any) (*types.SignedTxn, error)
+)
+
 func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
@@ -20,8 +25,8 @@ func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err erro
 	return
 }
 
-func getWrInfoFromReq(req *http.Request, params string) (tripodName, wrName string, stxn *types.SignedTxn, err error) {
-	tripodName, wrName = GetTripodCallName(req)
+func getWrInfoFromReq(req *http.Request, params string) (stxn *types.SignedTxn, err error) {
+	tripodName, wrName := GetTripodCallName(req)
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
 		return
