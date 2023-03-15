@@ -28,7 +28,7 @@ jobs:
         go-version: 1.19
 
     - name: Build poa
-      run: go build -v ./...
+      run: go build -v
 
     #- name: Test
     #  run: go test -v ./...
