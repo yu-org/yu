@@ -7,10 +7,17 @@ on:
   push:
     branches: [ "master" ]
     paths:
-      - 'example/poa'
+      - 'example/poa/**'
       - '.github/workflows/poa.yml'
   pull_request:
     branches: [ "master" ]
+    paths:
+      - 'example/poa/**'
+      - '.github/workflows/poa.yml'
+
+defaults:
+  run:
+    working-directory: 'example/poa'
 
 jobs:
 
@@ -25,7 +32,7 @@ jobs:
         go-version: 1.19
 
     - name: Build poa
-      run: go build -v ./...
+      run: go build -v
 
     #- name: Test
     #  run: go test -v ./...
