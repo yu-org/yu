@@ -15,6 +15,10 @@ on:
       - 'example/poa/**'
       - '.github/workflows/poa.yml'
 
+defaults:
+  run:
+    working-directory: 'example/poa'
+
 jobs:
 
   build:
