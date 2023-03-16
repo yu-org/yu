@@ -7,12 +7,12 @@ on:
   push:
     branches: [ "master" ]
     paths:
-      - 'example/poa/**'
+      - './**'
       - '.github/workflows/poa.yml'
   pull_request:
     branches: [ "master" ]
     paths:
-      - 'example/poa/**'
+      - './**'
       - '.github/workflows/poa.yml'
 
 defaults:
