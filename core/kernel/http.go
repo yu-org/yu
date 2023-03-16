@@ -73,7 +73,7 @@ func (m *Kernel) handleHttpRd(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	qcall, err := getRdFromHttp(c.Request, string(params))
+	rdCall, err := getRdFromHttp(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -81,17 +81,17 @@ func (m *Kernel) handleHttpRd(c *gin.Context) {
 
 	switch m.RunMode {
 	case LocalNode:
-		ctx, err := context.NewReadContext(qcall.Params)
+		ctx, err := context.NewReadContext(rdCall.Params)
 		if err != nil {
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
 
-		err = m.land.Read(qcall, ctx)
+		err = m.land.Read(rdCall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				FindNoCallStr(qcall.TripodName, qcall.ReadingName, err),
+				FindNoCallStr(rdCall.TripodName, rdCall.ReadingName, err),
 			)
 			return
 		}
