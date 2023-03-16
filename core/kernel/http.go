@@ -6,7 +6,7 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -25,13 +25,13 @@ func (m *Kernel) HandleHttp() {
 }
 
 func (m *Kernel) handleHttpWr(c *gin.Context) {
-	params, err := ioutil.ReadAll(c.Request.Body)
+	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	stxn, err := getWrInfoFromReq(c.Request, string(params))
+	stxn, err := getWrFromHttp(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -68,12 +68,12 @@ func (m *Kernel) handleHttpWr(c *gin.Context) {
 }
 
 func (m *Kernel) handleHttpRd(c *gin.Context) {
-	params, err := ioutil.ReadAll(c.Request.Body)
+	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	qcall, err := getRdInfoFromReq(c.Request, string(params))
+	qcall, err := getRdFromHttp(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

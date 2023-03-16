@@ -61,7 +61,7 @@ func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 }
 
 func (m *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string) {
-	stxn, err := getWrInfoFromReq(req, params)
+	stxn, err := getWrFromHttp(req, params)
 	if err != nil {
 		m.errorAndClose(c, fmt.Sprintf("get Writing info from websocket error: %v", err))
 		return
@@ -98,7 +98,7 @@ func (m *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string)
 }
 
 func (m *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
-	qcall, err := getRdInfoFromReq(req, params)
+	qcall, err := getRdFromHttp(req, params)
 	if err != nil {
 		m.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
 		return

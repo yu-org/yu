@@ -13,7 +13,7 @@ type (
 	ResolveWriting func(input any, a ...any) (*types.SignedTxn, error)
 )
 
-func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err error) {
+func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
 	qcall = &Rdcall{
@@ -25,7 +25,7 @@ func getRdInfoFromReq(req *http.Request, params string) (qcall *Rdcall, err erro
 	return
 }
 
-func getWrInfoFromReq(req *http.Request, params string) (stxn *types.SignedTxn, err error) {
+func getWrFromHttp(req *http.Request, params string) (stxn *types.SignedTxn, err error) {
 	tripodName, wrName := GetTripodCallName(req)
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
