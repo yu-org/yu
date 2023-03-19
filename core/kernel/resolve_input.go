@@ -4,14 +4,27 @@ import (
 	"fmt"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	"github.com/yu-org/yu/core/types"
+	. "github.com/yu-org/yu/core/types"
 	"net/http"
 )
 
 type (
-	ResolveReading func(input any, a ...any) (*Rdcall, error)
-	ResolveWriting func(input any, a ...any) (*types.SignedTxn, error)
+	ResolveRd  func(input any, a ...any) (*Rdcall, error)
+	ResolveTxn func(input any, a ...any) (*SignedTxn, error)
 )
+
+var (
+	RdResolves  = make([]ResolveRd, 0)
+	TxnResolves = make([]ResolveTxn, 0)
+)
+
+func SetRdResolves(rds ...ResolveRd) {
+	RdResolves = append(RdResolves, rds...)
+}
+
+func SetTxnResolves(wrs ...ResolveTxn) {
+	TxnResolves = append(TxnResolves, wrs...)
+}
 
 func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
@@ -25,7 +38,7 @@ func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) 
 	return
 }
 
-func getWrFromHttp(req *http.Request, params string) (stxn *types.SignedTxn, err error) {
+func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error) {
 	tripodName, wrName := GetTripodCallName(req)
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
@@ -45,7 +58,7 @@ func getWrFromHttp(req *http.Request, params string) (stxn *types.SignedTxn, err
 	if err != nil {
 		return
 	}
-	stxn, err = types.NewSignedTxn(caller, wrCall, pubkey, sig)
+	stxn, err = NewSignedTxn(caller, wrCall, pubkey, sig)
 	return
 }
 
