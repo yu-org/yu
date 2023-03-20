@@ -83,7 +83,7 @@ func NewKernel(
 	return m
 }
 
-func (m *Kernel) Startup() {
+func (k *Kernel) Startup() {
 
 	//if len(m.p2pNetwork.GetBootNodes()) > 0 {
 	//	err := m.SyncHistory()
@@ -91,17 +91,17 @@ func (m *Kernel) Startup() {
 	//		logrus.Fatal("sync history error: ", err)
 	//	}
 	//}
-	m.land.RangeList(func(tri *Tripod) error {
+	k.land.RangeList(func(tri *Tripod) error {
 		tri.InitChain()
 		return nil
 	})
 
-	go m.HandleHttp()
-	go m.HandleWS()
+	go k.HandleHttp()
+	go k.HandleWS()
 
 	go func() {
 		for {
-			err := m.AcceptUnpkgTxns()
+			err := k.AcceptUnpkgTxns()
 			if err != nil {
 				logrus.Errorf("accept unpacked txns error: %s", err.Error())
 			}
@@ -109,17 +109,17 @@ func (m *Kernel) Startup() {
 
 	}()
 
-	m.Run()
+	k.Run()
 }
 
-func (m *Kernel) AcceptUnpkgTxns() error {
-	txns, err := m.subUnpackedTxns()
+func (k *Kernel) AcceptUnpkgTxns() error {
+	txns, err := k.subUnpackedTxns()
 	if err != nil {
 		return err
 	}
 
 	for _, txn := range txns {
-		if m.txPool.Exist(txn) {
+		if k.txPool.Exist(txn) {
 			continue
 		}
 		txn.FromP2P = true
@@ -127,12 +127,12 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 		logrus.WithField("p2p", "accept-txn").
 			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 
-		err = m.txPool.CheckTxn(txn)
+		err = k.txPool.CheckTxn(txn)
 		if err != nil {
 			logrus.Error("check txn from P2P into txpool error: ", err)
 			continue
 		}
-		err = m.txPool.Insert(txn)
+		err = k.txPool.Insert(txn)
 		if err != nil {
 			logrus.Error("insert txn from P2P into txpool error: ", err)
 		}
@@ -141,18 +141,18 @@ func (m *Kernel) AcceptUnpkgTxns() error {
 	return nil
 }
 
-func (m *Kernel) subUnpackedTxns() (SignedTxns, error) {
-	byt, err := m.p2pNetwork.SubP2P(UnpackedTxnsTopic)
+func (k *Kernel) subUnpackedTxns() (SignedTxns, error) {
+	byt, err := k.p2pNetwork.SubP2P(UnpackedTxnsTopic)
 	if err != nil {
 		return nil, err
 	}
 	return DecodeSignedTxns(byt)
 }
 
-func (m *Kernel) pubUnpackedTxns(txns SignedTxns) error {
+func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return m.p2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
+	return k.p2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
 }

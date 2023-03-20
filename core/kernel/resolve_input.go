@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/types"
@@ -9,8 +10,8 @@ import (
 )
 
 type (
-	ResolveRd  func(input any, a ...any) (*Rdcall, error)
-	ResolveTxn func(input any, a ...any) (*SignedTxn, error)
+	ResolveRd  func() (*Rdcall, error)
+	ResolveTxn func() (*SignedTxn, error)
 )
 
 var (
@@ -24,6 +25,41 @@ func SetRdResolves(rds ...ResolveRd) {
 
 func SetTxnResolves(wrs ...ResolveTxn) {
 	TxnResolves = append(TxnResolves, wrs...)
+}
+
+func (k *Kernel) ResolveTxns() error {
+	for _, txnResolve := range TxnResolves {
+		stxn, err := txnResolve()
+		if err != nil {
+			return err
+		}
+		_, err = k.land.GetWriting(stxn.Raw.WrCall)
+		if err != nil {
+			return err
+		}
+
+		if k.txPool.Exist(stxn) {
+			return err
+		}
+
+		err = k.txPool.CheckTxn(stxn)
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			err = k.pubUnpackedTxns(FromArray(stxn))
+			if err != nil {
+				logrus.Error("publish unpacked txns error: ", err)
+			}
+		}()
+
+		err = k.txPool.Insert(stxn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) {

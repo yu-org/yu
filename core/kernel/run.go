@@ -11,19 +11,19 @@ import (
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
-func (m *Kernel) Run() {
+func (k *Kernel) Run() {
 
-	switch m.RunMode {
+	switch k.RunMode {
 	case LocalNode:
 		for {
-			err := m.LocalRun()
+			err := k.LocalRun()
 			if err != nil {
 				logrus.Panicf("local-run blockchain error: %s", err.Error())
 			}
 		}
 	case MasterWorker:
 		for {
-			err := m.MasterWokrerRun()
+			err := k.MasterWokrerRun()
 			logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
 		}
 
@@ -33,14 +33,14 @@ func (m *Kernel) Run() {
 
 }
 
-func (m *Kernel) LocalRun() (err error) {
-	newBlock, err := m.makeNewBasicBlock()
+func (k *Kernel) LocalRun() (err error) {
+	newBlock, err := k.makeNewBasicBlock()
 	if err != nil {
 		return err
 	}
 
 	// start a new block
-	err = m.land.RangeList(func(tri *Tripod) error {
+	err = k.land.RangeList(func(tri *Tripod) error {
 		tri.StartBlock(newBlock)
 		return nil
 	})
@@ -49,7 +49,7 @@ func (m *Kernel) LocalRun() (err error) {
 	}
 
 	// end block and append to chain
-	err = m.land.RangeList(func(tri *Tripod) error {
+	err = k.land.RangeList(func(tri *Tripod) error {
 		tri.EndBlock(newBlock)
 		return nil
 	})
@@ -58,28 +58,28 @@ func (m *Kernel) LocalRun() (err error) {
 	}
 
 	// finalize this block
-	return m.land.RangeList(func(tri *Tripod) error {
+	return k.land.RangeList(func(tri *Tripod) error {
 		tri.FinalizeBlock(newBlock)
 		return nil
 	})
 }
 
-func (m *Kernel) makeNewBasicBlock() (*Block, error) {
-	newBlock := m.chain.NewEmptyBlock()
+func (k *Kernel) makeNewBasicBlock() (*Block, error) {
+	newBlock := k.chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowNanoTsU64()
-	prevBlock, err := m.chain.GetEndBlock()
+	prevBlock, err := k.chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
 	newBlock.PrevHash = prevBlock.Hash
-	newBlock.PeerID = m.p2pNetwork.LocalID()
+	newBlock.PeerID = k.p2pNetwork.LocalID()
 	newBlock.Height = prevBlock.Height + 1
-	newBlock.LeiLimit = m.leiLimit
+	newBlock.LeiLimit = k.leiLimit
 	return newBlock, nil
 }
 
-func (m *Kernel) OrderedExecute(block *Block) error {
+func (k *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
 	var results []Result
@@ -91,28 +91,28 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 			return err
 		}
 
-		writing, err := m.land.GetWriting(wrCall)
+		writing, err := k.land.GetWriting(wrCall)
 		if err != nil {
-			m.handleError(err, ctx, block, stxn)
+			k.handleError(err, ctx, block, stxn)
 			continue
 		}
 
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
-			m.stateDB.Discard()
-			m.handleError(OutOfLei, ctx, block, stxn)
+			k.stateDB.Discard()
+			k.handleError(OutOfLei, ctx, block, stxn)
 			break
 		}
 		if err != nil {
-			m.stateDB.Discard()
-			m.handleError(err, ctx, block, stxn)
+			k.stateDB.Discard()
+			k.handleError(err, ctx, block, stxn)
 		} else {
-			m.stateDB.NextTxn()
+			k.stateDB.NextTxn()
 		}
 
 		block.UseLei(ctx.LeiCost)
 
-		m.handleEvent(ctx, block, stxn)
+		k.handleEvent(ctx, block, stxn)
 
 		for _, e := range ctx.Events {
 			results = append(results, e)
@@ -124,7 +124,7 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 
 	// resStart := time.Now()
 	if len(results) > 0 {
-		err := m.base.SetResults(results)
+		err := k.base.SetResults(results)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 	// logrus.Infof("----- setResults costs %d ms", time.Since(resStart).Milliseconds())
 
 	// sStart := time.Now()
-	stateRoot, err := m.stateDB.Commit()
+	stateRoot, err := k.stateDB.Commit()
 	if err != nil {
 		return err
 	}
@@ -144,44 +144,44 @@ func (m *Kernel) OrderedExecute(block *Block) error {
 	return err
 }
 
-func (m *Kernel) MasterWokrerRun() error {
-	//workersIps, err := m.allWorkersIP()
+func (k *Kernel) MasterWokrerRun() error {
+	//workersIps, err := k.allWorkersIP()
 	//if err != nil {
 	//	return err
 	//}
 	//
-	//newBlock := m.chain.NewDefaultBlock()
+	//newBlock := k.chain.NewDefaultBlock()
 	//
-	//err = m.nortifyWorker(workersIps, StartBlockPath, newBlock)
+	//err = k.nortifyWorker(workersIps, StartBlockPath, newBlock)
 	//if err != nil {
 	//	return err
 	//}
 	//
 	//// todo: if need broadcast block,
-	//// m.readyBroadcastBlock(newBlock)
+	//// k.readyBroadcastBlock(newBlock)
 	//
-	//err = m.SyncTxns(newBlock)
+	//err = k.SyncTxns(newBlock)
 	//if err != nil {
 	//	return err
 	//}
 	//
-	//err = m.nortifyWorker(workersIps, EndBlockPath, newBlock)
+	//err = k.nortifyWorker(workersIps, EndBlockPath, newBlock)
 	//if err != nil {
 	//	return err
 	//}
 	//
 	//go func() {
-	//	err := m.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
+	//	err := k.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
 	//	if err != nil {
 	//		logrus.Errorf("nortify worker executing txns error: %s", err.Error())
 	//	}
 	//}()
 	//
-	//return m.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
+	//return k.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
 	return nil
 }
 
-func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	ctx.EmitError(err)
 	wrCall := stxn.Raw.WrCall
 
@@ -193,13 +193,13 @@ func (m *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	ctx.Error.Height = block.Height
 
 	logrus.Error("push error: ", ctx.Error.Error())
-	if m.sub != nil {
-		m.sub.Emit(ctx.Error)
+	if k.sub != nil {
+		k.sub.Emit(ctx.Error)
 	}
 
 }
 
-func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	for _, event := range ctx.Events {
 		wrCall := stxn.Raw.WrCall
 
@@ -211,8 +211,8 @@ func (m *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 		event.BlockStage = ExecuteTxnsStage
 		event.Caller = stxn.Raw.Caller
 
-		if m.sub != nil {
-			m.sub.Emit(event)
+		if k.sub != nil {
+			k.sub.Emit(event)
 		}
 	}
 }

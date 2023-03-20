@@ -10,21 +10,21 @@ import (
 	"net/http"
 )
 
-func (m *Kernel) HandleHttp() {
+func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
 	r.POST(WrApiPath, func(c *gin.Context) {
-		m.handleHttpWr(c)
+		k.handleHttpWr(c)
 	})
 	r.POST(RdApiPath, func(c *gin.Context) {
-		m.handleHttpRd(c)
+		k.handleHttpRd(c)
 	})
 
-	r.Run(m.httpPort)
+	r.Run(k.httpPort)
 }
 
-func (m *Kernel) handleHttpWr(c *gin.Context) {
+func (k *Kernel) handleHttpWr(c *gin.Context) {
 	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -37,37 +37,37 @@ func (m *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	_, err = m.land.GetWriting(stxn.Raw.WrCall)
+	_, err = k.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	if m.txPool.Exist(stxn) {
+	if k.txPool.Exist(stxn) {
 		return
 	}
 
-	err = m.txPool.CheckTxn(stxn)
+	err = k.txPool.CheckTxn(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	go func() {
-		err = m.pubUnpackedTxns(types.FromArray(stxn))
+		err = k.pubUnpackedTxns(types.FromArray(stxn))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 	}()
 
-	err = m.txPool.Insert(stxn)
+	err = k.txPool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 }
 
-func (m *Kernel) handleHttpRd(c *gin.Context) {
+func (k *Kernel) handleHttpRd(c *gin.Context) {
 	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -79,7 +79,7 @@ func (m *Kernel) handleHttpRd(c *gin.Context) {
 		return
 	}
 
-	switch m.RunMode {
+	switch k.RunMode {
 	case LocalNode:
 		ctx, err := context.NewReadContext(rdCall.Params)
 		if err != nil {
@@ -87,7 +87,7 @@ func (m *Kernel) handleHttpRd(c *gin.Context) {
 			return
 		}
 
-		err = m.land.Read(rdCall, ctx)
+		err = k.land.Read(rdCall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
