@@ -44,7 +44,7 @@ func NewKernel(
 	land *Land,
 ) *Kernel {
 
-	m := &Kernel{
+	k := &Kernel{
 		RunMode:    cfg.RunMode,
 		leiLimit:   cfg.LeiLimit,
 		httpPort:   MakePort(cfg.HttpPort),
@@ -59,7 +59,7 @@ func NewKernel(
 		land: land,
 	}
 
-	env.Execute = m.OrderedExecute
+	env.Execute = k.OrderedExecute
 
 	//err := m.InitChain()
 	//if err != nil {
@@ -74,13 +74,13 @@ func NewKernel(
 		}
 		return nil
 	})
-	m.p2pNetwork.SetHandlers(handerlsMap)
-	err := m.p2pNetwork.ConnectBootNodes()
+	k.p2pNetwork.SetHandlers(handerlsMap)
+	err := k.p2pNetwork.ConnectBootNodes()
 	if err != nil {
 		logrus.Fatal("connect p2p bootnodes error: ", err)
 	}
 
-	return m
+	return k
 }
 
 func (k *Kernel) Startup() {

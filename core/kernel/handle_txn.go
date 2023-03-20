@@ -27,7 +27,7 @@ func SetTxnResolves(wrs ...ResolveTxn) {
 	TxnResolves = append(TxnResolves, wrs...)
 }
 
-func (k *Kernel) ResolveTxns() error {
+func (k *Kernel) HandleTxns() error {
 	for _, txnResolve := range TxnResolves {
 		stxn, err := txnResolve()
 		if err != nil {
