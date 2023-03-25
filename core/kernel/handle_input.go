@@ -5,22 +5,26 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
+	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/types"
 	"net/http"
 )
 
 type (
-	ResolveRd  func() (*Rdcall, error)
+	ResolveRdAndResp struct {
+		ResolveRd func() (*Rdcall, error)
+		Response  func(ctx *ReadContext) error
+	}
 	ResolveTxn func() (*SignedTxn, error)
 )
 
 var (
-	RdResolves  = make([]ResolveRd, 0)
-	TxnResolves = make([]ResolveTxn, 0)
+	RdAndRespResolves = make([]ResolveRdAndResp, 0)
+	TxnResolves       = make([]ResolveTxn, 0)
 )
 
-func SetRdResolves(rds ...ResolveRd) {
-	RdResolves = append(RdResolves, rds...)
+func SetRdResolves(rds ...ResolveRdAndResp) {
+	RdAndRespResolves = append(RdAndRespResolves, rds...)
 }
 
 func SetTxnResolves(wrs ...ResolveTxn) {
@@ -28,8 +32,8 @@ func SetTxnResolves(wrs ...ResolveTxn) {
 }
 
 func (k *Kernel) HandleTxns() error {
-	for _, txnResolve := range TxnResolves {
-		stxn, err := txnResolve()
+	for _, txnRsv := range TxnResolves {
+		stxn, err := txnRsv()
 		if err != nil {
 			return err
 		}
@@ -55,6 +59,30 @@ func (k *Kernel) HandleTxns() error {
 		}()
 
 		err = k.txPool.Insert(stxn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k *Kernel) HandleRd() error {
+	for _, rsv := range RdAndRespResolves {
+		rd, err := rsv.ResolveRd()
+		if err != nil {
+			return err
+		}
+		ctx, err := NewReadContext(rd.Params)
+		if err != nil {
+			return err
+		}
+
+		err = k.land.Read(rd, ctx)
+		if err != nil {
+			return err
+		}
+
+		err = rsv.Response(ctx)
 		if err != nil {
 			return err
 		}

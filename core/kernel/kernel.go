@@ -100,6 +100,13 @@ func (k *Kernel) Startup() {
 	go k.HandleWS()
 
 	go func() {
+		err := k.HandleTxns()
+		if err != nil {
+			logrus.Errorf("handle txn error: %s", err.Error())
+		}
+	}()
+
+	go func() {
 		for {
 			err := k.AcceptUnpkgTxns()
 			if err != nil {
