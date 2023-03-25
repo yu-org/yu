@@ -5,27 +5,17 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/types"
 	"net/http"
 )
 
 type (
-	ResolveRdAndResp struct {
-		ResolveRd func() (*Rdcall, error)
-		Response  func(ctx *ReadContext) error
-	}
 	ResolveTxn func() (*SignedTxn, error)
 )
 
 var (
-	RdAndRespResolves = make([]ResolveRdAndResp, 0)
-	TxnResolves       = make([]ResolveTxn, 0)
+	TxnResolves = make([]ResolveTxn, 0)
 )
-
-func SetRdResolves(rds ...ResolveRdAndResp) {
-	RdAndRespResolves = append(RdAndRespResolves, rds...)
-}
 
 func SetTxnResolves(wrs ...ResolveTxn) {
 	TxnResolves = append(TxnResolves, wrs...)
@@ -66,29 +56,29 @@ func (k *Kernel) HandleTxns() error {
 	return nil
 }
 
-func (k *Kernel) HandleRd() error {
-	for _, rsv := range RdAndRespResolves {
-		rd, err := rsv.ResolveRd()
-		if err != nil {
-			return err
-		}
-		ctx, err := NewReadContext(rd.Params)
-		if err != nil {
-			return err
-		}
-
-		err = k.land.Read(rd, ctx)
-		if err != nil {
-			return err
-		}
-
-		err = rsv.Response(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+//func (k *Kernel) HandleRd() error {
+//	for _, rsv := range RdAndRespResolves {
+//		rd, err := rsv.ResolveRd()
+//		if err != nil {
+//			return err
+//		}
+//		ctx, err := NewReadContext(rd.Params)
+//		if err != nil {
+//			return err
+//		}
+//
+//		err = k.land.Read(rd, ctx)
+//		if err != nil {
+//			return err
+//		}
+//
+//		err = rsv.Response(ctx)
+//		if err != nil {
+//			return err
+//		}
+//	}
+//	return nil
+//}
 
 func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
