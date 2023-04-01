@@ -9,13 +9,9 @@ import (
 	"net/http"
 )
 
-type (
-	ResolveTxn func() (*SignedTxn, error)
-)
+type ResolveTxn func() (*SignedTxn, error)
 
-var (
-	TxnResolves = make([]ResolveTxn, 0)
-)
+var TxnResolves = make([]ResolveTxn, 0)
 
 func SetTxnResolves(wrs ...ResolveTxn) {
 	TxnResolves = append(TxnResolves, wrs...)
