@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-type ResolveTxn func() (*SignedTxn, error)
+type ResolveTxn func() *SignedTxn
 
 var TxnResolves = make([]ResolveTxn, 0)
 
@@ -19,11 +19,8 @@ func SetTxnResolves(wrs ...ResolveTxn) {
 
 func (k *Kernel) HandleTxns() error {
 	for _, txnRsv := range TxnResolves {
-		stxn, err := txnRsv()
-		if err != nil {
-			return err
-		}
-		_, err = k.land.GetWriting(stxn.Raw.WrCall)
+		stxn := txnRsv()
+		_, err := k.land.GetWriting(stxn.Raw.WrCall)
 		if err != nil {
 			return err
 		}
