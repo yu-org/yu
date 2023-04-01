@@ -96,6 +96,7 @@ func (k *Kernel) Startup() {
 		return nil
 	})
 
+	// TODO: need to abstract out as handleTxn
 	go k.HandleHttp()
 	go k.HandleWS()
 
