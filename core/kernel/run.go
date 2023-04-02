@@ -12,6 +12,15 @@ import (
 )
 
 func (k *Kernel) Run() {
+	go func() {
+		for {
+			err := k.AcceptUnpkgTxns()
+			if err != nil {
+				logrus.Errorf("accept unpacked txns error: %s", err.Error())
+			}
+		}
+
+	}()
 
 	switch k.RunMode {
 	case LocalNode:
