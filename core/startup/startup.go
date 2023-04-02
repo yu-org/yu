@@ -20,13 +20,14 @@ import (
 )
 
 var (
-	k         *kernel.Kernel
 	kernelCfg = &config.KernelConf{}
 
 	Chain   types.IBlockChain
 	TxnDB   types.ItxDB
 	Pool    txpool.ItxPool
 	StateDB state.IState
+
+	Kernel *kernel.Kernel
 
 	Land = tripod.NewLand()
 )
@@ -93,7 +94,7 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k = kernel.NewKernel(kernelCfg, chainEnv, Land)
+	Kernel = kernel.NewKernel(kernelCfg, chainEnv, Land)
 
-	k.Startup()
+	Kernel.Startup()
 }
