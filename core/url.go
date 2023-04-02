@@ -29,7 +29,7 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-// GetTripodCallName return (Tripod Name, Execution/Read Name)
+// GetTripodCallName return (Tripod Name, Write/Read Name)
 func GetTripodCallName(req *http.Request) (string, string) {
 	query := req.URL.Query()
 	return query.Get(TripodNameKey), query.Get(CallNameKey)

@@ -6,92 +6,92 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
-func (m *Kernel) HandleHttp() {
+func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
 	r.POST(WrApiPath, func(c *gin.Context) {
-		m.handleHttpWr(c)
+		k.handleHttpWr(c)
 	})
 	r.POST(RdApiPath, func(c *gin.Context) {
-		m.handleHttpRd(c)
+		k.handleHttpRd(c)
 	})
 
-	r.Run(m.httpPort)
+	r.Run(k.httpPort)
 }
 
-func (m *Kernel) handleHttpWr(c *gin.Context) {
-	params, err := ioutil.ReadAll(c.Request.Body)
+func (k *Kernel) handleHttpWr(c *gin.Context) {
+	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	stxn, err := getWrInfoFromReq(c.Request, string(params))
+	stxn, err := getWrFromHttp(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = m.land.GetWriting(stxn.Raw.WrCall)
+	_, err = k.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	if m.txPool.Exist(stxn) {
+	if k.txPool.Exist(stxn) {
 		return
 	}
 
-	err = m.txPool.CheckTxn(stxn)
+	err = k.txPool.CheckTxn(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	go func() {
-		err = m.pubUnpackedTxns(types.FromArray(stxn))
+		err = k.pubUnpackedTxns(types.FromArray(stxn))
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 		}
 	}()
 
-	err = m.txPool.Insert(stxn)
+	err = k.txPool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 }
 
-func (m *Kernel) handleHttpRd(c *gin.Context) {
-	params, err := ioutil.ReadAll(c.Request.Body)
+func (k *Kernel) handleHttpRd(c *gin.Context) {
+	params, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	qcall, err := getRdInfoFromReq(c.Request, string(params))
+	rdCall, err := getRdFromHttp(c.Request, string(params))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	switch m.RunMode {
+	switch k.RunMode {
 	case LocalNode:
-		ctx, err := context.NewReadContext(qcall.Params)
+		ctx, err := context.NewReadContext(rdCall.Params)
 		if err != nil {
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
 
-		err = m.land.Read(qcall, ctx)
+		err = k.land.Read(rdCall, ctx)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
-				FindNoCallStr(qcall.TripodName, qcall.ReadingName, err),
+				FindNoCallStr(rdCall.TripodName, rdCall.ReadingName, err),
 			)
 			return
 		}

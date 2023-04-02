@@ -11,20 +11,20 @@ import (
 	"net/http"
 )
 
-func (m *Kernel) HandleWS() {
+func (k *Kernel) HandleWS() {
 	http.HandleFunc(WrApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, writing)
+		k.handleWS(w, req, writing)
 	})
 
 	http.HandleFunc(RdApiPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, reading)
+		k.handleWS(w, req, reading)
 	})
 
 	http.HandleFunc(SubResultsPath, func(w http.ResponseWriter, req *http.Request) {
-		m.handleWS(w, req, subscription)
+		k.handleWS(w, req, subscription)
 	})
 
-	logrus.Panic(http.ListenAndServe(m.wsPort, nil))
+	logrus.Panic(http.ListenAndServe(k.wsPort, nil))
 }
 
 const (
@@ -33,88 +33,88 @@ const (
 	subscription
 )
 
-func (m *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
+func (k *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	upgrade := websocket.Upgrader{}
 	c, err := upgrade.Upgrade(w, req, nil)
 	if err != nil {
-		m.errorAndClose(c, err.Error())
+		k.errorAndClose(c, err.Error())
 		return
 	}
 	if typ == subscription {
 		logrus.Debugf("Register a Subscription(%s)", c.RemoteAddr().String())
-		m.sub.Register(c)
+		k.sub.Register(c)
 		return
 	}
 
 	_, params, err := c.ReadMessage()
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("reading websocket message from client error: %v", err))
+		k.errorAndClose(c, fmt.Sprintf("reading websocket message from client error: %v", err))
 		return
 	}
 	switch typ {
 	case writing:
-		m.handleWsWr(c, req, string(params))
+		k.handleWsWr(c, req, string(params))
 	case reading:
-		m.handleWsRd(c, req, string(params))
+		k.handleWsRd(c, req, string(params))
 	}
 
 }
 
-func (m *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string) {
-	stxn, err := getWrInfoFromReq(req, params)
+func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string) {
+	stxn, err := getWrFromHttp(req, params)
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("get Writing info from websocket error: %v", err))
+		k.errorAndClose(c, fmt.Sprintf("get Writing info from websocket error: %v", err))
 		return
 	}
 
-	_, err = m.land.GetWriting(stxn.Raw.WrCall)
+	_, err = k.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
-		m.errorAndClose(c, err.Error())
+		k.errorAndClose(c, err.Error())
 		return
 	}
 
-	if m.txPool.Exist(stxn) {
+	if k.txPool.Exist(stxn) {
 		return
 	}
 
-	err = m.txPool.CheckTxn(stxn)
+	err = k.txPool.CheckTxn(stxn)
 	if err != nil {
-		m.errorAndClose(c, err.Error())
+		k.errorAndClose(c, err.Error())
 		return
 	}
 
 	go func() {
-		err = m.pubUnpackedTxns(types.FromArray(stxn))
+		err = k.pubUnpackedTxns(types.FromArray(stxn))
 		if err != nil {
-			m.errorAndClose(c, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
+			k.errorAndClose(c, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
 		}
 	}()
 
-	err = m.txPool.Insert(stxn)
+	err = k.txPool.Insert(stxn)
 	if err != nil {
-		m.errorAndClose(c, err.Error())
+		k.errorAndClose(c, err.Error())
 		return
 	}
 }
 
-func (m *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
-	qcall, err := getRdInfoFromReq(req, params)
+func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
+	qcall, err := getRdFromHttp(req, params)
 	if err != nil {
-		m.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
+		k.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
 		return
 	}
 
-	switch m.RunMode {
+	switch k.RunMode {
 	case LocalNode:
 		ctx, err := context.NewReadContext(qcall.Params)
 		if err != nil {
-			m.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
+			k.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
 			return
 		}
 
-		err = m.land.Read(qcall, ctx)
+		err = k.land.Read(qcall, ctx)
 		if err != nil {
-			m.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.ReadingName, err))
+			k.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.ReadingName, err))
 			return
 		}
 		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
@@ -125,7 +125,7 @@ func (m *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string)
 
 }
 
-func (m *Kernel) errorAndClose(c *websocket.Conn, text string) {
+func (k *Kernel) errorAndClose(c *websocket.Conn, text string) {
 	// FIXEME
 	c.WriteMessage(websocket.CloseMessage, []byte(text))
 	c.Close()
