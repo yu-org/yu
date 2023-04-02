@@ -27,8 +27,6 @@ var (
 	Pool    txpool.ItxPool
 	StateDB state.IState
 
-	Kernel *kernel.Kernel
-
 	Land = tripod.NewLand()
 )
 
@@ -38,6 +36,11 @@ func SyncAndStartup(tripodInstances ...interface{}) {
 }
 
 func StartUp(tripodInstances ...interface{}) {
+	k := InitKernel(tripodInstances...)
+	k.Startup()
+}
+
+func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
 		tripods = append(tripods, tripod.ResolveTripod(v))
@@ -94,7 +97,5 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	Kernel = kernel.NewKernel(kernelCfg, chainEnv, Land)
-
-	Kernel.Startup()
+	return kernel.NewKernel(kernelCfg, chainEnv, Land)
 }
