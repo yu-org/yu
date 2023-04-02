@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	k         *kernel.Kernel
 	kernelCfg = &config.KernelConf{}
 
 	Chain   types.IBlockChain
@@ -92,7 +93,7 @@ func StartUp(tripodInstances ...interface{}) {
 		}
 	}
 
-	k := kernel.NewKernel(kernelCfg, chainEnv, Land)
+	k = kernel.NewKernel(kernelCfg, chainEnv, Land)
 
 	k.Startup()
 }
