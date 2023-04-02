@@ -6,14 +6,8 @@ name: Go
 on:
   push:
     branches: [ "master" ]
-    paths:
-      - './**'
-      - '.github/workflows/poa.yml'
   pull_request:
     branches: [ "master" ]
-    paths:
-      - './**'
-      - '.github/workflows/poa.yml'
 
 defaults:
   run:
