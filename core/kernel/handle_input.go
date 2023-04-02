@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+// HandleTxn handles txn from outside.
+// You can also self-define your input by calling HandleTxn (not only by default http and ws)
 func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	_, err := k.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
