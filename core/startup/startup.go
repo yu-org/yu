@@ -30,14 +30,19 @@ var (
 	Land = tripod.NewLand()
 )
 
-func SyncAndStartup(tripodInstances ...interface{}) {
-	tripodInstances = append([]interface{}{synchronizer.NewSynchronizer(kernelCfg.SyncMode)}, tripodInstances...)
-	StartUp(tripodInstances...)
+func DefaultStartup(tripodInstances ...interface{}) {
+	k := InitDefaultKernel(tripodInstances...)
+	k.Startup()
 }
 
 func StartUp(tripodInstances ...interface{}) {
 	k := InitKernel(tripodInstances...)
 	k.Startup()
+}
+
+func InitDefaultKernel(tripodInstances ...interface{}) *kernel.Kernel {
+	tripodInstances = append([]interface{}{synchronizer.NewSynchronizer(kernelCfg.SyncMode)}, tripodInstances...)
+	return InitKernel(tripodInstances...)
 }
 
 func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {

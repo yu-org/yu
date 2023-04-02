@@ -51,7 +51,7 @@ func main() {
 	logrus.Info("My Address is ", myPubkey.Address().String())
 
 	startup.InitConfigFromPath("yu_conf/kernel.toml")
-	startup.SyncAndStartup(
+	startup.DefaultStartup(
 		poa.NewPoa(poaConf),
 		asset.NewAsset("YuCoin"),
 	)
