@@ -84,12 +84,6 @@ func NewKernel(
 }
 
 func (k *Kernel) Startup() {
-	//if len(m.p2pNetwork.GetBootNodes()) > 0 {
-	//	err := m.SyncHistory()
-	//	if err != nil {
-	//		logrus.Fatal("sync history error: ", err)
-	//	}
-	//}
 	k.InitChain()
 
 	// TODO: need to abstract out as handleTxn(*SignedTxn)
