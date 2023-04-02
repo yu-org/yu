@@ -9,44 +9,29 @@ import (
 	"net/http"
 )
 
-type ResolveTxn func() *SignedTxn
-
-var TxnResolves = make([]ResolveTxn, 0)
-
-func SetTxnResolves(wrs ...ResolveTxn) {
-	TxnResolves = append(TxnResolves, wrs...)
-}
-
-func (k *Kernel) HandleTxns() error {
-	for _, txnRsv := range TxnResolves {
-		stxn := txnRsv()
-		_, err := k.land.GetWriting(stxn.Raw.WrCall)
-		if err != nil {
-			return err
-		}
-
-		if k.txPool.Exist(stxn) {
-			return err
-		}
-
-		err = k.txPool.CheckTxn(stxn)
-		if err != nil {
-			return err
-		}
-
-		go func() {
-			err = k.pubUnpackedTxns(FromArray(stxn))
-			if err != nil {
-				logrus.Error("publish unpacked txns error: ", err)
-			}
-		}()
-
-		err = k.txPool.Insert(stxn)
-		if err != nil {
-			return err
-		}
+func (k *Kernel) HandleTxns(stxn *SignedTxn) error {
+	_, err := k.land.GetWriting(stxn.Raw.WrCall)
+	if err != nil {
+		return err
 	}
-	return nil
+
+	if k.txPool.Exist(stxn) {
+		return err
+	}
+
+	err = k.txPool.CheckTxn(stxn)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err = k.pubUnpackedTxns(FromArray(stxn))
+		if err != nil {
+			logrus.Error("publish unpacked txns error: ", err)
+		}
+	}()
+
+	return k.txPool.Insert(stxn)
 }
 
 //func (k *Kernel) HandleRd() error {

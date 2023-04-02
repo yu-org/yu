@@ -96,16 +96,9 @@ func (k *Kernel) Startup() {
 		return nil
 	})
 
-	// TODO: need to abstract out as handleTxn
+	// TODO: need to abstract out as handleTxn(*SignedTxn)
 	go k.HandleHttp()
 	go k.HandleWS()
-
-	go func() {
-		err := k.HandleTxns()
-		if err != nil {
-			logrus.Errorf("handle txn error: %s", err.Error())
-		}
-	}()
 
 	go func() {
 		for {
