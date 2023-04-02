@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (k *Kernel) HandleTxns(stxn *SignedTxn) error {
+func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	_, err := k.land.GetWriting(stxn.Raw.WrCall)
 	if err != nil {
 		return err
