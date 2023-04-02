@@ -6,12 +6,12 @@ import (
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/env"
 	. "github.com/yu-org/yu/core/state"
-	"github.com/yu-org/yu/core/subscribe"
+	. "github.com/yu-org/yu/core/subscribe"
 	. "github.com/yu-org/yu/core/tripod"
-	"github.com/yu-org/yu/core/tripod/dev"
+	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
-	"github.com/yu-org/yu/infra/p2p"
+	. "github.com/yu-org/yu/infra/p2p"
 	. "github.com/yu-org/yu/utils/ip"
 	"sync"
 )
@@ -33,9 +33,9 @@ type Kernel struct {
 	land *Land
 
 	// event subscription
-	sub *subscribe.Subscription
+	sub *Subscription
 
-	p2pNetwork p2p.P2pNetwork
+	p2pNetwork P2pNetwork
 }
 
 func NewKernel(
@@ -66,7 +66,7 @@ func NewKernel(
 	//	logrus.Fatal("init chain error: ", err)
 	//}
 
-	handerlsMap := make(map[int]dev.P2pHandler, 0)
+	handerlsMap := make(map[int]P2pHandler, 0)
 
 	land.RangeList(func(tri *Tripod) error {
 		for code, handler := range tri.P2pHandlers {
@@ -84,33 +84,20 @@ func NewKernel(
 }
 
 func (k *Kernel) Startup() {
-
-	//if len(m.p2pNetwork.GetBootNodes()) > 0 {
-	//	err := m.SyncHistory()
-	//	if err != nil {
-	//		logrus.Fatal("sync history error: ", err)
-	//	}
-	//}
-	k.land.RangeList(func(tri *Tripod) error {
-		tri.InitChain()
-		return nil
-	})
+	k.InitChain()
 
 	// TODO: need to abstract out as handleTxn(*SignedTxn)
 	go k.HandleHttp()
 	go k.HandleWS()
 
-	go func() {
-		for {
-			err := k.AcceptUnpkgTxns()
-			if err != nil {
-				logrus.Errorf("accept unpacked txns error: %s", err.Error())
-			}
-		}
-
-	}()
-
 	k.Run()
+}
+
+func (k *Kernel) InitChain() {
+	k.land.RangeList(func(tri *Tripod) error {
+		tri.InitChain()
+		return nil
+	})
 }
 
 func (k *Kernel) AcceptUnpkgTxns() error {
