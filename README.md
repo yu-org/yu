@@ -106,7 +106,7 @@ func NewAsset(tokenName string) *Asset {
 Finally set `Asset Tripod` into `land` in `main func`. 
 ```go
 func main() {
-    startup.SyncAndStartup(asset.NewAsset("YuCoin"))
+    startup.DefaultStartup(asset.NewAsset("YuCoin"))
 }
 ```
 
@@ -204,7 +204,7 @@ Same as `Asset Tripod` , finally set `Poa Tripod` into `land` in `main function`
 ```go
 func main() {
     startup.InitConfigFromPath("yu_conf/kernel.toml")
-    startup.SyncAndStartup(
+    startup.DefaultStartup(
         poa.NewPoa(poaConf),
         asset.NewAsset("YuCoin"),
     )
