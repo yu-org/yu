@@ -15,7 +15,7 @@ type Asset struct {
 }
 
 func NewAsset(tokenName string) *Asset {
-	df := NewTripod("asset")
+	df := NewTripod()
 
 	a := &Asset{df, tokenName}
 	a.SetWritings(a.Transfer, a.CreateAccount)
