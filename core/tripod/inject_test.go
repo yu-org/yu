@@ -17,7 +17,7 @@ type TestInjectTripod struct {
 }
 
 func newTestTripod() *TestInjectTripod {
-	tri := NewTripod("test")
+	tri := NewTripodWithName("test")
 	return &TestInjectTripod{Tripod: tri}
 }
 
@@ -26,7 +26,7 @@ type Dayu struct {
 }
 
 func newDayu() *Dayu {
-	tri := NewTripod(dayuStr)
+	tri := NewTripodWithName(dayuStr)
 	return &Dayu{Tripod: tri}
 }
 
@@ -39,7 +39,7 @@ type Boyi struct {
 }
 
 func newBoyi() *Boyi {
-	tri := NewTripod(boyiStr)
+	tri := NewTripodWithName(boyiStr)
 	return &Boyi{Tripod: tri}
 }
 

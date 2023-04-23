@@ -45,7 +45,7 @@ func NewPoa(cfg *PoaConfig) *Poa {
 }
 
 func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int) *Poa {
-	tri := NewTripod("poa")
+	tri := NewTripod()
 
 	var nodeIdx int
 

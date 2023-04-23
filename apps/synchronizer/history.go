@@ -20,7 +20,7 @@ type Synchronizer struct {
 }
 
 func NewSynchronizer(syncMode int) *Synchronizer {
-	tri := NewTripod("synchronizer")
+	tri := NewTripodWithName("synchronizer")
 	fh := &Synchronizer{Tripod: tri, syncMode: syncMode}
 	tri.SetInit(fh)
 	tri.SetP2pHandler(HandshakeCode, fh.handleHsReq).SetP2pHandler(SyncTxnsCode, fh.handleSyncTxnsReq)

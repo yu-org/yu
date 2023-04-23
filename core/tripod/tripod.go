@@ -32,7 +32,11 @@ type Tripod struct {
 	P2pHandlers map[int]P2pHandler
 }
 
-func NewTripod(name string) *Tripod {
+func NewTripod() *Tripod {
+	return NewTripodWithName("")
+}
+
+func NewTripodWithName(name string) *Tripod {
 	return &Tripod{
 		name:        name,
 		writings:    make(map[string]Writing),
@@ -47,6 +51,14 @@ func NewTripod(name string) *Tripod {
 }
 
 func (t *Tripod) SetInstance(instance interface{}) {
+	if t.name == "" {
+		pkgStruct := reflect.TypeOf(instance).String()
+		strArr := strings.Split(pkgStruct, ".")
+		tripodName := strings.ToLower(strArr[len(strArr)-1])
+		logrus.Info("tripod name = ", tripodName)
+		t.name = tripodName
+	}
+
 	t.Instance = instance
 }
 
