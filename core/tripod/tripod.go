@@ -55,7 +55,6 @@ func (t *Tripod) SetInstance(instance interface{}) {
 		pkgStruct := reflect.TypeOf(instance).String()
 		strArr := strings.Split(pkgStruct, ".")
 		tripodName := strings.ToLower(strArr[len(strArr)-1])
-		logrus.Info("tripod name = ", tripodName)
 		t.name = tripodName
 	}
 
