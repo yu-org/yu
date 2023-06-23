@@ -16,7 +16,6 @@ type StoreKind int
 
 const (
 	KV StoreKind = iota
-	Queue
 	SQL
 	FS
 )

@@ -9,13 +9,6 @@ type KVconf struct {
 	Hosts []string `toml:"hosts"`
 }
 
-type QueueConf struct {
-	QueueType string `toml:"queue_type"`
-	Url       string `toml:"url"`
-	// toml, gob, default
-	Encoder string `toml:"encoder"`
-}
-
 type SqlDbConf struct {
 	SqlDbType string `toml:"sql_db_type"`
 	Dsn       string `toml:"dsn"`
