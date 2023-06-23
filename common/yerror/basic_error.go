@@ -17,7 +17,6 @@ var NoConvergeType = errors.New("no converge type")
 var GenesisBlockIllegal = errors.New("genesis block is illegal")
 
 var NoKvdbType = errors.New("no kvdb type")
-var NoQueueType = errors.New("no queue type")
 var NoSqlDbType = errors.New("no sqlDB type")
 
 var (
