@@ -8,17 +8,27 @@ import (
 
 func InitConfigFromPath(cfgPath string) {
 	config.LoadTomlConf(cfgPath, kernelCfg)
+	initDataDir()
 	initLog(kernelCfg)
 }
 
 func InitConfig(cfg *config.KernelConf) {
 	kernelCfg = cfg
+	initDataDir()
 	initLog(kernelCfg)
 }
 
 func InitDefaultConfig() {
 	kernelCfg = config.InitDefaultCfg()
+	initDataDir()
 	initLog(kernelCfg)
+}
+
+func initDataDir() {
+	err := os.MkdirAll(kernelCfg.DataDir, 0700)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func initLog(cfg *config.KernelConf) {

@@ -1,30 +1,20 @@
 package config
 
 import (
-	"os"
 	"path"
 )
 
 func InitDefaultCfg() *KernelConf {
-	return InitDefaultCfgWithDir("")
-}
-
-func InitDefaultCfgWithDir(dir string) *KernelConf {
-	if dir != "" {
-		err := os.MkdirAll(dir, 0700)
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	cfg := &KernelConf{
 		RunMode:   0,
+		DataDir:   "yu",
 		HttpPort:  "7999",
 		WsPort:    "8999",
 		LogLevel:  "info",
 		LogOutput: "yu.log",
 		LeiLimit:  50000,
 	}
+
 	cfg.P2P = P2pConf{
 		P2pListenAddrs:  []string{"/ip4/127.0.0.1/tcp/8887"},
 		Bootnodes:       nil,
@@ -37,13 +27,13 @@ func InitDefaultCfgWithDir(dir string) *KernelConf {
 	}
 	cfg.KVDB = KVconf{
 		KvType: "bolt",
-		Path:   path.Join(dir, "yu.db"),
+		Path:   path.Join(cfg.DataDir, "yu.db"),
 		Hosts:  nil,
 	}
 	cfg.BlockChain = BlockchainConf{
 		ChainDB: SqlDbConf{
 			SqlDbType: "sqlite",
-			Dsn:       path.Join(dir, "chain.db"),
+			Dsn:       path.Join(cfg.DataDir, "chain.db"),
 		},
 	}
 	cfg.Txpool = TxpoolConf{
