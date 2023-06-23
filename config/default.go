@@ -37,7 +37,7 @@ func InitDefaultCfgWithDir(dir string) *KernelConf {
 	}
 	cfg.KVDB = KVconf{
 		KvType: "bolt",
-		Path:   "yu.db",
+		Path:   path.Join(dir, "yu.db"),
 		Hosts:  nil,
 	}
 	cfg.BlockChain = BlockchainConf{
