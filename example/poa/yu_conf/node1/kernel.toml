@@ -1,4 +1,5 @@
 run_mode = 0
+data_dir = "yu"
 http_port = "7999"
 ws_port = "8999"
 log_level = "info"

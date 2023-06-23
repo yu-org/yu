@@ -17,6 +17,7 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
+	"os"
 )
 
 var (
@@ -46,6 +47,10 @@ func InitDefaultKernel(tripodInstances ...interface{}) *kernel.Kernel {
 }
 
 func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
+	err := os.MkdirAll(kernelCfg.DataDir, 0700)
+	if err != nil {
+		panic(err)
+	}
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
 		tripods = append(tripods, tripod.ResolveTripod(v))

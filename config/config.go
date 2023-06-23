@@ -11,6 +11,8 @@ type KernelConf struct {
 	// 1: LightNode
 	// 2: ArchiveNode
 	NodeType int `toml:"node_type"`
+	// All database files store in data_dir
+	DataDir string `toml:"data_dir"`
 	// 0: FullSync
 	// 1: FastSync
 	// 2: LightSync
