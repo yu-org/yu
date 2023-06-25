@@ -15,7 +15,7 @@ node_key_rand_seed = 1
 
 [kvdb]
 kv_type = "pebble"
-path = "./yu.db"
+path = "yu.db"
 
 [block_chain.chain_db]
 sql_db_type = "sqlite"

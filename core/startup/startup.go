@@ -17,10 +17,11 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
+	"path"
 )
 
 var (
-	kernelCfg = &config.KernelConf{}
+	kernelCfg = new(config.KernelConf)
 
 	Chain   types.IBlockChain
 	TxnDB   types.ItxDB
@@ -54,6 +55,9 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
 
+	// init database
+	kernelCfg.KVDB.Path = path.Join(kernelCfg.DataDir, kernelCfg.KVDB.Path)
+	kernelCfg.BlockChain.ChainDB.Dsn = path.Join(kernelCfg.DataDir, kernelCfg.BlockChain.ChainDB.Dsn)
 	kvdb, err := kv.NewKvdb(&kernelCfg.KVDB)
 	if err != nil {
 		logrus.Fatal("init kvdb error: ", err)
