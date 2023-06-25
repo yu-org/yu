@@ -1,9 +1,5 @@
 package config
 
-import (
-	"path"
-)
-
 func InitDefaultCfg() *KernelConf {
 	cfg := &KernelConf{
 		RunMode:   0,
@@ -26,14 +22,14 @@ func InitDefaultCfg() *KernelConf {
 		NodeKeyFile:     "",
 	}
 	cfg.KVDB = KVconf{
-		KvType: "bolt",
-		Path:   path.Join(cfg.DataDir, "yu.db"),
+		KvType: "pebble",
+		Path:   "yu.db",
 		Hosts:  nil,
 	}
 	cfg.BlockChain = BlockchainConf{
 		ChainDB: SqlDbConf{
 			SqlDbType: "sqlite",
-			Dsn:       path.Join(cfg.DataDir, "chain.db"),
+			Dsn:       "chain.db",
 		},
 	}
 	cfg.Txpool = TxpoolConf{
