@@ -29,7 +29,8 @@ func CallChainByQry(reqtyp int, qcall *Rdcall) []byte {
 
 	u.RawQuery = q.Encode()
 
-	// logrus.Info("qcall: ", u.String())
+	logrus.Debug("qcall: ", u.String())
+
 	switch reqtyp {
 	case Http:
 		resp, err := http.Post(u.String(), "application/json", strings.NewReader(qcall.Params))
@@ -93,7 +94,7 @@ func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall)
 
 	u.RawQuery = q.Encode()
 
-	// logrus.Info("ecall: ", u.String())
+	logrus.Debug("ecall: ", u.String())
 
 	switch reqType {
 	case Http:
