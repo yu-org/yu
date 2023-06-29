@@ -7,25 +7,25 @@ import (
 )
 
 func InitConfigFromPath(cfgPath string) {
-	config.LoadTomlConf(cfgPath, kernelCfg)
+	config.LoadTomlConf(cfgPath, KernelCfg)
 	initDataDir()
-	initLog(kernelCfg)
+	initLog(KernelCfg)
 }
 
 func InitConfig(cfg *config.KernelConf) {
-	kernelCfg = cfg
+	KernelCfg = cfg
 	initDataDir()
-	initLog(kernelCfg)
+	initLog(KernelCfg)
 }
 
 func InitDefaultConfig() {
-	kernelCfg = config.InitDefaultCfg()
+	KernelCfg = config.InitDefaultCfg()
 	initDataDir()
-	initLog(kernelCfg)
+	initLog(KernelCfg)
 }
 
 func initDataDir() {
-	err := os.MkdirAll(kernelCfg.DataDir, 0700)
+	err := os.MkdirAll(KernelCfg.DataDir, 0700)
 	if err != nil {
 		panic(err)
 	}
