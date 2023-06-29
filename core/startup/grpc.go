@@ -11,10 +11,10 @@ import (
 )
 
 func StartGrpcServer() {
-	if kernelCfg.RunMode != common.MasterWorker {
+	if KernelCfg.RunMode != common.MasterWorker {
 		return
 	}
-	lis, err := net.Listen("tcp", kernelCfg.GrpcPort)
+	lis, err := net.Listen("tcp", KernelCfg.GrpcPort)
 	if err != nil {
 		logrus.Fatal("listen for grpc failed: ", err)
 	}
