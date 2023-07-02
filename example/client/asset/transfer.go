@@ -25,7 +25,7 @@ func QueryAccount(pubkey PubKey) {
 		BlockHash:   Hash{},
 		Params:      string(paramByt),
 	}
-	resp := CallChainByQry(Websocket, qcall)
+	resp := CallChainByReading(Websocket, qcall)
 	respMap := make(context.H)
 	err = json.Unmarshal(resp, &respMap)
 	if err != nil {
@@ -56,7 +56,7 @@ func CreateAccount(reqType int, privkey PrivKey, pubkey PubKey, amount uint64) {
 		Params:      string(paramsByt),
 		LeiPrice:    0,
 	}
-	CallChainByExec(reqType, privkey, pubkey, wrCall)
+	CallChainByWriting(reqType, privkey, pubkey, wrCall)
 }
 
 type TransferInfo struct {
@@ -79,5 +79,5 @@ func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, am
 		Params:      string(paramsByt),
 		LeiPrice:    leiPrice,
 	}
-	CallChainByExec(reqType, privkey, pubkey, wrCall)
+	CallChainByWriting(reqType, privkey, pubkey, wrCall)
 }
