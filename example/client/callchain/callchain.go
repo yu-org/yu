@@ -20,7 +20,7 @@ const (
 	Websocket
 )
 
-func CallChainByQry(reqtyp int, qcall *Rdcall) []byte {
+func CallChainByReading(reqtyp int, qcall *Rdcall) []byte {
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: RdApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, qcall.TripodName)
@@ -61,7 +61,7 @@ func CallChainByQry(reqtyp int, qcall *Rdcall) []byte {
 	return nil
 }
 
-func CallChainByExec(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall) {
+func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall) {
 	hash, err := ecall.Hash()
 	if err != nil {
 		panic("ecall hash error: " + err.Error())
