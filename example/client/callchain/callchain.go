@@ -115,7 +115,7 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCa
 	}
 }
 
-func SubEvent() {
+func SubEvent(ch chan Result) {
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: SubResultsPath}
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
@@ -136,6 +136,9 @@ func SubEvent() {
 			logrus.Info(result.(*Event).Sprint())
 		case ErrorType:
 			logrus.Error(result.(*Error).Error())
+		}
+		if ch != nil {
+			ch <- result
 		}
 	}
 }

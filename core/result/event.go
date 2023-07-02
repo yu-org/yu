@@ -39,6 +39,10 @@ func (e *Event) Decode(data []byte) error {
 	return json.Unmarshal(data[ResultTypeBytesLen:], e)
 }
 
+func (e *Event) DecodeJsonValue(v any) error {
+	return json.Unmarshal(e.Value, v)
+}
+
 func (e *Event) Type() ResultType {
 	return EventType
 }

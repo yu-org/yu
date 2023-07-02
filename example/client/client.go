@@ -20,7 +20,7 @@ func main() {
 		panic("generate To Address key error: " + err.Error())
 	}
 
-	go SubEvent()
+	go SubEvent(nil)
 
 	logrus.Info("--- send Creating Account ---")
 	CreateAccount(Http, privkey, pubkey, 500)
