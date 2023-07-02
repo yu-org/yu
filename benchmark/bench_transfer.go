@@ -28,7 +28,7 @@ func main() {
 	}
 
 	go caculateTPS()
-	go SubEvent()
+	go SubEvent(nil)
 
 	start := time.Now()
 
