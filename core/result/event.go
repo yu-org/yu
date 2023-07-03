@@ -50,7 +50,7 @@ func (e *Event) Type() ResultType {
 func (e *Event) Sprint() (str string) {
 	if e.BlockStage == ExecuteTxnsStage {
 		str = fmt.Sprintf(
-			"[Event] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
+			"[Event] Caller(%s) call Tripod(%s) Writing(%s) in Block(%s) on Height(%d): %s",
 			e.Caller.String(),
 			e.TripodName,
 			e.WritingName,

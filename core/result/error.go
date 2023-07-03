@@ -33,7 +33,7 @@ func (e *Error) Hash() (Hash, error) {
 func (e *Error) Error() (str string) {
 	if e.BlockStage == ExecuteTxnsStage {
 		str = fmt.Sprintf(
-			"[Error] Caller(%s) call Tripod(%s) Execution(%s) in Block(%s) on Height(%d): %s",
+			"[Error] Caller(%s) call Tripod(%s) Writing(%s) in Block(%s) on Height(%d): %s",
 			e.Caller.String(),
 			e.TripodName,
 			e.WritingName,
