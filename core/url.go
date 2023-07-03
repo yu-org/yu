@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	// RootApiPath For developers, every customized Execution and Read of tripods
+	// RootApiPath For developers, every customized Writing and Read of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"
 
