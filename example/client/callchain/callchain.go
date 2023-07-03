@@ -9,7 +9,7 @@ import (
 	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,8 +20,19 @@ const (
 	Websocket
 )
 
-func CallChainByReading(reqtyp int, qcall *Rdcall) []byte {
-	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: RdApiPath}
+func CallChainByReading(reqTyp int, qcall *Rdcall) []byte {
+	var (
+		scheme, port string
+	)
+	switch reqTyp {
+	case Http:
+		scheme = "http"
+		port = "7999"
+	case Websocket:
+		scheme = "ws"
+		port = "8999"
+	}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: RdApiPath}
 	q := u.Query()
 	q.Set(TripodNameKey, qcall.TripodName)
 	q.Set(CallNameKey, qcall.ReadingName)
@@ -31,13 +42,13 @@ func CallChainByReading(reqtyp int, qcall *Rdcall) []byte {
 
 	logrus.Debug("qcall: ", u.String())
 
-	switch reqtyp {
+	switch reqTyp {
 	case Http:
 		resp, err := http.Post(u.String(), "application/json", strings.NewReader(qcall.Params))
 		if err != nil {
 			panic("post qcall message to chain error: " + err.Error())
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			panic("read qcall response body error: " + err.Error())
 		}
