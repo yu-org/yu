@@ -96,6 +96,6 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 			return
 		}
 		// FIXME: not only json type.
-		c.JSON(http.StatusOK, ctx.Response())
+		c.Data(http.StatusOK, "application/json", ctx.Response())
 	}
 }
