@@ -5,6 +5,7 @@ import (
 	"github.com/yu-org/yu/infra/storage/kv"
 )
 
+// TODO: need to add prove() and verify()
 type IState interface {
 	Set(triName NameString, key, value []byte)
 	Delete(triName NameString, key []byte)
