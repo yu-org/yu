@@ -147,7 +147,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	}
 	// logrus.Infof("---!!!--- stateDB costs %d ms", time.Since(sStart).Milliseconds())
 
-	block.StateRoot = stateRoot
+	block.StateRoot = BytesToHash(stateRoot)
 
 	block.ReceiptRoot, err = CaculateReceiptRoot(results)
 	return err

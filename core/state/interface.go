@@ -13,7 +13,7 @@ type IState interface {
 	GetFinalized(triName NameString, key []byte) ([]byte, error)
 	Exist(triName NameString, key []byte) bool
 	GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error)
-	Commit() (Hash, error)
+	Commit() ([]byte, error)
 	NextTxn()
 	Discard()
 	DiscardAll()
@@ -22,5 +22,5 @@ type IState interface {
 }
 
 func NewStateDB(kvdb kv.Kvdb) IState {
-	return NewMptKV(kvdb)
+	return NewSpmtKV(kvdb)
 }

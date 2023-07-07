@@ -8,11 +8,11 @@ import (
 )
 
 type GrpcMptKV struct {
-	kv *MptKV
+	kv *SpmtKV
 }
 
 func NewGrpcMptKV(kv IState) *GrpcMptKV {
-	return &GrpcMptKV{kv.(*MptKV)}
+	return &GrpcMptKV{kv.(*SpmtKV)}
 }
 
 func (g *GrpcMptKV) Get(_ context.Context, key *goproto.Key) (*goproto.ValueResponse, error) {
@@ -64,7 +64,7 @@ func (g *GrpcMptKV) Commit(context.Context, *emptypb.Empty) (*goproto.TxnHashRes
 	if err != nil {
 		return nil, err
 	}
-	return &goproto.TxnHashResponse{Hash: hash.Bytes()}, nil
+	return &goproto.TxnHashResponse{Hash: hash}, nil
 }
 
 func (g *GrpcMptKV) Discard(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
