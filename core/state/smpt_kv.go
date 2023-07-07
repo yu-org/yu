@@ -2,10 +2,11 @@ package state
 
 import (
 	"container/list"
+	"crypto/sha256"
+	"github.com/celestiaorg/smt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/infra/storage/kv"
-	. "github.com/yu-org/yu/infra/trie/mpt"
 )
 
 //                         Merkle Patricia Trie
@@ -16,11 +17,15 @@ import (
 //     /      |      \		 /      |      \      /      |      \
 //	  kv      kv      kv     kv     kv     kv    kv     kv      kv
 
-type MptKV struct {
+type SpmtKV struct {
 	// blockHash -> stateRoot
 	indexDB KV
 
-	nodeBase *NodeBase
+	// for spmt
+	nodesDB  KV
+	valuesDB KV
+
+	spmt *smt.SparseMerkleTree
 
 	prevBlock      Hash
 	currentBlock   Hash
@@ -30,53 +35,67 @@ type MptKV struct {
 	stashes *list.List // []*TxnStashes
 }
 
-const MptIndex = "mpt-index"
+const (
+	SpmtIndex = "spmt-index"
+	Nodes     = "spmt-nodes"
+	Values    = "spmt-values"
+)
 
-func NewMptKV(kvdb Kvdb) IState {
+var (
+	hasher    = sha256.New
+	EmptyRoot = HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
+)
 
-	nodeBase := NewNodeBase(kvdb)
+func NewSpmtKV(kvdb Kvdb) IState {
+	indexDB := kvdb.New(SpmtIndex)
+	nodesDB := kvdb.New(Nodes)
+	valuesDB := kvdb.New(Values)
 
-	return &MptKV{
-		indexDB:      kvdb.New(MptIndex),
-		nodeBase:     nodeBase,
+	spmt := smt.NewSparseMerkleTree(nodesDB, valuesDB, hasher())
+
+	return &SpmtKV{
+		indexDB:      indexDB,
+		nodesDB:      nodesDB,
+		valuesDB:     valuesDB,
+		spmt:         spmt,
 		prevBlock:    NullHash,
 		currentBlock: NullHash,
 		stashes:      list.New(),
 	}
 }
 
-func (skv *MptKV) NextTxn() {
+func (skv *SpmtKV) NextTxn() {
 	skv.stashes.PushBack(newTxnStashes())
 }
 
-func (skv *MptKV) Set(triName NameString, key, value []byte) {
+func (skv *SpmtKV) Set(triName NameString, key, value []byte) {
 	skv.set(triName.Name(), key, value)
 }
 
-func (skv *MptKV) set(triName string, key, value []byte) {
+func (skv *SpmtKV) set(triName string, key, value []byte) {
 	skv.mute(SetOp, triName, key, value)
 }
 
-func (skv *MptKV) Delete(triName NameString, key []byte) {
+func (skv *SpmtKV) Delete(triName NameString, key []byte) {
 	skv.delete(triName.Name(), key)
 }
 
-func (skv *MptKV) delete(triName string, key []byte) {
+func (skv *SpmtKV) delete(triName string, key []byte) {
 	skv.mute(DeleteOp, triName, key, nil)
 }
 
-func (skv *MptKV) mute(op Ops, triName string, key, value []byte) {
+func (skv *SpmtKV) mute(op Ops, triName string, key, value []byte) {
 	if skv.stashes.Len() == 0 {
 		skv.stashes.PushBack(newTxnStashes())
 	}
 	skv.stashes.Back().Value.(*TxnStashes).append(op, makeKey(triName, key), value)
 }
 
-func (skv *MptKV) Get(triName NameString, key []byte) ([]byte, error) {
+func (skv *SpmtKV) Get(triName NameString, key []byte) ([]byte, error) {
 	return skv.get(triName.Name(), key)
 }
 
-func (skv *MptKV) get(triName string, key []byte) ([]byte, error) {
+func (skv *SpmtKV) get(triName string, key []byte) ([]byte, error) {
 	for element := skv.stashes.Back(); element != nil; element = element.Prev() {
 		stashes := element.Value.(*TxnStashes)
 		ops, value := stashes.get(makeKey(triName, key))
@@ -92,91 +111,84 @@ func (skv *MptKV) get(triName string, key []byte) ([]byte, error) {
 	return skv.getByBlockHash(triName, key, skv.prevBlock)
 }
 
-func (skv *MptKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
+func (skv *SpmtKV) GetFinalized(triName NameString, key []byte) ([]byte, error) {
 	return skv.GetByBlockHash(triName, key, skv.finalizedBlock)
 }
 
-func (skv *MptKV) getFinalized(triName string, key []byte) ([]byte, error) {
+func (skv *SpmtKV) getFinalized(triName string, key []byte) ([]byte, error) {
 	return skv.getByBlockHash(triName, key, skv.finalizedBlock)
 }
 
-func (skv *MptKV) Exist(triName NameString, key []byte) bool {
+func (skv *SpmtKV) Exist(triName NameString, key []byte) bool {
 	return skv.exist(triName.Name(), key)
 }
 
-func (skv *MptKV) exist(triName string, key []byte) bool {
+func (skv *SpmtKV) exist(triName string, key []byte) bool {
 	value, _ := skv.get(triName, key)
 	return value != nil
 }
 
-func (skv *MptKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
+func (skv *SpmtKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
 	return skv.getByBlockHash(triName.Name(), key, blockHash)
 }
 
-func (skv *MptKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
+func (skv *SpmtKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
 	key = makeKey(triName, key)
 	stateRoot, err := skv.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
 	}
 
-	// fixme: causes bug
-	mpt, err := NewTrie(stateRoot, skv.nodeBase)
-	if err != nil {
-		return nil, err
-	}
-	return mpt.TryGet(key)
+	mpt := smt.ImportSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher(), stateRoot)
+	return mpt.Get(key)
 }
 
 // Commit returns StateRoot or error
-func (skv *MptKV) Commit() (Hash, error) {
-	lastStateRoot, err := skv.getIndexDB(skv.prevBlock)
-	if err != nil {
-		return NullHash, err
-	}
-	if lastStateRoot == NullHash {
-		lastStateRoot = EmptyRoot
-	}
-	mpt, err := NewTrie(lastStateRoot, skv.nodeBase)
-	if err != nil {
-		skv.DiscardAll()
-		return NullHash, err
-	}
+func (skv *SpmtKV) Commit() ([]byte, error) {
+	//lastStateRoot, err := skv.getIndexDB(skv.prevBlock)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if lastStateRoot == nil {
+	//	lastStateRoot = EmptyRoot.Bytes()
+	//}
+	spmt := smt.NewSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher())
 
 	// todo: optimize combine all key-values stashes
 	for element := skv.stashes.Front(); element != nil; element = element.Next() {
 		stashes := element.Value.(*TxnStashes)
-		err = stashes.commit(mpt)
+		err := stashes.commit(spmt)
 		if err != nil {
 			skv.DiscardAll()
-			return NullHash, err
+			return nil, err
 		}
 	}
 
-	stateRoot, err := mpt.Commit(nil)
-	if err != nil {
-		skv.DiscardAll()
-		return NullHash, err
-	}
+	//stateRoot, err := spmt.Commit(nil)
+	//if err != nil {
+	//	skv.DiscardAll()
+	//	return NullHash, err
+	//}
+	stateRoot := spmt.Root()
 
-	err = skv.setIndexDB(skv.currentBlock, stateRoot)
+	err := skv.setIndexDB(skv.currentBlock, stateRoot)
 	if err != nil {
 		skv.DiscardAll()
-		return NullHash, err
+		return nil, err
 	}
 
 	skv.stashes.Init()
 	return stateRoot, nil
 }
 
-func (skv *MptKV) Discard() {
+func (skv *SpmtKV) Discard() {
 	last := skv.stashes.Back()
 	if last != nil {
 		skv.stashes.Remove(last)
 	}
 }
 
-func (skv *MptKV) DiscardAll() {
+func (skv *SpmtKV) DiscardAll() {
 	stateRoot, err := skv.getIndexDB(skv.prevBlock)
 	if err != nil {
 		logrus.Panic("DiscardAll: get stateRoot error: ", err)
@@ -189,25 +201,25 @@ func (skv *MptKV) DiscardAll() {
 	skv.stashes.Init()
 }
 
-func (skv *MptKV) StartBlock(blockHash Hash) {
+func (skv *SpmtKV) StartBlock(blockHash Hash) {
 	skv.prevBlock = skv.currentBlock
 	skv.currentBlock = blockHash
 }
 
-func (skv *MptKV) FinalizeBlock(blockHash Hash) {
+func (skv *SpmtKV) FinalizeBlock(blockHash Hash) {
 	skv.finalizedBlock = blockHash
 }
 
-func (skv *MptKV) setIndexDB(blockHash, stateRoot Hash) error {
-	return skv.indexDB.Set(blockHash.Bytes(), stateRoot.Bytes())
+func (skv *SpmtKV) setIndexDB(blockHash Hash, stateRoot []byte) error {
+	return skv.indexDB.Set(blockHash.Bytes(), stateRoot)
 }
 
-func (skv *MptKV) getIndexDB(blockHash Hash) (Hash, error) {
+func (skv *SpmtKV) getIndexDB(blockHash Hash) ([]byte, error) {
 	stateRoot, err := skv.indexDB.Get(blockHash.Bytes())
 	if err != nil {
-		return NullHash, err
+		return nil, err
 	}
-	return BytesToHash(stateRoot), nil
+	return stateRoot, nil
 }
 
 func makeKey(triName string, key []byte) []byte {
@@ -259,17 +271,17 @@ func (k *TxnStashes) get(key []byte) (*Ops, []byte) {
 	return nil, nil
 }
 
-func (k *TxnStashes) commit(mpt *Trie) error {
+func (k *TxnStashes) commit(mpt *smt.SparseMerkleTree) error {
 	for element := k.stashes.Front(); element != nil; element = element.Next() {
 		stash := element.Value.(*KvStash)
 		switch stash.ops {
 		case SetOp:
-			err := mpt.TryUpdate(stash.Key, stash.Value)
+			_, err := mpt.Update(stash.Key, stash.Value)
 			if err != nil {
 				return err
 			}
 		case DeleteOp:
-			err := mpt.TryDelete(stash.Key)
+			_, err := mpt.Delete(stash.Key)
 			if err != nil {
 				return err
 			}
