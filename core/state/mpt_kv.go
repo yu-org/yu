@@ -114,15 +114,18 @@ func (skv *MptKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash)
 }
 
 func (skv *MptKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
+	key = makeKey(triName, key)
 	stateRoot, err := skv.getIndexDB(blockHash)
 	if err != nil {
 		return nil, err
 	}
+
+	// fixme: causes bug
 	mpt, err := NewTrie(stateRoot, skv.nodeBase)
 	if err != nil {
 		return nil, err
 	}
-	return mpt.TryGet(makeKey(triName, key))
+	return mpt.TryGet(key)
 }
 
 // Commit returns StateRoot or error

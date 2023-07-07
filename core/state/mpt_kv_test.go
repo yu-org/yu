@@ -5,6 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/infra/storage/kv"
+	"github.com/yu-org/yu/infra/trie/mpt"
 	"os"
 	"testing"
 )
@@ -25,35 +26,56 @@ var (
 type TestTripod1 struct{}
 
 func (tt *TestTripod1) Name() string {
-	return "test-tripod-1"
+	return "1"
 }
 
 type TestTripod2 struct{}
 
 func (TestTripod2) Name() string {
-	return "test-tripod-2"
+	return "2"
+}
+
+func TestMPT(t *testing.T) {
+	kvdb, err := kv.NewKvdb(kvcfg)
+	assert.NoError(t, err)
+
+	nodeBase := mpt.NewNodeBase(kvdb)
+	tr, err := mpt.NewTrie(NullHash, nodeBase)
+	assert.NoError(t, err)
+
+	assert.NoError(t, tr.TryUpdate(key1, value1))
+	assert.NoError(t, tr.TryUpdate(key2, value2))
+	stateRoot, err := tr.Commit(nil)
+	assert.NoError(t, err)
+
+	tr2, err := mpt.NewTrie(stateRoot, nodeBase)
+	assert.NoError(t, err)
+
+	assert.Equal(t, value1, tr2.Get(key1))
+	assert.Equal(t, value2, tr2.Get(key2))
+
+	removeTestDB()
 }
 
 func TestKvCommit(t *testing.T) {
 	kvdb, err := kv.NewKvdb(kvcfg)
+	assert.NoError(t, err)
 	statekv := NewMptKV(kvdb)
 
-	tri1 := &TestTripod1{}
-	tri2 := &TestTripod2{}
+	tri1 := new(TestTripod1)
+	tri2 := new(TestTripod2)
 
 	statekv.Set(tri1, key1, value1)
 	statekv.Set(tri2, key2, value2)
 
 	statekv.NextTxn()
 
-	stateRoot, err := statekv.Commit()
+	_, err = statekv.Commit()
 	if err != nil {
 		t.Fatalf("commit state-kv error: %s", err.Error())
 	}
 
 	statekv.FinalizeBlock(NullHash)
-
-	t.Logf("state-root is %s", stateRoot.String())
 
 	value, err := statekv.Get(tri1, key1)
 	assert.NoError(t, err, "get key1 state-kv error")
