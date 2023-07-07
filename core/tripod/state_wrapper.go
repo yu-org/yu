@@ -31,7 +31,11 @@ func (t *Tripod) NextTxn() {
 }
 
 func (t *Tripod) Commit() (Hash, error) {
-	return t.State.Commit()
+	hash, err := t.State.Commit()
+	if err != nil {
+		return NullHash, err
+	}
+	return BytesToHash(hash), nil
 }
 
 func (t *Tripod) Discard() {
