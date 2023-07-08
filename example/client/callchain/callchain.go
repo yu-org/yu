@@ -126,15 +126,18 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCa
 	}
 }
 
+var conn *websocket.Conn
+
 func SubEvent(ch chan Result) {
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: SubResultsPath}
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	var err error
+	conn, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic("dial chain error: " + err.Error())
 	}
 
 	for {
-		_, msg, err := c.ReadMessage()
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
 		}
@@ -152,4 +155,8 @@ func SubEvent(ch chan Result) {
 			ch <- result
 		}
 	}
+}
+
+func CloseSub() error {
+	return conn.Close()
 }
