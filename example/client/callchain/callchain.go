@@ -144,7 +144,10 @@ func NewSubscriber() (*Subscriber, error) {
 }
 
 func (s *Subscriber) SubEvent(ch chan Result) {
-	for !s.closed.Load() {
+	for {
+		if s.closed.Load() {
+			return
+		}
 		_, msg, err := s.conn.ReadMessage()
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
