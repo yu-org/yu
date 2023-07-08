@@ -9,6 +9,7 @@ import (
 	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
+	"go.uber.org/atomic"
 	"io"
 	"net/http"
 	"net/url"
@@ -126,18 +127,25 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCa
 	}
 }
 
-var conn *websocket.Conn
+type Subscriber struct {
+	conn   *websocket.Conn
+	closed atomic.Bool
+}
 
-func SubEvent(ch chan Result) {
+func NewSubscriber() (*Subscriber, error) {
 	u := url.URL{Scheme: "ws", Host: "localhost:8999", Path: SubResultsPath}
-	var err error
-	conn, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
+	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		panic("dial chain error: " + err.Error())
 	}
+	return &Subscriber{
+		conn: conn,
+	}, nil
+}
 
-	for {
-		_, msg, err := conn.ReadMessage()
+func (s *Subscriber) SubEvent(ch chan Result) {
+	for !s.closed.Load() {
+		_, msg, err := s.conn.ReadMessage()
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
 		}
@@ -157,6 +165,7 @@ func SubEvent(ch chan Result) {
 	}
 }
 
-func CloseSub() error {
-	return conn.Close()
+func (s *Subscriber) CloseSub() error {
+	s.closed.Store(true)
+	return s.conn.Close()
 }
