@@ -90,8 +90,8 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 		err = k.land.Read(rdCall, ctx)
 		if err != nil {
 			c.String(
-				http.StatusBadRequest,
-				FindNoCallStr(rdCall.TripodName, rdCall.ReadingName, err),
+				http.StatusInternalServerError,
+				err.Error(),
 			)
 			return
 		}

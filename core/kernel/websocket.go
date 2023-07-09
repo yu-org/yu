@@ -114,7 +114,7 @@ func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string)
 
 		err = k.land.Read(qcall, ctx)
 		if err != nil {
-			k.errorAndClose(c, FindNoCallStr(qcall.TripodName, qcall.ReadingName, err))
+			k.errorAndClose(c, err.Error())
 			return
 		}
 		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
