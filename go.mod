@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/HyperService-Consortium/go-hexutil v1.0.1
 	github.com/HyperService-Consortium/go-rlp v1.0.2
+	github.com/celestiaorg/smt v0.3.0
 	github.com/cockroachdb/pebble v0.0.0-20221213170459-33377d59d70e
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/gin-gonic/gin v1.8.1
@@ -37,7 +38,6 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd v0.22.1 // indirect
-	github.com/celestiaorg/smt v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/errors v1.9.0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20211118104740-dabe8e521a4f // indirect

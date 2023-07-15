@@ -83,6 +83,6 @@ type ItxDB interface {
 	ExistTxn(txnHash Hash) bool
 	SetTxns(txns []*SignedTxn) error
 
-	SetResults(results []Result) error
-	SetResult(result Result) error
+	SetResults(results []*Result) error
+	SetResult(result *Result) error
 }

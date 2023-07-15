@@ -10,13 +10,13 @@ import (
 type Subscription struct {
 	// key: *websocket.Conn; value: bool
 	subscribers sync.Map
-	resultChan  chan Result
+	resultChan  chan *Result
 }
 
 func NewSubscription() *Subscription {
 	s := &Subscription{
 		subscribers: sync.Map{},
-		resultChan:  make(chan Result, 10),
+		resultChan:  make(chan *Result, 10),
 	}
 	go s.emitToClients()
 	return s
@@ -34,7 +34,7 @@ func (s *Subscription) UnRegister(c *Conn) {
 	s.subscribers.Delete(c)
 }
 
-func (s *Subscription) Emit(result Result) {
+func (s *Subscription) Emit(result *Result) {
 	s.resultChan <- result
 }
 

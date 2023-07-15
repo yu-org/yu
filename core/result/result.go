@@ -1,56 +1,74 @@
 package result
 
 import (
-	"errors"
+	"crypto/sha256"
+	"encoding/json"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/infra/trie"
-	"strconv"
 )
 
-type Result interface {
-	Type() ResultType
-	Hash() (Hash, error)
-	Encode() ([]byte, error)
-	Decode(data []byte) error
+type Result struct {
+	Type int `json:"type"`
+	// Event or Error
+	Event *Event `json:"event,omitempty"`
+	Error *Error `json:"error,omitempty"`
 }
 
-type ResultType int
+func NewEvent(e *Event) *Result {
+	return &Result{
+		Type:  EventType,
+		Event: e,
+	}
+}
+
+func NewError(e *Error) *Result {
+	return &Result{
+		Type:  ErrorType,
+		Error: e,
+	}
+}
 
 const (
-	EventType ResultType = iota
+	EventType = iota
 	ErrorType
-
-	ResultTypeBytesLen = 1
 )
 
-var (
-	EventTypeByt = []byte(strconv.Itoa(int(EventType)))
-	ErrorTypeByt = []byte(strconv.Itoa(int(ErrorType)))
-)
+func (r *Result) Encode() ([]byte, error) {
+	return json.Marshal(r)
+}
 
-// this func use for clients
-func DecodeResult(data []byte) (Result, error) {
-	resultTypeByt := data[:ResultTypeBytesLen]
+func (r *Result) Decode(data []byte) error {
+	return json.Unmarshal(data, r)
+}
 
-	resultType, err := strconv.Atoi(string(resultTypeByt))
+func (r *Result) Hash() ([]byte, error) {
+	byt, err := r.Encode()
 	if err != nil {
 		return nil, err
 	}
-
-	switch ResultType(resultType) {
-	case EventType:
-		event := &Event{}
-		err := event.Decode(data)
-		return event, err
-	case ErrorType:
-		er := &Error{}
-		err := er.Decode(data)
-		return er, err
-	}
-	return nil, errors.New("no result type")
+	hash := sha256.Sum256(byt)
+	return hash[:], err
 }
 
-func CaculateReceiptRoot(results []Result) (Hash, error) {
+func (r *Result) IsEvent() bool {
+	return r.Type == EventType
+}
+
+func (r *Result) IsError() bool {
+	return r.Type == ErrorType
+}
+
+func (r *Result) String() string {
+	switch r.Type {
+	case EventType:
+		return r.Event.Sprint()
+	case ErrorType:
+		return r.Error.Error()
+	}
+	return "invalid result type"
+}
+
+func CaculateReceiptRoot(results []*Result) (Hash, error) {
 	var receiptsByt []Hash
 	for _, result := range results {
 		receipt, err := result.Encode()

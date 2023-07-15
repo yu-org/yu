@@ -91,7 +91,7 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 func (k *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
-	var results []Result
+	var results []*Result
 
 	for _, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
@@ -124,28 +124,24 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		k.handleEvent(ctx, block, stxn)
 
 		for _, e := range ctx.Events {
-			results = append(results, e)
+			results = append(results, NewEvent(e))
 		}
 		if ctx.Error != nil {
-			results = append(results, ctx.Error)
+			results = append(results, NewError(ctx.Error))
 		}
 	}
 
-	// resStart := time.Now()
 	if len(results) > 0 {
 		err := k.base.SetResults(results)
 		if err != nil {
 			return err
 		}
 	}
-	// logrus.Infof("----- setResults costs %d ms", time.Since(resStart).Milliseconds())
 
-	// sStart := time.Now()
 	stateRoot, err := k.stateDB.Commit()
 	if err != nil {
 		return err
 	}
-	// logrus.Infof("---!!!--- stateDB costs %d ms", time.Since(sStart).Milliseconds())
 
 	block.StateRoot = BytesToHash(stateRoot)
 
@@ -203,7 +199,7 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 
 	logrus.Error("push error: ", ctx.Error.Error())
 	if k.sub != nil {
-		k.sub.Emit(ctx.Error)
+		k.sub.Emit(NewError(ctx.Error))
 	}
 
 }
@@ -221,7 +217,7 @@ func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 		event.Caller = stxn.Raw.Caller
 
 		if k.sub != nil {
-			k.sub.Emit(event)
+			k.sub.Emit(NewEvent(event))
 		}
 	}
 }
