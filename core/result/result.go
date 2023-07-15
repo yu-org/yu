@@ -3,28 +3,28 @@ package result
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/infra/trie"
 )
 
 type Result struct {
 	Type int `json:"type"`
-	// event or error
-	Object any `json:"object"`
+	// Event or Error
+	Event *Event `json:"event,omitempty"`
+	Error *Error `json:"error,omitempty"`
 }
 
 func NewEvent(e *Event) *Result {
 	return &Result{
-		Type:   EventType,
-		Object: e,
+		Type:  EventType,
+		Event: e,
 	}
 }
 
 func NewError(e *Error) *Result {
 	return &Result{
-		Type:   ErrorType,
-		Object: e,
+		Type:  ErrorType,
+		Error: e,
 	}
 }
 
@@ -32,40 +32,6 @@ const (
 	EventType = iota
 	ErrorType
 )
-
-func (r *Result) Event() *Event {
-	return r.Object.(*Event)
-}
-
-func (r *Result) Error() *Error {
-	return r.Object.(*Error)
-}
-
-func (r *Result) UnmarshalJSON(data []byte) error {
-	err := json.Unmarshal(data, r)
-	if err != nil {
-		return err
-	}
-
-	switch r.Type {
-	case EventType:
-		event := new(Event)
-		err = mapstructure.Decode(r.Object, event)
-		if err != nil {
-			return err
-		}
-		r.Object = event
-	case ErrorType:
-		erro := new(Error)
-		err = mapstructure.Decode(r.Object, erro)
-		if err != nil {
-			return err
-		}
-		r.Object = erro
-	}
-
-	return nil
-}
 
 func (r *Result) Encode() ([]byte, error) {
 	return json.Marshal(r)
@@ -95,9 +61,9 @@ func (r *Result) IsError() bool {
 func (r *Result) String() string {
 	switch r.Type {
 	case EventType:
-		return r.Object.(*Event).Sprint()
+		return r.Event.Sprint()
 	case ErrorType:
-		return r.Object.(*Error).Error()
+		return r.Error.Error()
 	}
 	return "invalid result type"
 }
