@@ -65,7 +65,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResults(results []Result) error {
+func (bb *TxDB) SetResults(results []*Result) error {
 	kvtx, err := bb.resultKV.NewKvTxn()
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (bb *TxDB) SetResults(results []Result) error {
 		if err != nil {
 			return err
 		}
-		err = kvtx.Set(hash.Bytes(), byt)
+		err = kvtx.Set(hash, byt)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (bb *TxDB) SetResults(results []Result) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResult(result Result) error {
+func (bb *TxDB) SetResult(result *Result) error {
 	byt, err := result.Encode()
 	if err != nil {
 		return err
@@ -98,5 +98,5 @@ func (bb *TxDB) SetResult(result Result) error {
 	if err != nil {
 		return err
 	}
-	return bb.resultKV.Set(hash.Bytes(), byt)
+	return bb.resultKV.Set(hash, byt)
 }

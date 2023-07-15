@@ -1,7 +1,6 @@
 package result
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	. "github.com/yu-org/yu/common"
@@ -18,33 +17,8 @@ type Event struct {
 	LeiCost     uint64   `json:"lei_cost"`
 }
 
-func (e *Event) Hash() (Hash, error) {
-	byt, err := e.Encode()
-	if err != nil {
-		return NullHash, err
-	}
-	hash := sha256.Sum256(byt)
-	return hash, nil
-}
-
-func (e *Event) Encode() ([]byte, error) {
-	byt, err := json.Marshal(e)
-	if err != nil {
-		return nil, err
-	}
-	return append(EventTypeByt, byt...), nil
-}
-
-func (e *Event) Decode(data []byte) error {
-	return json.Unmarshal(data[ResultTypeBytesLen:], e)
-}
-
 func (e *Event) DecodeJsonValue(v any) error {
 	return json.Unmarshal(e.Value, v)
-}
-
-func (e *Event) Type() ResultType {
-	return EventType
 }
 
 func (e *Event) Sprint() (str string) {

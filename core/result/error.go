@@ -1,8 +1,6 @@
 package result
 
 import (
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	. "github.com/yu-org/yu/common"
 )
@@ -15,19 +13,6 @@ type Error struct {
 	TripodName  string   `json:"tripod_name"`
 	WritingName string   `json:"writing_name"`
 	Err         string   `json:"err"`
-}
-
-func (e *Error) Type() ResultType {
-	return ErrorType
-}
-
-func (e *Error) Hash() (Hash, error) {
-	byt, err := e.Encode()
-	if err != nil {
-		return NullHash, err
-	}
-	hash := sha256.Sum256(byt)
-	return hash, nil
 }
 
 func (e *Error) Error() (str string) {
@@ -52,19 +37,6 @@ func (e *Error) Error() (str string) {
 		)
 	}
 	return
-}
-
-func (e *Error) Encode() ([]byte, error) {
-	byt, err := json.Marshal(e)
-	if err != nil {
-		return nil, err
-	}
-	byt = append(ErrorTypeByt, byt...)
-	return byt, nil
-}
-
-func (e *Error) Decode(data []byte) error {
-	return json.Unmarshal(data[ResultTypeBytesLen:], e)
 }
 
 //

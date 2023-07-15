@@ -1,56 +1,108 @@
 package result
 
 import (
-	"errors"
+	"crypto/sha256"
+	"encoding/json"
+	"github.com/mitchellh/mapstructure"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/infra/trie"
-	"strconv"
 )
 
-type Result interface {
-	Type() ResultType
-	Hash() (Hash, error)
-	Encode() ([]byte, error)
-	Decode(data []byte) error
+type Result struct {
+	Type int `json:"type"`
+	// event or error
+	Object any `json:"object"`
 }
 
-type ResultType int
+func NewEvent(e *Event) *Result {
+	return &Result{
+		Type:   EventType,
+		Object: e,
+	}
+}
+
+func NewError(e *Error) *Result {
+	return &Result{
+		Type:   ErrorType,
+		Object: e,
+	}
+}
 
 const (
-	EventType ResultType = iota
+	EventType = iota
 	ErrorType
-
-	ResultTypeBytesLen = 1
 )
 
-var (
-	EventTypeByt = []byte(strconv.Itoa(int(EventType)))
-	ErrorTypeByt = []byte(strconv.Itoa(int(ErrorType)))
-)
+func (r *Result) Event() *Event {
+	return r.Object.(*Event)
+}
 
-// this func use for clients
-func DecodeResult(data []byte) (Result, error) {
-	resultTypeByt := data[:ResultTypeBytesLen]
+func (r *Result) Error() *Error {
+	return r.Object.(*Error)
+}
 
-	resultType, err := strconv.Atoi(string(resultTypeByt))
+func (r *Result) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, r)
+	if err != nil {
+		return err
+	}
+
+	switch r.Type {
+	case EventType:
+		event := new(Event)
+		err = mapstructure.Decode(r.Object, event)
+		if err != nil {
+			return err
+		}
+		r.Object = event
+	case ErrorType:
+		erro := new(Error)
+		err = mapstructure.Decode(r.Object, erro)
+		if err != nil {
+			return err
+		}
+		r.Object = erro
+	}
+
+	return nil
+}
+
+func (r *Result) Encode() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func (r *Result) Decode(data []byte) error {
+	return json.Unmarshal(data, r)
+}
+
+func (r *Result) Hash() ([]byte, error) {
+	byt, err := r.Encode()
 	if err != nil {
 		return nil, err
 	}
-
-	switch ResultType(resultType) {
-	case EventType:
-		event := &Event{}
-		err := event.Decode(data)
-		return event, err
-	case ErrorType:
-		er := &Error{}
-		err := er.Decode(data)
-		return er, err
-	}
-	return nil, errors.New("no result type")
+	hash := sha256.Sum256(byt)
+	return hash[:], err
 }
 
-func CaculateReceiptRoot(results []Result) (Hash, error) {
+func (r *Result) IsEvent() bool {
+	return r.Type == EventType
+}
+
+func (r *Result) IsError() bool {
+	return r.Type == ErrorType
+}
+
+func (r *Result) String() string {
+	switch r.Type {
+	case EventType:
+		return r.Object.(*Event).Sprint()
+	case ErrorType:
+		return r.Object.(*Error).Error()
+	}
+	return "invalid result type"
+}
+
+func CaculateReceiptRoot(results []*Result) (Hash, error) {
 	var receiptsByt []Hash
 	for _, result := range results {
 		receipt, err := result.Encode()
