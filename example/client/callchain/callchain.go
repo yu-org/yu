@@ -21,7 +21,7 @@ const (
 	Websocket
 )
 
-func CallChainByReading(reqTyp int, qcall *Rdcall) []byte {
+func CallChainByReading(reqTyp int, qcall *RdCall) []byte {
 	var (
 		scheme, port string
 	)

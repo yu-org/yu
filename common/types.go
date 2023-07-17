@@ -32,28 +32,28 @@ const (
 
 type (
 	BlockNum uint32
-	// Use to be a Key to store into KVDB.
+	// BlockId Uses to be a Key to store into KVDB.
 	// Add BlockHash to the BlockNum's end.
 	BlockId [BlockIdLen]byte
 
-	// The Call from clients, it is an instance of an 'Writing'.
+	// WrCall from clients, it is an instance of an 'Writing'.
 	WrCall struct {
-		TripodName  string
-		WritingName string
-		Params      string
+		TripodName  string `json:"tripod_name"`
+		WritingName string `json:"writing_name"`
+		Params      string `json:"params"`
 		// TODO: make LeiPrice and Tips as a sortable interface.
-		LeiPrice uint64
-		Tips     uint64
+		LeiPrice uint64 `json:"lei_price"`
+		Tips     uint64 `json:"tips"`
 	}
 
-	// The Call from clients, it is an instance of an 'Read'.
-	Rdcall struct {
-		TripodName  string
-		ReadingName string
-		BlockHash   Hash
-		Params      string
+	// RdCall from clients, it is an instance of an 'Read'.
+	RdCall struct {
+		TripodName  string `json:"tripod_name"`
+		ReadingName string `json:"reading_name"`
+		BlockHash   Hash   `json:"block_hash,omitempty"`
+		Params      string `json:"params"`
 	}
-	// Writing or Reading
+	// CallType is Writing or Reading
 	CallType int
 )
 
@@ -70,7 +70,7 @@ func (e *WrCall) Hash() ([]byte, error) {
 	return hash[:], nil
 }
 
-func (q *Rdcall) BindJsonParams(v interface{}) error {
+func (q *RdCall) BindJsonParams(v interface{}) error {
 	return BindJsonParams(q.Params, v)
 }
 

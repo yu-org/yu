@@ -48,7 +48,7 @@ func (l *Land) GetWriting(c *WrCall) (Writing, error) {
 	return fn, nil
 }
 
-func (l *Land) Read(c *Rdcall, ctx *ReadContext) error {
+func (l *Land) Read(c *RdCall, ctx *ReadContext) error {
 	tri, ok := l.TripodsMap[c.TripodName]
 	if !ok {
 		return TripodNotFound(c.TripodName)
