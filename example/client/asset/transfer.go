@@ -19,7 +19,7 @@ func QueryAccount(pubkey PubKey) {
 	if err != nil {
 		panic("json encode qryAccount error: " + err.Error())
 	}
-	qcall := &Rdcall{
+	qcall := &RdCall{
 		TripodName:  "asset",
 		ReadingName: "QueryBalance",
 		BlockHash:   Hash{},

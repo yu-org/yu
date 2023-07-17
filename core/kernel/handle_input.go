@@ -60,10 +60,10 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 //	return nil
 //}
 
-func getRdFromHttp(req *http.Request, params string) (qcall *Rdcall, err error) {
+func getRdFromHttp(req *http.Request, params string) (qcall *RdCall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)
-	qcall = &Rdcall{
+	qcall = &RdCall{
 		TripodName:  tripodName,
 		ReadingName: rdName,
 		Params:      params,
