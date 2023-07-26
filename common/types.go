@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/rlp"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -62,7 +63,7 @@ func (e *WrCall) BindJsonParams(v interface{}) error {
 }
 
 func (e *WrCall) Hash() ([]byte, error) {
-	byt, err := json.Marshal(e)
+	byt, err := rlp.EncodeToBytes(e)
 	if err != nil {
 		return nil, err
 	}
