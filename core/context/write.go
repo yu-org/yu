@@ -34,6 +34,10 @@ func NewWriteContext(stxn *SignedTxn, block *Block) (*WriteContext, error) {
 	}, nil
 }
 
+func (c *WriteContext) GetTimestamp() uint64 {
+	return c.Block.Timestamp
+}
+
 func (c *WriteContext) GetCaller() Address {
 	return c.Txn.Pubkey.Address()
 }

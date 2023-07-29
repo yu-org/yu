@@ -76,7 +76,7 @@ func (k *Kernel) LocalRun() (err error) {
 func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 	newBlock := k.chain.NewEmptyBlock()
 
-	newBlock.Timestamp = ytime.NowNanoTsU64()
+	newBlock.Timestamp = ytime.NowTsU64()
 	prevBlock, err := k.chain.GetEndBlock()
 	if err != nil {
 		return nil, err
