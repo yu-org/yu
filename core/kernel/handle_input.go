@@ -36,30 +36,6 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	return k.txPool.Insert(stxn)
 }
 
-//func (k *Kernel) HandleRd() error {
-//	for _, rsv := range RdAndRespResolves {
-//		rd, err := rsv.ResolveRd()
-//		if err != nil {
-//			return err
-//		}
-//		ctx, err := NewReadContext(rd.Params)
-//		if err != nil {
-//			return err
-//		}
-//
-//		err = k.land.Read(rd, ctx)
-//		if err != nil {
-//			return err
-//		}
-//
-//		err = rsv.Response(ctx)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//	return nil
-//}
-
 func getRdFromHttp(req *http.Request, params string) (qcall *RdCall, err error) {
 	tripodName, rdName := GetTripodCallName(req)
 	blockHash := GetBlockHash(req)

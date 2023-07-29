@@ -98,7 +98,7 @@ func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string)
 }
 
 func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
-	qcall, err := getRdFromHttp(req, params)
+	rdCall, err := getRdFromHttp(req, params)
 	if err != nil {
 		k.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
 		return
@@ -106,20 +106,25 @@ func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string)
 
 	switch k.RunMode {
 	case LocalNode:
-		ctx, err := context.NewReadContext(qcall.Params)
+		ctx, err := context.NewReadContext(rdCall.Params)
 		if err != nil {
 			k.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
 			return
 		}
 
-		err = k.land.Read(qcall, ctx)
+		rd, err := k.land.GetReading(rdCall)
 		if err != nil {
 			k.errorAndClose(c, err.Error())
 			return
 		}
+		rdErr := rd(ctx)
+		if err != nil {
+			k.errorAndClose(c, rdErr.Error())
+			return
+		}
 		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
 		if err != nil {
-			logrus.Errorf("response Read result error: %s", err.Error())
+			logrus.Errorf("response GetReading result error: %s", err.Error())
 		}
 	}
 

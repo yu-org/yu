@@ -3,7 +3,6 @@ package tripod
 import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
-	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod/dev"
 )
 
@@ -48,16 +47,16 @@ func (l *Land) GetWriting(c *WrCall) (Writing, error) {
 	return fn, nil
 }
 
-func (l *Land) Read(c *RdCall, ctx *ReadContext) error {
+func (l *Land) GetReading(c *RdCall) (Reading, error) {
 	tri, ok := l.TripodsMap[c.TripodName]
 	if !ok {
-		return TripodNotFound(c.TripodName)
+		return nil, TripodNotFound(c.TripodName)
 	}
 	rd := tri.GetReading(c.ReadingName)
 	if rd == nil {
-		return ReadingNotFound(c.ReadingName)
+		return nil, ReadingNotFound(c.ReadingName)
 	}
-	return rd(ctx)
+	return rd, nil
 }
 
 func (l *Land) RangeMap(fn func(string, *Tripod) error) error {

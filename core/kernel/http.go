@@ -87,12 +87,17 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 			return
 		}
 
-		err = k.land.Read(rdCall, ctx)
+		rd, err := k.land.GetReading(rdCall)
 		if err != nil {
 			c.String(
-				http.StatusInternalServerError,
+				http.StatusBadRequest,
 				err.Error(),
 			)
+			return
+		}
+		rdErr := rd(ctx)
+		if err != nil {
+			c.String(http.StatusInternalServerError, rdErr.Error())
 			return
 		}
 		// FIXME: not only json type.
