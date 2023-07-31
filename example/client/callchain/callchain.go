@@ -33,7 +33,7 @@ func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 		scheme = "ws"
 		port = "8999"
 	}
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s/%s/%s", port, rdCall.TripodName, rdCall.ReadingName), Path: RdApiPath}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", RdApiPath, rdCall.TripodName, rdCall.ReadingName)}
 	q := u.Query()
 	q.Set(BlockHashKey, rdCall.BlockHash.String())
 
@@ -93,7 +93,7 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrC
 		port = "8999"
 	}
 
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s/%s/%s", port, wrCall.TripodName, wrCall.WritingName), Path: WrApiPath}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", WrApiPath, wrCall.TripodName, wrCall.WritingName)}
 	q := u.Query()
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
@@ -106,7 +106,7 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrC
 
 	switch reqType {
 	case Http:
-		_, err := http.Post(u.String(), "application/json", strings.NewReader(wrCall.Params))
+		_, err = http.Post(u.String(), "application/json", strings.NewReader(wrCall.Params))
 		if err != nil {
 			panic("post wrCall message to chain error: " + err.Error())
 		}
