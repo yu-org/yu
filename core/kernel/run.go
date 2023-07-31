@@ -100,7 +100,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 			return err
 		}
 
-		writing, err := k.land.GetWriting(wrCall)
+		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
 		if err != nil {
 			k.handleError(err, ctx, block, stxn)
 			continue

@@ -2,25 +2,28 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
+
+// A complete writing-call url is POST /api/writing/{tripod}/{writing_name}
+// A complete reading-call url is GET /api/reading/{tripod}/{reading_name}?xx=yy
 
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"
 
-	TripodNameKey = "tripod"
-	CallNameKey   = "call_name"
-	AddressKey    = "address"
-	BlockHashKey  = "block_hash"
-	PubkeyKey     = "pubkey"
-	SignatureKey  = "signature"
-	LeiPriceKey   = "lei_price"
-	TipsKey       = "tips"
+	AddressKey   = "address"
+	BlockHashKey = "block_hash"
+	PubkeyKey    = "pubkey"
+	SignatureKey = "signature"
+	LeiPriceKey  = "lei_price"
+	TipsKey      = "tips"
 )
 
 var (
@@ -30,18 +33,18 @@ var (
 )
 
 // GetTripodCallName return (Tripod Name, Write/Read Name)
-func GetTripodCallName(req *http.Request) (string, string) {
-	query := req.URL.Query()
-	return query.Get(TripodNameKey), query.Get(CallNameKey)
+func GetTripodCallName(req *http.Request) (string, string, error) {
+	path := req.URL.Path
+	paths := strings.Split(path, "/")
+	if len(paths) < 5 {
+		return "", "", errors.New("URL path illegal")
+	}
+	return paths[3], paths[4], nil
 }
 
 // GetAddress return the Address of Txn-Sender
 func GetAddress(req *http.Request) Address {
 	return HexToAddress(req.URL.Query().Get(AddressKey))
-}
-
-func GetBlockHash(req *http.Request) Hash {
-	return HexToHash(req.URL.Query().Get(BlockHashKey))
 }
 
 func GetPubkey(req *http.Request) (keypair.PubKey, error) {
