@@ -33,6 +33,6 @@ func (rc *ReadContext) DataOk(contentType string, data []byte) {
 	rc.Data(http.StatusOK, contentType, data)
 }
 
-func (rc *ReadContext) ErrorOk(err error) {
+func (rc *ReadContext) ErrOk(err error) {
 	rc.StringOk(err.Error())
 }
