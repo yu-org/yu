@@ -28,3 +28,7 @@ func (rc *ReadContext) JsonOk(v any) {
 func (rc *ReadContext) StringOk(format string, values ...any) {
 	rc.String(http.StatusOK, format, values)
 }
+
+func (rc *ReadContext) DataOk(contentType string, data []byte) {
+	rc.Data(http.StatusOK, contentType, data)
+}
