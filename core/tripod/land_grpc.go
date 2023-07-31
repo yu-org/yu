@@ -23,10 +23,10 @@ func (g *GrpcLand) SetTripods(_ context.Context, info *goproto.TripodsInfo) (*em
 			wrRd := dev.NewGrpcWrRd(triInfo.Endpoint, triInfo.Name, wrName)
 			tripod.writings[wrName] = wrRd.Write
 		}
-		for _, rdName := range triInfo.Readings {
-			wrRd := dev.NewGrpcWrRd(triInfo.Endpoint, triInfo.Name, rdName)
-			tripod.readings[rdName] = wrRd.Read
-		}
+		//for _, rdName := range triInfo.Readings {
+		//	wrRd := dev.NewGrpcWrRd(triInfo.Endpoint, triInfo.Name, rdName)
+		//	tripod.readings[rdName] = wrRd.Read
+		//}
 		// todo: set p2pHandles
 
 		tripods = append(tripods)
