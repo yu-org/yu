@@ -67,7 +67,7 @@ func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error
 	if err != nil {
 		return
 	}
-	stxn, err = NewSignedTxn(pubkey.BytesWithType(), wrCall, pubkey, sig)
+	stxn, err = NewSignedTxn(wrCall, pubkey, sig)
 	return
 }
 
