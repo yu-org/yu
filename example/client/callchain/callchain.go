@@ -33,8 +33,10 @@ func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 		scheme = "ws"
 		port = "8999"
 	}
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", RdApiPath, rdCall.TripodName, rdCall.ReadingName)}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: RdApiPath}
 	q := u.Query()
+	q.Set(TripodNameKey, rdCall.TripodName)
+	q.Set(CallNameKey, rdCall.ReadingName)
 	q.Set(BlockHashKey, rdCall.BlockHash.String())
 
 	u.RawQuery = q.Encode()
@@ -43,7 +45,7 @@ func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 
 	switch reqTyp {
 	case Http:
-		resp, err := http.Post(u.String(), "application/json", strings.NewReader(rdCall.Params))
+		resp, err := http.Get(u.String())
 		if err != nil {
 			panic("post rdCall message to chain error: " + err.Error())
 		}
@@ -93,8 +95,10 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrC
 		port = "8999"
 	}
 
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", WrApiPath, wrCall.TripodName, wrCall.WritingName)}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: WrApiPath}
 	q := u.Query()
+	q.Set(TripodNameKey, wrCall.TripodName)
+	q.Set(CallNameKey, wrCall.WritingName)
 	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())

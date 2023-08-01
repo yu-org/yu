@@ -70,11 +70,7 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 }
 
 func (k *Kernel) handleHttpRd(c *gin.Context) {
-	tripodName, rdName, urlErr := GetTripodCallName(c.Request)
-	if urlErr != nil {
-		c.AbortWithError(http.StatusBadRequest, urlErr)
-		return
-	}
+	tripodName, rdName := GetTripodCallName(c.Request)
 
 	switch k.RunMode {
 	case LocalNode:
