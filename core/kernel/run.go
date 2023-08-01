@@ -190,7 +190,7 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	ctx.EmitError(err)
 	wrCall := stxn.Raw.WrCall
 
-	ctx.Error.Caller = stxn.Raw.Caller
+	ctx.Error.Caller = stxn.GetCallerAddr()
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = wrCall.TripodName
 	ctx.Error.WritingName = wrCall.WritingName
@@ -214,7 +214,7 @@ func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 		event.TripodName = wrCall.TripodName
 		event.LeiCost = ctx.LeiCost
 		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.Raw.Caller
+		event.Caller = stxn.GetCallerAddr()
 
 		if k.sub != nil {
 			k.sub.Emit(NewEvent(event))

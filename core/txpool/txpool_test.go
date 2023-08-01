@@ -2,6 +2,7 @@ package txpool
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/txdb"
@@ -11,7 +12,7 @@ import (
 )
 
 func initTxpool(t *testing.T) *TxPool {
-	cfg := config.InitDefaultCfgWithDir("test-txpool")
+	cfg := config.InitDefaultCfg()
 	kvdb, err := kv.NewKvdb(&config.KVconf{
 		KvType: "bolt",
 		Path:   "./test-txpool.db",
@@ -20,8 +21,8 @@ func initTxpool(t *testing.T) *TxPool {
 	if err != nil {
 		t.Fatal("init kvdb error: ", err)
 	}
-	base := txdb.NewTxDB(kvdb)
-	return WithDefaultChecks(&cfg.Txpool, base)
+	base := txdb.NewTxDB(common.FullNode, kvdb)
+	return WithDefaultChecks(common.FullNode, &cfg.Txpool, base)
 }
 
 func TestCheckPoolSize(t *testing.T) {
@@ -62,7 +63,7 @@ func TestPackFor(t *testing.T) {
 	}
 
 	txns, err := pool.PackFor(3, func(tx *types.SignedTxn) bool {
-		return tx.Raw.Caller == caller2
+		return tx.GetCallerAddr() == caller2
 	})
 	if err != nil {
 		t.Fatalf("pack txns failed: %v", err)
