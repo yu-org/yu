@@ -37,10 +37,6 @@ func GetTripodCallName(req *http.Request) (string, string) {
 	return query.Get(TripodNameKey), query.Get(CallNameKey)
 }
 
-func GetBlockHash(req *http.Request) Hash {
-	return HexToHash(req.URL.Query().Get(BlockHashKey))
-}
-
 func GetPubkey(req *http.Request) (keypair.PubKey, error) {
 	pubkeyStr := req.URL.Query().Get(PubkeyKey)
 	return keypair.PubkeyFromStr(pubkeyStr)

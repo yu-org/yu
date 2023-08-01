@@ -37,7 +37,7 @@ func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 	q := u.Query()
 	q.Set(TripodNameKey, rdCall.TripodName)
 	q.Set(CallNameKey, rdCall.ReadingName)
-	q.Set(BlockHashKey, rdCall.BlockHash.String())
+	// q.Set(BlockHashKey, rdCall.BlockHash.String())
 
 	u.RawQuery = q.Encode()
 
