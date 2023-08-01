@@ -43,7 +43,7 @@ func (c *WriteContext) GetTimestamp() uint64 {
 }
 
 func (c *WriteContext) GetCaller() Address {
-	return c.Txn.Pubkey.Address()
+	return c.Txn.GetCallerAddr()
 }
 
 func (c *WriteContext) FromP2P() bool {

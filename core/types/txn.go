@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
@@ -13,7 +13,7 @@ import (
 type SignedTxn struct {
 	Raw       *UnsignedTxn
 	TxnHash   Hash
-	Pubkey    PubKey
+	Pubkey    keypair.PubKey
 	Signature []byte
 	FromP2P   bool
 }
@@ -22,8 +22,8 @@ type TxnChecker interface {
 	CheckTxn(*SignedTxn) error
 }
 
-func NewSignedTxn(caller Address, ecall *WrCall, pubkey PubKey, sig []byte) (*SignedTxn, error) {
-	raw, err := NewUnsignedTxn(caller, ecall)
+func NewSignedTxn(wrCall *WrCall, pubkey keypair.PubKey, sig []byte) (*SignedTxn, error) {
+	raw, err := NewUnsignedTxn(wrCall)
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +37,10 @@ func NewSignedTxn(caller Address, ecall *WrCall, pubkey PubKey, sig []byte) (*Si
 		return nil, err
 	}
 	return stx, nil
+}
+
+func (st *SignedTxn) GetCallerAddr() Address {
+	return st.Pubkey.Address()
 }
 
 func (st *SignedTxn) TripodName() string {
@@ -65,7 +69,7 @@ func (st *SignedTxn) ToPb() *goproto.SignedTxn {
 }
 
 func SignedTxnFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
-	pubkey, err := PubKeyFromBytes(pb.Pubkey)
+	pubkey, err := keypair.PubKeyFromBytes(pb.Pubkey)
 	if err != nil {
 		return nil, err
 	}
@@ -176,16 +180,14 @@ func DecodeSignedTxns(data []byte) (SignedTxns, error) {
 }
 
 type UnsignedTxn struct {
-	Caller    Address
 	WrCall    *WrCall
 	Timestamp uint64
 	// Nonce is unnecessary
 	Nonce uint64
 }
 
-func NewUnsignedTxn(caller Address, wrCall *WrCall) (*UnsignedTxn, error) {
+func NewUnsignedTxn(wrCall *WrCall) (*UnsignedTxn, error) {
 	return &UnsignedTxn{
-		Caller:    caller,
 		WrCall:    wrCall,
 		Timestamp: ytime.NowNanoTsU64(),
 	}, nil
@@ -197,7 +199,6 @@ func (ut *UnsignedTxn) BindJsonParams(v interface{}) error {
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
-		Caller: ut.Caller.Bytes(),
 		Ecall: &goproto.Ecall{
 			TripodName: ut.WrCall.TripodName,
 			ExecName:   ut.WrCall.WritingName,
@@ -211,7 +212,6 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
-		Caller: BytesToAddress(pb.Caller),
 		WrCall: &WrCall{
 			TripodName:  pb.Ecall.TripodName,
 			WritingName: pb.Ecall.ExecName,

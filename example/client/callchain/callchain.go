@@ -99,7 +99,6 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrC
 	q := u.Query()
 	q.Set(TripodNameKey, wrCall.TripodName)
 	q.Set(CallNameKey, wrCall.WritingName)
-	q.Set(AddressKey, pubkey.Address().String())
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
 	q.Set(LeiPriceKey, hexutil.EncodeUint64(wrCall.LeiPrice))

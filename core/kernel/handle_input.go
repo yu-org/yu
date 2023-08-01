@@ -65,12 +65,11 @@ func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error
 		LeiPrice:    leiPrice,
 		Tips:        tips,
 	}
-	caller := GetAddress(req)
 	sig := GetSignature(req)
 	pubkey, err := GetPubkey(req)
 	if err != nil {
 		return
 	}
-	stxn, err = NewSignedTxn(caller, wrCall, pubkey, sig)
+	stxn, err = NewSignedTxn(wrCall, pubkey, sig)
 	return
 }
