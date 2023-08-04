@@ -1,7 +1,6 @@
 package tripod
 
 import (
-	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/tripod/dev"
 )
@@ -35,26 +34,26 @@ func (l *Land) GetTripodInstance(name string) interface{} {
 	return nil
 }
 
-func (l *Land) GetWriting(c *WrCall) (Writing, error) {
-	tripod, ok := l.TripodsMap[c.TripodName]
+func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
+	tripod, ok := l.TripodsMap[tripodName]
 	if !ok {
-		return nil, TripodNotFound(c.TripodName)
+		return nil, TripodNotFound(tripodName)
 	}
-	fn := tripod.GetWriting(c.WritingName)
+	fn := tripod.GetWriting(wrName)
 	if fn == nil {
-		return nil, WritingNotFound(c.WritingName)
+		return nil, WritingNotFound(wrName)
 	}
 	return fn, nil
 }
 
-func (l *Land) GetReading(c *RdCall) (Reading, error) {
-	tri, ok := l.TripodsMap[c.TripodName]
+func (l *Land) GetReading(tripodName, rdName string) (Reading, error) {
+	tri, ok := l.TripodsMap[tripodName]
 	if !ok {
-		return nil, TripodNotFound(c.TripodName)
+		return nil, TripodNotFound(tripodName)
 	}
-	rd := tri.GetReading(c.ReadingName)
+	rd := tri.GetReading(rdName)
 	if rd == nil {
-		return nil, ReadingNotFound(c.ReadingName)
+		return nil, ReadingNotFound(rdName)
 	}
 	return rd, nil
 }

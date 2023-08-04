@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
 	"net/http"
 )
@@ -54,8 +52,8 @@ func (k *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	switch typ {
 	case writing:
 		k.handleWsWr(c, req, string(params))
-	case reading:
-		k.handleWsRd(c, req, string(params))
+		//case reading:
+		//	k.handleWsRd(c, req, string(params))
 	}
 
 }
@@ -67,7 +65,8 @@ func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string)
 		return
 	}
 
-	_, err = k.land.GetWriting(stxn.Raw.WrCall)
+	wrCall := stxn.Raw.WrCall
+	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
 	if err != nil {
 		k.errorAndClose(c, err.Error())
 		return
@@ -97,38 +96,38 @@ func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string)
 	}
 }
 
-func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
-	rdCall, err := getRdFromHttp(req, params)
-	if err != nil {
-		k.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
-		return
-	}
-
-	switch k.RunMode {
-	case LocalNode:
-		ctx, err := context.NewReadContext(rdCall.Params)
-		if err != nil {
-			k.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
-			return
-		}
-
-		rd, err := k.land.GetReading(rdCall)
-		if err != nil {
-			k.errorAndClose(c, err.Error())
-			return
-		}
-		rdErr := rd(ctx)
-		if err != nil {
-			k.errorAndClose(c, rdErr.Error())
-			return
-		}
-		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
-		if err != nil {
-			logrus.Errorf("response GetReading result error: %s", err.Error())
-		}
-	}
-
-}
+//func (k *Kernel) handleWsRd(c *websocket.Conn, req *http.Request, params string) {
+//	rdCall, err := getRdFromHttp(req, params)
+//	if err != nil {
+//		k.errorAndClose(c, fmt.Sprintf("get Reading info from websocket error: %v", err))
+//		return
+//	}
+//
+//	switch k.RunMode {
+//	case LocalNode:
+//		ctx, err := context.NewReadContext(rdCall.Params)
+//		if err != nil {
+//			k.errorAndClose(c, fmt.Sprintf("new context error: %s", err.Error()))
+//			return
+//		}
+//
+//		rd, err := k.land.GetReading(rdCall)
+//		if err != nil {
+//			k.errorAndClose(c, err.Error())
+//			return
+//		}
+//		rdErr := rd(ctx)
+//		if err != nil {
+//			k.errorAndClose(c, rdErr.Error())
+//			return
+//		}
+//		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
+//		if err != nil {
+//			logrus.Errorf("response GetReading result error: %s", err.Error())
+//		}
+//	}
+//
+//}
 
 func (k *Kernel) errorAndClose(c *websocket.Conn, text string) {
 	// FIXEME

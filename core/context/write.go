@@ -10,7 +10,7 @@ import (
 )
 
 type WriteContext struct {
-	*ReadContext
+	*ParamsResponse
 
 	Block *Block
 	Txn   *SignedTxn
@@ -22,16 +22,20 @@ type WriteContext struct {
 
 func NewWriteContext(stxn *SignedTxn, block *Block) (*WriteContext, error) {
 	paramsStr := stxn.Raw.WrCall.Params
-	rctx, err := NewReadContext(paramsStr)
+	rctx, err := NewParamsResponseFromStr(paramsStr)
 	if err != nil {
 		return nil, err
 	}
 	return &WriteContext{
-		Txn:         stxn,
-		Block:       block,
-		ReadContext: rctx,
-		Events:      make([]*Event, 0),
+		Txn:            stxn,
+		Block:          block,
+		ParamsResponse: rctx,
+		Events:         make([]*Event, 0),
 	}, nil
+}
+
+func (c *WriteContext) BindJson(v any) error {
+	return BindJsonParams(c.ParamsStr, v)
 }
 
 func (c *WriteContext) GetTimestamp() uint64 {

@@ -57,27 +57,27 @@ func (rpc *GrpcWrRd) Write(ctx *WriteContext) error {
 	return nil
 }
 
-func (rpc *GrpcWrRd) Read(ctx *ReadContext) error {
-	conn, err := grpc.Dial(rpc.targetAddr)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	cli := goproto.NewReadingClient(conn)
-	res, err := cli.Read(context.Background(), &goproto.ReadContext{
-		ParamsStr:  ctx.ParamsStr,
-		Response:   nil,
-		TripodName: rpc.tripodName,
-		FuncName:   rpc.funcName,
-	})
-	if err != nil {
-		return err
-	}
-	if res.Error != nil {
-		return errors.New(res.Error.GetMsg())
-	}
-
-	ctx.Bytes(res.GetResponse())
-	return nil
-}
+//func (rpc *GrpcWrRd) Read(ctx *ReadContext) error {
+//	conn, err := grpc.Dial(rpc.targetAddr)
+//	if err != nil {
+//		return err
+//	}
+//	defer conn.Close()
+//
+//	cli := goproto.NewReadingClient(conn)
+//	res, err := cli.Read(context.Background(), &goproto.ReadContext{
+//		ParamsStr:  ctx.ParamsStr,
+//		Response:   nil,
+//		TripodName: rpc.tripodName,
+//		FuncName:   rpc.funcName,
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	if res.Error != nil {
+//		return errors.New(res.Error.GetMsg())
+//	}
+//
+//	ctx.Bytes(res.GetResponse())
+//	return nil
+//}

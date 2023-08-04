@@ -17,7 +17,8 @@ func (k *Kernel) HandleHttp() {
 	r.POST(WrApiPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
-	r.POST(RdApiPath, func(c *gin.Context) {
+	// GET request
+	r.GET(RdApiPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
@@ -37,7 +38,8 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	_, err = k.land.GetWriting(stxn.Raw.WrCall)
+	wrCall := stxn.Raw.WrCall
+	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -68,26 +70,17 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 }
 
 func (k *Kernel) handleHttpRd(c *gin.Context) {
-	params, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	rdCall, err := getRdFromHttp(c.Request, string(params))
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
+	tripodName, rdName := GetTripodCallName(c.Request)
 
 	switch k.RunMode {
 	case LocalNode:
-		ctx, err := context.NewReadContext(rdCall.Params)
+		ctx, err := context.NewReadContext(c)
 		if err != nil {
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
 
-		rd, err := k.land.GetReading(rdCall)
+		rd, err := k.land.GetReading(tripodName, rdName)
 		if err != nil {
 			c.String(
 				http.StatusBadRequest,
@@ -95,12 +88,6 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 			)
 			return
 		}
-		rdErr := rd(ctx)
-		if err != nil {
-			c.String(http.StatusInternalServerError, rdErr.Error())
-			return
-		}
-		// FIXME: not only json type.
-		c.Data(http.StatusOK, "application/json", ctx.Response())
+		rd(ctx)
 	}
 }

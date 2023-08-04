@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 )
 
+// A complete writing-call url is POST /api/writing/{tripod}/{writing_name}
+// A complete reading-call url is GET /api/reading/{tripod}/{reading_name}?xx=yy
+
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
 	// will base on '/api'.
@@ -32,10 +35,6 @@ var (
 func GetTripodCallName(req *http.Request) (string, string) {
 	query := req.URL.Query()
 	return query.Get(TripodNameKey), query.Get(CallNameKey)
-}
-
-func GetBlockHash(req *http.Request) Hash {
-	return HexToHash(req.URL.Query().Get(BlockHashKey))
 }
 
 func GetPubkey(req *http.Request) (keypair.PubKey, error) {

@@ -1,7 +1,6 @@
 package kernel
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
@@ -12,7 +11,8 @@ import (
 // HandleTxn handles txn from outside.
 // You can also self-define your input by calling HandleTxn (not only by default http and ws)
 func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
-	_, err := k.land.GetWriting(stxn.Raw.WrCall)
+	wrCall := stxn.Raw.WrCall
+	_, err := k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
 	if err != nil {
 		return err
 	}
@@ -36,17 +36,20 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	return k.txPool.Insert(stxn)
 }
 
-func getRdFromHttp(req *http.Request, params string) (qcall *RdCall, err error) {
-	tripodName, rdName := GetTripodCallName(req)
-	blockHash := GetBlockHash(req)
-	qcall = &RdCall{
-		TripodName:  tripodName,
-		ReadingName: rdName,
-		Params:      params,
-		BlockHash:   blockHash,
-	}
-	return
-}
+//func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {
+//	tripodName, rdName, urlErr := GetTripodCallName(req)
+//	if err != nil {
+//		return nil, urlErr
+//	}
+//	blockHash := GetBlockHash(req)
+//	rdCall = &RdCall{
+//		TripodName:  tripodName,
+//		ReadingName: rdName,
+//		Params:      params,
+//		BlockHash:   blockHash,
+//	}
+//	return
+//}
 
 func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error) {
 	tripodName, wrName := GetTripodCallName(req)
@@ -69,8 +72,4 @@ func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error
 	}
 	stxn, err = NewSignedTxn(wrCall, pubkey, sig)
 	return
-}
-
-func FindNoCallStr(tripodName, callName string, err error) string {
-	return fmt.Sprintf("find Tripod(%s) Call(%s) error: %s", tripodName, callName, err.Error())
 }

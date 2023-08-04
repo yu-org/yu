@@ -54,13 +54,14 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
-func (a *Asset) QueryBalance(ctx *ReadContext) error {
-	account := ctx.GetAddress("account")
+func (a *Asset) QueryBalance(ctx *ReadContext) {
+	account := HexToAddress(ctx.Query("account"))
 	if !a.ExistAccount(account) {
-		return AccountNotFound(account)
+		ctx.StringOk(AccountNotFound(account).Error())
+		return
 	}
 	amount := a.GetBalance(account)
-	return ctx.Json(H{"amount": amount})
+	ctx.JsonOk(H{"amount": amount})
 }
 
 func (a *Asset) Transfer(ctx *WriteContext) (err error) {

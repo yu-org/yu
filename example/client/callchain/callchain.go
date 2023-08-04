@@ -21,7 +21,7 @@ const (
 	Websocket
 )
 
-func CallChainByReading(reqTyp int, qcall *RdCall) []byte {
+func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 	var (
 		scheme, port string
 	)
@@ -35,48 +35,48 @@ func CallChainByReading(reqTyp int, qcall *RdCall) []byte {
 	}
 	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: RdApiPath}
 	q := u.Query()
-	q.Set(TripodNameKey, qcall.TripodName)
-	q.Set(CallNameKey, qcall.ReadingName)
-	q.Set(BlockHashKey, qcall.BlockHash.String())
+	q.Set(TripodNameKey, rdCall.TripodName)
+	q.Set(CallNameKey, rdCall.ReadingName)
+	// q.Set(BlockHashKey, rdCall.BlockHash.String())
 
 	u.RawQuery = q.Encode()
 
-	logrus.Debug("qcall: ", u.String())
+	logrus.Debug("rdCall: ", u.String())
 
 	switch reqTyp {
 	case Http:
-		resp, err := http.Post(u.String(), "application/json", strings.NewReader(qcall.Params))
+		resp, err := http.Get(u.String())
 		if err != nil {
-			panic("post qcall message to chain error: " + err.Error())
+			panic("post rdCall message to chain error: " + err.Error())
 		}
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			panic("read qcall response body error: " + err.Error())
+			panic("read rdCall response body error: " + err.Error())
 		}
 		return body
 	case Websocket:
 		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
-			panic("qcall dial chain error: " + err.Error())
+			panic("rdCall dial chain error: " + err.Error())
 		}
 		defer c.Close()
-		err = c.WriteMessage(websocket.TextMessage, []byte(qcall.Params))
+		err = c.WriteMessage(websocket.TextMessage, []byte(rdCall.Params))
 		if err != nil {
-			panic("write qcall message to chain error: " + err.Error())
+			panic("write rdCall message to chain error: " + err.Error())
 		}
 		_, resp, err := c.ReadMessage()
 		if err != nil {
-			panic("get qcall response error: " + err.Error())
+			panic("get rdCall response error: " + err.Error())
 		}
 		return resp
 	}
 	return nil
 }
 
-func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCall) {
-	hash, err := ecall.Hash()
+func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrCall) {
+	hash, err := wrCall.Hash()
 	if err != nil {
-		panic("ecall hash error: " + err.Error())
+		panic("wrCall hash error: " + err.Error())
 	}
 	signByt, err := privkey.SignData(hash)
 	if err != nil {
@@ -97,31 +97,31 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, ecall *WrCa
 
 	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: WrApiPath}
 	q := u.Query()
-	q.Set(TripodNameKey, ecall.TripodName)
-	q.Set(CallNameKey, ecall.WritingName)
+	q.Set(TripodNameKey, wrCall.TripodName)
+	q.Set(CallNameKey, wrCall.WritingName)
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
-	q.Set(LeiPriceKey, hexutil.EncodeUint64(ecall.LeiPrice))
+	q.Set(LeiPriceKey, hexutil.EncodeUint64(wrCall.LeiPrice))
 
 	u.RawQuery = q.Encode()
 
-	logrus.Debug("ecall: ", u.String())
+	logrus.Debug("wrCall: ", u.String())
 
 	switch reqType {
 	case Http:
-		_, err := http.Post(u.String(), "application/json", strings.NewReader(ecall.Params))
+		_, err = http.Post(u.String(), "application/json", strings.NewReader(wrCall.Params))
 		if err != nil {
-			panic("post ecall message to chain error: " + err.Error())
+			panic("post wrCall message to chain error: " + err.Error())
 		}
 	case Websocket:
 		c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
-			panic("ecall dial chain error: " + err.Error())
+			panic("wrCall dial chain error: " + err.Error())
 		}
 		defer c.Close()
-		err = c.WriteMessage(websocket.TextMessage, []byte(ecall.Params))
+		err = c.WriteMessage(websocket.TextMessage, []byte(wrCall.Params))
 		if err != nil {
-			panic("write ecall message to chain error: " + err.Error())
+			panic("write wrCall message to chain error: " + err.Error())
 		}
 	}
 }
