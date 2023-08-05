@@ -2,10 +2,12 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
 // A complete writing-call url is POST /api/writing/{tripod}/{writing_name}
@@ -16,13 +18,11 @@ const (
 	// will base on '/api'.
 	RootApiPath = "/api"
 
-	TripodNameKey = "tripod"
-	CallNameKey   = "call_name"
-	BlockHashKey  = "block_hash"
-	PubkeyKey     = "pubkey"
-	SignatureKey  = "signature"
-	LeiPriceKey   = "lei_price"
-	TipsKey       = "tips"
+	BlockHashKey = "block_hash"
+	PubkeyKey    = "pubkey"
+	SignatureKey = "signature"
+	LeiPriceKey  = "lei_price"
+	TipsKey      = "tips"
 )
 
 var (
@@ -31,10 +31,14 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-// GetTripodCallName return (Tripod Name, Write/Read Name)
-func GetTripodCallName(req *http.Request) (string, string) {
-	query := req.URL.Query()
-	return query.Get(TripodNameKey), query.Get(CallNameKey)
+// GetTripodCallName return (Tripod Name, Write/Read Name, error)
+func GetTripodCallName(req *http.Request) (string, string, error) {
+	path := req.URL.Path
+	paths := strings.Split(path, "/")
+	if len(paths) < 5 {
+		return "", "", errors.New("URL path illegal")
+	}
+	return paths[3], paths[4], nil
 }
 
 func GetPubkey(req *http.Request) (keypair.PubKey, error) {
