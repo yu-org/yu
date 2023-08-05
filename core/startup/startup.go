@@ -53,7 +53,7 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	}
 
 	codec.GlobalCodec = &codec.RlpCodec{}
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 
 	// init database
 	KernelCfg.KVDB.Path = path.Join(KernelCfg.DataDir, KernelCfg.KVDB.Path)
