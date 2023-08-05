@@ -81,14 +81,6 @@ func BindJsonParams(params string, v interface{}) error {
 	return d.Decode(v)
 }
 
-const (
-	WritingCall CallType = iota
-	ReadingCall
-
-	WrCallType = "writing"
-	RdCallType = "reading"
-)
-
 func (bn BlockNum) len() int {
 	return int(unsafe.Sizeof(bn))
 }

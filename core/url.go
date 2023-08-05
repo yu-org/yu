@@ -17,6 +17,8 @@ const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
 	// will base on '/api'.
 	RootApiPath = "/api"
+	WrCallType  = "writing"
+	RdCallType  = "reading"
 
 	BlockHashKey = "block_hash"
 	PubkeyKey    = "pubkey"
