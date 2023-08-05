@@ -2,27 +2,32 @@ package kernel
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/types"
 	"net/http"
+	"path/filepath"
 )
 
 func (k *Kernel) HandleWS() {
-	http.HandleFunc(WrApiPath, func(w http.ResponseWriter, req *http.Request) {
-		k.handleWS(w, req, writing)
+	r := gin.Default()
+	r.POST(filepath.Join(WrApiPath, "*path"), func(ctx *gin.Context) {
+		k.handleWS(ctx.Writer, ctx.Request, writing)
 	})
 
-	http.HandleFunc(RdApiPath, func(w http.ResponseWriter, req *http.Request) {
-		k.handleWS(w, req, reading)
+	r.GET(filepath.Join(RdApiPath, "*path"), func(ctx *gin.Context) {
+		k.handleWS(ctx.Writer, ctx.Request, reading)
 	})
 
-	http.HandleFunc(SubResultsPath, func(w http.ResponseWriter, req *http.Request) {
-		k.handleWS(w, req, subscription)
+	r.GET(SubResultsPath, func(ctx *gin.Context) {
+		k.handleWS(ctx.Writer, ctx.Request, subscription)
 	})
-
-	logrus.Panic(http.ListenAndServe(k.wsPort, nil))
+	err := r.Run(k.wsPort)
+	if err != nil {
+		logrus.Fatal("serve websocket failed: ", err)
+	}
 }
 
 const (
