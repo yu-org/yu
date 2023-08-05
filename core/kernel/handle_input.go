@@ -52,9 +52,9 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 //}
 
 func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error) {
-	tripodName, wrName, err := GetTripodCallName(req)
+	tripodName, wrName, urlErr := GetTripodCallName(req)
 	if err != nil {
-		return nil, err
+		return nil, urlErr
 	}
 	leiPrice, err := GetLeiPrice(req)
 	if err != nil {
