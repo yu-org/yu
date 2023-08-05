@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 )
 
-var TryThis = "trythis"
-
 func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
