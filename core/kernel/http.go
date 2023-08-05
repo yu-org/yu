@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
@@ -25,7 +26,10 @@ func (k *Kernel) HandleHttp() {
 		k.handleHttpRd(c)
 	})
 
-	r.Run(k.httpPort)
+	err := r.Run(k.httpPort)
+	if err != nil {
+		logrus.Fatal("serve http failed: ", err)
+	}
 }
 
 func (k *Kernel) handleHttpWr(c *gin.Context) {
