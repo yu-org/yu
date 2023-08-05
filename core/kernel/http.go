@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
@@ -15,13 +16,17 @@ func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	r.POST(filepath.Join(WrApiPath, "*path"), func(c *gin.Context) {
+	wrPath := filepath.Join(WrApiPath, "*path")
+	r.POST(wrPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
+	fmt.Println("POST path: ", wrPath)
 	// GET request
-	r.GET(filepath.Join(RdApiPath, "*path"), func(c *gin.Context) {
+	rdPath := filepath.Join(RdApiPath, "*path")
+	r.GET(rdPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
+	fmt.Println("GET path: ", rdPath)
 
 	r.Run(k.httpPort)
 }
