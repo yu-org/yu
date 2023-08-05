@@ -15,11 +15,11 @@ func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	r.POST(fmt.Sprintf(WrApiPath, "%s/*path"), func(c *gin.Context) {
+	r.POST(fmt.Sprintf(WrApiPath, "%s/*"), func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
 	// GET request
-	r.GET(fmt.Sprintf(RdApiPath, "%s/*path"), func(c *gin.Context) {
+	r.GET(fmt.Sprintf(RdApiPath, "%s/*"), func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
