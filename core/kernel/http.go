@@ -14,13 +14,13 @@ func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	wrApi := gin.New()
-	wrApi.POST(WrApiPath, func(c *gin.Context) {
+	wrApi := r.Group(WrApiPath)
+	wrApi.POST("/", func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
 	// GET request
-	rdApi := gin.New()
-	rdApi.GET(RdApiPath, func(c *gin.Context) {
+	rdApi := r.Group(RdApiPath)
+	rdApi.GET("/", func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
