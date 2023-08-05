@@ -8,17 +8,20 @@ import (
 	"github.com/yu-org/yu/core/types"
 	"io"
 	"net/http"
+	"path/filepath"
 )
 
 func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	r.POST(WrApiPath, func(c *gin.Context) {
+	wrPath := filepath.Join(WrApiPath, "*path")
+	r.POST(wrPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
 	// GET request
-	r.GET(RdApiPath, func(c *gin.Context) {
+	rdPath := filepath.Join(RdApiPath, "*path")
+	r.GET(rdPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
@@ -70,22 +73,23 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 }
 
 func (k *Kernel) handleHttpRd(c *gin.Context) {
-	tripodName, rdName := GetTripodCallName(c.Request)
+	tripodName, rdName, err := GetTripodCallName(c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
 	switch k.RunMode {
 	case LocalNode:
 		ctx, err := context.NewReadContext(c)
 		if err != nil {
-			c.String(http.StatusBadRequest, err.Error())
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 
 		rd, err := k.land.GetReading(tripodName, rdName)
 		if err != nil {
-			c.String(
-				http.StatusBadRequest,
-				err.Error(),
-			)
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 		rd(ctx)

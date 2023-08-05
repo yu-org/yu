@@ -33,10 +33,8 @@ func CallChainByReading(reqTyp int, rdCall *RdCall) []byte {
 		scheme = "ws"
 		port = "8999"
 	}
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: RdApiPath}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", RdApiPath, rdCall.TripodName, rdCall.ReadingName)}
 	q := u.Query()
-	q.Set(TripodNameKey, rdCall.TripodName)
-	q.Set(CallNameKey, rdCall.ReadingName)
 	// q.Set(BlockHashKey, rdCall.BlockHash.String())
 
 	u.RawQuery = q.Encode()
@@ -95,10 +93,8 @@ func CallChainByWriting(reqType int, privkey PrivKey, pubkey PubKey, wrCall *WrC
 		port = "8999"
 	}
 
-	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: WrApiPath}
+	u := url.URL{Scheme: scheme, Host: fmt.Sprintf("localhost:%s", port), Path: fmt.Sprintf("%s/%s/%s", WrApiPath, wrCall.TripodName, wrCall.WritingName)}
 	q := u.Query()
-	q.Set(TripodNameKey, wrCall.TripodName)
-	q.Set(CallNameKey, wrCall.WritingName)
 	q.Set(SignatureKey, ToHex(signByt))
 	q.Set(PubkeyKey, pubkey.StringWithType())
 	q.Set(LeiPriceKey, hexutil.EncodeUint64(wrCall.LeiPrice))
