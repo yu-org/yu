@@ -14,15 +14,15 @@ import (
 func (k *Kernel) HandleWS() {
 	r := gin.Default()
 	r.POST(filepath.Join(WrApiPath, "*path"), func(ctx *gin.Context) {
-		k.handleWS(ctx.Writer, ctx.Request, writing)
+		k.handleWS(ctx, writing)
 	})
 
 	r.GET(filepath.Join(RdApiPath, "*path"), func(ctx *gin.Context) {
-		k.handleWS(ctx.Writer, ctx.Request, reading)
+		k.handleWS(ctx, reading)
 	})
 
 	r.GET(SubResultsPath, func(ctx *gin.Context) {
-		k.handleWS(ctx.Writer, ctx.Request, subscription)
+		k.handleWS(ctx, subscription)
 	})
 	err := r.Run(k.wsPort)
 	if err != nil {
@@ -36,9 +36,9 @@ const (
 	subscription
 )
 
-func (k *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
+func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 	upgrade := websocket.Upgrader{}
-	c, err := upgrade.Upgrade(w, req, nil)
+	c, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		k.errorAndClose(c, err.Error())
 		return
@@ -56,24 +56,29 @@ func (k *Kernel) handleWS(w http.ResponseWriter, req *http.Request, typ int) {
 	}
 	switch typ {
 	case writing:
-		k.handleWsWr(c, req, string(params))
+		k.handleWsWr(ctx, string(params))
 		//case reading:
 		//	k.handleWsRd(c, req, string(params))
 	}
 
 }
 
-func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string) {
-	stxn, err := getWrFromHttp(req, params)
+func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
+	rawWrCall, err := GetRawWrCall(ctx)
 	if err != nil {
-		k.errorAndClose(c, fmt.Sprintf("get Writing info from websocket error: %v", err))
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	wrCall := stxn.Raw.WrCall
-	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
+	_, err = k.land.GetWriting(rawWrCall.Call.TripodName, rawWrCall.Call.FuncName)
 	if err != nil {
-		k.errorAndClose(c, err.Error())
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	stxn, err := types.NewSignedTxn(rawWrCall.Call, rawWrCall.Pubkey, rawWrCall.Signature)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -83,21 +88,20 @@ func (k *Kernel) handleWsWr(c *websocket.Conn, req *http.Request, params string)
 
 	err = k.txPool.CheckTxn(stxn)
 	if err != nil {
-		k.errorAndClose(c, err.Error())
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	go func() {
 		err = k.pubUnpackedTxns(types.FromArray(stxn))
 		if err != nil {
-			k.errorAndClose(c, fmt.Sprintf("publish Unpacked txn(%s) error: %v", stxn.TxnHash.String(), err))
+			ctx.AbortWithError(http.StatusInternalServerError, err)
 		}
 	}()
 
 	err = k.txPool.Insert(stxn)
 	if err != nil {
-		k.errorAndClose(c, err.Error())
-		return
+		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
 }
 

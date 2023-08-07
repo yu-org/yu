@@ -39,9 +39,9 @@ type (
 
 	// WrCall from clients, it is an instance of an 'Writing'.
 	WrCall struct {
-		TripodName  string `json:"tripod_name"`
-		WritingName string `json:"writing_name"`
-		Params      string `json:"params"`
+		TripodName string `json:"tripod_name"`
+		FuncName   string `json:"func_name"`
+		Params     string `json:"params"`
 		// TODO: make LeiPrice and Tips as a sortable interface.
 		LeiPrice uint64 `json:"lei_price"`
 		Tips     uint64 `json:"tips"`
@@ -49,10 +49,8 @@ type (
 
 	// RdCall from clients, it is an instance of an 'Read'.
 	RdCall struct {
-		TripodName  string `json:"tripod_name"`
-		ReadingName string `json:"reading_name"`
-		BlockHash   Hash   `json:"block_hash,omitempty"`
-		Params      string `json:"params"`
+		TripodName string `json:"tripod_name"`
+		FuncName   string `json:"func_name"`
 	}
 	// CallType is Writing or Reading
 	CallType int
@@ -69,10 +67,6 @@ func (e *WrCall) Hash() ([]byte, error) {
 	}
 	hash := sha256.Sum256(byt)
 	return hash[:], nil
-}
-
-func (q *RdCall) BindJsonParams(v interface{}) error {
-	return BindJsonParams(q.Params, v)
 }
 
 func BindJsonParams(params string, v interface{}) error {

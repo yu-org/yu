@@ -25,9 +25,9 @@ func TestSignedTxns_Remove(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		istr := strconv.Itoa(i)
 		ecall := &WrCall{
-			TripodName:  istr,
-			WritingName: istr,
-			Params:      string(istr),
+			TripodName: istr,
+			FuncName:   istr,
+			Params:     string(istr),
 		}
 		hash, err := ecall.Hash()
 		if err != nil {

@@ -20,10 +20,10 @@ func QueryAccount(pubkey PubKey) {
 		panic("json encode qryAccount error: " + err.Error())
 	}
 	qcall := &RdCall{
-		TripodName:  "asset",
-		ReadingName: "QueryBalance",
-		BlockHash:   Hash{},
-		Params:      string(paramByt),
+		TripodName: "asset",
+		FuncName:   "QueryBalance",
+		BlockHash:  Hash{},
+		Params:     string(paramByt),
 	}
 	resp := CallChainByReading(Websocket, qcall)
 	respMap := make(context.H)
@@ -51,10 +51,10 @@ func CreateAccount(reqType int, privkey PrivKey, pubkey PubKey, amount uint64) {
 		panic("create-account params marshal error: " + err.Error())
 	}
 	wrCall := &WrCall{
-		TripodName:  "asset",
-		WritingName: "CreateAccount",
-		Params:      string(paramsByt),
-		LeiPrice:    0,
+		TripodName: "asset",
+		FuncName:   "CreateAccount",
+		Params:     string(paramsByt),
+		LeiPrice:   0,
 	}
 	CallChainByWriting(reqType, privkey, pubkey, wrCall)
 }
@@ -74,10 +74,10 @@ func TransferBalance(reqType int, privkey PrivKey, pubkey PubKey, to Address, am
 		panic("TransferBalance params marshal error: " + err.Error())
 	}
 	wrCall := &WrCall{
-		TripodName:  "asset",
-		WritingName: "Transfer",
-		Params:      string(paramsByt),
-		LeiPrice:    leiPrice,
+		TripodName: "asset",
+		FuncName:   "Transfer",
+		Params:     string(paramsByt),
+		LeiPrice:   leiPrice,
 	}
 	CallChainByWriting(reqType, privkey, pubkey, wrCall)
 }
