@@ -23,7 +23,7 @@ const (
 func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: RdApiPath}
 	q := u.Query()
-	q.Set(TripodKey, rdCall.TripodName)
+	q.Set(TripodNameKey, rdCall.TripodName)
 	q.Set(FuncNameKey, rdCall.FuncName)
 	for key, value := range params {
 		q.Set(key, value)

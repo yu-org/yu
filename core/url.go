@@ -17,9 +17,9 @@ const (
 	WrCallType  = "writing"
 	RdCallType  = "reading"
 
-	TripodKey    = "tripod"
-	FuncNameKey  = "func_name"
-	BlockHashKey = "block_hash"
+	TripodNameKey = "tripod_name"
+	FuncNameKey   = "func_name"
+	BlockHashKey  = "block_hash"
 )
 
 var (
@@ -60,7 +60,7 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 }
 
 func GetRdCall(ctx *gin.Context) (*RdCall, error) {
-	tri := ctx.Query(TripodKey)
+	tri := ctx.Query(TripodNameKey)
 	fn := ctx.Query(FuncNameKey)
 	return &RdCall{
 		TripodName: tri,
