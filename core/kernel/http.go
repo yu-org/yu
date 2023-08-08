@@ -8,20 +8,17 @@ import (
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
 	"net/http"
-	"path/filepath"
 )
 
 func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	wrPath := filepath.Join(WrApiPath, "*path")
-	r.POST(wrPath, func(c *gin.Context) {
+	r.POST(WrApiPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
 	// GET request
-	rdPath := filepath.Join(RdApiPath, "*path")
-	r.GET(rdPath, func(c *gin.Context) {
+	r.GET(RdApiPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 

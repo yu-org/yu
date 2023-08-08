@@ -8,16 +8,15 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/types"
 	"net/http"
-	"path/filepath"
 )
 
 func (k *Kernel) HandleWS() {
 	r := gin.Default()
-	r.POST(filepath.Join(WrApiPath, "*path"), func(ctx *gin.Context) {
+	r.POST(WrApiPath, func(ctx *gin.Context) {
 		k.handleWS(ctx, writing)
 	})
 
-	r.GET(filepath.Join(RdApiPath, "*path"), func(ctx *gin.Context) {
+	r.GET(RdApiPath, func(ctx *gin.Context) {
 		k.handleWS(ctx, reading)
 	})
 
