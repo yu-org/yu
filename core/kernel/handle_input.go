@@ -2,17 +2,14 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/types"
-	"net/http"
 )
 
 // HandleTxn handles txn from outside.
 // You can also self-define your input by calling HandleTxn (not only by default http and ws)
 func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	wrCall := stxn.Raw.WrCall
-	_, err := k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
+	_, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 	if err != nil {
 		return err
 	}
@@ -44,35 +41,35 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 //	blockHash := GetBlockHash(req)
 //	rdCall = &RdCall{
 //		TripodName:  tripodName,
-//		ReadingName: rdName,
+//		FuncName: rdName,
 //		Params:      params,
 //		BlockHash:   blockHash,
 //	}
 //	return
 //}
 
-func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error) {
-	tripodName, wrName, urlErr := GetTripodCallName(req)
-	if err != nil {
-		return nil, urlErr
-	}
-	leiPrice, err := GetLeiPrice(req)
-	if err != nil {
-		return
-	}
-	tips, err := GetTips(req)
-	wrCall := &WrCall{
-		TripodName:  tripodName,
-		WritingName: wrName,
-		Params:      params,
-		LeiPrice:    leiPrice,
-		Tips:        tips,
-	}
-	sig := GetSignature(req)
-	pubkey, err := GetPubkey(req)
-	if err != nil {
-		return
-	}
-	stxn, err = NewSignedTxn(wrCall, pubkey, sig)
-	return
-}
+//func getWrFromHttp(req *http.Request, params string) (stxn *SignedTxn, err error) {
+//	tripodName, wrName, urlErr := GetTripodCallName(req)
+//	if err != nil {
+//		return nil, urlErr
+//	}
+//	leiPrice, err := GetLeiPrice(req)
+//	if err != nil {
+//		return
+//	}
+//	tips, err := GetTips(req)
+//	wrCall := &WrCall{
+//		TripodName: tripodName,
+//		FuncName:   wrName,
+//		Params:     params,
+//		LeiPrice:   leiPrice,
+//		Tips:       tips,
+//	}
+//	sig := GetSignature(req)
+//	pubkey, err := GetPubkey(req)
+//	if err != nil {
+//		return
+//	}
+//	stxn, err = NewSignedTxn(wrCall, pubkey, sig)
+//	return
+//}

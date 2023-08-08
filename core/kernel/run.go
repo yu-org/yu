@@ -100,7 +100,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 			return err
 		}
 
-		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
+		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 		if err != nil {
 			k.handleError(err, ctx, block, stxn)
 			continue
@@ -193,7 +193,7 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	ctx.Error.Caller = stxn.GetCallerAddr()
 	ctx.Error.BlockStage = ExecuteTxnsStage
 	ctx.Error.TripodName = wrCall.TripodName
-	ctx.Error.WritingName = wrCall.WritingName
+	ctx.Error.WritingName = wrCall.FuncName
 	ctx.Error.BlockHash = block.Hash
 	ctx.Error.Height = block.Height
 
@@ -210,7 +210,7 @@ func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 
 		event.Height = block.Height
 		event.BlockHash = block.Hash
-		event.WritingName = wrCall.WritingName
+		event.WritingName = wrCall.FuncName
 		event.TripodName = wrCall.TripodName
 		event.LeiCost = ctx.LeiCost
 		event.BlockStage = ExecuteTxnsStage

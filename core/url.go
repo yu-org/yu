@@ -1,17 +1,14 @@
 package core
 
 import (
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/pkg/errors"
+	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
-	"net/http"
 	"path/filepath"
-	"strings"
 )
 
-// A complete writing-call url is POST /api/writing/{tripod}/{writing_name}
-// A complete reading-call url is GET /api/reading/{tripod}/{reading_name}?xx=yy
+// A complete writing-call url is POST /api/writing
+// A complete reading-call url is GET /api/reading?tripod={tripod}&func_name={func_name}?xx=yy
 
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
@@ -20,11 +17,9 @@ const (
 	WrCallType  = "writing"
 	RdCallType  = "reading"
 
+	TripodKey    = "tripod"
+	FuncNameKey  = "func_name"
 	BlockHashKey = "block_hash"
-	PubkeyKey    = "pubkey"
-	SignatureKey = "signature"
-	LeiPriceKey  = "lei_price"
-	TipsKey      = "tips"
 )
 
 var (
@@ -33,30 +28,42 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-// GetTripodCallName return (Tripod Name, Write/Read Name, error)
-func GetTripodCallName(req *http.Request) (string, string, error) {
-	path := req.URL.Path
-	paths := strings.Split(path, "/")
-	if len(paths) < 5 {
-		return "", "", errors.New("URL path illegal")
+type RawWrCall struct {
+	Pubkey    keypair.PubKey `json:"pubkey"`
+	Signature []byte         `json:"signature"`
+	Call      *WrCall        `json:"call"`
+}
+
+type WritingPostBody struct {
+	// hex string
+	Pubkey string `json:"pubkey"`
+	// hex string
+	Signature string  `json:"signature"`
+	Call      *WrCall `json:"call"`
+}
+
+func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
+	wpb := new(WritingPostBody)
+	err := ctx.ShouldBindJSON(wpb)
+	if err != nil {
+		return nil, err
 	}
-	return paths[3], paths[4], nil
+	pubkey, err := keypair.PubkeyFromStr(wpb.Pubkey)
+	if err != nil {
+		return nil, err
+	}
+	return &RawWrCall{
+		Pubkey:    pubkey,
+		Signature: FromHex(wpb.Signature),
+		Call:      wpb.Call,
+	}, err
 }
 
-func GetPubkey(req *http.Request) (keypair.PubKey, error) {
-	pubkeyStr := req.URL.Query().Get(PubkeyKey)
-	return keypair.PubkeyFromStr(pubkeyStr)
-}
-
-func GetSignature(req *http.Request) []byte {
-	signStr := req.URL.Query().Get(SignatureKey)
-	return FromHex(signStr)
-}
-
-func GetLeiPrice(req *http.Request) (uint64, error) {
-	return hexutil.DecodeUint64(req.URL.Query().Get(LeiPriceKey))
-}
-
-func GetTips(req *http.Request) (uint64, error) {
-	return hexutil.DecodeUint64(req.URL.Query().Get(TipsKey))
+func GetRdCall(ctx *gin.Context) (*RdCall, error) {
+	tri := ctx.Query(TripodKey)
+	fn := ctx.Query(FuncNameKey)
+	return &RdCall{
+		TripodName: tri,
+		FuncName:   fn,
+	}, nil
 }

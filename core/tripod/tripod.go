@@ -58,6 +58,14 @@ func (t *Tripod) SetInstance(instance interface{}) {
 		t.name = tripodName
 	}
 
+	for name, _ := range t.writings {
+		logrus.Debugf("register Writing (%s) into Tripod(%s) \n", name, t.name)
+	}
+
+	for name, _ := range t.readings {
+		logrus.Debugf("register Reading (%s) into Tripod(%s) \n", name, t.name)
+	}
+
 	t.Instance = instance
 }
 
@@ -93,7 +101,6 @@ func (t *Tripod) SetWritings(wrs ...Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
 		t.writings[name] = wr
-		logrus.Debugf("register Writing(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
 
@@ -101,7 +108,6 @@ func (t *Tripod) SetReadings(readings ...Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
 		t.readings[name] = r
-		logrus.Debugf("register Reading(%s) into Tripod(%s) \n", name, t.name)
 	}
 }
 

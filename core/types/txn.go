@@ -48,7 +48,7 @@ func (st *SignedTxn) TripodName() string {
 }
 
 func (st *SignedTxn) WrName() string {
-	return st.Raw.WrCall.WritingName
+	return st.Raw.WrCall.FuncName
 }
 
 func (st *SignedTxn) BindJsonParams(v interface{}) error {
@@ -201,7 +201,7 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
 		Ecall: &goproto.Ecall{
 			TripodName: ut.WrCall.TripodName,
-			ExecName:   ut.WrCall.WritingName,
+			ExecName:   ut.WrCall.FuncName,
 			Params:     ut.WrCall.Params,
 			LeiPrice:   ut.WrCall.LeiPrice,
 			Tips:       ut.WrCall.Tips,
@@ -213,11 +213,11 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
 		WrCall: &WrCall{
-			TripodName:  pb.Ecall.TripodName,
-			WritingName: pb.Ecall.ExecName,
-			Params:      pb.Ecall.Params,
-			LeiPrice:    pb.Ecall.LeiPrice,
-			Tips:        pb.Ecall.Tips,
+			TripodName: pb.Ecall.TripodName,
+			FuncName:   pb.Ecall.ExecName,
+			Params:     pb.Ecall.Params,
+			LeiPrice:   pb.Ecall.LeiPrice,
+			Tips:       pb.Ecall.Tips,
 		},
 		Timestamp: pb.Timestamp,
 	}

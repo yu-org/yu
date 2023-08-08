@@ -83,7 +83,7 @@ package txdb
 //		BlockHash:  event.BlockHash.String(),
 //		Height:     event.Height,
 //		TripodName: event.TripodName,
-//		ExecName:   event.WritingName,
+//		ExecName:   event.FuncName,
 //		Value:      event.Value,
 //	}, nil
 //}
@@ -95,7 +95,7 @@ package txdb
 //		BlockHash:   HexToHash(e.BlockHash),
 //		Height:      e.Height,
 //		TripodName:  e.TripodName,
-//		WritingName: e.ExecName,
+//		FuncName: e.ExecName,
 //		Value:       e.Value,
 //	}, nil
 //
@@ -123,7 +123,7 @@ package txdb
 //		BlockHash:  err.BlockHash.String(),
 //		Height:     err.Height,
 //		TripodName: err.TripodName,
-//		ExecName:   err.WritingName,
+//		ExecName:   err.FuncName,
 //		Error:      err.Err,
 //	}
 //}
@@ -135,7 +135,7 @@ package txdb
 //		BlockHash:   HexToHash(e.BlockHash),
 //		Height:      e.Height,
 //		TripodName:  e.TripodName,
-//		WritingName: e.ExecName,
+//		FuncName: e.ExecName,
 //		Err:         e.Error,
 //	}
 //}

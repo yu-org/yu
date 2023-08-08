@@ -7,22 +7,18 @@ import (
 	. "github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/types"
-	"io"
 	"net/http"
-	"path/filepath"
 )
 
 func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
 	// POST request
-	wrPath := filepath.Join(WrApiPath, "*path")
-	r.POST(wrPath, func(c *gin.Context) {
+	r.POST(WrApiPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
 	// GET request
-	rdPath := filepath.Join(RdApiPath, "*path")
-	r.GET(rdPath, func(c *gin.Context) {
+	r.GET(RdApiPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
@@ -33,20 +29,19 @@ func (k *Kernel) HandleHttp() {
 }
 
 func (k *Kernel) handleHttpWr(c *gin.Context) {
-	params, err := io.ReadAll(c.Request.Body)
+	rawWrCall, err := GetRawWrCall(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	stxn, err := getWrFromHttp(c.Request, string(params))
+	_, err = k.land.GetWriting(rawWrCall.Call.TripodName, rawWrCall.Call.FuncName)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	wrCall := stxn.Raw.WrCall
-	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.WritingName)
+	stxn, err := types.NewSignedTxn(rawWrCall.Call, rawWrCall.Pubkey, rawWrCall.Signature)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -72,12 +67,11 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 	err = k.txPool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
-		return
 	}
 }
 
 func (k *Kernel) handleHttpRd(c *gin.Context) {
-	tripodName, rdName, err := GetTripodCallName(c.Request)
+	rdCall, err := GetRdCall(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -91,7 +85,7 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 			return
 		}
 
-		rd, err := k.land.GetReading(tripodName, rdName)
+		rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
