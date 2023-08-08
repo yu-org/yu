@@ -17,8 +17,13 @@ func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
 	}, nil
 }
 
-func (rc *ReadContext) GetBlockHash() common.Hash {
-	return common.HexToHash(rc.Query(core.BlockHashKey))
+func (rc *ReadContext) GetBlockHash() *common.Hash {
+	blockHashHex := rc.Query(core.BlockHashKey)
+	if blockHashHex == "" {
+		return nil
+	}
+	blockHash := common.HexToHash(blockHashHex)
+	return &blockHash
 }
 
 func (rc *ReadContext) JsonOk(v any) {
