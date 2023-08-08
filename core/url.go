@@ -60,8 +60,8 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 }
 
 func GetRdCall(ctx *gin.Context) (*RdCall, error) {
-	tri := ctx.GetString(TripodKey)
-	fn := ctx.GetString(FuncNameKey)
+	tri := ctx.Query(TripodKey)
+	fn := ctx.Query(FuncNameKey)
 	return &RdCall{
 		TripodName: tri,
 		FuncName:   fn,
