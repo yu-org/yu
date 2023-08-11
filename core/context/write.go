@@ -42,6 +42,10 @@ func (c *WriteContext) GetTimestamp() uint64 {
 	return c.Block.Timestamp
 }
 
+func (c *WriteContext) GetTxnHash() Hash {
+	return c.Txn.TxnHash
+}
+
 func (c *WriteContext) GetCaller() Address {
 	return c.Txn.GetCallerAddr()
 }
