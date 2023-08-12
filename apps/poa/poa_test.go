@@ -29,15 +29,15 @@ var (
 
 func initGlobalVars() {
 	myPubkey1, myPrivkey1, validators = InitDefaultKeypairs(0)
-	node1 = newPoa(myPubkey1, myPrivkey1, validators)
+	node1 = newPoa(myPubkey1, myPrivkey1, validators, 3)
 	println("addr1 = ", myPubkey1.Address().String())
 
 	myPubkey2, myPrivkey2, validators = InitDefaultKeypairs(1)
-	node2 = newPoa(myPubkey2, myPrivkey2, validators)
+	node2 = newPoa(myPubkey2, myPrivkey2, validators, 3)
 	println("addr2 = ", myPubkey2.Address().String())
 
 	myPubkey3, myPrivkey3, validators = InitDefaultKeypairs(2)
-	node3 = newPoa(myPubkey3, myPrivkey3, validators)
+	node3 = newPoa(myPubkey3, myPrivkey3, validators, 3)
 	println("addr3 = ", myPubkey3.Address().String())
 }
 
@@ -116,14 +116,14 @@ func TestChainNet(t *testing.T) {
 
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
-	go runNode("node1", node1, mockP2P, wg)
-	go runNode("node2", node2, mockP2P, wg)
-	go runNode("node3", node3, mockP2P, wg)
+	go runNode(node1, mockP2P, wg)
+	go runNode(node2, mockP2P, wg)
+	go runNode(node3, mockP2P, wg)
 	wg.Wait()
 }
 
-func runNode(cfgPath string, poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
-	cfg := config.InitDefaultCfgWithDir(cfgPath)
+func runNode(poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
+	cfg := config.InitDefaultCfg()
 
 	land := tripod.NewLand()
 	land.SetTripods(poaNode.Tripod)
@@ -136,21 +136,21 @@ func runNode(cfgPath string, poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGr
 		panic("init kvdb error: " + err.Error())
 	}
 
-	base := txdb.NewTxDB(kvdb)
-	chain := blockchain.NewBlockChain(&cfg.BlockChain, base)
+	base := txdb.NewTxDB(FullNode, kvdb)
+	chain := blockchain.NewBlockChain(FullNode, &cfg.BlockChain, base)
 	statedb := state.NewStateDB(kvdb)
 
 	env := &env.ChainEnv{
 		State:      statedb,
 		Chain:      chain,
 		TxDB:       base,
-		Pool:       txpool.WithDefaultChecks(&cfg.Txpool, base),
+		Pool:       txpool.WithDefaultChecks(FullNode, &cfg.Txpool, base),
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: mockP2P,
 	}
 	poaNode.SetChainEnv(env)
 
-	k := kernel.NewKernel(&cfg, env, land)
+	k := kernel.NewKernel(cfg, env, land)
 	for i := 0; i < 10; i++ {
 		err := k.LocalRun()
 		if err != nil {
