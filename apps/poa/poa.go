@@ -245,6 +245,11 @@ func (h *Poa) AmILeader(blockHeight BlockNum) bool {
 	return h.CompeteLeader(blockHeight) == h.LocalAddress()
 }
 
+func (h *Poa) IsValidator(addr Address) bool {
+	_, ok := h.validatorsMap[addr]
+	return ok
+}
+
 func (h *Poa) useP2pOrSkip(localBlock *Block) bool {
 LOOP:
 	select {
