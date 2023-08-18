@@ -1,6 +1,7 @@
 package keypair
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	. "github.com/yu-org/yu/common"
 	"testing"
@@ -15,25 +16,25 @@ func TestKey(t *testing.T) {
 func testKey(t *testing.T, keyType string) {
 	t.Log("------- test ", keyType)
 	pubkey, privkey, err := GenKeyPair(keyType)
-	if err != nil {
-		panic("generate key error: " + err.Error())
-	}
+	assert.NoError(t, err, "generate key failed")
 	t.Logf("public key is %s", pubkey.String())
 	t.Logf("private key is %s", privkey.String())
-	ecall := &WrCall{
+	wrCall := &WrCall{
 		TripodName: "asset",
 		FuncName:   "Transfer",
 		Params:     "params",
 	}
 
-	hash, err := ecall.Hash()
-	if err != nil {
-		t.Fatalf("hash error: %s", err.Error())
-	}
+	byt, err := json.Marshal(wrCall)
+	assert.NoError(t, err)
+	t.Logf("wrcall json: %s", byt)
+
+	hash, err := wrCall.Hash()
+	assert.NoError(t, err, "hash wrcall failed")
 	signByt, err := privkey.SignData(hash)
-	if err != nil {
-		panic("sign data error: " + err.Error())
-	}
+	assert.NoError(t, err)
+	t.Logf("signature: %s", ToHex(signByt))
+
 	ok := pubkey.VerifySignature(hash, signByt)
 	assert.True(t, ok)
 }
