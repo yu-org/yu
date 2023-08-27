@@ -7,7 +7,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 	"go.uber.org/atomic"
 	"time"
@@ -92,7 +91,7 @@ func (h *Poa) LocalAddress() Address {
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
-	return CheckSignature(txn)
+	return CheckMetamaskSig(txn)
 }
 
 func (h *Poa) VerifyBlock(block *Block) bool {
