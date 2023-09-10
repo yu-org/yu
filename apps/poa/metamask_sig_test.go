@@ -3,6 +3,7 @@ package poa
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/keypair"
 	"testing"
 )
 
@@ -17,5 +18,11 @@ func TestSig(t *testing.T) {
 	t.Log(wrCall)
 	hash, err := wrCall.Hash()
 	assert.NoError(t, err)
-	t.Logf("%x", hash)
+	t.Logf("hash is %x", hash)
+
+	pub, priv := keypair.GenSecpKeyWithSecret([]byte("test"))
+	t.Logf("raw privkey is %s, pubkey is %s", priv.String(), pub.String())
+	sig, err := priv.SignData([]byte(MetamaskMsg(hash)))
+	assert.NoError(t, err)
+	t.Logf("sig is %x", sig)
 }

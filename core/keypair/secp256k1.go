@@ -58,6 +58,10 @@ type SecpPrivkey struct {
 	privkey secp256k1.PrivKey
 }
 
+func SecpPrivkeyFromBytes(data []byte) *SecpPrivkey {
+	return &SecpPrivkey{privkey: data}
+}
+
 func (spr *SecpPrivkey) SignData(data []byte) ([]byte, error) {
 	return spr.privkey.Sign(data)
 }
@@ -88,6 +92,10 @@ func (spr *SecpPrivkey) BytesWithType() []byte {
 
 func (spr *SecpPrivkey) StringWithType() string {
 	return ToHex(spr.BytesWithType())
+}
+
+func (spr *SecpPrivkey) GenPubkey() []byte {
+	return spr.privkey.PubKey().Bytes()
 }
 
 func GenSecpKeyWithSecret(secret []byte) (PubKey, PrivKey) {

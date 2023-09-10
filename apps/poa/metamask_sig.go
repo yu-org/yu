@@ -16,10 +16,14 @@ func CheckMetamaskSig(txn *types.SignedTxn) error {
 	if err != nil {
 		return err
 	}
-	metamaskMsg := fmt.Sprintf("%s%s%s", prefix, msgLength, common.ToHex(hash))
+	metamaskMsg := MetamaskMsg(hash)
 
 	if !txn.Pubkey.VerifySignature([]byte(metamaskMsg), txn.Signature) {
 		return yerror.TxnSignatureErr
 	}
 	return nil
+}
+
+func MetamaskMsg(hash []byte) string {
+	return fmt.Sprintf("%s%s%s", prefix, msgLength, common.ToHex(hash))
 }
