@@ -20,7 +20,8 @@ func CheckMetamaskSig(txn *types.SignedTxn) error {
 	}
 	metamaskMsgHash := MetamaskMsgHash(hash)
 	if len(txn.Signature) > 0 {
-		txn.Signature[len(txn.Signature)-1] = 0
+		// for eth sig.v
+		txn.Signature[len(txn.Signature)-1] = 1
 	}
 
 	pubkey, err := crypto.Ecrecover(metamaskMsgHash, txn.Signature)
