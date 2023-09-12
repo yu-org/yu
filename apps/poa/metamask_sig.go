@@ -2,6 +2,7 @@ package poa
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/types"
@@ -15,21 +16,23 @@ func CheckMetamaskSig(txn *types.SignedTxn) error {
 	if err != nil {
 		return err
 	}
-	metamaskMsg := MetamaskMsg(hash)
-
-	if !txn.Pubkey.VerifySignature(metamaskMsg, txn.Signature) {
-		return yerror.TxnSignatureErr
+	metamaskMsgHash := MetamaskMsgHash(hash)
+	if len(txn.Signature) > 0 {
+		txn.Signature[len(txn.Signature)-1] = 0
 	}
+
+	pubkey, err := crypto.Ecrecover(metamaskMsgHash, txn.Signature)
+	if err != nil {
+		return yerror.TxnSignatureIllegal(err)
+	}
+
 	return nil
 }
 
-func MetamaskMsg(hash []byte) []byte {
+func MetamaskMsgHash(hash []byte) []byte {
 	hexHash := common.ToHex(hash)
 	preambleStr := fmt.Sprintf("%s%d", prefix, len(hexHash))
-	fmt.Println(preambleStr)
 	preamble := []byte(preambleStr)
-	fmt.Println("preable bytes: ", preamble)
-	ethMsg := append(preamble, hash...)
-	// return []byte(fmt.Sprintf("%s%d%s", prefix, len(hexHash), hexHash))
-	return ethMsg
+	ethMsg := append(preamble, []byte(hexHash)...)
+	return crypto.Keccak256(ethMsg)
 }
