@@ -2,9 +2,9 @@ package types
 
 import (
 	"crypto/sha256"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
@@ -13,7 +13,7 @@ import (
 type SignedTxn struct {
 	Raw       *UnsignedTxn
 	TxnHash   Hash
-	Pubkey    keypair.PubKey
+	Pubkey    []byte
 	Signature []byte
 	FromP2P   bool
 }
@@ -22,7 +22,7 @@ type TxnChecker interface {
 	CheckTxn(*SignedTxn) error
 }
 
-func NewSignedTxn(wrCall *WrCall, pubkey keypair.PubKey, sig []byte) (*SignedTxn, error) {
+func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 	raw, err := NewUnsignedTxn(wrCall)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,10 @@ func NewSignedTxn(wrCall *WrCall, pubkey keypair.PubKey, sig []byte) (*SignedTxn
 }
 
 func (st *SignedTxn) GetCallerAddr() Address {
-	return st.Pubkey.Address()
+	var addr Address
+	addrByt := crypto.Keccak256(st.Pubkey)
+	copy(addr[:], addrByt)
+	return addr
 }
 
 func (st *SignedTxn) TripodName() string {
@@ -63,20 +66,16 @@ func (st *SignedTxn) ToPb() *goproto.SignedTxn {
 	return &goproto.SignedTxn{
 		Raw:       st.Raw.ToPb(),
 		TxnHash:   st.TxnHash.Bytes(),
-		Pubkey:    st.Pubkey.BytesWithType(),
+		Pubkey:    st.Pubkey,
 		Signature: st.Signature,
 	}
 }
 
 func SignedTxnFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
-	pubkey, err := keypair.PubKeyFromBytes(pb.Pubkey)
-	if err != nil {
-		return nil, err
-	}
 	return &SignedTxn{
 		Raw:       UnsignedTxnFromPb(pb.Raw),
 		TxnHash:   BytesToHash(pb.TxnHash),
-		Pubkey:    pubkey,
+		Pubkey:    pb.Pubkey,
 		Signature: pb.Signature,
 	}, nil
 }

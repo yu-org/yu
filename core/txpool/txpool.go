@@ -164,15 +164,15 @@ func Check(checks []TxnCheckFn, stxn *SignedTxn) error {
 	return nil
 }
 
-func CheckSignature(stxn *SignedTxn) error {
-	sig := stxn.Signature
-	wrCall := stxn.Raw.WrCall
-	hash, err := wrCall.Hash()
-	if err != nil {
-		return err
-	}
-	if !stxn.Pubkey.VerifySignature(hash, sig) {
-		return TxnSignatureErr
-	}
-	return nil
-}
+//func CheckSignature(stxn *SignedTxn) error {
+//	sig := stxn.Signature
+//	wrCall := stxn.Raw.WrCall
+//	hash, err := wrCall.Hash()
+//	if err != nil {
+//		return err
+//	}
+//	if !stxn.Pubkey.VerifySignature(hash, sig) {
+//		return TxnSignatureErr
+//	}
+//	return nil
+//}

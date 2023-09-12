@@ -20,13 +20,24 @@ var NoKvdbType = errors.New("no kvdb type")
 var NoSqlDbType = errors.New("no sqlDB type")
 
 var (
-	PoolOverflow    error = errors.New("pool size is full")
-	TxnSignatureErr error = errors.New("the signature of Txn illegal")
-	TxnTimeoutErr   error = errors.New("Txn time out")
-	TxnTooLarge     error = errors.New("the size of txn is too large")
+	PoolOverflow  error = errors.New("pool size is full")
+	TxnTimeoutErr error = errors.New("Txn time out")
+	TxnTooLarge   error = errors.New("the size of txn is too large")
 )
 
 var OutOfLei = errors.New("Lei out")
+
+type ErrTxnSignatureIllegal struct {
+	err error
+}
+
+func TxnSignatureIllegal(err error) ErrTxnSignatureIllegal {
+	return ErrTxnSignatureIllegal{err: err}
+}
+
+func (ErrTxnSignatureIllegal) Error() string {
+	return errors.Errorf("txn signature illegal").Error()
+}
 
 type ErrBlockIllegal struct {
 	BlockHash string
