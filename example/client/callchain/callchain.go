@@ -54,15 +54,15 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	if err != nil {
 		panic("wrCall hash error: " + err.Error())
 	}
-	hash = poa.MetamaskMsgHash(hash)
-	sig, err := crypto.Sign(hash, privKey)
+	mmHash := poa.MetamaskMsgHash(hash)
+	sig, err := crypto.Sign(mmHash, privKey)
 	if err != nil {
 		panic("sign error: " + err.Error())
 	}
 
 	pubkey := crypto.FromECDSAPub(&privKey.PublicKey)
 
-	recoverPub, err := crypto.Ecrecover(hash, sig)
+	recoverPub, err := crypto.Ecrecover(mmHash, sig)
 	if err != nil {
 		panic("recover error: " + err.Error())
 	}
