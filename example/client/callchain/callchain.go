@@ -71,6 +71,7 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	}
 
 	fmt.Printf("sig %v \n", sig)
+	fmt.Printf("recover pubkey %x, pubkey %x \n", recoverPub, pubkey)
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
