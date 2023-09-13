@@ -1,9 +1,9 @@
 package core
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/keypair"
 	"path/filepath"
 )
 
@@ -29,9 +29,9 @@ var (
 )
 
 type RawWrCall struct {
-	Pubkey    keypair.PubKey `json:"pubkey"`
-	Signature []byte         `json:"signature"`
-	Call      *WrCall        `json:"call"`
+	Pubkey    []byte  `json:"pubkey"`
+	Signature []byte  `json:"signature"`
+	Call      *WrCall `json:"call"`
 }
 
 type WritingPostBody struct {
@@ -48,13 +48,17 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 	if err != nil {
 		return nil, err
 	}
-	pubkey, err := keypair.PubkeyFromStr(wpb.Pubkey)
+	pubkey, err := hexutil.Decode(wpb.Pubkey)
+	if err != nil {
+		return nil, err
+	}
+	sig, err := hexutil.Decode(wpb.Signature)
 	if err != nil {
 		return nil, err
 	}
 	return &RawWrCall{
 		Pubkey:    pubkey,
-		Signature: FromHex(wpb.Signature),
+		Signature: sig,
 		Call:      wpb.Call,
 	}, err
 }

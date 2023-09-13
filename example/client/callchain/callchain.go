@@ -2,12 +2,15 @@ package callchain
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/apps/poa"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
 	"go.uber.org/atomic"
 	"io"
@@ -45,20 +48,31 @@ func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 
 }
 
-func CallChainByWriting(privkey PrivKey, pubkey PubKey, wrCall *WrCall) {
+func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	hash, err := wrCall.Hash()
 	if err != nil {
 		panic("wrCall hash error: " + err.Error())
 	}
-	signByt, err := privkey.SignData(hash)
+	mmHash := poa.MetamaskMsgHash(hash)
+	sig, err := crypto.Sign(mmHash, privKey)
 	if err != nil {
-		panic("sign data error: " + err.Error())
+		panic("sign error: " + err.Error())
+	}
+
+	pubkey := crypto.FromECDSAPub(&privKey.PublicKey)
+
+	recoverPub, err := crypto.Ecrecover(mmHash, sig)
+	if err != nil {
+		panic("recover error: " + err.Error())
+	}
+	if !bytes.Equal(pubkey, recoverPub) {
+		panic("public key not equal! " + err.Error())
 	}
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
-		Pubkey:    pubkey.StringWithType(),
-		Signature: ToHex(signByt),
+		Pubkey:    hexutil.Encode(pubkey),
+		Signature: hexutil.Encode(sig),
 		Call:      wrCall,
 	}
 	bodyByt, err := json.Marshal(postBody)

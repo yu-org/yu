@@ -22,9 +22,10 @@ func testKey(t *testing.T, keyType string) {
 	wrCall := &WrCall{
 		TripodName: "asset",
 		FuncName:   "Transfer",
-		Params:     "params",
+		Params:     "params-json-codec",
 	}
 
+	// just for print
 	byt, err := json.Marshal(wrCall)
 	assert.NoError(t, err)
 	t.Logf("wrcall json: %s", byt)
@@ -33,7 +34,8 @@ func testKey(t *testing.T, keyType string) {
 	assert.NoError(t, err, "hash wrcall failed")
 	signByt, err := privkey.SignData(hash)
 	assert.NoError(t, err)
-	t.Logf("signature: %s", ToHex(signByt))
+	signHex := ToHex(signByt)
+	t.Logf("signature: %s, length: %d", signHex, len(signHex))
 
 	ok := pubkey.VerifySignature(hash, signByt)
 	assert.True(t, ok)
