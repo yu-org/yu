@@ -60,6 +60,14 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 
 	pubkey := crypto.FromECDSAPub(&privKey.PublicKey)
 
+	recoverPub, err := crypto.Ecrecover(hash, sig)
+	if err != nil {
+		panic("recover error: " + err.Error())
+	}
+	if !bytes.Equal(pubkey, recoverPub) {
+		panic("public key not equal! " + err.Error())
+	}
+
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
 		Pubkey:    ToHex(pubkey),
