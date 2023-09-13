@@ -3,11 +3,12 @@ package callchain
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/apps/poa"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/result"
 	"go.uber.org/atomic"
 	"io"
@@ -45,20 +46,27 @@ func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 
 }
 
-func CallChainByWriting(privkey PrivKey, pubkey PubKey, wrCall *WrCall) {
+func CallChainByWriting(hexPrivkey string, wrCall *WrCall) {
 	hash, err := wrCall.Hash()
 	if err != nil {
 		panic("wrCall hash error: " + err.Error())
 	}
-	signByt, err := privkey.SignData(hash)
+	hash = poa.MetamaskMsgHash(hash)
+	privKey, err := crypto.HexToECDSA(hexPrivkey)
 	if err != nil {
-		panic("sign data error: " + err.Error())
+		panic("privKey HexToECDSA error: " + err.Error())
 	}
+	sig, err := crypto.Sign(hash, privKey)
+	if err != nil {
+		panic("sign error: " + err.Error())
+	}
+
+	pubkey := crypto.FromECDSAPub(&privKey.PublicKey)
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
-		Pubkey:    pubkey.StringWithType(),
-		Signature: ToHex(signByt),
+		Pubkey:    ToHex(pubkey),
+		Signature: ToHex(sig),
 		Call:      wrCall,
 	}
 	bodyByt, err := json.Marshal(postBody)
