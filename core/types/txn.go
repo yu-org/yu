@@ -2,7 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/types/goproto"
@@ -41,8 +41,8 @@ func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 
 func (st *SignedTxn) GetCallerAddr() Address {
 	var addr Address
-	addrByt := crypto.Keccak256(st.Pubkey)
-	copy(addr[:], addrByt)
+	addrByt := common.BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
+	copy(addr[:], addrByt.Bytes())
 	return addr
 }
 
