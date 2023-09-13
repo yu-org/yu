@@ -2,6 +2,7 @@ package callchain
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/json"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
@@ -46,16 +47,12 @@ func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 
 }
 
-func CallChainByWriting(hexPrivkey string, wrCall *WrCall) {
+func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	hash, err := wrCall.Hash()
 	if err != nil {
 		panic("wrCall hash error: " + err.Error())
 	}
 	hash = poa.MetamaskMsgHash(hash)
-	privKey, err := crypto.HexToECDSA(hexPrivkey)
-	if err != nil {
-		panic("privKey HexToECDSA error: " + err.Error())
-	}
 	sig, err := crypto.Sign(hash, privKey)
 	if err != nil {
 		panic("sign error: " + err.Error())
