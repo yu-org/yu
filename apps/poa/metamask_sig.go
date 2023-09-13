@@ -1,10 +1,8 @@
 package poa
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/pkg/errors"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/types"
@@ -19,18 +17,23 @@ func CheckMetamaskSig(txn *types.SignedTxn) error {
 		return err
 	}
 	metamaskMsgHash := MetamaskMsgHash(hash)
-	//if len(txn.Signature) > 0 {
-	//	// for eth sig.v
-	//	txn.Signature[len(txn.Signature)-1] = 1
-	//}
+	if len(txn.Signature) > 0 {
+		// for eth sig.v
+		txn.Signature[len(txn.Signature)-1] = 1
+	}
 
-	pubkey, err := crypto.Ecrecover(metamaskMsgHash, txn.Signature)
+	crypto.VerifySignature(txn.Pubkey, metamaskMsgHash, txn.Signature)
 	if err != nil {
 		return yerror.TxnSignatureIllegal(err)
 	}
-	if !bytes.Equal(pubkey, txn.Pubkey) {
-		return errors.Errorf("pubkey mismatch: ec_recover pubkey: %x, expected pubkey %x", pubkey, txn.Pubkey)
-	}
+
+	//pubkey, err := crypto.Ecrecover(metamaskMsgHash, txn.Signature)
+	//if err != nil {
+	//	return yerror.TxnSignatureIllegal(err)
+	//}
+	//if !bytes.Equal(pubkey, txn.Pubkey) {
+	//	return errors.Errorf("pubkey mismatch: ec_recover pubkey: %x, expected pubkey %x", pubkey, txn.Pubkey)
+	//}
 
 	return nil
 }
