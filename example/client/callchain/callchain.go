@@ -70,7 +70,7 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 		panic("public key not equal! " + err.Error())
 	}
 
-	fmt.Printf("sig %x \n", sig)
+	fmt.Printf("sig %v \n", sig)
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
