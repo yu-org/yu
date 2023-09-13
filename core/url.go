@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	. "github.com/yu-org/yu/common"
 	"path/filepath"
@@ -47,9 +48,17 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 	if err != nil {
 		return nil, err
 	}
+	pubkey, err := hexutil.Decode(wpb.Pubkey)
+	if err != nil {
+		return nil, err
+	}
+	sig, err := hexutil.Decode(wpb.Signature)
+	if err != nil {
+		return nil, err
+	}
 	return &RawWrCall{
-		Pubkey:    FromHex(wpb.Pubkey),
-		Signature: FromHex(wpb.Signature),
+		Pubkey:    pubkey,
+		Signature: sig,
 		Call:      wpb.Call,
 	}, err
 }

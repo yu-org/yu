@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/json"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -70,8 +71,8 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
-		Pubkey:    ToHex(pubkey),
-		Signature: ToHex(sig),
+		Pubkey:    hexutil.Encode(pubkey),
+		Signature: hexutil.Encode(sig),
 		Call:      wrCall,
 	}
 	bodyByt, err := json.Marshal(postBody)
