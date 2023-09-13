@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/json"
-	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
@@ -69,9 +68,6 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	if !bytes.Equal(pubkey, recoverPub) {
 		panic("public key not equal! " + err.Error())
 	}
-
-	fmt.Printf("sig %v \n", sig)
-	fmt.Printf("recover pubkey %x, pubkey %x \n", recoverPub, pubkey)
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
