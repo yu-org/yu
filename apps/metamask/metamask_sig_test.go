@@ -1,4 +1,4 @@
-package poa
+package metamask
 
 import (
 	"github.com/ethereum/go-ethereum/crypto"

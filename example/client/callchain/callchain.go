@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/apps/poa"
+	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/result"
@@ -53,7 +53,7 @@ func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	if err != nil {
 		panic("wrCall hash error: " + err.Error())
 	}
-	mmHash := poa.MetamaskMsgHash(hash)
+	mmHash := metamask.MetamaskMsgHash(hash)
 	sig, err := crypto.Sign(mmHash, privKey)
 	if err != nil {
 		panic("sign error: " + err.Error())
