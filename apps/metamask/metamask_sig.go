@@ -1,4 +1,4 @@
-package poa
+package metamask
 
 import (
 	"fmt"

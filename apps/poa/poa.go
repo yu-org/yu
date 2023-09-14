@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
@@ -91,7 +92,7 @@ func (h *Poa) LocalAddress() Address {
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
-	return CheckMetamaskSig(txn)
+	return metamask.CheckMetamaskSig(txn)
 }
 
 func (h *Poa) VerifyBlock(block *Block) bool {
