@@ -1,6 +1,7 @@
 package state
 
 import (
+	"bytes"
 	"container/list"
 	"crypto/sha256"
 	"github.com/celestiaorg/smt"
@@ -140,7 +141,12 @@ func (skv *SpmtKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([
 	}
 
 	mpt := smt.ImportSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher(), stateRoot)
-	return mpt.Get(key)
+	value, err := mpt.Get(key)
+	if bytes.Equal(value, []byte{}) {
+		// because of https://github.com/celestiaorg/smt/blob/master/smt.go#L14
+		value = nil
+	}
+	return value, err
 }
 
 // Commit returns StateRoot or error
