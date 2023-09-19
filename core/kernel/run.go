@@ -123,6 +123,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 
 		block.UseLei(ctx.LeiCost)
 
+		// if no error and event, give a default event
 		if ctx.Error == nil && len(ctx.Events) == 0 {
 			_ = ctx.EmitJsonEvent(DefaultJsonEvent)
 		}
@@ -134,10 +135,6 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		}
 		if ctx.Error != nil {
 			results = append(results, NewError(ctx.Error))
-		}
-
-		if len(results) == 0 {
-
 		}
 	}
 
