@@ -11,6 +11,8 @@ import (
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
+var DefaultJsonEvent = map[string]string{"status": "ok"}
+
 func (k *Kernel) Run() {
 	go func() {
 		for {
@@ -120,6 +122,11 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		}
 
 		block.UseLei(ctx.LeiCost)
+
+		// if no error and event, give a default event
+		if ctx.Error == nil && len(ctx.Events) == 0 {
+			_ = ctx.EmitJsonEvent(DefaultJsonEvent)
+		}
 
 		k.handleEvent(ctx, block, stxn)
 
