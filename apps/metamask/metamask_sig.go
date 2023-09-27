@@ -1,6 +1,7 @@
 package metamask
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/yu-org/yu/common"
@@ -12,11 +13,11 @@ var prefix = "\x19Ethereum Signed Message:\n"
 
 func CheckMetamaskSig(txn *types.SignedTxn) error {
 	wrCall := txn.Raw.WrCall
-	hash, err := wrCall.Hash()
+	msgByt, err := json.Marshal(wrCall)
 	if err != nil {
 		return err
 	}
-	metamaskMsgHash := MetamaskMsgHash(hash)
+	metamaskMsgHash := MetamaskMsgHash(msgByt)
 	if len(txn.Signature) > 0 {
 		// for eth sig.v
 		txn.Signature[len(txn.Signature)-1] = 1
