@@ -49,11 +49,11 @@ func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 }
 
 func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
-	hash, err := wrCall.Hash()
+	msgByt, err := json.Marshal(wrCall)
 	if err != nil {
-		panic("wrCall hash error: " + err.Error())
+		panic("wrCall marshal error: " + err.Error())
 	}
-	mmHash := metamask.MetamaskMsgHash(hash)
+	mmHash := metamask.MetamaskMsgHash(msgByt)
 	sig, err := crypto.Sign(mmHash, privKey)
 	if err != nil {
 		panic("sign error: " + err.Error())
