@@ -8,6 +8,51 @@ Yu is a highly customizable blockchain framework.
 ### Overall Structure
 ![image](yu_flow_chart.png)
 
+### Usage 
+```go
+type Example struct {
+    *tripod.Tripod
+}
+
+// Here is a custom development of an Writing
+func (e *Example) Write(ctx *context.WriteContext) error {
+    caller := ctx.GetCaller()
+    // set this Writing lei cost
+    ctx.SetLei(100)
+	// Store data in on-chain state.
+    e.Set([]byte("1"), []byte("yu"))
+	// Emit an event.
+    ctx.EmitStringEvent(fmt.Printf("execute success, caller: %s", caller.String()))
+    return nil
+}
+
+// Here is a custom development of a Reading
+func (e *Example) Read(ctx *context.ReadContext) {
+    caller := ctx.Caller
+    value, err := e.Get([]byte("1"))
+    if err != nil {
+        ctx.JsonOk(err)
+        return
+    }
+    ctx.String(string(value))
+    return nil
+}
+```
+Then, register your `Writing` and `Reading` and start with `main`.
+```go
+func NewExample() *Example {
+    tri := tripod.NewTripod()
+    e := &User{tri}
+
+    e.SetWritings(e.Write)
+    e.SetReadings(e.Read)
+}
+
+func main() {
+    startup.DefaultStartup(NewExample())
+}
+```
+
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
 customize their own business.     
@@ -17,8 +62,7 @@ Third level is define `basic components`, such as `block data structures`, `bloc
 - Define your `Writing` and `Reading` on  chain.  
 `Writing` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
 `Reading` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
-`P2pHandler` is a p2p server handler. You can define the services in P2P server. Just like TCP handler.  
-
+`P2pHandler` is a p2p server handler. You can define the services in P2P server. Just like TCP handler.
 ```go
 type (
     Writing func(ctx *context.WriteContext) error
@@ -28,6 +72,7 @@ type (
     P2pHandler func([]byte) ([]byte, error)
 )
 ```
+
 - Define Your `blockchain lifecycle`, this function is in `Tripod` interface.  
 `CheckTxn` defines the rules for checking transactions(Writings) before inserting txpool.  
 `VerifyBlock` defines the rules for verifying blocks.   
