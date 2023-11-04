@@ -67,7 +67,7 @@ Third level is define `basic components`, such as `block data structures`, `bloc
 type (
     Writing func(ctx *context.WriteContext) error
 	
-    Reading func(ctx *context.ReadContext) error
+    Reading func(ctx *context.ReadContext)
 
     P2pHandler func([]byte) ([]byte, error)
 )
