@@ -42,8 +42,8 @@ type (
 		FuncName   string `json:"func_name"`
 		Params     string `json:"params"`
 		// TODO: make LeiPrice and Tips as a sortable interface.
-		LeiPrice uint64 `json:"lei_price"`
-		Tips     uint64 `json:"tips"`
+		LeiPrice uint64 `json:"lei_price,omitempty"`
+		Tips     uint64 `json:"tips,omitempty"`
 	}
 
 	// RdCall from clients, it is an instance of an 'Read'.
