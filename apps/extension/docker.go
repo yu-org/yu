@@ -12,18 +12,23 @@ import (
 )
 
 type DockerExtension struct {
+	cfg *DockerExtensionConf
 }
 
 type DockerExtensionConf struct {
 	Image string
 }
 
-func NewDockerExtension(cfg *DockerExtensionConf) *DockerExtension {
+func NewDockerExtension(cfg *DockerExtensionConf) (*DockerExtension, error) {
 	err := startDocker(cfg)
 	if err != nil {
-
+		return nil, err
 	}
-	
+
+	return &DockerExtension{
+		cfg: cfg,
+	}, err
+
 }
 
 func startDocker(cfg *DockerExtensionConf) error {
