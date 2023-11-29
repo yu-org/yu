@@ -52,6 +52,13 @@ func main() {
     startup.DefaultStartup(NewExample())
 }
 ```
+Build and Run
+```zsh
+go build -o yu-example
+
+./yu-example 
+ 
+```
 
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
