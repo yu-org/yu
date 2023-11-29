@@ -52,6 +52,13 @@ func main() {
     startup.DefaultStartup(NewExample())
 }
 ```
+Build and Run
+```zsh
+go build -o yu-example
+
+./yu-example 
+ 
+```
 
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
@@ -60,7 +67,7 @@ First level is define  `Writing` and `Reading` on chain.
 Second level is define `blockchain lifecycle`. ( including customizable Consensus Algorithm )  
 Third level is define `basic components`, such as `block data structures`, `blockchain`, `txdb`, `txpool`. 
 - Define your `Writing` and `Reading` on  chain.  
-`Writing` is like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
+`Writing` is `State-Transition`, like `Transaction` in Ethereum but not only for transfer of Token, it changes the state on the chain and must be consensus on all nodes.  
 `Reading` is like `query` in Ethereum, it doesn't change state, just query some data from the chain.  
 `P2pHandler` is a p2p server handler. You can define the services in P2P server. Just like TCP handler.
 ```go
