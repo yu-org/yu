@@ -8,6 +8,8 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 )
 
+type ExecuteFn func(block *Block) error
+
 type ChainEnv struct {
 	State IState
 	Chain IBlockChain
@@ -16,7 +18,7 @@ type ChainEnv struct {
 
 	Sub *Subscription
 
-	Execute func(block *Block) error
+	Execute ExecuteFn
 
 	P2pNetwork p2p.P2pNetwork
 }

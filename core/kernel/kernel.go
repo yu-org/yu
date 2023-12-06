@@ -42,6 +42,7 @@ func NewKernel(
 	cfg *KernelConf,
 	env *ChainEnv,
 	land *Land,
+	executeFn ExecuteFn,
 ) *Kernel {
 
 	k := &Kernel{
@@ -59,22 +60,25 @@ func NewKernel(
 		land: land,
 	}
 
-	env.Execute = k.OrderedExecute
+	if executeFn == nil {
+		env.Execute = k.OrderedExecute
+	} else {
+		env.Execute = executeFn
+	}
 
-	//err := m.InitChain()
-	//if err != nil {
-	//	logrus.Fatal("init chain error: ", err)
-	//}
+	// Configure the handlers in P2P network
 
-	handerlsMap := make(map[int]P2pHandler, 0)
+	handlersMap := make(map[int]P2pHandler, 0)
 
 	land.RangeList(func(tri *Tripod) error {
 		for code, handler := range tri.P2pHandlers {
-			handerlsMap[code] = handler
+			handlersMap[code] = handler
 		}
 		return nil
 	})
-	k.p2pNetwork.SetHandlers(handerlsMap)
+	k.p2pNetwork.SetHandlers(handlersMap)
+
+	// connect the P2P network
 	err := k.p2pNetwork.ConnectBootNodes()
 	if err != nil {
 		logrus.Fatal("connect p2p bootnodes error: ", err)
