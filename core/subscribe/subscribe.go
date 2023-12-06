@@ -8,49 +8,52 @@ import (
 )
 
 type Subscription struct {
-	// key: *websocket.Conn; value: bool
+	// key: *websocket.Conn; value: string (topic)
 	subscribers sync.Map
-	resultChan  chan *Result
+	results     map[string]chan *Result
 }
 
 func NewSubscription() *Subscription {
 	s := &Subscription{
 		subscribers: sync.Map{},
-		resultChan:  make(chan *Result, 10),
+		results:     make(map[string]chan *Result),
 	}
 	go s.emitToClients()
 	return s
 }
 
-func (s *Subscription) Register(c *Conn) {
+func (s *Subscription) Register(c *Conn, topic string) {
 	c.SetCloseHandler(func(_ int, _ string) error {
 		s.subscribers.Delete(c)
 		return nil
 	})
-	s.subscribers.Store(c, true)
+
+	s.subscribers.Store(c, topic)
 }
 
 func (s *Subscription) UnRegister(c *Conn) {
 	s.subscribers.Delete(c)
 }
 
-func (s *Subscription) Emit(result *Result) {
-	s.resultChan <- result
+func (s *Subscription) Emit(topic string, result *Result) {
+	s.results[topic] <- result
 }
 
 func (s *Subscription) emitToClients() {
-	for {
+	for topic, resultChan := range s.results {
 		select {
-		case r := <-s.resultChan:
+		case r := <-resultChan:
 			byt, err := r.Encode()
 			if err != nil {
 				logrus.Errorf("encode Result error: %s", err.Error())
 				continue
 			}
 
-			s.subscribers.Range(func(connI, _ interface{}) bool {
+			s.subscribers.Range(func(connI, topicStr interface{}) bool {
 				conn := connI.(*Conn)
-
+				if topic != topicStr.(string) {
+					return false
+				}
 				err = conn.WriteMessage(TextMessage, byt)
 				if err != nil {
 					logrus.Errorf("emit result to client(%s) error: %s", conn.RemoteAddr().String(), err.Error())

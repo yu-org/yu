@@ -44,7 +44,7 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 	}
 	if typ == subscription {
 		logrus.Debugf("Register a Subscription(%s)", c.RemoteAddr().String())
-		k.sub.Register(c)
+		k.sub.Register(c, ctx.Query("topic"))
 		return
 	}
 
