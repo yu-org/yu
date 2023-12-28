@@ -139,7 +139,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	}
 
 	if len(results) > 0 {
-		err := k.base.SetResults(results)
+		err := k.txDB.SetResults(results)
 		if err != nil {
 			return err
 		}
