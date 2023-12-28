@@ -26,7 +26,7 @@ type Kernel struct {
 	leiLimit uint64
 
 	chain   IBlockChain
-	base    ItxDB
+	txDB    ItxDB
 	txPool  ItxPool
 	stateDB IState
 
@@ -51,7 +51,7 @@ func NewKernel(
 		httpPort:   MakePort(cfg.HttpPort),
 		wsPort:     MakePort(cfg.WsPort),
 		chain:      env.Chain,
-		base:       env.TxDB,
+		txDB:       env.TxDB,
 		txPool:     env.Pool,
 		stateDB:    env.State,
 		sub:        env.Sub,
