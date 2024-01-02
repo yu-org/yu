@@ -45,10 +45,27 @@ func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
 		panic("read rdCall response body error: " + err.Error())
 	}
 	return body
-
 }
 
-func CallChainByWriting(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
+func CallChainByWriting(wrCall *WrCall) {
+	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
+	postBody := WritingPostBody{
+		Call: wrCall,
+	}
+	bodyByt, err := json.Marshal(postBody)
+	if err != nil {
+		panic("marshal post body failed: " + err.Error())
+	}
+
+	logrus.Debug("wrCall: ", u.String())
+
+	_, err = http.Post(u.String(), "application/json", bytes.NewReader(bodyByt))
+	if err != nil {
+		panic("post wrCall message to chain error: " + err.Error())
+	}
+}
+
+func CallChainByWritingWithSig(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	msgByt, err := json.Marshal(wrCall)
 	if err != nil {
 		panic("wrCall marshal error: " + err.Error())
