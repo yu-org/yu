@@ -27,10 +27,17 @@ func (k *Kernel) Run() {
 	switch k.RunMode {
 	case LocalNode:
 		for {
-			err := k.LocalRun()
-			if err != nil {
-				logrus.Panicf("local-run blockchain error: %s", err.Error())
+			select {
+			case <-k.stopChan:
+				logrus.Info("Stop the chain!")
+				return
+			default:
+				err := k.LocalRun()
+				if err != nil {
+					logrus.Panicf("local-run blockchain error: %s", err.Error())
+				}
 			}
+
 		}
 	case MasterWorker:
 		for {

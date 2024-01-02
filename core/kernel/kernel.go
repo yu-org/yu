@@ -21,6 +21,8 @@ type Kernel struct {
 
 	RunMode RunMode
 
+	stopChan chan struct{}
+
 	httpPort string
 	wsPort   string
 	leiLimit uint64
@@ -47,6 +49,7 @@ func NewKernel(
 
 	k := &Kernel{
 		RunMode:    cfg.RunMode,
+		stopChan:   make(chan struct{}),
 		leiLimit:   cfg.LeiLimit,
 		httpPort:   MakePort(cfg.HttpPort),
 		wsPort:     MakePort(cfg.WsPort),
@@ -95,6 +98,10 @@ func (k *Kernel) Startup() {
 	go k.HandleWS()
 
 	k.Run()
+}
+
+func (k *Kernel) Stop() {
+	k.stopChan <- struct{}{}
 }
 
 func (k *Kernel) InitChain() {
