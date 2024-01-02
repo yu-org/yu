@@ -2,7 +2,7 @@ package synchronizer
 
 import (
 	"encoding/json"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 )

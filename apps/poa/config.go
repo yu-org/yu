@@ -1,7 +1,7 @@
 package poa
 
 import (
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/keypair"
 )
