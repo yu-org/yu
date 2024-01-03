@@ -47,11 +47,11 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	if k.txPool.Exist(stxn) {
+	if k.Pool.Exist(stxn) {
 		return
 	}
 
-	err = k.txPool.CheckTxn(stxn)
+	err = k.Pool.CheckTxn(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -64,7 +64,7 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		}
 	}()
 
-	err = k.txPool.Insert(stxn)
+	err = k.Pool.Insert(stxn)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}

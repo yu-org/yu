@@ -14,11 +14,11 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 		return err
 	}
 
-	if k.txPool.Exist(stxn) {
+	if k.Pool.Exist(stxn) {
 		return err
 	}
 
-	err = k.txPool.CheckTxn(stxn)
+	err = k.Pool.CheckTxn(stxn)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 		}
 	}()
 
-	return k.txPool.Insert(stxn)
+	return k.Pool.Insert(stxn)
 }
 
 //func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {
