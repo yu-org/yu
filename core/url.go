@@ -8,7 +8,7 @@ import (
 )
 
 // A complete writing-call url is POST /api/writing
-// A complete reading-call url is GET /api/reading?tripod={tripod}&func_name={func_name}?xx=yy
+// A complete reading-call url is POST /api/reading
 
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
@@ -64,10 +64,7 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 }
 
 func GetRdCall(ctx *gin.Context) (*RdCall, error) {
-	tri := ctx.Query(TripodNameKey)
-	fn := ctx.Query(FuncNameKey)
-	return &RdCall{
-		TripodName: tri,
-		FuncName:   fn,
-	}, nil
+	rdCall := new(RdCall)
+	err := ctx.ShouldBindJSON(rdCall)
+	return rdCall, err
 }

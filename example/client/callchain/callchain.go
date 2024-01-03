@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
@@ -23,67 +24,57 @@ const (
 	Websocket
 )
 
-func CallChainByReading(rdCall *RdCall, params map[string]string) []byte {
+func CallChainByReading(rdCall *RdCall) ([]byte, error) {
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: RdApiPath}
-	q := u.Query()
-	q.Set(TripodNameKey, rdCall.TripodName)
-	q.Set(FuncNameKey, rdCall.FuncName)
-	for key, value := range params {
-		q.Set(key, value)
+	bodyByt, err := json.Marshal(rdCall)
+	if err != nil {
+		return nil, err
 	}
-
-	u.RawQuery = q.Encode()
 
 	logrus.Debug("rdCall: ", u.String())
 
-	resp, err := http.Get(u.String())
+	resp, err := http.Post(u.String(), "application/json", bytes.NewReader(bodyByt))
 	if err != nil {
 		panic("post rdCall message to chain error: " + err.Error())
 	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic("read rdCall response body error: " + err.Error())
-	}
-	return body
+	return io.ReadAll(resp.Body)
 }
 
-func CallChainByWriting(wrCall *WrCall) {
+func CallChainByWriting(wrCall *WrCall) error {
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
 	postBody := WritingPostBody{
 		Call: wrCall,
 	}
 	bodyByt, err := json.Marshal(postBody)
 	if err != nil {
-		panic("marshal post body failed: " + err.Error())
+		return err
 	}
 
 	logrus.Debug("wrCall: ", u.String())
 
 	_, err = http.Post(u.String(), "application/json", bytes.NewReader(bodyByt))
-	if err != nil {
-		panic("post wrCall message to chain error: " + err.Error())
-	}
+	return err
 }
 
-func CallChainByWritingWithSig(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
+func CallChainByWritingWithSig(privKey *ecdsa.PrivateKey, wrCall *WrCall) error {
 	msgByt, err := json.Marshal(wrCall)
 	if err != nil {
-		panic("wrCall marshal error: " + err.Error())
+		return err
 	}
 	mmHash := metamask.MetamaskMsgHash(msgByt)
 	sig, err := crypto.Sign(mmHash, privKey)
 	if err != nil {
-		panic("sign error: " + err.Error())
+		return err
 	}
 
 	pubkey := crypto.FromECDSAPub(&privKey.PublicKey)
 
 	recoverPub, err := crypto.Ecrecover(mmHash, sig)
 	if err != nil {
-		panic("recover error: " + err.Error())
+		return err
 	}
 	if !bytes.Equal(pubkey, recoverPub) {
-		panic("public key not equal! " + err.Error())
+		return errors.New("pubkey != recover pubkey")
 	}
 
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
@@ -94,16 +85,13 @@ func CallChainByWritingWithSig(privKey *ecdsa.PrivateKey, wrCall *WrCall) {
 	}
 	bodyByt, err := json.Marshal(postBody)
 	if err != nil {
-		panic("marshal post body failed: " + err.Error())
+		return err
 	}
 
 	logrus.Debug("wrCall: ", u.String())
 
 	_, err = http.Post(u.String(), "application/json", bytes.NewReader(bodyByt))
-	if err != nil {
-		panic("post wrCall message to chain error: " + err.Error())
-	}
-
+	return err
 }
 
 type Subscriber struct {
