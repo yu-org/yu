@@ -5,13 +5,9 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/env"
-	. "github.com/yu-org/yu/core/state"
-	. "github.com/yu-org/yu/core/subscribe"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/tripod/dev"
-	. "github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
-	. "github.com/yu-org/yu/infra/p2p"
 	. "github.com/yu-org/yu/utils/ip"
 	"sync"
 )
@@ -27,47 +23,27 @@ type Kernel struct {
 	wsPort   string
 	leiLimit uint64
 
-	chain   IBlockChain
-	txDB    ItxDB
-	txPool  ItxPool
-	stateDB IState
+	*ChainEnv
 
 	land *Land
-
-	// event subscription
-	sub *Subscription
-
-	p2pNetwork P2pNetwork
 }
 
 func NewKernel(
 	cfg *KernelConf,
 	env *ChainEnv,
 	land *Land,
-	executeFn ExecuteFn,
 ) *Kernel {
-
 	k := &Kernel{
-		RunMode:    cfg.RunMode,
-		stopChan:   make(chan struct{}),
-		leiLimit:   cfg.LeiLimit,
-		httpPort:   MakePort(cfg.HttpPort),
-		wsPort:     MakePort(cfg.WsPort),
-		chain:      env.Chain,
-		txDB:       env.TxDB,
-		txPool:     env.Pool,
-		stateDB:    env.State,
-		sub:        env.Sub,
-		p2pNetwork: env.P2pNetwork,
-
-		land: land,
+		RunMode:  cfg.RunMode,
+		stopChan: make(chan struct{}),
+		leiLimit: cfg.LeiLimit,
+		httpPort: MakePort(cfg.HttpPort),
+		wsPort:   MakePort(cfg.WsPort),
+		ChainEnv: env,
+		land:     land,
 	}
 
-	if executeFn == nil {
-		env.Execute = k.OrderedExecute
-	} else {
-		env.Execute = executeFn
-	}
+	env.Execute = k.OrderedExecute
 
 	// Configure the handlers in P2P network
 
@@ -79,15 +55,19 @@ func NewKernel(
 		}
 		return nil
 	})
-	k.p2pNetwork.SetHandlers(handlersMap)
+	k.P2pNetwork.SetHandlers(handlersMap)
 
 	// connect the P2P network
-	err := k.p2pNetwork.ConnectBootNodes()
+	err := k.P2pNetwork.ConnectBootNodes()
 	if err != nil {
 		logrus.Fatal("connect p2p bootnodes error: ", err)
 	}
 
 	return k
+}
+
+func (k *Kernel) WithExecuteFn(fn ExecuteFn) {
+	k.Execute = fn
 }
 
 func (k *Kernel) Startup() {
@@ -118,7 +98,7 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 	}
 
 	for _, txn := range txns {
-		if k.txPool.Exist(txn) {
+		if k.Pool.Exist(txn) {
 			continue
 		}
 		txn.FromP2P = true
@@ -126,12 +106,12 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 		logrus.WithField("p2p", "accept-txn").
 			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 
-		err = k.txPool.CheckTxn(txn)
+		err = k.Pool.CheckTxn(txn)
 		if err != nil {
 			logrus.Error("check txn from P2P into txpool error: ", err)
 			continue
 		}
-		err = k.txPool.Insert(txn)
+		err = k.Pool.Insert(txn)
 		if err != nil {
 			logrus.Error("insert txn from P2P into txpool error: ", err)
 		}
@@ -141,7 +121,7 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 }
 
 func (k *Kernel) subUnpackedTxns() (SignedTxns, error) {
-	byt, err := k.p2pNetwork.SubP2P(UnpackedTxnsTopic)
+	byt, err := k.P2pNetwork.SubP2P(UnpackedTxnsTopic)
 	if err != nil {
 		return nil, err
 	}
@@ -153,5 +133,5 @@ func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
 	if err != nil {
 		return err
 	}
-	return k.p2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
+	return k.P2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
 }

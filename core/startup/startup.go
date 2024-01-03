@@ -29,8 +29,6 @@ var (
 	StateDB state.IState
 
 	Land = tripod.NewLand()
-
-	TxnExecute env.ExecuteFn
 )
 
 func DefaultStartup(tripodInstances ...interface{}) {
@@ -108,5 +106,5 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 		}
 	}
 
-	return kernel.NewKernel(KernelCfg, chainEnv, Land, TxnExecute)
+	return kernel.NewKernel(KernelCfg, chainEnv, Land)
 }

@@ -44,7 +44,7 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 	}
 	if typ == subscription {
 		logrus.Debugf("Register a Subscription(%s)", c.RemoteAddr().String())
-		k.sub.Register(c)
+		k.Sub.Register(c)
 		return
 	}
 
@@ -81,11 +81,11 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 		return
 	}
 
-	if k.txPool.Exist(stxn) {
+	if k.Pool.Exist(stxn) {
 		return
 	}
 
-	err = k.txPool.CheckTxn(stxn)
+	err = k.Pool.CheckTxn(stxn)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -98,7 +98,7 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 		}
 	}()
 
-	err = k.txPool.Insert(stxn)
+	err = k.Pool.Insert(stxn)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}

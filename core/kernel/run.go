@@ -29,7 +29,7 @@ func (k *Kernel) Run() {
 		for {
 			select {
 			case <-k.stopChan:
-				logrus.Info("Stop the chain!")
+				logrus.Info("Stop the Chain!")
 				return
 			default:
 				err := k.LocalRun()
@@ -66,7 +66,7 @@ func (k *Kernel) LocalRun() (err error) {
 		return err
 	}
 
-	// end block and append to chain
+	// end block and append to Chain
 	err = k.land.RangeList(func(tri *Tripod) error {
 		tri.EndBlock(newBlock)
 		return nil
@@ -83,15 +83,15 @@ func (k *Kernel) LocalRun() (err error) {
 }
 
 func (k *Kernel) makeNewBasicBlock() (*Block, error) {
-	newBlock := k.chain.NewEmptyBlock()
+	newBlock := k.Chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowTsU64()
-	prevBlock, err := k.chain.GetEndBlock()
+	prevBlock, err := k.Chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
 	newBlock.PrevHash = prevBlock.Hash
-	newBlock.PeerID = k.p2pNetwork.LocalID()
+	newBlock.PeerID = k.P2pNetwork.LocalID()
 	newBlock.Height = prevBlock.Height + 1
 	newBlock.LeiLimit = k.leiLimit
 	return newBlock, nil
@@ -117,15 +117,15 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
-			k.stateDB.Discard()
+			k.State.Discard()
 			k.handleError(OutOfLei, ctx, block, stxn)
 			break
 		}
 		if err != nil {
-			k.stateDB.Discard()
+			k.State.Discard()
 			k.handleError(err, ctx, block, stxn)
 		} else {
-			k.stateDB.NextTxn()
+			k.State.NextTxn()
 		}
 
 		block.UseLei(ctx.LeiCost)
@@ -146,13 +146,13 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	}
 
 	if len(results) > 0 {
-		err := k.txDB.SetResults(results)
+		err := k.TxDB.SetResults(results)
 		if err != nil {
 			return err
 		}
 	}
 
-	stateRoot, err := k.stateDB.Commit()
+	stateRoot, err := k.State.Commit()
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (k *Kernel) MasterWokrerRun() error {
 	//	return err
 	//}
 	//
-	//newBlock := k.chain.NewDefaultBlock()
+	//newBlock := k.Chain.NewDefaultBlock()
 	//
 	//err = k.nortifyWorker(workersIps, StartBlockPath, newBlock)
 	//if err != nil {
@@ -212,8 +212,8 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	ctx.Error.Height = block.Height
 
 	logrus.Error("push error: ", ctx.Error.Error())
-	if k.sub != nil {
-		k.sub.Emit(NewError(ctx.Error))
+	if k.Sub != nil {
+		k.Sub.Emit(NewError(ctx.Error))
 	}
 
 }
@@ -230,8 +230,8 @@ func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 		event.BlockStage = ExecuteTxnsStage
 		event.Caller = stxn.GetCallerAddr()
 
-		if k.sub != nil {
-			k.sub.Emit(NewEvent(event))
+		if k.Sub != nil {
+			k.Sub.Emit(NewEvent(event))
 		}
 	}
 }
