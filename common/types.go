@@ -50,6 +50,7 @@ type (
 	RdCall struct {
 		TripodName string `json:"tripod_name"`
 		FuncName   string `json:"func_name"`
+		Params     string `json:"params"`
 	}
 	// CallType is Writing or Reading
 	CallType int

@@ -17,8 +17,8 @@ func (k *Kernel) HandleHttp() {
 	r.POST(WrApiPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
-	// GET request
-	r.GET(RdApiPath, func(c *gin.Context) {
+	// POST request
+	r.POST(RdApiPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
