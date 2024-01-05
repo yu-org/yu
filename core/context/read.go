@@ -1,8 +1,8 @@
 package context
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"net/http"
 )
@@ -14,6 +14,7 @@ type ReadContext struct {
 }
 
 func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
+	logrus.Info("new--read--context")
 	rdCall := new(common.RdCall)
 	err := ctx.BindJSON(rdCall)
 	if err != nil {
@@ -32,8 +33,8 @@ func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
 	}, nil
 }
 
-func (rc *ReadContext) BindJsonParams(v any) error {
-	return json.Unmarshal([]byte(rc.rdCall.Params), v)
+func (rc *ReadContext) BindJson(v any) error {
+	return common.BindJsonParams(rc.rdCall.Params, v)
 }
 
 func (rc *ReadContext) GetBlockHash() *common.Hash {
