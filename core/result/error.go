@@ -6,7 +6,7 @@ import (
 )
 
 type Error struct {
-	Caller      Address  `json:"caller"`
+	Caller      *Address `json:"caller"`
 	BlockStage  string   `json:"block_stage"`
 	BlockHash   Hash     `json:"block_hash"`
 	Height      BlockNum `json:"height"`

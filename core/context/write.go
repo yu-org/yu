@@ -46,7 +46,7 @@ func (c *WriteContext) GetTxnHash() Hash {
 	return c.Txn.TxnHash
 }
 
-func (c *WriteContext) GetCaller() Address {
+func (c *WriteContext) GetCaller() *Address {
 	return c.Txn.GetCallerAddr()
 }
 
