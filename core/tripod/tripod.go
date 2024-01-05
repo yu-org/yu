@@ -59,11 +59,11 @@ func (t *Tripod) SetInstance(instance interface{}) {
 	}
 
 	for name, _ := range t.writings {
-		logrus.Debugf("register Writing (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Writing (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	for name, _ := range t.readings {
-		logrus.Debugf("register Reading (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	t.Instance = instance
