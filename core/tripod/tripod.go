@@ -113,7 +113,7 @@ func (t *Tripod) SetReadings(readings ...Reading) {
 
 func (t *Tripod) SetP2pHandler(code int, handler P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
-	logrus.Debugf("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
+	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
 }
 
