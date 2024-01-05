@@ -59,11 +59,11 @@ func (t *Tripod) SetInstance(instance interface{}) {
 	}
 
 	for name, _ := range t.writings {
-		logrus.Debugf("register Writing (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Writing (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	for name, _ := range t.readings {
-		logrus.Debugf("register Reading (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	t.Instance = instance
@@ -113,7 +113,7 @@ func (t *Tripod) SetReadings(readings ...Reading) {
 
 func (t *Tripod) SetP2pHandler(code int, handler P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
-	logrus.Debugf("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
+	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
 }
 
