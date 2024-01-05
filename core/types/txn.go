@@ -39,11 +39,14 @@ func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 	return stx, nil
 }
 
-func (st *SignedTxn) GetCallerAddr() Address {
+func (st *SignedTxn) GetCallerAddr() *Address {
+	if st.Pubkey == nil {
+		return nil
+	}
 	var addr Address
 	addrByt := common.BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
 	copy(addr[:], addrByt.Bytes())
-	return addr
+	return &addr
 }
 
 func (st *SignedTxn) TripodName() string {
