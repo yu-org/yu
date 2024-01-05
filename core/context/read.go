@@ -2,7 +2,6 @@ package context
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"net/http"
 )
@@ -14,7 +13,6 @@ type ReadContext struct {
 }
 
 func NewReadContext(ctx *gin.Context, rdCall *common.RdCall) (*ReadContext, error) {
-	logrus.Info("new--read--context")
 	var blockHash *common.Hash
 	if rdCall.BlockHash != "" {
 		blockH := common.HexToHash(rdCall.BlockHash)

@@ -71,13 +71,11 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 }
 
 func (k *Kernel) handleHttpRd(c *gin.Context) {
-	logrus.Info("handle http read ---------")
 	rdCall, err := GetRdCall(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	logrus.Info("get read call ---------")
 
 	switch k.RunMode {
 	case LocalNode:
