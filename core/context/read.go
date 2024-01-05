@@ -13,8 +13,7 @@ type ReadContext struct {
 	rdCall    *common.RdCall
 }
 
-func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
-	rdCall := new(common.RdCall)
+func NewReadContext(ctx *gin.Context, rdCall *common.RdCall) (*ReadContext, error) {
 	err := ctx.BindJSON(rdCall)
 	if err != nil {
 		return nil, err
