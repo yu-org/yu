@@ -79,7 +79,7 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 
 	switch k.RunMode {
 	case LocalNode:
-		ctx, err := context.NewReadContext(c)
+		ctx, err := context.NewReadContext(c, rdCall)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return

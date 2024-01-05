@@ -3,27 +3,35 @@ package context
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core"
 	"net/http"
 )
 
 type ReadContext struct {
 	*gin.Context
+	BlockHash *common.Hash
+	rdCall    *common.RdCall
 }
 
-func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
+func NewReadContext(ctx *gin.Context, rdCall *common.RdCall) (*ReadContext, error) {
+	var blockHash *common.Hash
+	if rdCall.BlockHash != "" {
+		blockH := common.HexToHash(rdCall.BlockHash)
+		blockHash = &blockH
+	}
+
 	return &ReadContext{
-		ctx,
+		Context:   ctx,
+		BlockHash: blockHash,
+		rdCall:    rdCall,
 	}, nil
 }
 
+func (rc *ReadContext) BindJson(v any) error {
+	return common.BindJsonParams(rc.rdCall.Params, v)
+}
+
 func (rc *ReadContext) GetBlockHash() *common.Hash {
-	blockHashHex := rc.Query(core.BlockHashKey)
-	if blockHashHex == "" {
-		return nil
-	}
-	blockHash := common.HexToHash(blockHashHex)
-	return &blockHash
+	return rc.BlockHash
 }
 
 func (rc *ReadContext) JsonOk(v any) {
