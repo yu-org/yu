@@ -48,14 +48,23 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 	if err != nil {
 		return nil, err
 	}
-	pubkey, err := hexutil.Decode(wpb.Pubkey)
-	if err != nil {
-		return nil, err
+
+	var pubkey []byte
+	if wpb.Pubkey != "" {
+		pubkey, err = hexutil.Decode(wpb.Pubkey)
+		if err != nil {
+			return nil, err
+		}
 	}
-	sig, err := hexutil.Decode(wpb.Signature)
-	if err != nil {
-		return nil, err
+
+	var sig []byte
+	if wpb.Signature != "" {
+		sig, err = hexutil.Decode(wpb.Signature)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return &RawWrCall{
 		Pubkey:    pubkey,
 		Signature: sig,
