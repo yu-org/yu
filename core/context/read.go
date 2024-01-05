@@ -14,12 +14,12 @@ type ReadContext struct {
 }
 
 func NewReadContext(ctx *gin.Context) (*ReadContext, error) {
-	logrus.Info("new--read--context")
 	rdCall := new(common.RdCall)
 	err := ctx.BindJSON(rdCall)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Info("new--read--context")
 	var blockHash *common.Hash
 	if rdCall.BlockHash != "" {
 		blockH := common.HexToHash(rdCall.BlockHash)
