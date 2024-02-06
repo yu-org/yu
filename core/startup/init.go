@@ -18,7 +18,7 @@ func InitKernelConfig(cfg *config.KernelConf) {
 	initLog(KernelCfg)
 }
 
-func InitKernelDefaultConfig() {
+func InitDefaultKernelConfig() {
 	KernelCfg = config.InitDefaultCfg()
 	initDataDir()
 	initLog(KernelCfg)
