@@ -21,7 +21,7 @@ func main() {
 	// myPubkey, myPrivkey, validatorsAddrs := poa.InitDefaultKeypairs(idx)
 	poaConf := poa.DefaultCfg(idx)
 
-	startup.InitConfigFromPath("yu_conf/kernel.toml")
+	startup.InitKernelConfigFromPath("yu_conf/kernel.toml")
 	startup.DefaultStartup(
 		poa.NewPoa(poaConf),
 		asset.NewAsset("YuCoin"),
