@@ -19,17 +19,17 @@ func (e *Example) Write(ctx *context.WriteContext) error {
     caller := ctx.GetCaller()
     // set this Writing lei cost
     ctx.SetLei(100)
-	// Store data in on-chain state.
+    // Store data in on-chain state.
     e.Set([]byte("1"), []byte("yu"))
-	// Emit an event.
+    // Emit an event.
     ctx.EmitStringEvent(fmt.Printf("execute success, caller: %s", caller.String()))
     return nil
 }
 
 // Here is a custom development of a Reading
 func (e *Example) Read(ctx *context.ReadContext) {
-    caller := ctx.Caller
-    value, err := e.Get([]byte("1"))
+    key := ctx.GetString("key")
+    value, err := e.Get(key.Bytes())
     if err != nil {
         ctx.JsonOk(err)
         return
@@ -49,7 +49,9 @@ func NewExample() *Example {
 }
 
 func main() {
-    startup.DefaultStartup(NewExample())
+    	poaConf := poa.DefaultCfg(0)
+	startup.InitDefaultKernelConfig()
+	startup.DefaultStartup(poa.NewPoa(poaConf), NewExample())
 }
 ```
 Build and Run
