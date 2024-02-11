@@ -28,7 +28,7 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-type RawWrCall struct {
+type SignedWrCall struct {
 	Pubkey    []byte  `json:"pubkey"`
 	Signature []byte  `json:"signature"`
 	Call      *WrCall `json:"call"`
@@ -42,7 +42,7 @@ type WritingPostBody struct {
 	Call      *WrCall `json:"call"`
 }
 
-func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
+func GetSignedWrCall(ctx *gin.Context) (*SignedWrCall, error) {
 	wpb := new(WritingPostBody)
 	err := ctx.ShouldBindJSON(wpb)
 	if err != nil {
@@ -65,7 +65,7 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 		}
 	}
 
-	return &RawWrCall{
+	return &SignedWrCall{
 		Pubkey:    pubkey,
 		Signature: sig,
 		Call:      wpb.Call,

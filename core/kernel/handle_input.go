@@ -2,20 +2,27 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core"
+	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/types"
 )
 
 // HandleTxn handles txn from outside.
 // You can also self-define your input by calling HandleTxn (not only by default http and ws)
-func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
-	wrCall := stxn.Raw.WrCall
-	_, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
+	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Signature)
+	if err != nil {
+		return err
+	}
+	wrCall := signedWrCall.Call
+	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 	if err != nil {
 		return err
 	}
 
 	if k.Pool.Exist(stxn) {
-		return err
+		return nil
 	}
 
 	err = k.Pool.CheckTxn(stxn)
@@ -31,6 +38,20 @@ func (k *Kernel) HandleTxn(stxn *SignedTxn) error {
 	}()
 
 	return k.Pool.Insert(stxn)
+}
+
+func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error) {
+	ctx, err := context.NewReadContext(rdCall)
+	if err != nil {
+		return nil, err
+	}
+
+	rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
+	if err != nil {
+		return nil, err
+	}
+	rd(ctx)
+	return ctx.Response(), nil
 }
 
 //func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {
