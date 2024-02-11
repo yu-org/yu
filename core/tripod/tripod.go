@@ -73,6 +73,10 @@ func (t *Tripod) Name() string {
 	return t.name
 }
 
+func (t *Tripod) GetCurrentBlock() (*CompactBlock, error) {
+	return t.Chain.GetEndBlock()
+}
+
 func (t *Tripod) SetChainEnv(env *ChainEnv) {
 	t.ChainEnv = env
 }
