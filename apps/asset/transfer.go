@@ -7,6 +7,7 @@ import (
 	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
 	"math/big"
+	"net/http"
 )
 
 type Asset struct {
@@ -54,10 +55,20 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
+type AccountRequest struct {
+	Account string `json:"account"`
+}
+
 func (a *Asset) QueryBalance(ctx *ReadContext) {
-	account := HexToAddress(ctx.Query("account"))
+	var req AccountRequest
+	err := ctx.BindJson(&req)
+	if err != nil {
+		ctx.Err(http.StatusBadRequest, err)
+		return
+	}
+	account := HexToAddress(req.Account)
 	if !a.ExistAccount(&account) {
-		ctx.StringOk(AccountNotFound(account).Error())
+		ctx.ErrOk(AccountNotFound(account))
 		return
 	}
 	amount := a.GetBalance(&account)
