@@ -155,7 +155,7 @@ func (h *Poa) StartBlock(block *Block) {
 
 	h.setCurrentHeight(block.Height)
 
-	log.DotConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
+	log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
 
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
