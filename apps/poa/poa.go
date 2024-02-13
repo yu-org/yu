@@ -155,7 +155,7 @@ func (h *Poa) StartBlock(block *Block) {
 
 	h.setCurrentHeight(block.Height)
 
-	log.DotLog().Info(fmt.Sprintf("start a new block, height=%d", block.Height))
+	log.DotConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
 
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
@@ -236,7 +236,7 @@ func (h *Poa) FinalizeBlock(block *Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("finalize block")
 
-	log.DoubleLineLog().Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
+	log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
 	h.Chain.Finalize(block.Hash)
 }
 

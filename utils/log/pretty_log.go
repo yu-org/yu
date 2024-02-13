@@ -5,22 +5,20 @@ import (
 	"github.com/anqiansong/ketty/text"
 )
 
-func DoubleLineLog() *console.Console {
-	style := text.WithDoubleLine()
-	return console.NewConsole(console.WithTextOption(style))
-}
+var (
+	DotConsole        *console.Console
+	DoubleLineConsole *console.Console
+	StarConsole       *console.Console
+	PlusConsole       *console.Console
+)
 
-func StarLog() *console.Console {
-	style := text.WithStarStyle()
-	return console.NewConsole(console.WithTextOption(style))
-}
-
-func PlusLog() *console.Console {
-	style := text.WithPlusStyle()
-	return console.NewConsole(console.WithTextOption(style))
-}
-
-func DotLog() *console.Console {
-	style := text.WithDotStyle()
-	return console.NewConsole(console.WithTextOption(style))
+func init() {
+	doubleLine := text.WithDoubleLine()
+	DoubleLineConsole = console.NewConsole(console.WithTextOption(doubleLine))
+	star := text.WithStarStyle()
+	StarConsole = console.NewConsole(console.WithTextOption(star))
+	plus := text.WithPlusStyle()
+	PlusConsole = console.NewConsole(console.WithTextOption(plus))
+	dot := text.WithDotStyle()
+	DotConsole = console.NewConsole(console.WithTextOption(dot))
 }
