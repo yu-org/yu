@@ -2,12 +2,14 @@ package poa
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/utils/log"
 	"go.uber.org/atomic"
 	"time"
 )
@@ -153,7 +155,7 @@ func (h *Poa) StartBlock(block *Block) {
 
 	h.setCurrentHeight(block.Height)
 
-	logrus.Info("====== start a new block ", block.Height)
+	log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
 
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
@@ -222,15 +224,19 @@ func (h *Poa) EndBlock(block *Block) {
 		logrus.Panic("reset pool failed: ", err)
 	}
 
-	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
-		Info("append block")
+	// log.PlusLog().Info(fmt.Sprintf("append block, height=%d, hash=%s", block.Height, block.Hash.String()))
+
+	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+	//	Info("append block")
 
 	h.State.FinalizeBlock(block.Hash)
 }
 
 func (h *Poa) FinalizeBlock(block *Block) {
-	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
-		Info("finalize block")
+	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+	//	Info("finalize block")
+
+	log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
 	h.Chain.Finalize(block.Hash)
 }
 
