@@ -6,6 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/HyperService-Consortium/go-hexutil v1.0.1
 	github.com/HyperService-Consortium/go-rlp v1.0.2
+	github.com/anqiansong/ketty v0.0.0-20211202021934-dbaf2e277891
 	github.com/celestiaorg/smt v0.3.0
 	github.com/cockroachdb/pebble v0.0.0-20221213170459-33377d59d70e
 	github.com/ethereum/go-ethereum v1.10.8
@@ -108,6 +109,7 @@ require (
 	github.com/libp2p/go-netroute v0.2.1 // indirect
 	github.com/libp2p/go-reuseport v0.4.0 // indirect
 	github.com/libp2p/go-yamux/v4 v4.0.1 // indirect
+	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/marten-seemann/tcp v0.0.0-20210406111302-dfbc87cc63fd // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
