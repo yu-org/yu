@@ -21,15 +21,13 @@ type Result struct {
 	Error  error    `json:"error,omitempty"`
 }
 
+func NewResult(events []*Event, err error) *Result {
+	return &Result{Events: events, Error: err}
+}
+
 func NewWithEvents(events []*Event) *Result {
 	return &Result{
 		Events: events,
-	}
-}
-
-func NewWithError(e error) *Result {
-	return &Result{
-		Error: e,
 	}
 }
 

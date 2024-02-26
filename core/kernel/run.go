@@ -106,19 +106,18 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
-			return err
-		}
-
-		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
-		if err != nil {
-			k.handleError(err, ctx, block, stxn)
+			result := k.handleError(err, ctx, block, stxn)
+			results = append(results, result)
 			continue
 		}
+
+		writing, _ := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
-			k.handleError(OutOfLei, ctx, block, stxn)
+			result := k.handleError(OutOfLei, ctx, block, stxn)
+			results = append(results, result)
 			break
 		}
 		if err != nil {
@@ -131,18 +130,13 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		block.UseLei(ctx.LeiCost)
 
 		// if no error and event, give a default event
-		if ctx.Error == nil && len(ctx.Events) == 0 {
-			_ = ctx.EmitJsonEvent(DefaultJsonEvent)
-		}
+		//if ctx.Error == nil && len(ctx.Events) == 0 {
+		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
+		//}
 
-		k.handleEvent(ctx, block, stxn)
+		result := k.handleEvent(ctx, block, stxn)
 
-		if len(ctx.Events) > 0 {
-			results = append(results, NewWithEvents(ctx.Events))
-		}
-		if ctx.Error != nil {
-			results = append(results, NewWithError(ctx.Error))
-		}
+		results = append(results, result)
 	}
 
 	if len(results) > 0 {
@@ -200,16 +194,18 @@ func (k *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
 	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	result := &Result{Events: ctx.Events, Error: err}
+	result := NewResult(ctx.Events, err)
 	k.handleResult(ctx, result, block, stxn)
+	return result
 }
 
-func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
 	result := NewWithEvents(ctx.Events)
 	k.handleResult(ctx, result, block, stxn)
+	return result
 }
 
 func (k *Kernel) handleResult(ctx *context.WriteContext, result *Result, block *Block, stxn *SignedTxn) {
