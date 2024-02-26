@@ -19,6 +19,8 @@ type Result struct {
 
 	Events []*Event `json:"events,omitempty"`
 	Error  error    `json:"error,omitempty"`
+
+	Extra []byte `json:"extra,omitempty"`
 }
 
 func NewResult(events []*Event, err error) *Result {
