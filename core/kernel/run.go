@@ -203,7 +203,7 @@ func (k *Kernel) MasterWokrerRun() error {
 func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
 	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	result := NewWithError(err)
+	result := &Result{Events: ctx.Events, Error: err}
 	k.handleResult(ctx, result, block, stxn)
 }
 
