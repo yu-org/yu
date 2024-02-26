@@ -8,30 +8,30 @@ import (
 )
 
 type Result struct {
-	Type int `json:"type"`
-	// Event or Error
-	Event *Event `json:"event,omitempty"`
-	Error *Error `json:"error,omitempty"`
+	TxHash      Hash     `json:"tx_hash"`
+	Caller      *Address `json:"caller"`
+	BlockStage  string   `json:"block_stage"`
+	BlockHash   Hash     `json:"block_hash"`
+	Height      BlockNum `json:"height"`
+	TripodName  string   `json:"tripod_name"`
+	WritingName string   `json:"writing_name"`
+	LeiCost     uint64   `json:"lei_cost"`
+
+	Events []*Event `json:"events,omitempty"`
+	Error  error    `json:"error,omitempty"`
 }
 
-func NewEvent(e *Event) *Result {
+func NewWithEvents(events []*Event) *Result {
 	return &Result{
-		Type:  EventType,
-		Event: e,
+		Events: events,
 	}
 }
 
-func NewError(e *Error) *Result {
+func NewWithError(e error) *Result {
 	return &Result{
-		Type:  ErrorType,
 		Error: e,
 	}
 }
-
-const (
-	EventType = iota
-	ErrorType
-)
 
 func (r *Result) Encode() ([]byte, error) {
 	return json.Marshal(r)
@@ -48,24 +48,6 @@ func (r *Result) Hash() ([]byte, error) {
 	}
 	hash := sha256.Sum256(byt)
 	return hash[:], err
-}
-
-func (r *Result) IsEvent() bool {
-	return r.Type == EventType
-}
-
-func (r *Result) IsError() bool {
-	return r.Type == ErrorType
-}
-
-func (r *Result) String() string {
-	switch r.Type {
-	case EventType:
-		return r.Event.Sprint()
-	case ErrorType:
-		return r.Error.Error()
-	}
-	return "invalid result type"
 }
 
 func CaculateReceiptRoot(results []*Result) (Hash, error) {

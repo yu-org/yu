@@ -16,7 +16,7 @@ type WriteContext struct {
 	Txn   *SignedTxn
 
 	Events  []*Event
-	Error   *Error
+	Error   error
 	LeiCost uint64
 }
 
@@ -84,7 +84,5 @@ func (c *WriteContext) EmitJsonEvent(value any) error {
 }
 
 func (c *WriteContext) EmitError(e error) {
-	c.Error = &Error{
-		Err: e.Error(),
-	}
+	c.Error = e
 }

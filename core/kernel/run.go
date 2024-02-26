@@ -137,11 +137,11 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 
 		k.handleEvent(ctx, block, stxn)
 
-		for _, e := range ctx.Events {
-			results = append(results, NewEvent(e))
+		if len(ctx.Events) > 0 {
+			results = append(results, NewWithEvents(ctx.Events))
 		}
 		if ctx.Error != nil {
-			results = append(results, NewError(ctx.Error))
+			results = append(results, NewWithError(ctx.Error))
 		}
 	}
 
@@ -201,37 +201,29 @@ func (k *Kernel) MasterWokrerRun() error {
 }
 
 func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	wrCall := stxn.Raw.WrCall
-
-	ctx.Error.Caller = stxn.GetCallerAddr()
-	ctx.Error.BlockStage = ExecuteTxnsStage
-	ctx.Error.TripodName = wrCall.TripodName
-	ctx.Error.WritingName = wrCall.FuncName
-	ctx.Error.BlockHash = block.Hash
-	ctx.Error.Height = block.Height
-
-	logrus.Error("push error: ", ctx.Error.Error())
-	if k.Sub != nil {
-		k.Sub.Emit(NewError(ctx.Error))
-	}
-
+	result := NewWithError(err)
+	k.handleResult(ctx, result, block, stxn)
 }
 
 func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
-	for _, event := range ctx.Events {
-		wrCall := stxn.Raw.WrCall
+	result := NewWithEvents(ctx.Events)
+	k.handleResult(ctx, result, block, stxn)
+}
 
-		event.Height = block.Height
-		event.BlockHash = block.Hash
-		event.WritingName = wrCall.FuncName
-		event.TripodName = wrCall.TripodName
-		event.LeiCost = ctx.LeiCost
-		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.GetCallerAddr()
+func (k *Kernel) handleResult(ctx *context.WriteContext, result *Result, block *Block, stxn *SignedTxn) {
+	wrCall := stxn.Raw.WrCall
 
-		if k.Sub != nil {
-			k.Sub.Emit(NewEvent(event))
-		}
+	result.Caller = stxn.GetCallerAddr()
+	result.BlockStage = ExecuteTxnsStage
+	result.TripodName = wrCall.TripodName
+	result.WritingName = wrCall.FuncName
+	result.BlockHash = block.Hash
+	result.Height = block.Height
+	result.LeiCost = ctx.LeiCost
+
+	if k.Sub != nil {
+		k.Sub.Emit(result)
 	}
 }
