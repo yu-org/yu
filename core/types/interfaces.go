@@ -57,6 +57,7 @@ const (
 )
 
 type IBlockChain interface {
+	ItxDB
 	ConvergeType() ConvergeType
 
 	NewEmptyBlock() *Block
