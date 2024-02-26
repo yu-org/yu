@@ -11,7 +11,7 @@ import (
 type BlockChain struct {
 	nodeType int
 	chain    ysql.SqlDB
-	txns     ItxDB
+	ItxDB
 }
 
 func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
@@ -28,7 +28,7 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 	return &BlockChain{
 		nodeType: nodeType,
 		chain:    chain,
-		txns:     txdb,
+		ItxDB:    txdb,
 	}
 }
 
@@ -51,7 +51,7 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 		Header: cb.Header,
 	}
 	for _, hash := range cb.TxnsHashes {
-		txn, err := bc.txns.GetTxn(hash)
+		txn, err := bc.ItxDB.GetTxn(hash)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (bc *BlockChain) AppendBlock(b *Block) error {
 	if err != nil {
 		return err
 	}
-	return bc.txns.SetTxns(b.Txns)
+	return bc.ItxDB.SetTxns(b.Txns)
 }
 
 func (bc *BlockChain) appendCompactBlock(b *CompactBlock) error {
@@ -197,7 +197,7 @@ func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) (blocks []
 	for _, compactblock := range compactblocks {
 		var txns SignedTxns
 		for _, txnHash := range compactblock.TxnsHashes {
-			txn, err := bc.txns.GetTxn(txnHash)
+			txn, err := bc.ItxDB.GetTxn(txnHash)
 			if err != nil {
 				return nil, err
 			}
