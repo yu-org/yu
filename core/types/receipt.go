@@ -1,4 +1,4 @@
-package receipt
+package types
 
 import (
 	"crypto/sha256"
@@ -31,6 +31,17 @@ func NewWithEvents(events []*Event) *Receipt {
 	return &Receipt{
 		Events: events,
 	}
+}
+
+func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
+	wrCall := stxn.Raw.WrCall
+
+	r.Caller = stxn.GetCallerAddr()
+	r.TripodName = wrCall.TripodName
+	r.WritingName = wrCall.FuncName
+	r.BlockHash = block.Hash
+	r.Height = block.Height
+	r.LeiCost = leiCost
 }
 
 func (r *Receipt) Encode() ([]byte, error) {

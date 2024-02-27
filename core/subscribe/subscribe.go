@@ -3,7 +3,7 @@ package subscribe
 import (
 	. "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/core/receipt"
+	. "github.com/yu-org/yu/core/types"
 	"sync"
 )
 

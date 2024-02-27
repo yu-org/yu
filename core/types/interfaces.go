@@ -2,7 +2,6 @@ package types
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/receipt"
 )
 
 //type IBlock interface {
