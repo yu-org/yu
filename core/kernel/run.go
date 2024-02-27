@@ -99,14 +99,14 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 func (k *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
-	var results []*Receipt
+	receipts := make(map[Hash]*Receipt)
 
 	for _, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
-			result := k.handleError(err, ctx, block, stxn)
-			results = append(results, result)
+			receipt := k.handleError(err, ctx, block, stxn)
+			receipts[stxn.TxnHash] = receipt
 			continue
 		}
 
@@ -115,8 +115,8 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
-			result := k.handleError(OutOfLei, ctx, block, stxn)
-			results = append(results, result)
+			receipt := k.handleError(OutOfLei, ctx, block, stxn)
+			receipts[stxn.TxnHash] = receipt
 			break
 		}
 		if err != nil {
@@ -133,13 +133,12 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
 		//}
 
-		result := k.handleEvent(ctx, block, stxn)
-
-		results = append(results, result)
+		receipt := k.handleEvent(ctx, block, stxn)
+		receipts[stxn.TxnHash] = receipt
 	}
 
-	if len(results) > 0 {
-		err := k.TxDB.SetReceipts(results)
+	if len(receipts) > 0 {
+		err := k.TxDB.SetReceipts(receipts)
 		if err != nil {
 			return err
 		}
@@ -152,7 +151,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 
 	block.StateRoot = BytesToHash(stateRoot)
 
-	block.ReceiptRoot, err = CaculateReceiptRoot(results)
+	block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
 	return err
 }
 

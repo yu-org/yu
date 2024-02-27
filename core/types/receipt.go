@@ -61,7 +61,7 @@ func (r *Receipt) Hash() ([]byte, error) {
 	return hash[:], err
 }
 
-func CaculateReceiptRoot(results []*Receipt) (Hash, error) {
+func CaculateReceiptRoot(results map[Hash]*Receipt) (Hash, error) {
 	var receiptsByt []Hash
 	for _, result := range results {
 		receipt, err := result.Encode()
