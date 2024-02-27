@@ -195,13 +195,13 @@ func (k *Kernel) MasterWokrerRun() error {
 func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	receipt := NewReceipt(ctx.Events, err)
+	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
 	k.handleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
 func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
-	receipt := NewWithEvents(ctx.Events)
+	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
 	k.handleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }

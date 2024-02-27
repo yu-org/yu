@@ -23,14 +23,8 @@ type Receipt struct {
 	Extra []byte `json:"extra,omitempty"`
 }
 
-func NewReceipt(events []*Event, err error) *Receipt {
-	return &Receipt{Events: events, Error: err}
-}
-
-func NewWithEvents(events []*Event) *Receipt {
-	return &Receipt{
-		Events: events,
-	}
+func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
+	return &Receipt{Events: events, Error: err, Extra: extra}
 }
 
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
