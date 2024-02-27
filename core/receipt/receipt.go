@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/context"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/trie"
 )
 
@@ -31,6 +33,17 @@ func NewWithEvents(events []*Event) *Receipt {
 	return &Receipt{
 		Events: events,
 	}
+}
+
+func (r *Receipt) FillMetadata(ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) {
+	wrCall := stxn.Raw.WrCall
+
+	r.Caller = stxn.GetCallerAddr()
+	r.TripodName = wrCall.TripodName
+	r.WritingName = wrCall.FuncName
+	r.BlockHash = block.Hash
+	r.Height = block.Height
+	r.LeiCost = ctx.LeiCost
 }
 
 func (r *Receipt) Encode() ([]byte, error) {

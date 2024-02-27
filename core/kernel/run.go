@@ -197,29 +197,22 @@ func (k *Kernel) MasterWokrerRun() error {
 func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	result := NewReceipt(ctx.Events, err)
-	k.handleResult(ctx, result, block, stxn)
-	return result
+	receipt := NewReceipt(ctx.Events, err)
+	k.handleReceipt(ctx, receipt, block, stxn)
+	return receipt
 }
 
 func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
-	result := NewWithEvents(ctx.Events)
-	k.handleResult(ctx, result, block, stxn)
-	return result
+	receipt := NewWithEvents(ctx.Events)
+	k.handleReceipt(ctx, receipt, block, stxn)
+	return receipt
 }
 
-func (k *Kernel) handleResult(ctx *context.WriteContext, result *Receipt, block *Block, stxn *SignedTxn) {
-	wrCall := stxn.Raw.WrCall
-
-	result.Caller = stxn.GetCallerAddr()
-	result.BlockStage = ExecuteTxnsStage
-	result.TripodName = wrCall.TripodName
-	result.WritingName = wrCall.FuncName
-	result.BlockHash = block.Hash
-	result.Height = block.Height
-	result.LeiCost = ctx.LeiCost
+func (k *Kernel) handleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+	receipt.FillMetadata(ctx, block, stxn)
+	receipt.BlockStage = ExecuteTxnsStage
 
 	if k.Sub != nil {
-		k.Sub.Emit(result)
+		k.Sub.Emit(receipt)
 	}
 }
