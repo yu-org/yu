@@ -124,7 +124,7 @@ func (UnimplementedP2PNetworkServer) SubP2P(context.Context, *SubRequest) (*SubR
 
 // UnsafeP2PNetworkServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to P2PNetworkServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeP2PNetworkServer interface {
 	mustEmbedUnimplementedP2PNetworkServer()
 }

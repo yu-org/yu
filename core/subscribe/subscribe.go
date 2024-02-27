@@ -3,7 +3,7 @@ package subscribe
 import (
 	. "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 	"sync"
 )
 
@@ -53,7 +53,7 @@ func (s *Subscription) emitToClients() {
 
 				err = conn.WriteMessage(TextMessage, byt)
 				if err != nil {
-					logrus.Errorf("emit result to client(%s) error: %s", conn.RemoteAddr().String(), err.Error())
+					logrus.Errorf("emit receipt to client(%s) error: %s", conn.RemoteAddr().String(), err.Error())
 					conn.Close()
 					s.subscribers.Delete(connI)
 				}

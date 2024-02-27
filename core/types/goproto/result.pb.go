@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.21.8
-// source: result.proto
+// source: receipt.proto
 
 package goproto
 

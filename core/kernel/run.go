@@ -5,7 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"

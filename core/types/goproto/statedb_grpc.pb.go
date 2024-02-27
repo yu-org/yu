@@ -200,7 +200,7 @@ func (UnimplementedStateDBServer) NextTxn(context.Context, *emptypb.Empty) (*emp
 
 // UnsafeStateDBServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to StateDBServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeStateDBServer interface {
 	mustEmbedUnimplementedStateDBServer()
 }

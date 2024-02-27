@@ -59,7 +59,7 @@ func (UnimplementedSubscriptionServer) Emit(context.Context, *Bytes) (*Err, erro
 
 // UnsafeSubscriptionServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to SubscriptionServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeSubscriptionServer interface {
 	mustEmbedUnimplementedSubscriptionServer()
 }

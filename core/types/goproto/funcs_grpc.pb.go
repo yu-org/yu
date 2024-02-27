@@ -59,7 +59,7 @@ func (UnimplementedWritingServer) Write(context.Context, *WriteContext) (*WriteR
 
 // UnsafeWritingServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to WritingServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeWritingServer interface {
 	mustEmbedUnimplementedWritingServer()
 }
@@ -143,7 +143,7 @@ func (UnimplementedReadingServer) Read(context.Context, *ReadContext) (*ReadResu
 
 // UnsafeReadingServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to ReadingServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeReadingServer interface {
 	mustEmbedUnimplementedReadingServer()
 }
