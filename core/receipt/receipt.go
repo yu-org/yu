@@ -23,7 +23,7 @@ type Receipt struct {
 	Extra []byte `json:"extra,omitempty"`
 }
 
-func NewResult(events []*Event, err error) *Receipt {
+func NewReceipt(events []*Event, err error) *Receipt {
 	return &Receipt{Events: events, Error: err}
 }
 
