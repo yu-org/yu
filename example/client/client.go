@@ -26,7 +26,7 @@ func main() {
 		panic("new subscriber failed: " + err.Error())
 	}
 
-	resultCh := make(chan *result.Result)
+	resultCh := make(chan *result.Receipt)
 	go sub.SubEvent(resultCh)
 
 	logrus.Info("--- send Creating Account ---")

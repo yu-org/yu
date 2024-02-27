@@ -17,7 +17,7 @@ func TestCodecResult(t *testing.T) {
 	byt, err := evResult.Encode()
 	assert.NoError(t, err)
 
-	deEvResult := new(Result)
+	deEvResult := new(Receipt)
 	err = deEvResult.Decode(byt)
 	assert.NoError(t, err)
 	assert.Equal(t, ev, deEvResult.Events[0])

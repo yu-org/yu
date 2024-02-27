@@ -110,7 +110,7 @@ func NewSubscriber() (*Subscriber, error) {
 	}, nil
 }
 
-func (s *Subscriber) SubEvent(ch chan *Result) {
+func (s *Subscriber) SubEvent(ch chan *Receipt) {
 	for {
 		if s.closed.Load() {
 			return
@@ -119,7 +119,7 @@ func (s *Subscriber) SubEvent(ch chan *Result) {
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
 		}
-		result := new(Result)
+		result := new(Receipt)
 		err = result.Decode(msg)
 		if err != nil {
 			logrus.Panicf("decode result error: %s", err.Error())
