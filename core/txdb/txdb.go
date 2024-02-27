@@ -64,22 +64,18 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetReceipts(receipts []*Receipt) error {
+func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) error {
 	kvtx, err := bb.receiptKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
 
-	for _, receipt := range receipts {
+	for txHash, receipt := range receipts {
 		byt, err := receipt.Encode()
 		if err != nil {
 			return err
 		}
-		hash, err := receipt.Hash()
-		if err != nil {
-			return err
-		}
-		err = kvtx.Set(hash, byt)
+		err = kvtx.Set(txHash.Bytes(), byt)
 		if err != nil {
 			return err
 		}
@@ -88,14 +84,20 @@ func (bb *TxDB) SetReceipts(receipts []*Receipt) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetReceipt(receipt *Receipt) error {
+func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) error {
 	byt, err := receipt.Encode()
 	if err != nil {
 		return err
 	}
-	hash, err := receipt.Hash()
+	return bb.receiptKV.Set(txHash.Bytes(), byt)
+}
+
+func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
+	byt, err := bb.receiptKV.Get(txHash.Bytes())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return bb.receiptKV.Set(hash, byt)
+	receipt := new(Receipt)
+	err = receipt.Decode(byt)
+	return receipt, err
 }
