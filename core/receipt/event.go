@@ -1,4 +1,4 @@
-package result
+package receipt
 
 type Event struct {
 	//Caller      *Address `json:"caller"`

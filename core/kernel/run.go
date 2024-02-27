@@ -5,7 +5,7 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
@@ -100,7 +100,7 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 func (k *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
-	var results []*Result
+	var results []*Receipt
 
 	for _, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
@@ -194,7 +194,7 @@ func (k *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
+func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
 	result := NewResult(ctx.Events, err)
@@ -202,13 +202,13 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 	return result
 }
 
-func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
+func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	result := NewWithEvents(ctx.Events)
 	k.handleResult(ctx, result, block, stxn)
 	return result
 }
 
-func (k *Kernel) handleResult(ctx *context.WriteContext, result *Result, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleResult(ctx *context.WriteContext, result *Receipt, block *Block, stxn *SignedTxn) {
 	wrCall := stxn.Raw.WrCall
 
 	result.Caller = stxn.GetCallerAddr()

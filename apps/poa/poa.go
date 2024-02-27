@@ -212,7 +212,7 @@ func (h *Poa) EndBlock(block *Block) {
 		logrus.Panic("execute block failed: ", err)
 	}
 
-	// TODO: sync the state (execute result) with other nodes
+	// TODO: sync the state (execute receipt) with other nodes
 
 	err = chain.AppendBlock(block)
 	if err != nil {

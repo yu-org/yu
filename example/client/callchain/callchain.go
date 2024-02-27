@@ -12,7 +12,7 @@ import (
 	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 	"go.uber.org/atomic"
 	"io"
 	"net/http"
@@ -110,7 +110,7 @@ func NewSubscriber() (*Subscriber, error) {
 	}, nil
 }
 
-func (s *Subscriber) SubEvent(ch chan *Result) {
+func (s *Subscriber) SubEvent(ch chan *Receipt) {
 	for {
 		if s.closed.Load() {
 			return
@@ -119,10 +119,10 @@ func (s *Subscriber) SubEvent(ch chan *Result) {
 		if err != nil {
 			panic("sub event msg from chain error: " + err.Error())
 		}
-		result := new(Result)
+		result := new(Receipt)
 		err = result.Decode(msg)
 		if err != nil {
-			logrus.Panicf("decode result error: %s", err.Error())
+			logrus.Panicf("decode receipt error: %s", err.Error())
 		}
 
 		if ch != nil {

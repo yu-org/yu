@@ -2,7 +2,7 @@ package types
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 )
 
 //type IBlock interface {
@@ -84,6 +84,6 @@ type ItxDB interface {
 	ExistTxn(txnHash Hash) bool
 	SetTxns(txns []*SignedTxn) error
 
-	SetResults(results []*Result) error
-	SetResult(result *Result) error
+	SetResults(results []*Receipt) error
+	SetResult(result *Receipt) error
 }

@@ -200,7 +200,7 @@ func (UnimplementedBlockChainServer) GetRangeBlocks(context.Context, *RangeReque
 
 // UnsafeBlockChainServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to BlockChainServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeBlockChainServer interface {
 	mustEmbedUnimplementedBlockChainServer()
 }

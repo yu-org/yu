@@ -1,4 +1,4 @@
-package result
+package receipt
 
 import (
 	"crypto/sha256"
@@ -7,7 +7,7 @@ import (
 	"github.com/yu-org/yu/infra/trie"
 )
 
-type Result struct {
+type Receipt struct {
 	TxHash      Hash     `json:"tx_hash"`
 	Caller      *Address `json:"caller"`
 	BlockStage  string   `json:"block_stage"`
@@ -23,25 +23,25 @@ type Result struct {
 	Extra []byte `json:"extra,omitempty"`
 }
 
-func NewResult(events []*Event, err error) *Result {
-	return &Result{Events: events, Error: err}
+func NewResult(events []*Event, err error) *Receipt {
+	return &Receipt{Events: events, Error: err}
 }
 
-func NewWithEvents(events []*Event) *Result {
-	return &Result{
+func NewWithEvents(events []*Event) *Receipt {
+	return &Receipt{
 		Events: events,
 	}
 }
 
-func (r *Result) Encode() ([]byte, error) {
+func (r *Receipt) Encode() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-func (r *Result) Decode(data []byte) error {
+func (r *Receipt) Decode(data []byte) error {
 	return json.Unmarshal(data, r)
 }
 
-func (r *Result) Hash() ([]byte, error) {
+func (r *Receipt) Hash() ([]byte, error) {
 	byt, err := r.Encode()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (r *Result) Hash() ([]byte, error) {
 	return hash[:], err
 }
 
-func CaculateReceiptRoot(results []*Result) (Hash, error) {
+func CaculateReceiptRoot(results []*Receipt) (Hash, error) {
 	var receiptsByt []Hash
 	for _, result := range results {
 		receipt, err := result.Encode()

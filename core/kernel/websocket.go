@@ -101,7 +101,7 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 //		}
 //		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
 //		if err != nil {
-//			logrus.Errorf("response GetReading result error: %s", err.Error())
+//			logrus.Errorf("response GetReading receipt error: %s", err.Error())
 //		}
 //	}
 //

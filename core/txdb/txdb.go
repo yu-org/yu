@@ -2,7 +2,7 @@ package txdb
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/receipt"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 )
@@ -65,7 +65,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResults(results []*Result) error {
+func (bb *TxDB) SetResults(results []*Receipt) error {
 	kvtx, err := bb.resultKV.NewKvTxn()
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (bb *TxDB) SetResults(results []*Result) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResult(result *Result) error {
+func (bb *TxDB) SetResult(result *Receipt) error {
 	byt, err := result.Encode()
 	if err != nil {
 		return err
