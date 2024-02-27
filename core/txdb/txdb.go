@@ -13,16 +13,16 @@ const (
 )
 
 type TxDB struct {
-	nodeType int
-	txnKV    kv.KV
-	resultKV kv.KV
+	nodeType  int
+	txnKV     kv.KV
+	receiptKV kv.KV
 }
 
 func NewTxDB(nodeTyp int, kvdb kv.Kvdb) ItxDB {
 	return &TxDB{
-		nodeType: nodeTyp,
-		txnKV:    kvdb.New(Txns),
-		resultKV: kvdb.New(Results),
+		nodeType:  nodeTyp,
+		txnKV:     kvdb.New(Txns),
+		receiptKV: kvdb.New(Results),
 	}
 }
 
@@ -65,18 +65,18 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResults(results []*Receipt) error {
-	kvtx, err := bb.resultKV.NewKvTxn()
+func (bb *TxDB) SetReceipts(receipts []*Receipt) error {
+	kvtx, err := bb.receiptKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
 
-	for _, result := range results {
-		byt, err := result.Encode()
+	for _, receipt := range receipts {
+		byt, err := receipt.Encode()
 		if err != nil {
 			return err
 		}
-		hash, err := result.Hash()
+		hash, err := receipt.Hash()
 		if err != nil {
 			return err
 		}
@@ -89,14 +89,14 @@ func (bb *TxDB) SetResults(results []*Receipt) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResult(result *Receipt) error {
-	byt, err := result.Encode()
+func (bb *TxDB) SetReceipt(receipt *Receipt) error {
+	byt, err := receipt.Encode()
 	if err != nil {
 		return err
 	}
-	hash, err := result.Hash()
+	hash, err := receipt.Hash()
 	if err != nil {
 		return err
 	}
-	return bb.resultKV.Set(hash, byt)
+	return bb.receiptKV.Set(hash, byt)
 }
