@@ -1,11 +1,9 @@
-package receipt
+package types
 
 import (
 	"crypto/sha256"
 	"encoding/json"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/context"
-	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/trie"
 )
 
@@ -35,7 +33,7 @@ func NewWithEvents(events []*Event) *Receipt {
 	}
 }
 
-func (r *Receipt) FillMetadata(ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) {
+func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 	wrCall := stxn.Raw.WrCall
 
 	r.Caller = stxn.GetCallerAddr()
@@ -43,7 +41,7 @@ func (r *Receipt) FillMetadata(ctx *context.WriteContext, block *types.Block, st
 	r.WritingName = wrCall.FuncName
 	r.BlockHash = block.Hash
 	r.Height = block.Height
-	r.LeiCost = ctx.LeiCost
+	r.LeiCost = leiCost
 }
 
 func (r *Receipt) Encode() ([]byte, error) {

@@ -12,7 +12,7 @@ import (
 	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	. "github.com/yu-org/yu/core/receipt"
+	. "github.com/yu-org/yu/core/types"
 	"go.uber.org/atomic"
 	"io"
 	"net/http"

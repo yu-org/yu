@@ -5,7 +5,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/receipt"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
@@ -209,7 +208,7 @@ func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *Sign
 }
 
 func (k *Kernel) handleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
-	receipt.FillMetadata(ctx, block, stxn)
+	receipt.FillMetadata(block, stxn, ctx.LeiCost)
 	receipt.BlockStage = ExecuteTxnsStage
 
 	if k.Sub != nil {

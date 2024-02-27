@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/keypair"
-	"github.com/yu-org/yu/core/receipt"
+	"github.com/yu-org/yu/core/types"
 	. "github.com/yu-org/yu/example/client/asset"
 	. "github.com/yu-org/yu/example/client/callchain"
 	"time"
@@ -26,7 +26,7 @@ func main() {
 		panic("new subscriber failed: " + err.Error())
 	}
 
-	resultCh := make(chan *receipt.Receipt)
+	resultCh := make(chan *types.Receipt)
 	go sub.SubEvent(resultCh)
 
 	logrus.Info("--- send Creating Account ---")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/receipt"
 	. "github.com/yu-org/yu/core/types"
 )
 
