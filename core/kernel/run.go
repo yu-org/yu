@@ -106,19 +106,18 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
-			return err
-		}
-
-		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
-		if err != nil {
-			k.handleError(err, ctx, block, stxn)
+			result := k.handleError(err, ctx, block, stxn)
+			results = append(results, result)
 			continue
 		}
+
+		writing, _ := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
-			k.handleError(OutOfLei, ctx, block, stxn)
+			result := k.handleError(OutOfLei, ctx, block, stxn)
+			results = append(results, result)
 			break
 		}
 		if err != nil {
@@ -131,18 +130,13 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		block.UseLei(ctx.LeiCost)
 
 		// if no error and event, give a default event
-		if ctx.Error == nil && len(ctx.Events) == 0 {
-			_ = ctx.EmitJsonEvent(DefaultJsonEvent)
-		}
+		//if ctx.Error == nil && len(ctx.Events) == 0 {
+		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
+		//}
 
-		k.handleEvent(ctx, block, stxn)
+		result := k.handleEvent(ctx, block, stxn)
 
-		for _, e := range ctx.Events {
-			results = append(results, NewEvent(e))
-		}
-		if ctx.Error != nil {
-			results = append(results, NewError(ctx.Error))
-		}
+		results = append(results, result)
 	}
 
 	if len(results) > 0 {
@@ -200,38 +194,32 @@ func (k *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
+func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
+	logrus.Error("push error: ", err.Error())
 	ctx.EmitError(err)
-	wrCall := stxn.Raw.WrCall
-
-	ctx.Error.Caller = stxn.GetCallerAddr()
-	ctx.Error.BlockStage = ExecuteTxnsStage
-	ctx.Error.TripodName = wrCall.TripodName
-	ctx.Error.WritingName = wrCall.FuncName
-	ctx.Error.BlockHash = block.Hash
-	ctx.Error.Height = block.Height
-
-	logrus.Error("push error: ", ctx.Error.Error())
-	if k.Sub != nil {
-		k.Sub.Emit(NewError(ctx.Error))
-	}
-
+	result := NewResult(ctx.Events, err)
+	k.handleResult(ctx, result, block, stxn)
+	return result
 }
 
-func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
-	for _, event := range ctx.Events {
-		wrCall := stxn.Raw.WrCall
+func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Result {
+	result := NewWithEvents(ctx.Events)
+	k.handleResult(ctx, result, block, stxn)
+	return result
+}
 
-		event.Height = block.Height
-		event.BlockHash = block.Hash
-		event.WritingName = wrCall.FuncName
-		event.TripodName = wrCall.TripodName
-		event.LeiCost = ctx.LeiCost
-		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.GetCallerAddr()
+func (k *Kernel) handleResult(ctx *context.WriteContext, result *Result, block *Block, stxn *SignedTxn) {
+	wrCall := stxn.Raw.WrCall
 
-		if k.Sub != nil {
-			k.Sub.Emit(NewEvent(event))
-		}
+	result.Caller = stxn.GetCallerAddr()
+	result.BlockStage = ExecuteTxnsStage
+	result.TripodName = wrCall.TripodName
+	result.WritingName = wrCall.FuncName
+	result.BlockHash = block.Hash
+	result.Height = block.Height
+	result.LeiCost = ctx.LeiCost
+
+	if k.Sub != nil {
+		k.Sub.Emit(result)
 	}
 }
