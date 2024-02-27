@@ -14,8 +14,10 @@ type WriteContext struct {
 	Block *Block
 	Txn   *SignedTxn
 
-	Events  []*Event
-	Error   error
+	Events []*Event
+	Error  error
+	Extra  []byte
+
 	LeiCost uint64
 }
 

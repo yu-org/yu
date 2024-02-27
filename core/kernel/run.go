@@ -201,7 +201,7 @@ func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block,
 }
 
 func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
-	receipt := NewWithEvents(ctx.Events)
+	receipt := &Receipt{Events: ctx.Events, Extra: ctx.Extra}
 	k.handleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }

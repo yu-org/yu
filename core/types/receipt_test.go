@@ -12,13 +12,13 @@ var (
 )
 
 func TestCodecResult(t *testing.T) {
-	// codec event
-	evResult := NewWithEvents([]*Event{ev})
-	byt, err := evResult.Encode()
+	// codec receipt
+	evReceipt := &Receipt{Events: []*Event{ev}}
+	byt, err := evReceipt.Encode()
 	assert.NoError(t, err)
 
-	deEvResult := new(Receipt)
-	err = deEvResult.Decode(byt)
+	deEvReceipt := new(Receipt)
+	err = deEvReceipt.Decode(byt)
 	assert.NoError(t, err)
-	assert.Equal(t, ev, deEvResult.Events[0])
+	assert.Equal(t, ev, deEvReceipt.Events[0])
 }

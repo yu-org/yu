@@ -27,12 +27,6 @@ func NewReceipt(events []*Event, err error) *Receipt {
 	return &Receipt{Events: events, Error: err}
 }
 
-func NewWithEvents(events []*Event) *Receipt {
-	return &Receipt{
-		Events: events,
-	}
-}
-
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 	wrCall := stxn.Raw.WrCall
 
