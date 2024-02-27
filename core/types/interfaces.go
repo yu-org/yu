@@ -83,6 +83,7 @@ type ItxDB interface {
 	ExistTxn(txnHash Hash) bool
 	SetTxns(txns []*SignedTxn) error
 
-	SetReceipts(receipts []*Receipt) error
-	SetReceipt(receipt *Receipt) error
+	SetReceipts(receipts map[Hash]*Receipt) error
+	GetReceipt(txHash Hash) (*Receipt, error)
+	SetReceipt(txHash Hash, receipt *Receipt) error
 }
