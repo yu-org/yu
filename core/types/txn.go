@@ -39,6 +39,10 @@ func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 	return stx, nil
 }
 
+func (st *SignedTxn) BindJson(v any) error {
+	return BindJsonParams(st.Raw.WrCall.Params, v)
+}
+
 func (st *SignedTxn) GetCallerAddr() *Address {
 	if st.Pubkey == nil {
 		return nil
