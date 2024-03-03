@@ -43,6 +43,10 @@ func (st *SignedTxn) BindJson(v any) error {
 	return BindJsonParams(st.Raw.WrCall.Params, v)
 }
 
+func (st *SignedTxn) SetParams(params string) {
+	st.Raw.WrCall.Params = params
+}
+
 func (st *SignedTxn) GetCallerAddr() *Address {
 	if st.Pubkey == nil {
 		return nil
