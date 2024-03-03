@@ -15,7 +15,6 @@ type WriteContext struct {
 	Txn   *SignedTxn
 
 	Events []*Event
-	Error  error
 	Extra  []byte
 
 	LeiCost uint64
@@ -84,6 +83,6 @@ func (c *WriteContext) EmitJsonEvent(value any) error {
 	return nil
 }
 
-func (c *WriteContext) EmitError(e error) {
-	c.Error = e
+func (c *WriteContext) EmitExtra(extra []byte) {
+	c.Extra = extra
 }
