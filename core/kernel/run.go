@@ -10,8 +10,6 @@ import (
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
-var DefaultJsonEvent = map[string]string{"status": "ok"}
-
 func (k *Kernel) Run() {
 	go func() {
 		for {
