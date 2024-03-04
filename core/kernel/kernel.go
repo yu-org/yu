@@ -73,7 +73,6 @@ func (k *Kernel) WithExecuteFn(fn ExecuteFn) {
 func (k *Kernel) Startup() {
 	k.InitChain()
 
-	// TODO: need to abstract out as handleTxn(*SignedTxn)
 	go k.HandleHttp()
 	go k.HandleWS()
 
