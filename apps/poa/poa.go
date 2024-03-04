@@ -165,7 +165,7 @@ func (h *Poa) StartBlock(block *Block) {
 		}
 	}
 
-	logrus.Info(" I am Leader! I mine the block! ")
+	logrus.Infof(" I am Leader! I mine the block for height (%d)! ", block.Height)
 	txns, err := h.Pool.Pack(5000)
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
