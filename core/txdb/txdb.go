@@ -97,6 +97,9 @@ func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
 	if err != nil {
 		return nil, err
 	}
+	if byt == nil {
+		return nil, nil
+	}
 	receipt := new(Receipt)
 	err = receipt.Decode(byt)
 	return receipt, err
