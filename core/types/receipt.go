@@ -18,13 +18,13 @@ type Receipt struct {
 	LeiCost     uint64   `json:"lei_cost"`
 
 	Events []*Event `json:"events,omitempty"`
-	Error  error    `json:"error,omitempty"`
+	Error  string   `json:"error,omitempty"`
 
 	Extra []byte `json:"extra,omitempty"`
 }
 
 func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
-	return &Receipt{Events: events, Error: err, Extra: extra}
+	return &Receipt{Events: events, Error: err.Error(), Extra: extra}
 }
 
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
