@@ -24,7 +24,11 @@ type Receipt struct {
 }
 
 func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
-	return &Receipt{Events: events, Error: err.Error(), Extra: extra}
+	var errStr string
+	if err != nil {
+		errStr = err.Error()
+	}
+	return &Receipt{Events: events, Error: errStr, Extra: extra}
 }
 
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
