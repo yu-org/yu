@@ -108,6 +108,21 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
 	return bs.toBlock()
 }
 
+func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*CompactBlock, error) {
+	var bs BlocksScheme
+	bc.chain.Db().Where(&BlocksScheme{
+		Height:   height,
+		Finalize: true,
+	}).First(&bs)
+	return bs.toBlock()
+}
+
+func (bc *BlockChain) GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error) {
+	var bss []BlocksScheme
+	bc.chain.Db().Where(&BlocksScheme{Height: height}).Find(&bss)
+	return bssToBlocks(bss), nil
+}
+
 func (bc *BlockChain) UpdateBlock(b *CompactBlock) error {
 	bs, err := toBlocksScheme(b)
 	if err != nil {

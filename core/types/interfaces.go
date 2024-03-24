@@ -66,6 +66,8 @@ type IBlockChain interface {
 
 	AppendBlock(b *Block) error
 	GetBlock(blockHash Hash) (*CompactBlock, error)
+	GetBlockByHeight(height BlockNum) (*CompactBlock, error)
+	GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
 	ExistsBlock(blockHash Hash) bool
 	UpdateBlock(b *CompactBlock) error
 
