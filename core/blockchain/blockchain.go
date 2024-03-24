@@ -42,7 +42,10 @@ func (bc *BlockChain) NewEmptyBlock() *Block {
 
 func (bc *BlockChain) GetGenesis() (*Block, error) {
 	var block BlocksScheme
-	bc.chain.Db().Where("height = ?", 0).First(&block)
+	err := bc.chain.Db().Where("height = ?", 0).First(&block).Error
+	if err != nil {
+		return nil, err
+	}
 	cb, err := block.toBlock()
 	if err != nil {
 		return nil, err
@@ -62,7 +65,10 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 
 func (bc *BlockChain) SetGenesis(b *Block) error {
 	var blocks []BlocksScheme
-	bc.chain.Db().Where("height = ?", 0).Find(&blocks)
+	err := bc.chain.Db().Where("height = ?", 0).Find(&blocks).Error
+	if err != nil {
+		return err
+	}
 
 	if len(blocks) == 0 {
 		return bc.AppendBlock(b)
@@ -91,35 +97,47 @@ func (bc *BlockChain) appendCompactBlock(b *CompactBlock) error {
 	return bc.chain.Db().Create(bs).Error
 }
 
-func (bc *BlockChain) ExistsBlock(blockHash Hash) bool {
+func (bc *BlockChain) ExistsBlock(blockHash Hash) (bool, error) {
 	var bss []BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
+	err := bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
-	}).Find(&bss)
+	}).Find(&bss).Error
+	if err != nil {
+		return false, err
+	}
 
-	return len(bss) > 0
+	return len(bss) > 0, nil
 }
 
 func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
 	var bs BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
+	err := bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
-	}).First(&bs)
+	}).First(&bs).Error
+	if err != nil {
+		return nil, err
+	}
 	return bs.toBlock()
 }
 
 func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*CompactBlock, error) {
 	var bs BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{
+	err := bc.chain.Db().Where(&BlocksScheme{
 		Height:   height,
 		Finalize: true,
-	}).First(&bs)
+	}).First(&bs).Error
+	if err != nil {
+		return nil, err
+	}
 	return bs.toBlock()
 }
 
 func (bc *BlockChain) GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error) {
 	var bss []BlocksScheme
-	bc.chain.Db().Where(&BlocksScheme{Height: height}).Find(&bss)
+	err := bc.chain.Db().Where(&BlocksScheme{Height: height}).Find(&bss).Error
+	if err != nil {
+		return nil, err
+	}
 	return bssToBlocks(bss), nil
 }
 
@@ -129,10 +147,9 @@ func (bc *BlockChain) UpdateBlock(b *CompactBlock) error {
 		return err
 	}
 
-	bc.chain.Db().Where(&BlocksScheme{
+	return bc.chain.Db().Where(&BlocksScheme{
 		Hash: b.Hash.String(),
-	}).Updates(bs)
-	return nil
+	}).Updates(bs).Error
 }
 
 func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
@@ -161,24 +178,29 @@ func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
 }
 
 func (bc *BlockChain) Finalize(blockHash Hash) error {
-	bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
+	return bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Hash: blockHash.String(),
-	}).Updates(BlocksScheme{Finalize: true})
-	return nil
+	}).Updates(BlocksScheme{Finalize: true}).Error
 }
 
 func (bc *BlockChain) LastFinalized() (*CompactBlock, error) {
 	var bss []BlocksScheme
-	bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
+	err := bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Finalize: true,
-	}).Order("height").Find(&bss)
+	}).Order("height").Find(&bss).Error
+	if err != nil {
+		return nil, err
+	}
 	bs := bss[len(bss)-1]
 	return bs.toBlock()
 }
 
 func (bc *BlockChain) GetEndBlock() (*CompactBlock, error) {
 	var bs BlocksScheme
-	bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs)
+	err := bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs).Error
+	if err != nil {
+		return nil, err
+	}
 	return bs.toBlock()
 }
 
@@ -207,7 +229,10 @@ func (bc *BlockChain) GetAllBlocks() ([]*CompactBlock, error) {
 
 func (bc *BlockChain) GetRangeBlocks(startHeight, endHeight BlockNum) (blocks []*Block, err error) {
 	var bss []BlocksScheme
-	bc.chain.Db().Where("height BETWEEN ? AND ?", startHeight, endHeight).Find(&bss)
+	err = bc.chain.Db().Where("height BETWEEN ? AND ?", startHeight, endHeight).Find(&bss).Error
+	if err != nil {
+		return
+	}
 	compactblocks := bssToBlocks(bss)
 	for _, compactblock := range compactblocks {
 		var txns SignedTxns
