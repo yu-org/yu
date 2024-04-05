@@ -27,6 +27,7 @@ type Poa struct {
 	currentHeight *atomic.Uint32
 
 	blockInterval int
+	packNum       uint64
 	recvChan      chan *Block
 	// local node index in addrs
 	nodeIdx int
@@ -42,10 +43,10 @@ func NewPoa(cfg *PoaConfig) *Poa {
 	if err != nil {
 		logrus.Fatal("resolve poa config error: ", err)
 	}
-	return newPoa(pub, priv, infos, cfg.BlockInterval)
+	return newPoa(pub, priv, infos, cfg.BlockInterval, cfg.PackNum)
 }
 
-func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int) *Poa {
+func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int, packNum uint64) *Poa {
 	tri := NewTripod()
 
 	var nodeIdx int
@@ -71,6 +72,7 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interva
 		myPrivKey:      myPrivkey,
 		currentHeight:  atomic.NewUint32(0),
 		blockInterval:  interval,
+		packNum:        packNum,
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
@@ -166,7 +168,7 @@ func (h *Poa) StartBlock(block *Block) {
 	}
 
 	logrus.Infof(" I am Leader! I mine the block for height (%d)! ", block.Height)
-	txns, err := h.Pool.Pack(5000)
+	txns, err := h.Pool.Pack(h.packNum)
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
