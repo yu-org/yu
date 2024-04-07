@@ -33,11 +33,11 @@ func main() {
 	CreateAccount(privkey, pubkey, 500)
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 1 ---")
+	logrus.Info("--- send Transferring 1 ---")
 	TransferBalance(privkey, pubkey, toPubkey.Address(), 50, 0)
 	time.Sleep(4 * time.Second)
 
-	logrus.Info("--- send Transfering 2 ---")
+	logrus.Info("--- send Transferring 2 ---")
 	TransferBalance(privkey, pubkey, toPubkey.Address(), 100, 0)
 	time.Sleep(6 * time.Second)
 

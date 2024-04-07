@@ -108,7 +108,7 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 //}
 
 func (k *Kernel) errorAndClose(c *websocket.Conn, text string) {
-	// FIXEME
+	// FIXME
 	c.WriteMessage(websocket.CloseMessage, []byte(text))
 	c.Close()
 }
