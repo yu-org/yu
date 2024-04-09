@@ -42,14 +42,16 @@ Then, register your `Writing` and `Reading` and start with `main`.
 ```go
 func NewExample() *Example {
     tri := tripod.NewTripod()
-    e := &User{tri}
+    e := &Example{tri}
 
     e.SetWritings(e.Write)
     e.SetReadings(e.Read)
+
+    return e
 }
 
 func main() {
-    	poaConf := poa.DefaultCfg(0)
+	poaConf := poa.DefaultCfg(0)
 	startup.InitDefaultKernelConfig()
 	startup.DefaultStartup(poa.NewPoa(poaConf), NewExample())
 }
