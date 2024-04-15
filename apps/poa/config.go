@@ -33,7 +33,7 @@ func DefaultCfg(idx int) *PoaConfig {
 			{Pubkey: "", P2pIp: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 		},
 		BlockInterval: 3,
-		PackNum:       5000,
+		PackNum:       30000,
 	}
 	var myPubkey PubKey
 	for i, secret := range DefaultSecrets {
