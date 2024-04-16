@@ -1,11 +1,14 @@
 package blockchain
 
 import (
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"gorm.io/gorm"
 )
 
 type BlockChain struct {
@@ -44,6 +47,9 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 	var block BlocksScheme
 	err := bc.chain.Db().Where("height = ?", 0).First(&block).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yerror.ErrBlockNotFound
+		}
 		return nil, err
 	}
 	cb, err := block.toBlock()
@@ -115,6 +121,9 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
 		Hash: blockHash.String(),
 	}).First(&bs).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yerror.ErrBlockNotFound
+		}
 		return nil, err
 	}
 	return bs.toBlock()
@@ -127,6 +136,9 @@ func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*CompactBlock, error) {
 		Finalize: true,
 	}).First(&bs).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yerror.ErrBlockNotFound
+		}
 		return nil, err
 	}
 	return bs.toBlock()
@@ -199,6 +211,9 @@ func (bc *BlockChain) GetEndBlock() (*CompactBlock, error) {
 	var bs BlocksScheme
 	err := bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, yerror.ErrBlockNotFound
+		}
 		return nil, err
 	}
 	return bs.toBlock()
