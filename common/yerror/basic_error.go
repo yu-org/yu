@@ -25,6 +25,8 @@ var (
 	TxnTooLarge   error = errors.New("the size of txn is too large")
 )
 
+var ErrBlockNotFound error = errors.New("block not found")
+
 var OutOfLei = errors.New("Lei out")
 
 type ErrTxnSignatureIllegal struct {
