@@ -21,6 +21,8 @@ type Tripod struct {
 	Init
 	BlockCycle
 
+	Committer
+
 	Instance interface{}
 
 	name string
@@ -43,10 +45,11 @@ func NewTripodWithName(name string) *Tripod {
 		readings:    make(map[string]Reading),
 		P2pHandlers: make(map[int]P2pHandler),
 
-		BlockVerifier: &DefaultBlockVerifier{},
-		TxnChecker:    &DefaultTxnChecker{},
-		Init:          &DefaultInit{},
-		BlockCycle:    &DefaultBlockCycle{},
+		BlockVerifier: new(DefaultBlockVerifier),
+		TxnChecker:    new(DefaultTxnChecker),
+		Init:          new(DefaultInit),
+		BlockCycle:    new(DefaultBlockCycle),
+		Committer:     new(DefaultCommitter),
 	}
 }
 
@@ -87,6 +90,10 @@ func (t *Tripod) SetLand(land *Land) {
 
 func (t *Tripod) SetInit(init Init) {
 	t.Init = init
+}
+
+func (t *Tripod) SetCommitter(c Committer) {
+	t.Committer = c
 }
 
 func (t *Tripod) SetBlockCycle(bc BlockCycle) {

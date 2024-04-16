@@ -21,3 +21,7 @@ type BlockCycle interface {
 	EndBlock(block *Block)
 	FinalizeBlock(block *Block)
 }
+
+type Committer interface {
+	Commit()
+}
