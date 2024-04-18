@@ -12,13 +12,26 @@ var (
 	PlusConsole       *console.Console
 )
 
-func init() {
+func InitPrettyLog(output string) {
 	doubleLine := text.WithDoubleLine()
-	DoubleLineConsole = console.NewConsole(console.WithTextOption(doubleLine))
+	DoubleLineConsole = console.NewConsole(console.WithOutputDir(output), console.WithTextOption(doubleLine))
+	doLog(DoubleLineConsole)
+
 	star := text.WithStarStyle()
-	StarConsole = console.NewConsole(console.WithTextOption(star))
+	StarConsole = console.NewConsole(console.WithOutputDir(output), console.WithTextOption(star))
+	doLog(StarConsole)
+
 	plus := text.WithPlusStyle()
-	PlusConsole = console.NewConsole(console.WithTextOption(plus))
+	PlusConsole = console.NewConsole(console.WithOutputDir(output), console.WithTextOption(plus))
+	doLog(PlusConsole)
+
 	dot := text.WithDotStyle()
-	DotConsole = console.NewConsole(console.WithTextOption(dot))
+	DotConsole = console.NewConsole(console.WithOutputDir(output), console.WithTextOption(dot))
+	doLog(DotConsole)
+}
+
+func doLog(c *console.Console) {
+	c.DisableColor()
+	c.DisableBorder()
+	c.Close()
 }
