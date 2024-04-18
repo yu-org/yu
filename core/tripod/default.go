@@ -28,4 +28,4 @@ func (*DefaultBlockCycle) FinalizeBlock(*Block) {}
 
 type DefaultCommitter struct{}
 
-func (*DefaultCommitter) Commit() {}
+func (*DefaultCommitter) Commit(*Block) {}

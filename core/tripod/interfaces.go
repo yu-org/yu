@@ -23,5 +23,5 @@ type BlockCycle interface {
 }
 
 type Committer interface {
-	Commit()
+	Commit(ctx *Block)
 }
