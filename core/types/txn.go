@@ -2,7 +2,6 @@ package types
 
 import (
 	"crypto/sha256"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/types/goproto"
@@ -52,7 +51,7 @@ func (st *SignedTxn) GetCallerAddr() *Address {
 		return nil
 	}
 	var addr Address
-	addrByt := common.BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
+	addrByt := BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
 	copy(addr[:], addrByt.Bytes())
 	return &addr
 }
