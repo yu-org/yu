@@ -39,7 +39,10 @@ func (e *Evm) Create(code []byte, origin common.Address) ([]byte, common.Address
 
 // Call contract
 func (e *Evm) Call(contAddr common.Address, origin common.Address, inputCode []byte) ([]byte, uint64, error) {
-	e.cfg.State.SetCode(contAddr, e.cfg.State.GetCode(contAddr))
+	if len(inputCode) > 0 {
+		e.cfg.State.SetCode(contAddr, inputCode)
+	}
+	// e.cfg.State.SetCode(contAddr, e.cfg.State.GetCode(contAddr))
 	return runtime.Call(contAddr, inputCode, e.cfg)
 }
 
