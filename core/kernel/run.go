@@ -135,6 +135,11 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		receipts[stxn.TxnHash] = receipt
 	}
 
+	k.land.RangeList(func(t *Tripod) error {
+		t.Committer.Commit(block)
+		return nil
+	})
+
 	if len(receipts) > 0 {
 		err := k.TxDB.SetReceipts(receipts)
 		if err != nil {

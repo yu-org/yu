@@ -30,7 +30,7 @@ func (t *Tripod) NextTxn() {
 	t.State.NextTxn()
 }
 
-func (t *Tripod) Commit() (Hash, error) {
+func (t *Tripod) CommitState() (Hash, error) {
 	hash, err := t.State.Commit()
 	if err != nil {
 		return NullHash, err
