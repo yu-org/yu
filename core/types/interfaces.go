@@ -70,6 +70,7 @@ type IBlockChain interface {
 	GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
 	ExistsBlock(blockHash Hash) (bool, error)
 	UpdateBlock(b *CompactBlock) error
+	UpdateBlockByHeight(b *CompactBlock) error
 
 	Children(prevBlockHash Hash) ([]*CompactBlock, error)
 	Finalize(blockHash Hash) error
