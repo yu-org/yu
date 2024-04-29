@@ -164,6 +164,17 @@ func (bc *BlockChain) UpdateBlock(b *CompactBlock) error {
 	}).Updates(bs).Error
 }
 
+func (bc *BlockChain) UpdateBlockByHeight(b *CompactBlock) error {
+	bs, err := toBlocksScheme(b)
+	if err != nil {
+		return err
+	}
+
+	return bc.chain.Db().Where(&BlocksScheme{
+		Height: b.Height,
+	}).Updates(bs).Error
+}
+
 func (bc *BlockChain) Children(prevBlockHash Hash) ([]*CompactBlock, error) {
 	rows, err := bc.chain.Db().Model(&BlocksScheme{}).Where(BlocksScheme{
 		PrevHash: prevBlockHash.String(),
