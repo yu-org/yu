@@ -167,7 +167,10 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		block.StateRoot = BytesToHash(stateRoot)
 	}
 
-	block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	// Because tripod.Committer could update this field.
+	if block.ReceiptRoot != NullHash {
+		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	}
 	return err
 }
 
