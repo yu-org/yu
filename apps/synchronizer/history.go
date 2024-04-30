@@ -40,14 +40,9 @@ func (b *Synchronizer) defineGenesis(genesisBlock *Block) {
 	if err != nil {
 		logrus.Panic("sign genesis block failed: ", err)
 	}
-
-	genesisBlock = &Block{
-		Header: &Header{
-			Hash:           genesisHash,
-			MinerPubkey:    rootPubkey.BytesWithType(),
-			MinerSignature: signer,
-		},
-	}
+	genesisBlock.Hash = genesisHash
+	genesisBlock.MinerSignature = signer
+	genesisBlock.MinerPubkey = rootPubkey.BytesWithType()
 
 	err = b.Chain.SetGenesis(genesisBlock)
 	if err != nil {
