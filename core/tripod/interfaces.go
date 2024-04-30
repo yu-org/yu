@@ -13,7 +13,7 @@ type BlockVerifier interface {
 }
 
 type Init interface {
-	InitChain()
+	InitChain(block *Block)
 }
 
 type BlockCycle interface {
