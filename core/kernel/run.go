@@ -163,12 +163,12 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.StateRoot != NullHash {
+	if block.StateRoot == NullHash {
 		block.StateRoot = BytesToHash(stateRoot)
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.ReceiptRoot != NullHash {
+	if block.ReceiptRoot == NullHash {
 		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
 	}
 	return err
