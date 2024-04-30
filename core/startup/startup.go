@@ -42,7 +42,7 @@ func StartUp(tripodInstances ...interface{}) {
 }
 
 func InitDefaultKernel(tripodInstances ...interface{}) *kernel.Kernel {
-	tripodInstances = append([]interface{}{synchronizer.NewSynchronizer(KernelCfg.SyncMode)}, tripodInstances...)
+	tripodInstances = append(tripodInstances, synchronizer.NewSynchronizer(KernelCfg.SyncMode))
 	return InitKernel(tripodInstances...)
 }
 

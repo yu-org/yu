@@ -71,7 +71,7 @@ func (k *Kernel) WithExecuteFn(fn ExecuteFn) {
 }
 
 func (k *Kernel) Startup() {
-	k.InitChain()
+	k.InitBlockChain()
 
 	go k.HandleHttp()
 	go k.HandleWS()
@@ -83,9 +83,10 @@ func (k *Kernel) Stop() {
 	k.stopChan <- struct{}{}
 }
 
-func (k *Kernel) InitChain() {
+func (k *Kernel) InitBlockChain() {
+	genesisBlock := k.makeGenesisBlock()
 	k.land.RangeList(func(tri *Tripod) error {
-		tri.InitChain()
+		tri.InitChain(genesisBlock)
 		return nil
 	})
 }

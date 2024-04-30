@@ -112,7 +112,7 @@ func (h *Poa) VerifyBlock(block *Block) bool {
 	return minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature)
 }
 
-func (h *Poa) InitChain() {
+func (h *Poa) InitChain(block *Block) {
 
 	go func() {
 		for {

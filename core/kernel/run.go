@@ -79,6 +79,16 @@ func (k *Kernel) LocalRun() (err error) {
 	})
 }
 
+func (k *Kernel) makeGenesisBlock() *Block {
+	genesisBlock := k.Chain.NewEmptyBlock()
+
+	genesisBlock.Timestamp = ytime.NowTsU64()
+	genesisBlock.PeerID = k.P2pNetwork.LocalID()
+	genesisBlock.Height = 0
+	genesisBlock.LeiLimit = k.leiLimit
+	return genesisBlock
+}
+
 func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 	newBlock := k.Chain.NewEmptyBlock()
 
@@ -152,9 +162,15 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		return err
 	}
 
-	block.StateRoot = BytesToHash(stateRoot)
+	// Because tripod.Committer could update this field.
+	if block.StateRoot == NullHash {
+		block.StateRoot = BytesToHash(stateRoot)
+	}
 
-	block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	// Because tripod.Committer could update this field.
+	if block.ReceiptRoot == NullHash {
+		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	}
 	return err
 }
 

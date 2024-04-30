@@ -27,12 +27,12 @@ func NewSynchronizer(syncMode int) *Synchronizer {
 	return fh
 }
 
-func (b *Synchronizer) InitChain() {
-	b.defineGenesis()
+func (b *Synchronizer) InitChain(block *Block) {
+	b.defineGenesis(block)
 	b.syncHistory()
 }
 
-func (b *Synchronizer) defineGenesis() {
+func (b *Synchronizer) defineGenesis(genesisBlock *Block) {
 	// FIXME: must NOT generate private key onchain.
 	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")
@@ -40,16 +40,11 @@ func (b *Synchronizer) defineGenesis() {
 	if err != nil {
 		logrus.Panic("sign genesis block failed: ", err)
 	}
+	genesisBlock.Hash = genesisHash
+	genesisBlock.MinerSignature = signer
+	genesisBlock.MinerPubkey = rootPubkey.BytesWithType()
 
-	gensisBlock := &Block{
-		Header: &Header{
-			Hash:           genesisHash,
-			MinerPubkey:    rootPubkey.BytesWithType(),
-			MinerSignature: signer,
-		},
-	}
-
-	err = b.Chain.SetGenesis(gensisBlock)
+	err = b.Chain.SetGenesis(genesisBlock)
 	if err != nil {
 		logrus.Panic("set genesis block failed: ", err)
 	}
