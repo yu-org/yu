@@ -56,7 +56,10 @@ func (p *Pebble) Exist(prefix string, key []byte) bool {
 
 func (p *Pebble) Iter(prefix string, key []byte) (Iterator, error) {
 	key = makeKey(prefix, key)
-	iter := p.db.NewIter(&pebble.IterOptions{})
+	iter, err := p.db.NewIter(&pebble.IterOptions{})
+	if err != nil {
+		return nil, err
+	}
 	iter.SeekPrefixGE(key)
 	return &PebbleIter{iter: iter}, nil
 }
