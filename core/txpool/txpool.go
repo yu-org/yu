@@ -20,7 +20,7 @@ type TxPool struct {
 	txdb         ItxDB
 
 	baseChecks   []TxnCheckFn
-	tripodChecks []TxnCheckFn
+	tripodChecks map[string]TxnCheckFn
 }
 
 func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
@@ -33,7 +33,7 @@ func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
 		unpackedTxns: ordered,
 		txdb:         base,
 		baseChecks:   make([]TxnCheckFn, 0),
-		tripodChecks: make([]TxnCheckFn, 0),
+		tripodChecks: make(map[string]TxnCheckFn),
 	}
 	return tp
 }
@@ -60,8 +60,8 @@ func (tp *TxPool) WithBaseCheck(tc TxnChecker) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) WithTripodCheck(tc TxnChecker) ItxPool {
-	tp.tripodChecks = append(tp.tripodChecks, tc.CheckTxn)
+func (tp *TxPool) WithTripodCheck(tripodName string, tc TxnChecker) ItxPool {
+	tp.tripodChecks[tripodName] = tc.CheckTxn
 	return tp
 }
 
@@ -126,7 +126,8 @@ func (tp *TxPool) BaseCheck(stxn *SignedTxn) error {
 }
 
 func (tp *TxPool) TripodsCheck(stxn *SignedTxn) error {
-	return Check(tp.tripodChecks, stxn)
+	tripodCheck := tp.tripodChecks[stxn.TripodName()]
+	return tripodCheck(stxn)
 }
 
 func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {

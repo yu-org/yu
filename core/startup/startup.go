@@ -78,10 +78,6 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 
 	StartGrpcServer()
 
-	for _, tri := range tripods {
-		Pool.WithTripodCheck(tri)
-	}
-
 	chainEnv := &env.ChainEnv{
 		State:      StateDB,
 		Chain:      Chain,
@@ -98,6 +94,10 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	}
 
 	Land.SetTripods(tripods...)
+
+	for _, tri := range tripods {
+		Pool.WithTripodCheck(tri.Name(), tri)
+	}
 
 	for _, tripodInterface := range tripodInstances {
 		err = tripod.Inject(tripodInterface)
