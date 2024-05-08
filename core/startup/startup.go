@@ -96,7 +96,7 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	Land.SetTripods(tripods...)
 
 	for _, tri := range tripods {
-		Pool.WithTripodCheck(tri.Name(), tri)
+		Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
 	}
 
 	for _, tripodInterface := range tripodInstances {

@@ -76,10 +76,10 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interva
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
-	p.SetInit(p)
-	p.SetTxnChecker(p)
-	p.SetBlockCycle(p)
-	p.SetBlockVerifier(p)
+	//p.SetInit(p)
+	//p.SetTxnChecker(p)
+	//p.SetBlockCycle(p)
+	//p.SetBlockVerifier(p)
 	return p
 }
 
