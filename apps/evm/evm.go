@@ -39,7 +39,10 @@ func (e *Evm) Create(code []byte, origin common.Address) ([]byte, common.Address
 
 // Call contract
 func (e *Evm) Call(contAddr common.Address, origin common.Address, inputCode []byte) ([]byte, uint64, error) {
-	e.cfg.State.SetCode(contAddr, e.cfg.State.GetCode(contAddr))
+	if len(inputCode) > 0 {
+		e.cfg.State.SetCode(contAddr, inputCode)
+	}
+	// e.cfg.State.SetCode(contAddr, e.cfg.State.GetCode(contAddr))
 	return runtime.Call(contAddr, inputCode, e.cfg)
 }
 
@@ -193,7 +196,7 @@ func setDefaults(chainId int64, gasLimit, gasPrice uint64) *runtime.Config {
 	return cfg
 }
 
-// parse token name or symbol by call result.
+// parse token name or symbol by call receipt.
 func ParseCallResultToString(result string) string {
 	var res string
 	resBt := common.Hex2Bytes(result)
@@ -204,7 +207,7 @@ func ParseCallResultToString(result string) string {
 	return res
 }
 
-// parse token decimal or totalSupply by call result.
+// parse token decimal or totalSupply by call receipt.
 func ParseCallResultToBig(result string) *big.Int {
 	if res, ok := big.NewInt(0).SetString(result, 16); ok {
 		return res

@@ -6,19 +6,19 @@ import (
 	"os"
 )
 
-func InitConfigFromPath(cfgPath string) {
+func InitKernelConfigFromPath(cfgPath string) {
 	config.LoadTomlConf(cfgPath, KernelCfg)
 	initDataDir()
 	initLog(KernelCfg)
 }
 
-func InitConfig(cfg *config.KernelConf) {
+func InitKernelConfig(cfg *config.KernelConf) {
 	KernelCfg = cfg
 	initDataDir()
 	initLog(KernelCfg)
 }
 
-func InitDefaultConfig() {
+func InitDefaultKernelConfig() {
 	KernelCfg = config.InitDefaultCfg()
 	initDataDir()
 	initLog(KernelCfg)

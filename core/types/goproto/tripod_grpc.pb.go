@@ -116,7 +116,7 @@ func (UnimplementedTripodServer) FinalizeBlock(context.Context, *TripodBlockRequ
 
 // UnsafeTripodServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TripodServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeTripodServer interface {
 	mustEmbedUnimplementedTripodServer()
 }
@@ -288,7 +288,7 @@ func (UnimplementedLandServer) SetTripods(context.Context, *TripodsInfo) (*empty
 
 // UnsafeLandServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to LandServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeLandServer interface {
 	mustEmbedUnimplementedLandServer()
 }

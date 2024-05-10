@@ -157,7 +157,7 @@ func (UnimplementedTxDBServer) SetError(context.Context, *Error) (*Err, error) {
 
 // UnsafeTxDBServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to TxDBServer will
-// result in compilation errors.
+// receipt in compilation errors.
 type UnsafeTxDBServer interface {
 	mustEmbedUnimplementedTxDBServer()
 }

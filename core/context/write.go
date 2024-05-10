@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/types"
 )
 
@@ -15,8 +14,9 @@ type WriteContext struct {
 	Block *Block
 	Txn   *SignedTxn
 
-	Events  []*Event
-	Error   *Error
+	Events []*Event
+	Extra  []byte
+
 	LeiCost uint64
 }
 
@@ -46,7 +46,7 @@ func (c *WriteContext) GetTxnHash() Hash {
 	return c.Txn.TxnHash
 }
 
-func (c *WriteContext) GetCaller() Address {
+func (c *WriteContext) GetCaller() *Address {
 	return c.Txn.GetCallerAddr()
 }
 
@@ -83,8 +83,6 @@ func (c *WriteContext) EmitJsonEvent(value any) error {
 	return nil
 }
 
-func (c *WriteContext) EmitError(e error) {
-	c.Error = &Error{
-		Err: e.Error(),
-	}
+func (c *WriteContext) EmitExtra(extra []byte) {
+	c.Extra = extra
 }

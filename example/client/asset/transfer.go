@@ -45,7 +45,7 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 		Params:     string(paramsByt),
 		LeiPrice:   0,
 	}
-	CallChainByWriting(privkey, pubkey, wrCall)
+	CallChainByWritingWithSig(privkey, pubkey, wrCall)
 }
 
 type TransferInfo struct {
@@ -68,5 +68,5 @@ func TransferBalance(privkey PrivKey, pubkey PubKey, to Address, amount, leiPric
 		Params:     string(paramsByt),
 		LeiPrice:   leiPrice,
 	}
-	CallChainByWriting(privkey, pubkey, wrCall)
+	CallChainByWritingWithSig(privkey, pubkey, wrCall)
 }

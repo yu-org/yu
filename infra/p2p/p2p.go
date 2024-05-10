@@ -6,12 +6,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/network"
-	peerstore "github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
+	peerstore "github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/core/protocol"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -98,11 +98,10 @@ func (p *LibP2P) SetHandlers(handlers map[int]dev.P2pHandler) {
 		go func() {
 			var oldErr error
 			for {
-
 				err := handleP2pRequest(stream, handlers)
 				if err != nil && err != oldErr {
 					logrus.Errorf("handle request from node(%s) error: %s",
-						stream.Conn().RemotePeer().Pretty(), err.Error(),
+						stream.Conn().RemotePeer(), err.Error(),
 					)
 					oldErr = err
 				}
@@ -205,7 +204,6 @@ func makeP2pHost(cfg *config.P2pConf) (host.Host, error) {
 		return nil, err
 	}
 	p2pHost, err := libp2p.New(
-		context.Background(),
 		libp2p.Identity(priv),
 		libp2p.ListenAddrStrings(cfg.P2pListenAddrs...),
 	)
@@ -213,7 +211,7 @@ func makeP2pHost(cfg *config.P2pConf) (host.Host, error) {
 		return nil, err
 	}
 
-	hostAddr, err := maddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", p2pHost.ID().Pretty()))
+	hostAddr, err := maddr.NewMultiaddr(fmt.Sprintf("/p2p/%s", p2pHost.ID()))
 	if err != nil {
 		return nil, err
 	}

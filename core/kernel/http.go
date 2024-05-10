@@ -3,10 +3,7 @@ package kernel
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core"
-	"github.com/yu-org/yu/core/context"
-	"github.com/yu-org/yu/core/types"
 	"net/http"
 )
 
@@ -17,8 +14,8 @@ func (k *Kernel) HandleHttp() {
 	r.POST(WrApiPath, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
-	// GET request
-	r.GET(RdApiPath, func(c *gin.Context) {
+	// POST request
+	r.POST(RdApiPath, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
@@ -29,44 +26,15 @@ func (k *Kernel) HandleHttp() {
 }
 
 func (k *Kernel) handleHttpWr(c *gin.Context) {
-	rawWrCall, err := GetRawWrCall(c)
+	signedWrCall, err := GetSignedWrCall(c)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = k.land.GetWriting(rawWrCall.Call.TripodName, rawWrCall.Call.FuncName)
+	err = k.HandleTxn(signedWrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	stxn, err := types.NewSignedTxn(rawWrCall.Call, rawWrCall.Pubkey, rawWrCall.Signature)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	if k.txPool.Exist(stxn) {
-		return
-	}
-
-	err = k.txPool.CheckTxn(stxn)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	go func() {
-		err = k.pubUnpackedTxns(types.FromArray(stxn))
-		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		}
-	}()
-
-	err = k.txPool.Insert(stxn)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 }
 
@@ -77,19 +45,28 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 		return
 	}
 
-	switch k.RunMode {
-	case LocalNode:
-		ctx, err := context.NewReadContext(c)
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
-		}
-
-		rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
-		}
-		rd(ctx)
+	respData, err := k.HandleRead(rdCall)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
+	if respData.IsJson {
+		c.JSON(respData.StatusCode, respData.DataInterface)
+	} else {
+		c.Data(respData.StatusCode, respData.ContentType, respData.DataBytes)
+	}
+
+	//ctx, err := context.NewReadContext(c, rdCall)
+	//if err != nil {
+	//	c.AbortWithError(http.StatusBadRequest, err)
+	//	return
+	//}
+	//
+	//rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
+	//if err != nil {
+	//	c.AbortWithError(http.StatusBadRequest, err)
+	//	return
+	//}
+	//rd(ctx)
+
 }

@@ -29,8 +29,6 @@ var (
 	StateDB state.IState
 
 	Land = tripod.NewLand()
-
-	TxnExecute env.ExecuteFn
 )
 
 func DefaultStartup(tripodInstances ...interface{}) {
@@ -44,7 +42,7 @@ func StartUp(tripodInstances ...interface{}) {
 }
 
 func InitDefaultKernel(tripodInstances ...interface{}) *kernel.Kernel {
-	tripodInstances = append([]interface{}{synchronizer.NewSynchronizer(KernelCfg.SyncMode)}, tripodInstances...)
+	tripodInstances = append(tripodInstances, synchronizer.NewSynchronizer(KernelCfg.SyncMode))
 	return InitKernel(tripodInstances...)
 }
 
@@ -80,10 +78,6 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 
 	StartGrpcServer()
 
-	for _, tri := range tripods {
-		Pool.WithTripodCheck(tri)
-	}
-
 	chainEnv := &env.ChainEnv{
 		State:      StateDB,
 		Chain:      Chain,
@@ -101,6 +95,10 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 
 	Land.SetTripods(tripods...)
 
+	for _, tri := range tripods {
+		Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
+	}
+
 	for _, tripodInterface := range tripodInstances {
 		err = tripod.Inject(tripodInterface)
 		if err != nil {
@@ -108,5 +106,5 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 		}
 	}
 
-	return kernel.NewKernel(KernelCfg, chainEnv, Land, TxnExecute)
+	return kernel.NewKernel(KernelCfg, chainEnv, Land)
 }

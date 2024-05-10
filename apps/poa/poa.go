@@ -2,13 +2,14 @@ package poa
 
 import (
 	"bytes"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"fmt"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
-	"github.com/yu-org/yu/apps/metamask"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/utils/log"
 	"go.uber.org/atomic"
 	"time"
 )
@@ -26,6 +27,7 @@ type Poa struct {
 	currentHeight *atomic.Uint32
 
 	blockInterval int
+	packNum       uint64
 	recvChan      chan *Block
 	// local node index in addrs
 	nodeIdx int
@@ -41,10 +43,10 @@ func NewPoa(cfg *PoaConfig) *Poa {
 	if err != nil {
 		logrus.Fatal("resolve poa config error: ", err)
 	}
-	return newPoa(pub, priv, infos, cfg.BlockInterval)
+	return newPoa(pub, priv, infos, cfg.BlockInterval, cfg.PackNum)
 }
 
-func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int) *Poa {
+func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int, packNum uint64) *Poa {
 	tri := NewTripod()
 
 	var nodeIdx int
@@ -70,13 +72,14 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interva
 		myPrivKey:      myPrivkey,
 		currentHeight:  atomic.NewUint32(0),
 		blockInterval:  interval,
+		packNum:        packNum,
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
 	}
-	p.SetInit(p)
-	p.SetTxnChecker(p)
-	p.SetBlockCycle(p)
-	p.SetBlockVerifier(p)
+	//p.SetInit(p)
+	//p.SetTxnChecker(p)
+	//p.SetBlockCycle(p)
+	//p.SetBlockVerifier(p)
 	return p
 }
 
@@ -92,7 +95,8 @@ func (h *Poa) LocalAddress() Address {
 }
 
 func (h *Poa) CheckTxn(txn *SignedTxn) error {
-	return metamask.CheckMetamaskSig(txn)
+	// return metamask.CheckMetamaskSig(txn)
+	return nil
 }
 
 func (h *Poa) VerifyBlock(block *Block) bool {
@@ -108,7 +112,7 @@ func (h *Poa) VerifyBlock(block *Block) bool {
 	return minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature)
 }
 
-func (h *Poa) InitChain() {
+func (h *Poa) InitChain(block *Block) {
 
 	go func() {
 		for {
@@ -153,7 +157,7 @@ func (h *Poa) StartBlock(block *Block) {
 
 	h.setCurrentHeight(block.Height)
 
-	logrus.Info("====== start a new block ", block.Height)
+	log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
 
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
@@ -163,8 +167,8 @@ func (h *Poa) StartBlock(block *Block) {
 		}
 	}
 
-	logrus.Info(" I am Leader! I mine the block! ")
-	txns, err := h.Pool.Pack(5000)
+	logrus.Infof(" I am Leader! I mine the block for height (%d)! ", block.Height)
+	txns, err := h.Pool.Pack(h.packNum)
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
@@ -210,7 +214,7 @@ func (h *Poa) EndBlock(block *Block) {
 		logrus.Panic("execute block failed: ", err)
 	}
 
-	// TODO: sync the state (execute result) with other nodes
+	// TODO: sync the state (execute receipt) with other nodes
 
 	err = chain.AppendBlock(block)
 	if err != nil {
@@ -222,15 +226,19 @@ func (h *Poa) EndBlock(block *Block) {
 		logrus.Panic("reset pool failed: ", err)
 	}
 
-	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
-		Info("append block")
+	// log.PlusLog().Info(fmt.Sprintf("append block, height=%d, hash=%s", block.Height, block.Hash.String()))
+
+	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+	//	Info("append block")
 
 	h.State.FinalizeBlock(block.Hash)
 }
 
 func (h *Poa) FinalizeBlock(block *Block) {
-	logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
-		Info("finalize block")
+	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
+	//	Info("finalize block")
+
+	log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
 	h.Chain.Finalize(block.Hash)
 }
 

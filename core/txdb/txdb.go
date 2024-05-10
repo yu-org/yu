@@ -2,7 +2,6 @@ package txdb
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 )
@@ -13,16 +12,16 @@ const (
 )
 
 type TxDB struct {
-	nodeType int
-	txnKV    kv.KV
-	resultKV kv.KV
+	nodeType  int
+	txnKV     kv.KV
+	receiptKV kv.KV
 }
 
 func NewTxDB(nodeTyp int, kvdb kv.Kvdb) ItxDB {
 	return &TxDB{
-		nodeType: nodeTyp,
-		txnKV:    kvdb.New(Txns),
-		resultKV: kvdb.New(Results),
+		nodeType:  nodeTyp,
+		txnKV:     kvdb.New(Txns),
+		receiptKV: kvdb.New(Results),
 	}
 }
 
@@ -65,22 +64,18 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResults(results []*Result) error {
-	kvtx, err := bb.resultKV.NewKvTxn()
+func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) error {
+	kvtx, err := bb.receiptKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
 
-	for _, result := range results {
-		byt, err := result.Encode()
+	for txHash, receipt := range receipts {
+		byt, err := receipt.Encode()
 		if err != nil {
 			return err
 		}
-		hash, err := result.Hash()
-		if err != nil {
-			return err
-		}
-		err = kvtx.Set(hash, byt)
+		err = kvtx.Set(txHash.Bytes(), byt)
 		if err != nil {
 			return err
 		}
@@ -89,14 +84,23 @@ func (bb *TxDB) SetResults(results []*Result) error {
 	return kvtx.Commit()
 }
 
-func (bb *TxDB) SetResult(result *Result) error {
-	byt, err := result.Encode()
+func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) error {
+	byt, err := receipt.Encode()
 	if err != nil {
 		return err
 	}
-	hash, err := result.Hash()
+	return bb.receiptKV.Set(txHash.Bytes(), byt)
+}
+
+func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
+	byt, err := bb.receiptKV.Get(txHash.Bytes())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return bb.resultKV.Set(hash, byt)
+	if byt == nil {
+		return nil, nil
+	}
+	receipt := new(Receipt)
+	err = receipt.Decode(byt)
+	return receipt, err
 }

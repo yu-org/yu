@@ -7,6 +7,7 @@ import (
 	. "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
 	"math/big"
+	"net/http"
 )
 
 type Asset struct {
@@ -54,13 +55,23 @@ func NewAsset(tokenName string) *Asset {
 	return a
 }
 
+type AccountRequest struct {
+	Account string `json:"account"`
+}
+
 func (a *Asset) QueryBalance(ctx *ReadContext) {
-	account := HexToAddress(ctx.Query("account"))
-	if !a.ExistAccount(account) {
-		ctx.StringOk(AccountNotFound(account).Error())
+	var req AccountRequest
+	err := ctx.BindJson(&req)
+	if err != nil {
+		ctx.Err(http.StatusBadRequest, err)
 		return
 	}
-	amount := a.GetBalance(account)
+	account := HexToAddress(req.Account)
+	if !a.ExistAccount(&account) {
+		ctx.ErrOk(AccountNotFound(account))
+		return
+	}
+	amount := a.GetBalance(&account)
 	ctx.JsonOk(H{"amount": amount})
 }
 
@@ -79,9 +90,9 @@ func (a *Asset) Transfer(ctx *WriteContext) (err error) {
 	return
 }
 
-func (a *Asset) transfer(from, to Address, amount *big.Int) error {
+func (a *Asset) transfer(from, to *Address, amount *big.Int) error {
 	if !a.ExistAccount(from) {
-		return AccountNotFound(from)
+		return AccountNotFound(*from)
 	}
 
 	fromBalance := a.GetBalance(from)
@@ -122,11 +133,11 @@ func (a *Asset) CreateAccount(ctx *WriteContext) error {
 	return nil
 }
 
-func (a *Asset) ExistAccount(addr Address) bool {
+func (a *Asset) ExistAccount(addr *Address) bool {
 	return a.Exist(addr.Bytes())
 }
 
-func (a *Asset) GetBalance(addr Address) *big.Int {
+func (a *Asset) GetBalance(addr *Address) *big.Int {
 	balanceByt, err := a.State.Get(a, addr.Bytes())
 	if err != nil {
 		logrus.Panic("get balance error: ", err)
@@ -144,7 +155,7 @@ func (a *Asset) GetBalance(addr Address) *big.Int {
 	return b
 }
 
-func (a *Asset) SetBalance(addr Address, amount *big.Int) {
+func (a *Asset) SetBalance(addr *Address, amount *big.Int) {
 	amountText, err := amount.MarshalText()
 	if err != nil {
 		logrus.Panic("amount marshal error: ", err)
@@ -153,7 +164,7 @@ func (a *Asset) SetBalance(addr Address, amount *big.Int) {
 	a.Set(addr.Bytes(), amountText)
 }
 
-func (a *Asset) AddBalance(addr Address, amount *big.Int) error {
+func (a *Asset) AddBalance(addr *Address, amount *big.Int) error {
 	if amount.Sign() < 0 {
 		return AmountNeg(amount)
 	}
@@ -163,7 +174,7 @@ func (a *Asset) AddBalance(addr Address, amount *big.Int) error {
 	return nil
 }
 
-func (a *Asset) SubBalance(addr Address, amount *big.Int) error {
+func (a *Asset) SubBalance(addr *Address, amount *big.Int) error {
 	if amount.Sign() < 0 {
 		return AmountNeg(amount)
 	}

@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core"
-	"github.com/yu-org/yu/core/types"
 	"net/http"
 )
 
@@ -44,7 +43,7 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 	}
 	if typ == subscription {
 		logrus.Debugf("Register a Subscription(%s)", c.RemoteAddr().String())
-		k.sub.Register(c)
+		k.Sub.Register(c)
 		return
 	}
 
@@ -63,42 +62,13 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 }
 
 func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
-	rawWrCall, err := GetRawWrCall(ctx)
+	signedWrCall, err := GetSignedWrCall(ctx)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = k.land.GetWriting(rawWrCall.Call.TripodName, rawWrCall.Call.FuncName)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	stxn, err := types.NewSignedTxn(rawWrCall.Call, rawWrCall.Pubkey, rawWrCall.Signature)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	if k.txPool.Exist(stxn) {
-		return
-	}
-
-	err = k.txPool.CheckTxn(stxn)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	go func() {
-		err = k.pubUnpackedTxns(types.FromArray(stxn))
-		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
-		}
-	}()
-
-	err = k.txPool.Insert(stxn)
+	err = k.HandleTxn(signedWrCall)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
@@ -131,14 +101,14 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 //		}
 //		err = c.WriteMessage(websocket.BinaryMessage, ctx.Response())
 //		if err != nil {
-//			logrus.Errorf("response GetReading result error: %s", err.Error())
+//			logrus.Errorf("response GetReading receipt error: %s", err.Error())
 //		}
 //	}
 //
 //}
 
 func (k *Kernel) errorAndClose(c *websocket.Conn, text string) {
-	// FIXEME
+	// FIXME
 	c.WriteMessage(websocket.CloseMessage, []byte(text))
 	c.Close()
 }

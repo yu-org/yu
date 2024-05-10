@@ -15,11 +15,13 @@ type Tripod struct {
 	*ChainEnv
 	*Land
 
-	BlockVerifier
-	TxnChecker
+	BlockVerifier BlockVerifier
+	TxnChecker    TxnChecker
 
-	Init
-	BlockCycle
+	Init       Init
+	BlockCycle BlockCycle
+
+	Committer Committer
 
 	Instance interface{}
 
@@ -43,34 +45,60 @@ func NewTripodWithName(name string) *Tripod {
 		readings:    make(map[string]Reading),
 		P2pHandlers: make(map[int]P2pHandler),
 
-		BlockVerifier: &DefaultBlockVerifier{},
-		TxnChecker:    &DefaultTxnChecker{},
-		Init:          &DefaultInit{},
-		BlockCycle:    &DefaultBlockCycle{},
+		BlockVerifier: new(DefaultBlockVerifier),
+		TxnChecker:    new(DefaultTxnChecker),
+		Init:          new(DefaultInit),
+		BlockCycle:    new(DefaultBlockCycle),
+		Committer:     new(DefaultCommitter),
 	}
 }
 
-func (t *Tripod) SetInstance(instance interface{}) {
+func (t *Tripod) SetInstance(tripodInstance any) {
 	if t.name == "" {
-		pkgStruct := reflect.TypeOf(instance).String()
+		pkgStruct := reflect.TypeOf(tripodInstance).String()
 		strArr := strings.Split(pkgStruct, ".")
 		tripodName := strings.ToLower(strArr[len(strArr)-1])
 		t.name = tripodName
 	}
 
+	if isImplementInterface(tripodInstance, (*TxnChecker)(nil)) {
+		t.SetTxnChecker(tripodInstance.(TxnChecker))
+	}
+	if isImplementInterface(tripodInstance, (*BlockCycle)(nil)) {
+		t.SetBlockCycle(tripodInstance.(BlockCycle))
+	}
+	if isImplementInterface(tripodInstance, (*Committer)(nil)) {
+		t.SetCommitter(tripodInstance.(Committer))
+	}
+	if isImplementInterface(tripodInstance, (*BlockVerifier)(nil)) {
+		t.SetBlockVerifier(tripodInstance.(BlockVerifier))
+	}
+	if isImplementInterface(tripodInstance, (*Init)(nil)) {
+		t.SetInit(tripodInstance.(Init))
+	}
+
 	for name, _ := range t.writings {
-		logrus.Debugf("register Writing (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Writing (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	for name, _ := range t.readings {
-		logrus.Debugf("register Reading (%s) into Tripod(%s) \n", name, t.name)
+		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
 	}
 
-	t.Instance = instance
+	t.Instance = tripodInstance
+}
+
+func isImplementInterface(value any, ifacePtr interface{}) bool {
+	iface := reflect.TypeOf(ifacePtr).Elem()
+	return reflect.TypeOf(value).Implements(iface)
 }
 
 func (t *Tripod) Name() string {
 	return t.name
+}
+
+func (t *Tripod) GetCurrentBlock() (*CompactBlock, error) {
+	return t.Chain.GetEndBlock()
 }
 
 func (t *Tripod) SetChainEnv(env *ChainEnv) {
@@ -83,6 +111,10 @@ func (t *Tripod) SetLand(land *Land) {
 
 func (t *Tripod) SetInit(init Init) {
 	t.Init = init
+}
+
+func (t *Tripod) SetCommitter(c Committer) {
+	t.Committer = c
 }
 
 func (t *Tripod) SetBlockCycle(bc BlockCycle) {
@@ -113,7 +145,7 @@ func (t *Tripod) SetReadings(readings ...Reading) {
 
 func (t *Tripod) SetP2pHandler(code int, handler P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
-	logrus.Debugf("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
+	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
 }
 

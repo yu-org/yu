@@ -18,10 +18,14 @@ func (*DefaultBlockVerifier) VerifyBlock(*Block) bool {
 
 type DefaultInit struct{}
 
-func (*DefaultInit) InitChain() {}
+func (*DefaultInit) InitChain(*Block) {}
 
 type DefaultBlockCycle struct{}
 
 func (*DefaultBlockCycle) StartBlock(*Block)    {}
 func (*DefaultBlockCycle) EndBlock(*Block)      {}
 func (*DefaultBlockCycle) FinalizeBlock(*Block) {}
+
+type DefaultCommitter struct{}
+
+func (*DefaultCommitter) Commit(*Block) {}

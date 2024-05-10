@@ -13,11 +13,15 @@ type BlockVerifier interface {
 }
 
 type Init interface {
-	InitChain()
+	InitChain(block *Block)
 }
 
 type BlockCycle interface {
 	StartBlock(block *Block)
 	EndBlock(block *Block)
 	FinalizeBlock(block *Block)
+}
+
+type Committer interface {
+	Commit(ctx *Block)
 }

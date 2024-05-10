@@ -10,7 +10,7 @@ type ItxPool interface {
 	PoolSize() uint64
 
 	WithBaseCheck(checkFn TxnChecker) ItxPool
-	WithTripodCheck(tripod TxnChecker) ItxPool
+	WithTripodCheck(tripodName string, checker TxnChecker) ItxPool
 
 	BaseCheck(*SignedTxn) error
 	TripodsCheck(stxn *SignedTxn) error

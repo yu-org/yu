@@ -8,7 +8,7 @@ import (
 )
 
 // A complete writing-call url is POST /api/writing
-// A complete reading-call url is GET /api/reading?tripod={tripod}&func_name={func_name}?xx=yy
+// A complete reading-call url is POST /api/reading
 
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
@@ -28,7 +28,7 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-type RawWrCall struct {
+type SignedWrCall struct {
 	Pubkey    []byte  `json:"pubkey"`
 	Signature []byte  `json:"signature"`
 	Call      *WrCall `json:"call"`
@@ -42,21 +42,30 @@ type WritingPostBody struct {
 	Call      *WrCall `json:"call"`
 }
 
-func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
+func GetSignedWrCall(ctx *gin.Context) (*SignedWrCall, error) {
 	wpb := new(WritingPostBody)
 	err := ctx.ShouldBindJSON(wpb)
 	if err != nil {
 		return nil, err
 	}
-	pubkey, err := hexutil.Decode(wpb.Pubkey)
-	if err != nil {
-		return nil, err
+
+	var pubkey []byte
+	if wpb.Pubkey != "" {
+		pubkey, err = hexutil.Decode(wpb.Pubkey)
+		if err != nil {
+			return nil, err
+		}
 	}
-	sig, err := hexutil.Decode(wpb.Signature)
-	if err != nil {
-		return nil, err
+
+	var sig []byte
+	if wpb.Signature != "" {
+		sig, err = hexutil.Decode(wpb.Signature)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return &RawWrCall{
+
+	return &SignedWrCall{
 		Pubkey:    pubkey,
 		Signature: sig,
 		Call:      wpb.Call,
@@ -64,10 +73,7 @@ func GetRawWrCall(ctx *gin.Context) (*RawWrCall, error) {
 }
 
 func GetRdCall(ctx *gin.Context) (*RdCall, error) {
-	tri := ctx.Query(TripodNameKey)
-	fn := ctx.Query(FuncNameKey)
-	return &RdCall{
-		TripodName: tri,
-		FuncName:   fn,
-	}, nil
+	rdCall := new(RdCall)
+	err := ctx.ShouldBindJSON(rdCall)
+	return rdCall, err
 }

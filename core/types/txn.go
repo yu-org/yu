@@ -2,7 +2,6 @@ package types
 
 import (
 	"crypto/sha256"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/types/goproto"
@@ -39,11 +38,22 @@ func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 	return stx, nil
 }
 
-func (st *SignedTxn) GetCallerAddr() Address {
+func (st *SignedTxn) BindJson(v any) error {
+	return BindJsonParams(st.Raw.WrCall.Params, v)
+}
+
+func (st *SignedTxn) SetParams(params string) {
+	st.Raw.WrCall.Params = params
+}
+
+func (st *SignedTxn) GetCallerAddr() *Address {
+	if st.Pubkey == nil {
+		return nil
+	}
 	var addr Address
-	addrByt := common.BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
+	addrByt := BytesToAddress(Keccak256(st.Pubkey[1:])[12:])
 	copy(addr[:], addrByt.Bytes())
-	return addr
+	return &addr
 }
 
 func (st *SignedTxn) TripodName() string {

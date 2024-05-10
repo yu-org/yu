@@ -5,13 +5,10 @@ import (
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/result"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
 )
-
-var DefaultJsonEvent = map[string]string{"status": "ok"}
 
 func (k *Kernel) Run() {
 	go func() {
@@ -27,10 +24,17 @@ func (k *Kernel) Run() {
 	switch k.RunMode {
 	case LocalNode:
 		for {
-			err := k.LocalRun()
-			if err != nil {
-				logrus.Panicf("local-run blockchain error: %s", err.Error())
+			select {
+			case <-k.stopChan:
+				logrus.Info("Stop the Chain!")
+				return
+			default:
+				err := k.LocalRun()
+				if err != nil {
+					logrus.Panicf("local-run blockchain error: %s", err.Error())
+				}
 			}
+
 		}
 	case MasterWorker:
 		for {
@@ -52,16 +56,16 @@ func (k *Kernel) LocalRun() (err error) {
 
 	// start a new block
 	err = k.land.RangeList(func(tri *Tripod) error {
-		tri.StartBlock(newBlock)
+		tri.BlockCycle.StartBlock(newBlock)
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	// end block and append to chain
+	// end block and append to Chain
 	err = k.land.RangeList(func(tri *Tripod) error {
-		tri.EndBlock(newBlock)
+		tri.BlockCycle.EndBlock(newBlock)
 		return nil
 	})
 	if err != nil {
@@ -70,21 +74,31 @@ func (k *Kernel) LocalRun() (err error) {
 
 	// finalize this block
 	return k.land.RangeList(func(tri *Tripod) error {
-		tri.FinalizeBlock(newBlock)
+		tri.BlockCycle.FinalizeBlock(newBlock)
 		return nil
 	})
 }
 
+func (k *Kernel) makeGenesisBlock() *Block {
+	genesisBlock := k.Chain.NewEmptyBlock()
+
+	genesisBlock.Timestamp = ytime.NowTsU64()
+	genesisBlock.PeerID = k.P2pNetwork.LocalID()
+	genesisBlock.Height = 0
+	genesisBlock.LeiLimit = k.leiLimit
+	return genesisBlock
+}
+
 func (k *Kernel) makeNewBasicBlock() (*Block, error) {
-	newBlock := k.chain.NewEmptyBlock()
+	newBlock := k.Chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowTsU64()
-	prevBlock, err := k.chain.GetEndBlock()
+	prevBlock, err := k.Chain.GetEndBlock()
 	if err != nil {
 		return nil, err
 	}
 	newBlock.PrevHash = prevBlock.Hash
-	newBlock.PeerID = k.p2pNetwork.LocalID()
+	newBlock.PeerID = k.P2pNetwork.LocalID()
 	newBlock.Height = prevBlock.Height + 1
 	newBlock.LeiLimit = k.leiLimit
 	return newBlock, nil
@@ -93,66 +107,70 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 func (k *Kernel) OrderedExecute(block *Block) error {
 	stxns := block.Txns
 
-	var results []*Result
+	receipts := make(map[Hash]*Receipt)
 
 	for _, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
-			return err
-		}
-
-		writing, err := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
-		if err != nil {
-			k.handleError(err, ctx, block, stxn)
+			receipt := k.handleError(err, ctx, block, stxn)
+			receipts[stxn.TxnHash] = receipt
 			continue
 		}
 
+		writing, _ := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
-			k.stateDB.Discard()
-			k.handleError(OutOfLei, ctx, block, stxn)
+			k.State.Discard()
+			receipt := k.handleError(OutOfLei, ctx, block, stxn)
+			receipts[stxn.TxnHash] = receipt
 			break
 		}
 		if err != nil {
-			k.stateDB.Discard()
+			k.State.Discard()
 			k.handleError(err, ctx, block, stxn)
 		} else {
-			k.stateDB.NextTxn()
+			k.State.NextTxn()
 		}
 
 		block.UseLei(ctx.LeiCost)
 
 		// if no error and event, give a default event
-		if ctx.Error == nil && len(ctx.Events) == 0 {
-			_ = ctx.EmitJsonEvent(DefaultJsonEvent)
-		}
+		//if ctx.Error == nil && len(ctx.Events) == 0 {
+		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
+		//}
 
-		k.handleEvent(ctx, block, stxn)
-
-		for _, e := range ctx.Events {
-			results = append(results, NewEvent(e))
-		}
-		if ctx.Error != nil {
-			results = append(results, NewError(ctx.Error))
-		}
+		receipt := k.handleEvent(ctx, block, stxn)
+		receipts[stxn.TxnHash] = receipt
 	}
 
-	if len(results) > 0 {
-		err := k.base.SetResults(results)
+	k.land.RangeList(func(t *Tripod) error {
+		t.Committer.Commit(block)
+		return nil
+	})
+
+	if len(receipts) > 0 {
+		err := k.TxDB.SetReceipts(receipts)
 		if err != nil {
 			return err
 		}
 	}
 
-	stateRoot, err := k.stateDB.Commit()
+	stateRoot, err := k.State.Commit()
 	if err != nil {
 		return err
 	}
 
-	block.StateRoot = BytesToHash(stateRoot)
+	// Because tripod.Committer could update this field.
+	if block.StateRoot == NullHash {
+		block.StateRoot = BytesToHash(stateRoot)
+	}
 
-	block.ReceiptRoot, err = CaculateReceiptRoot(results)
+	// Because tripod.Committer could update this field.
+	if block.ReceiptRoot == NullHash {
+		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	}
 	return err
 }
 
@@ -162,7 +180,7 @@ func (k *Kernel) MasterWokrerRun() error {
 	//	return err
 	//}
 	//
-	//newBlock := k.chain.NewDefaultBlock()
+	//newBlock := k.Chain.NewDefaultBlock()
 	//
 	//err = k.nortifyWorker(workersIps, StartBlockPath, newBlock)
 	//if err != nil {
@@ -193,38 +211,24 @@ func (k *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
-	ctx.EmitError(err)
-	wrCall := stxn.Raw.WrCall
-
-	ctx.Error.Caller = stxn.GetCallerAddr()
-	ctx.Error.BlockStage = ExecuteTxnsStage
-	ctx.Error.TripodName = wrCall.TripodName
-	ctx.Error.WritingName = wrCall.FuncName
-	ctx.Error.BlockHash = block.Hash
-	ctx.Error.Height = block.Height
-
-	logrus.Error("push error: ", ctx.Error.Error())
-	if k.sub != nil {
-		k.sub.Emit(NewError(ctx.Error))
-	}
-
+func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+	logrus.Error("push error: ", err.Error())
+	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
+	k.handleReceipt(ctx, receipt, block, stxn)
+	return receipt
 }
 
-func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) {
-	for _, event := range ctx.Events {
-		wrCall := stxn.Raw.WrCall
+func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
+	k.handleReceipt(ctx, receipt, block, stxn)
+	return receipt
+}
 
-		event.Height = block.Height
-		event.BlockHash = block.Hash
-		event.WritingName = wrCall.FuncName
-		event.TripodName = wrCall.TripodName
-		event.LeiCost = ctx.LeiCost
-		event.BlockStage = ExecuteTxnsStage
-		event.Caller = stxn.GetCallerAddr()
+func (k *Kernel) handleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+	receipt.FillMetadata(block, stxn, ctx.LeiCost)
+	receipt.BlockStage = ExecuteTxnsStage
 
-		if k.sub != nil {
-			k.sub.Emit(NewEvent(event))
-		}
+	if k.Sub != nil {
+		k.Sub.Emit(receipt)
 	}
 }

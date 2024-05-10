@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	. "github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/result"
+	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/core/types/goproto"
 	"google.golang.org/grpc"
 )

@@ -1,13 +1,16 @@
 package config
 
+import "path"
+
 func InitDefaultCfg() *KernelConf {
+	dataDir := "yu"
 	cfg := &KernelConf{
 		RunMode:   0,
-		DataDir:   "yu",
+		DataDir:   dataDir,
 		HttpPort:  "7999",
 		WsPort:    "8999",
 		LogLevel:  "info",
-		LogOutput: "yu.log",
+		LogOutput: path.Join(dataDir, "yu.log"),
 		LeiLimit:  50000,
 	}
 

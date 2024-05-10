@@ -1,7 +1,7 @@
 package synchronizer
 
 import (
-	peerstore "github.com/libp2p/go-libp2p-core/peer"
+	peerstore "github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
@@ -55,7 +55,7 @@ func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 		logrus.Trace("sync history block is ", block.Hash.String())
 
 		err := b.RangeList(func(tri *Tripod) error {
-			if !tri.VerifyBlock(block) {
+			if !tri.BlockVerifier.VerifyBlock(block) {
 				return BlockIllegal(block.Hash)
 			}
 			return nil

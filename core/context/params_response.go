@@ -67,12 +67,12 @@ func (rc *ParamsResponse) TryGetHash(name string) (Hash, error) {
 	return HexToHash(str), nil
 }
 
-func (rc *ParamsResponse) GetAddress(name string) Address {
+func (rc *ParamsResponse) GetAddress(name string) *Address {
 	a, err := rc.TryGetAddress(name)
 	if err != nil {
 		logrus.Panicf("get param(%s) error: %s", name, err.Error())
 	}
-	return a
+	return &a
 }
 
 func (rc *ParamsResponse) TryGetAddress(name string) (Address, error) {

@@ -2,7 +2,6 @@ package types
 
 import (
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/result"
 )
 
 //type IBlock interface {
@@ -57,6 +56,7 @@ const (
 )
 
 type IBlockChain interface {
+	ItxDB
 	ConvergeType() ConvergeType
 
 	NewEmptyBlock() *Block
@@ -66,8 +66,11 @@ type IBlockChain interface {
 
 	AppendBlock(b *Block) error
 	GetBlock(blockHash Hash) (*CompactBlock, error)
-	ExistsBlock(blockHash Hash) bool
+	GetBlockByHeight(height BlockNum) (*CompactBlock, error)
+	GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
+	ExistsBlock(blockHash Hash) (bool, error)
 	UpdateBlock(b *CompactBlock) error
+	UpdateBlockByHeight(b *CompactBlock) error
 
 	Children(prevBlockHash Hash) ([]*CompactBlock, error)
 	Finalize(blockHash Hash) error
@@ -83,6 +86,7 @@ type ItxDB interface {
 	ExistTxn(txnHash Hash) bool
 	SetTxns(txns []*SignedTxn) error
 
-	SetResults(results []*Result) error
-	SetResult(result *Result) error
+	SetReceipts(receipts map[Hash]*Receipt) error
+	GetReceipt(txHash Hash) (*Receipt, error)
+	SetReceipt(txHash Hash, receipt *Receipt) error
 }
