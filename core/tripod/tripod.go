@@ -18,11 +18,10 @@ type Tripod struct {
 	BlockVerifier BlockVerifier
 	TxnChecker    TxnChecker
 
-	Init Init
+	Init
 	BlockStarter
 	BlockEnder
 	BlockFinalizer
-	// BlockCycle BlockCycle
 
 	Committer Committer
 
@@ -50,12 +49,13 @@ func NewTripodWithName(name string) *Tripod {
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
-		Init:          new(DefaultInit),
-		// BlockCycle:    new(DefaultBlockCycle),
+
+		Init:           new(DefaultInit),
 		BlockStarter:   new(DefaultBlockStarter),
 		BlockEnder:     new(DefaultBlockEnder),
 		BlockFinalizer: new(DefaultBlockFinalizer),
-		Committer:      new(DefaultCommitter),
+
+		Committer: new(DefaultCommitter),
 	}
 }
 
