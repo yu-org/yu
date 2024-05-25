@@ -56,7 +56,7 @@ func (k *Kernel) LocalRun() (err error) {
 
 	// start a new block
 	err = k.land.RangeList(func(tri *Tripod) error {
-		tri.BlockCycle.StartBlock(newBlock)
+		tri.StartBlock(newBlock)
 		return nil
 	})
 	if err != nil {
@@ -65,7 +65,7 @@ func (k *Kernel) LocalRun() (err error) {
 
 	// end block and append to Chain
 	err = k.land.RangeList(func(tri *Tripod) error {
-		tri.BlockCycle.EndBlock(newBlock)
+		tri.EndBlock(newBlock)
 		return nil
 	})
 	if err != nil {
@@ -74,7 +74,7 @@ func (k *Kernel) LocalRun() (err error) {
 
 	// finalize this block
 	return k.land.RangeList(func(tri *Tripod) error {
-		tri.BlockCycle.FinalizeBlock(newBlock)
+		tri.FinalizeBlock(newBlock)
 		return nil
 	})
 }

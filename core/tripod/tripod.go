@@ -18,8 +18,11 @@ type Tripod struct {
 	BlockVerifier BlockVerifier
 	TxnChecker    TxnChecker
 
-	Init       Init
-	BlockCycle BlockCycle
+	Init Init
+	BlockStarter
+	BlockEnder
+	BlockFinalizer
+	// BlockCycle BlockCycle
 
 	Committer Committer
 
@@ -48,8 +51,11 @@ func NewTripodWithName(name string) *Tripod {
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
 		Init:          new(DefaultInit),
-		BlockCycle:    new(DefaultBlockCycle),
-		Committer:     new(DefaultCommitter),
+		// BlockCycle:    new(DefaultBlockCycle),
+		BlockStarter:   new(DefaultBlockStarter),
+		BlockEnder:     new(DefaultBlockEnder),
+		BlockFinalizer: new(DefaultBlockFinalizer),
+		Committer:      new(DefaultCommitter),
 	}
 }
 
@@ -61,20 +67,28 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 		t.name = tripodName
 	}
 
+	if isImplementInterface(tripodInstance, (*Init)(nil)) {
+		t.SetInit(tripodInstance.(Init))
+	}
+
+	if isImplementInterface(tripodInstance, (*BlockStarter)(nil)) {
+		t.SetBlockStarter(tripodInstance.(BlockStarter))
+	}
+	if isImplementInterface(tripodInstance, (*BlockEnder)(nil)) {
+		t.SetBlockEnder(tripodInstance.(BlockEnder))
+	}
+	if isImplementInterface(tripodInstance, (*BlockFinalizer)(nil)) {
+		t.SetBlockFinalizer(tripodInstance.(BlockFinalizer))
+	}
+
 	if isImplementInterface(tripodInstance, (*TxnChecker)(nil)) {
 		t.SetTxnChecker(tripodInstance.(TxnChecker))
-	}
-	if isImplementInterface(tripodInstance, (*BlockCycle)(nil)) {
-		t.SetBlockCycle(tripodInstance.(BlockCycle))
 	}
 	if isImplementInterface(tripodInstance, (*Committer)(nil)) {
 		t.SetCommitter(tripodInstance.(Committer))
 	}
 	if isImplementInterface(tripodInstance, (*BlockVerifier)(nil)) {
 		t.SetBlockVerifier(tripodInstance.(BlockVerifier))
-	}
-	if isImplementInterface(tripodInstance, (*Init)(nil)) {
-		t.SetInit(tripodInstance.(Init))
 	}
 
 	for name, _ := range t.writings {
@@ -117,8 +131,16 @@ func (t *Tripod) SetCommitter(c Committer) {
 	t.Committer = c
 }
 
-func (t *Tripod) SetBlockCycle(bc BlockCycle) {
-	t.BlockCycle = bc
+func (t *Tripod) SetBlockStarter(bs BlockStarter) {
+	t.BlockStarter = bs
+}
+
+func (t *Tripod) SetBlockEnder(be BlockEnder) {
+	t.BlockEnder = be
+}
+
+func (t *Tripod) SetBlockFinalizer(bf BlockFinalizer) {
+	t.BlockFinalizer = bf
 }
 
 func (t *Tripod) SetBlockVerifier(bv BlockVerifier) {
