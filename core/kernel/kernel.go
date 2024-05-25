@@ -86,7 +86,7 @@ func (k *Kernel) Stop() {
 func (k *Kernel) InitBlockChain() {
 	genesisBlock := k.makeGenesisBlock()
 	k.land.RangeList(func(tri *Tripod) error {
-		tri.Init.InitChain(genesisBlock)
+		tri.InitChain(genesisBlock)
 		return nil
 	})
 }

@@ -20,11 +20,17 @@ type DefaultInit struct{}
 
 func (*DefaultInit) InitChain(*Block) {}
 
-type DefaultBlockCycle struct{}
+type DefaultBlockStarter struct{}
 
-func (*DefaultBlockCycle) StartBlock(*Block)    {}
-func (*DefaultBlockCycle) EndBlock(*Block)      {}
-func (*DefaultBlockCycle) FinalizeBlock(*Block) {}
+func (*DefaultBlockStarter) StartBlock(*Block) {}
+
+type DefaultBlockEnder struct{}
+
+func (*DefaultBlockEnder) EndBlock(*Block) {}
+
+type DefaultBlockFinalizer struct{}
+
+func (*DefaultBlockFinalizer) FinalizeBlock(*Block) {}
 
 type DefaultCommitter struct{}
 
