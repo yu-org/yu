@@ -55,7 +55,7 @@ func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 		logrus.Trace("sync history block is ", block.Hash.String())
 
 		err := b.RangeList(func(tri *Tripod) error {
-			if !tri.BlockVerifier.VerifyBlock(block) {
+			if !tri.VerifyBlock(block) {
 				return BlockIllegal(block.Hash)
 			}
 			return nil

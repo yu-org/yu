@@ -15,15 +15,15 @@ type Tripod struct {
 	*ChainEnv
 	*Land
 
-	BlockVerifier BlockVerifier
-	TxnChecker    TxnChecker
+	BlockVerifier
+	TxnChecker
 
 	Init
 	BlockStarter
 	BlockEnder
 	BlockFinalizer
 
-	Committer Committer
+	Committer
 
 	Instance interface{}
 

@@ -146,7 +146,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	}
 
 	k.land.RangeList(func(t *Tripod) error {
-		t.Committer.Commit(block)
+		t.Commit(block)
 		return nil
 	})
 
