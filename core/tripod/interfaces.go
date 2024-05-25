@@ -17,20 +17,8 @@ type Init interface {
 }
 
 type BlockCycle interface {
-	BlockStarter
-	BlockEnder
-	BlockFinalizer
-}
-
-type BlockStarter interface {
 	StartBlock(block *Block)
-}
-
-type BlockEnder interface {
 	EndBlock(block *Block)
-}
-
-type BlockFinalizer interface {
 	FinalizeBlock(block *Block)
 }
 
