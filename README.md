@@ -97,11 +97,11 @@ type Tripod interface {
 
     ......
     
-    CheckTxn(*txn.SignedTxn)    
+    CheckTxn(*txn.SignedTxn) error   
 
     VerifyBlock(block *types.Block) bool
 
-    InitChain() 
+    InitChain(genesisBlock *types.Block) 
 
     StartBlock(block *types.Block) 
 
