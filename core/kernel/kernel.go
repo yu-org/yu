@@ -135,3 +135,7 @@ func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
 	}
 	return k.P2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
 }
+
+func (k *Kernel) GetTripodInstance(name string) any {
+	return k.land.GetTripodInstance(name)
+}
