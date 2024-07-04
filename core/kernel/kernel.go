@@ -9,6 +9,7 @@ import (
 	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
 	. "github.com/yu-org/yu/utils/ip"
+	"go.uber.org/atomic"
 	"sync"
 )
 
@@ -17,7 +18,7 @@ type Kernel struct {
 
 	RunMode RunMode
 
-	pendingBlock *Block
+	pendingBlock atomic.Pointer[Block]
 
 	stopChan chan struct{}
 
@@ -46,6 +47,7 @@ func NewKernel(
 	}
 
 	env.Execute = k.OrderedExecute
+	k.pendingBlock.Store(nil)
 
 	// Configure the handlers in P2P network
 

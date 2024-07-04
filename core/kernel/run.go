@@ -49,7 +49,7 @@ func (k *Kernel) Run() {
 }
 
 func (k *Kernel) GetPendingBlock() *Block {
-	return k.pendingBlock
+	return k.pendingBlock.Load()
 }
 
 func (k *Kernel) LocalRun() (err error) {
@@ -58,7 +58,7 @@ func (k *Kernel) LocalRun() (err error) {
 		return err
 	}
 
-	k.pendingBlock = newBlock
+	k.pendingBlock.Store(newBlock)
 
 	// start a new block
 	err = k.land.RangeList(func(tri *Tripod) error {
