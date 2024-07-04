@@ -54,6 +54,8 @@ func (k *Kernel) LocalRun() (err error) {
 		return err
 	}
 
+	k.pendingBlock = newBlock
+
 	// start a new block
 	err = k.land.RangeList(func(tri *Tripod) error {
 		tri.BlockCycle.StartBlock(newBlock)

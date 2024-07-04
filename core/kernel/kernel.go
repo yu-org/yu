@@ -17,6 +17,8 @@ type Kernel struct {
 
 	RunMode RunMode
 
+	pendingBlock *Block
+
 	stopChan chan struct{}
 
 	httpPort string
