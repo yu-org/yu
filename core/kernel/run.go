@@ -48,6 +48,10 @@ func (k *Kernel) Run() {
 
 }
 
+func (k *Kernel) GetPendingBlock() *Block {
+	return k.pendingBlock
+}
+
 func (k *Kernel) LocalRun() (err error) {
 	newBlock, err := k.makeNewBasicBlock()
 	if err != nil {
