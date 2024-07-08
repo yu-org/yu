@@ -115,7 +115,7 @@ func (bc *BlockChain) ExistsBlock(blockHash Hash) (bool, error) {
 	return len(bss) > 0, nil
 }
 
-func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
+func (bc *BlockChain) GetCompactBlock(blockHash Hash) (*CompactBlock, error) {
 	var bs BlocksScheme
 	err := bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
@@ -129,7 +129,22 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*CompactBlock, error) {
 	return bs.toBlock()
 }
 
-func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*CompactBlock, error) {
+func (bc *BlockChain) GetBlock(blockHash Hash) (*Block, error) {
+	cBlock, err := bc.GetCompactBlock(blockHash)
+	if err != nil {
+		return nil, err
+	}
+	txns, err := bc.ItxDB.GetTxns(cBlock.TxnsHashes)
+	if err != nil {
+		return nil, err
+	}
+	return &Block{
+		Header: cBlock.Header,
+		Txns:   txns,
+	}, nil
+}
+
+func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error) {
 	var bs BlocksScheme
 	err := bc.chain.Db().Where(&BlocksScheme{
 		Height:   height,
@@ -142,6 +157,21 @@ func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*CompactBlock, error) {
 		return nil, err
 	}
 	return bs.toBlock()
+}
+
+func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*Block, error) {
+	cBlock, err := bc.GetCompactBlockByHeight(height)
+	if err != nil {
+		return nil, err
+	}
+	txns, err := bc.ItxDB.GetTxns(cBlock.TxnsHashes)
+	if err != nil {
+		return nil, err
+	}
+	return &Block{
+		Header: cBlock.Header,
+		Txns:   txns,
+	}, nil
 }
 
 func (bc *BlockChain) GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error) {

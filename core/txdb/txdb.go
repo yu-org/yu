@@ -36,6 +36,25 @@ func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	return DecodeSignedTxn(byt)
 }
 
+func (bb *TxDB) GetTxns(txnHashes []Hash) ([]*SignedTxn, error) {
+	if bb.nodeType == LightNode {
+		return nil, nil
+	}
+	txns := make([]*SignedTxn, 0)
+	for _, txnHash := range txnHashes {
+		byt, err := bb.txnKV.Get(txnHash.Bytes())
+		if err != nil {
+			return nil, err
+		}
+		signedTxn, err := DecodeSignedTxn(byt)
+		if err != nil {
+			return nil, err
+		}
+		txns = append(txns, signedTxn)
+	}
+	return txns, nil
+}
+
 func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	if bb.nodeType == LightNode {
 		return false

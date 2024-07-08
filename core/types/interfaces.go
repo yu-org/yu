@@ -65,8 +65,12 @@ type IBlockChain interface {
 	SetGenesis(b *Block) error
 
 	AppendBlock(b *Block) error
-	GetBlock(blockHash Hash) (*CompactBlock, error)
-	GetBlockByHeight(height BlockNum) (*CompactBlock, error)
+
+	GetCompactBlock(blockHash Hash) (*CompactBlock, error)
+	GetBlock(blockHash Hash) (*Block, error)
+	GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error)
+	GetBlockByHeight(height BlockNum) (*Block, error)
+
 	GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
 	ExistsBlock(blockHash Hash) (bool, error)
 	UpdateBlock(b *CompactBlock) error
@@ -83,6 +87,7 @@ type IBlockChain interface {
 
 type ItxDB interface {
 	GetTxn(txnHash Hash) (*SignedTxn, error)
+	GetTxns(txnHashes []Hash) ([]*SignedTxn, error)
 	ExistTxn(txnHash Hash) bool
 	SetTxns(txns []*SignedTxn) error
 
