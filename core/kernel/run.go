@@ -38,7 +38,7 @@ func (k *Kernel) Run() {
 		}
 	case MasterWorker:
 		for {
-			err := k.MasterWokrerRun()
+			err := k.MasterWorkerRun()
 			logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
 		}
 
@@ -177,7 +177,7 @@ func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	return err
 }
 
-func (k *Kernel) MasterWokrerRun() error {
+func (k *Kernel) MasterWorkerRun() error {
 	//workersIps, err := k.allWorkersIP()
 	//if err != nil {
 	//	return err
