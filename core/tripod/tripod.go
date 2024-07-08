@@ -2,6 +2,7 @@ package tripod
 
 import (
 	"github.com/sirupsen/logrus"
+	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/env"
 	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
@@ -184,4 +185,34 @@ func (t *Tripod) AllWritingNames() []string {
 		allNames = append(allNames, name)
 	}
 	return allNames
+}
+
+func (t *Tripod) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
+	t.Land.RangeList(func(t *Tripod) error {
+		t.Committer.Commit(block)
+		return nil
+	})
+
+	if len(receipts) > 0 {
+		err := t.TxDB.SetReceipts(receipts)
+		if err != nil {
+			return err
+		}
+	}
+
+	stateRoot, err := t.State.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Because tripod.Committer could update this field.
+	if block.StateRoot == NullHash {
+		block.StateRoot = BytesToHash(stateRoot)
+	}
+
+	// Because tripod.Committer could update this field.
+	if block.ReceiptRoot == NullHash {
+		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	}
+	return err
 }
