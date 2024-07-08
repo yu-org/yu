@@ -68,19 +68,29 @@ type IBlockChain interface {
 
 	GetCompactBlock(blockHash Hash) (*CompactBlock, error)
 	GetBlock(blockHash Hash) (*Block, error)
+
 	GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error)
 	GetBlockByHeight(height BlockNum) (*Block, error)
 
-	GetAllBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
-	ExistsBlock(blockHash Hash) (bool, error)
-	UpdateBlock(b *CompactBlock) error
-	UpdateBlockByHeight(b *CompactBlock) error
+	GetAllCompactBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
+	GetAllBlocksByHeight(height BlockNum) ([]*Block, error)
 
-	Children(prevBlockHash Hash) ([]*CompactBlock, error)
+	ExistsBlock(blockHash Hash) (bool, error)
+
+	UpdateBlock(b *Block) error
+	UpdateBlockByHeight(b *Block) error
+
+	Children(prevBlockHash Hash) ([]*Block, error)
+	ChildrenCompact(prevBlockHash Hash) ([]*CompactBlock, error)
+
 	Finalize(blockHash Hash) error
-	LastFinalized() (*CompactBlock, error)
-	GetEndBlock() (*CompactBlock, error)
-	GetAllBlocks() ([]*CompactBlock, error)
+	LastFinalized() (*Block, error)
+	LastFinalizedCompact() (*CompactBlock, error)
+
+	GetEndCompactBlock() (*CompactBlock, error)
+	GetEndBlock() (*Block, error)
+
+	GetAllCompactBlocks() ([]*CompactBlock, error)
 
 	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*Block, error)
 }

@@ -97,7 +97,7 @@ func (t *Tripod) Name() string {
 	return t.name
 }
 
-func (t *Tripod) GetCurrentBlock() (*CompactBlock, error) {
+func (t *Tripod) GetCurrentBlock() (*Block, error) {
 	return t.Chain.GetEndBlock()
 }
 
