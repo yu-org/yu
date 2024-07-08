@@ -3,21 +3,53 @@ package context
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
+
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
 )
 
 type WriteContext struct {
+	Block         *Block
+	IsConcurrency bool
+	// execute txn one by one
 	*ParamsResponse
+	Txn *SignedTxn
 
-	Block *Block
-	Txn   *SignedTxn
+	// execute txn in concurrency
+	ParamsResponseList []*ParamsResponse
+	TxnList            []*SignedTxn
+	ErrorList          []error
 
 	Events []*Event
 	Extra  []byte
 
 	LeiCost uint64
+}
+
+func NewWriteContextByTxns(stxnList []*SignedTxn, block *Block) (*WriteContext, error) {
+	if len(stxnList) < 2 {
+		return NewWriteContext(stxnList[0], block)
+	}
+	c := &WriteContext{
+		Block:              block,
+		IsConcurrency:      true,
+		Events:             make([]*Event, 0),
+		ParamsResponseList: make([]*ParamsResponse, 0),
+		TxnList:            make([]*SignedTxn, 0),
+	}
+	for _, stxn := range stxnList {
+		paramsStr := stxn.Raw.WrCall.Params
+		rctx, err := NewParamsResponseFromStr(paramsStr)
+		if err != nil {
+			return nil, err
+		}
+		c.TxnList = append(c.TxnList, stxn)
+		c.ParamsResponseList = append(c.ParamsResponseList, rctx)
+	}
+	c.ErrorList = make([]error, len(c.TxnList), len(c.TxnList))
+	return c, nil
 }
 
 func NewWriteContext(stxn *SignedTxn, block *Block) (*WriteContext, error) {
