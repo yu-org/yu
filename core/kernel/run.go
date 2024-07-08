@@ -113,7 +113,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block)
 		if err != nil {
-			receipt := k.handleError(err, ctx, block, stxn)
+			receipt := k.HandleError(err, ctx, block, stxn)
 			receipts[stxn.TxnHash] = receipt
 			continue
 		}
@@ -123,13 +123,13 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
-			receipt := k.handleError(OutOfLei, ctx, block, stxn)
+			receipt := k.HandleError(OutOfLei, ctx, block, stxn)
 			receipts[stxn.TxnHash] = receipt
 			break
 		}
 		if err != nil {
 			k.State.Discard()
-			k.handleError(err, ctx, block, stxn)
+			k.HandleError(err, ctx, block, stxn)
 		} else {
 			k.State.NextTxn()
 		}
@@ -141,7 +141,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
 		//}
 
-		receipt := k.handleEvent(ctx, block, stxn)
+		receipt := k.HandleEvent(ctx, block, stxn)
 		receipts[stxn.TxnHash] = receipt
 	}
 	return k.PostExecute(block, receipts)
@@ -214,20 +214,20 @@ func (k *Kernel) MasterWokrerRun() error {
 	return nil
 }
 
-func (k *Kernel) handleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (k *Kernel) HandleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())
 	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
-	k.handleReceipt(ctx, receipt, block, stxn)
+	k.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (k *Kernel) handleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (k *Kernel) HandleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
-	k.handleReceipt(ctx, receipt, block, stxn)
+	k.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (k *Kernel) handleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+func (k *Kernel) HandleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
 	receipt.BlockStage = ExecuteTxnsStage
 
