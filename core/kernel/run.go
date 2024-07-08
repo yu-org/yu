@@ -55,7 +55,7 @@ func (k *Kernel) LocalRun() (err error) {
 	}
 
 	// start a new block
-	err = k.land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *Tripod) error {
 		tri.BlockCycle.StartBlock(newBlock)
 		return nil
 	})
@@ -64,7 +64,7 @@ func (k *Kernel) LocalRun() (err error) {
 	}
 
 	// end block and append to Chain
-	err = k.land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *Tripod) error {
 		tri.BlockCycle.EndBlock(newBlock)
 		return nil
 	})
@@ -73,7 +73,7 @@ func (k *Kernel) LocalRun() (err error) {
 	}
 
 	// finalize this block
-	return k.land.RangeList(func(tri *Tripod) error {
+	return k.Land.RangeList(func(tri *Tripod) error {
 		tri.BlockCycle.FinalizeBlock(newBlock)
 		return nil
 	})
@@ -118,7 +118,7 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 			continue
 		}
 
-		writing, _ := k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+		writing, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 
 		err = writing(ctx)
 		if IfLeiOut(ctx.LeiCost, block) {
@@ -144,8 +144,11 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 		receipt := k.handleEvent(ctx, block, stxn)
 		receipts[stxn.TxnHash] = receipt
 	}
+	return k.PostExecute(block, receipts)
+}
 
-	k.land.RangeList(func(t *Tripod) error {
+func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
+	k.Land.RangeList(func(t *Tripod) error {
 		t.Committer.Commit(block)
 		return nil
 	})

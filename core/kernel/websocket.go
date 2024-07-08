@@ -89,7 +89,7 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 //			return
 //		}
 //
-//		rd, err := k.land.GetReading(rdCall)
+//		rd, err := k.Land.GetReading(rdCall)
 //		if err != nil {
 //			k.errorAndClose(c, err.Error())
 //			return

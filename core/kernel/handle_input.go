@@ -16,7 +16,7 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 		return err
 	}
 	wrCall := signedWrCall.Call
-	_, err = k.land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+	_, err = k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error
 		return nil, err
 	}
 
-	rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
+	rd, err := k.Land.GetReading(rdCall.TripodName, rdCall.FuncName)
 	if err != nil {
 		return nil, err
 	}

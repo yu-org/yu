@@ -25,7 +25,7 @@ type Kernel struct {
 
 	*ChainEnv
 
-	land *Land
+	Land *Land
 }
 
 func NewKernel(
@@ -40,7 +40,7 @@ func NewKernel(
 		httpPort: MakePort(cfg.HttpPort),
 		wsPort:   MakePort(cfg.WsPort),
 		ChainEnv: env,
-		land:     land,
+		Land:     land,
 	}
 
 	env.Execute = k.OrderedExecute
@@ -85,7 +85,7 @@ func (k *Kernel) Stop() {
 
 func (k *Kernel) InitBlockChain() {
 	genesisBlock := k.makeGenesisBlock()
-	k.land.RangeList(func(tri *Tripod) error {
+	k.Land.RangeList(func(tri *Tripod) error {
 		tri.Init.InitChain(genesisBlock)
 		return nil
 	})
@@ -137,5 +137,5 @@ func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
 }
 
 func (k *Kernel) GetTripodInstance(name string) any {
-	return k.land.GetTripodInstance(name)
+	return k.Land.GetTripodInstance(name)
 }
