@@ -62,7 +62,7 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 	//	return
 	//}
 	//
-	//rd, err := k.land.GetReading(rdCall.TripodName, rdCall.FuncName)
+	//rd, err := k.Land.GetReading(rdCall.TripodName, rdCall.FuncName)
 	//if err != nil {
 	//	c.AbortWithError(http.StatusBadRequest, err)
 	//	return
