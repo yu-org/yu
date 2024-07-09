@@ -29,6 +29,18 @@ var ErrBlockNotFound error = errors.New("block not found")
 
 var OutOfLei = errors.New("Lei out")
 
+type ErrTxnNotFound struct {
+	txHash Hash
+}
+
+func TxnNotFound(txHash Hash) ErrTxnNotFound {
+	return ErrTxnNotFound{txHash: txHash}
+}
+
+func (e ErrTxnNotFound) Error() string {
+	return errors.Errorf("txn (%s) not found", e.txHash).Error()
+}
+
 type ErrTxnSignatureIllegal struct {
 	err error
 }
