@@ -55,7 +55,7 @@ func (b *Synchronizer) NewHsInfo() (*HandShakeInfo, error) {
 		return nil, err
 	}
 
-	eBlock, err := b.Chain.GetEndBlock()
+	eBlock, err := b.Chain.GetEndCompactBlock()
 	if err != nil {
 		return nil, err
 	}

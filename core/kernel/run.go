@@ -93,7 +93,7 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 	newBlock := k.Chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowTsU64()
-	prevBlock, err := k.Chain.GetEndBlock()
+	prevBlock, err := k.Chain.GetEndCompactBlock()
 	if err != nil {
 		return nil, err
 	}
