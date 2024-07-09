@@ -33,6 +33,9 @@ func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	if err != nil {
 		return nil, err
 	}
+	if byt == nil {
+		return nil, nil
+	}
 	return DecodeSignedTxn(byt)
 }
 
@@ -45,6 +48,9 @@ func (bb *TxDB) GetTxns(txnHashes []Hash) ([]*SignedTxn, error) {
 		byt, err := bb.txnKV.Get(txnHash.Bytes())
 		if err != nil {
 			return nil, err
+		}
+		if byt == nil {
+			continue
 		}
 		signedTxn, err := DecodeSignedTxn(byt)
 		if err != nil {
