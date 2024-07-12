@@ -81,6 +81,14 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	return txns
 }
 
+func (ot *orderedTxns) GetAll() []*SignedTxn {
+	var txns []*SignedTxn
+	for element := ot.txns.Front(); element != nil; element = element.Next() {
+		txns = append(txns, element.Value.(*SignedTxn))
+	}
+	return txns
+}
+
 func (ot *orderedTxns) Size() int {
 	return ot.txns.Len()
 }

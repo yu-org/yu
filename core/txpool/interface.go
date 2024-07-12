@@ -30,6 +30,7 @@ type ItxPool interface {
 
 	// GetTxn returns unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
+	GetAllTxns() ([]*SignedTxn, error)
 	// Reset Deletes packed txns
 	Reset(txns SignedTxns) error
 }
@@ -39,6 +40,7 @@ type IunpackedTxns interface {
 	Deletes(txnHashes []Hash)
 	Exist(txnHash Hash) bool
 	Get(txnHash Hash) *SignedTxn
+	GetAll() []*SignedTxn
 	Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn
 	Size() int
 }
