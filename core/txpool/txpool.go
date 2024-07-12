@@ -99,6 +99,12 @@ func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	return tp.unpackedTxns.Get(hash), nil
 }
 
+func (tp *TxPool) GetAllTxns() ([]*SignedTxn, error) {
+	tp.RLock()
+	defer tp.RUnlock()
+	return tp.unpackedTxns.GetAll(), nil
+}
+
 func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
 	return tp.PackFor(numLimit, func(*SignedTxn) bool {
 		return true
