@@ -41,6 +41,18 @@ func (e ErrTxnNotFound) Error() string {
 	return errors.Errorf("txn (%s) not found", e.txHash).Error()
 }
 
+type ErrBlockSignatureIllegal struct {
+	blockHash Hash
+}
+
+func BlockSignatureIllegal(blockHash Hash) ErrBlockSignatureIllegal {
+	return ErrBlockSignatureIllegal{blockHash: blockHash}
+}
+
+func (e ErrBlockSignatureIllegal) Error() string {
+	return errors.Errorf("the signature of block(%s) is illegal", e.blockHash).Error()
+}
+
 type ErrTxnSignatureIllegal struct {
 	err error
 }

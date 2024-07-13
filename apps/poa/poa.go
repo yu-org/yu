@@ -6,6 +6,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
@@ -99,17 +100,20 @@ func (h *Poa) CheckTxn(txn *SignedTxn) error {
 	return nil
 }
 
-func (h *Poa) VerifyBlock(block *Block) bool {
+func (h *Poa) VerifyBlock(block *Block) error {
 	minerPubkey, err := PubKeyFromBytes(block.MinerPubkey)
 	if err != nil {
 		logrus.Warnf("parse pubkey(%s) error: %v", block.MinerPubkey, err)
-		return false
+		return err
 	}
 	if _, ok := h.validatorsMap[minerPubkey.Address()]; !ok {
 		logrus.Warn("illegal miner: ", minerPubkey.StringWithType())
-		return false
+		return err
 	}
-	return minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature)
+	if !minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature) {
+		return yerror.BlockSignatureIllegal(block.Hash)
+	}
+	return nil
 }
 
 func (h *Poa) InitChain(block *Block) {
@@ -137,9 +141,11 @@ func (h *Poa) InitChain(block *Block) {
 				continue
 			}
 
-			ok := h.VerifyBlock(p2pBlock)
-			if !ok {
-				logrus.Warnf("p2pBlock(%s) verify failed", p2pBlock.Hash.String())
+			err = h.RangeList(func(tri *Tripod) error {
+				return tri.BlockVerifier.VerifyBlock(block)
+			})
+			if err != nil {
+				logrus.Warnf("p2pBlock(%s) verify failed: %s", p2pBlock.Hash, err)
 				continue
 			}
 
