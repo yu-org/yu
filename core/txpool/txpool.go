@@ -125,6 +125,13 @@ func (tp *TxPool) Reset(txns SignedTxns) error {
 	return nil
 }
 
+func (tp *TxPool) ResetByHashes(hashes []Hash) error {
+	tp.Lock()
+	defer tp.Unlock()
+	tp.unpackedTxns.Deletes(hashes)
+	return nil
+}
+
 // ------------------- check txn rules ----------------------
 
 func (tp *TxPool) BaseCheck(stxn *SignedTxn) error {

@@ -33,6 +33,7 @@ type ItxPool interface {
 	GetAllTxns() ([]*SignedTxn, error)
 	// Reset Deletes packed txns
 	Reset(txns SignedTxns) error
+	ResetByHashes(hashes []Hash) error
 }
 
 type IunpackedTxns interface {
