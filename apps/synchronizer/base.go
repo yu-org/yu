@@ -4,7 +4,6 @@ import (
 	peerstore "github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 )
@@ -55,10 +54,7 @@ func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 		logrus.Trace("sync history block is ", block.Hash.String())
 
 		err := b.RangeList(func(tri *Tripod) error {
-			if !tri.BlockVerifier.VerifyBlock(block) {
-				return BlockIllegal(block.Hash)
-			}
-			return nil
+			return tri.BlockVerifier.VerifyBlock(block)
 		})
 		if err != nil {
 			return err

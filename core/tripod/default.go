@@ -12,8 +12,8 @@ func (*DefaultTxnChecker) CheckTxn(*SignedTxn) error {
 
 type DefaultBlockVerifier struct{}
 
-func (*DefaultBlockVerifier) VerifyBlock(*Block) bool {
-	return true
+func (*DefaultBlockVerifier) VerifyBlock(*Block) error {
+	return nil
 }
 
 type DefaultInit struct{}

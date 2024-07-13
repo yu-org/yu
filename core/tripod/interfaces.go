@@ -9,7 +9,7 @@ import (
 //}
 
 type BlockVerifier interface {
-	VerifyBlock(block *Block) bool
+	VerifyBlock(block *Block) error
 }
 
 type Init interface {
