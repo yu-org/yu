@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -108,7 +109,7 @@ func (h *Poa) VerifyBlock(block *Block) error {
 	}
 	if _, ok := h.validatorsMap[minerPubkey.Address()]; !ok {
 		logrus.Warn("illegal miner: ", minerPubkey.StringWithType())
-		return err
+		return errors.Errorf("miner(%s) is not validator", minerPubkey.Address())
 	}
 	if !minerPubkey.VerifySignature(block.Hash.Bytes(), block.MinerSignature) {
 		return yerror.BlockSignatureIllegal(block.Hash)
