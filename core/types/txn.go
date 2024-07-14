@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/types/goproto"
@@ -44,6 +45,10 @@ func (st *SignedTxn) BindJson(v any) error {
 
 func (st *SignedTxn) GetParams() string {
 	return st.Raw.WrCall.Params
+}
+
+func (st *SignedTxn) ParamsIsJson() bool {
+	return json.Valid([]byte(st.GetParams()))
 }
 
 func (st *SignedTxn) SetParams(params string) {
