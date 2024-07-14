@@ -63,7 +63,7 @@ func TestPackFor(t *testing.T) {
 	}
 
 	txns, err := pool.PackFor(3, func(tx *types.SignedTxn) bool {
-		return tx.GetCallerAddr() == caller2
+		return *tx.GetCallerAddr() == caller2
 	})
 	if err != nil {
 		t.Fatalf("pack txns failed: %v", err)

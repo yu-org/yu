@@ -47,15 +47,15 @@ func init() {
 		panic(err)
 	}
 
-	tx1, err = NewSignedTxn(caller1, ecall1, pubkey1, sig1)
+	tx1, err = NewSignedTxn(ecall1, pubkey1.Bytes(), sig1)
 	if err != nil {
 		panic(err)
 	}
-	tx2, err = NewSignedTxn(caller1, ecall2, pubkey1, sig2)
+	tx2, err = NewSignedTxn(ecall2, pubkey1.Bytes(), sig2)
 	if err != nil {
 		panic(err)
 	}
-	tx3, err = NewSignedTxn(caller2, ecall3, pubkey1, sig3)
+	tx3, err = NewSignedTxn(ecall3, pubkey1.Bytes(), sig3)
 	if err != nil {
 		panic(err)
 	}

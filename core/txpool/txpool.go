@@ -93,6 +93,12 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	return nil
 }
 
+func (tp *TxPool) SortBy(lessFunc func(i, j int) bool) {
+	tp.Lock()
+	defer tp.Unlock()
+	tp.unpackedTxns.SortBy(lessFunc)
+}
+
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
 	tp.RLock()
 	defer tp.RUnlock()
