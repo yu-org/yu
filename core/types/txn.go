@@ -42,6 +42,10 @@ func (st *SignedTxn) BindJson(v any) error {
 	return BindJsonParams(st.Raw.WrCall.Params, v)
 }
 
+func (st *SignedTxn) GetParams() string {
+	return st.Raw.WrCall.Params
+}
+
 func (st *SignedTxn) SetParams(params string) {
 	st.Raw.WrCall.Params = params
 }
