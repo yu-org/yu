@@ -47,6 +47,14 @@ func (st *SignedTxn) GetParams() string {
 	return st.Raw.WrCall.Params
 }
 
+func (st *SignedTxn) GetTips() uint64 {
+	return st.Raw.WrCall.Tips
+}
+
+func (st *SignedTxn) GetLeiPrice() uint64 {
+	return st.Raw.WrCall.LeiPrice
+}
+
 func (st *SignedTxn) ParamsIsJson() bool {
 	return json.Valid([]byte(st.GetParams()))
 }
