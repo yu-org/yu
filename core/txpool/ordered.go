@@ -10,14 +10,14 @@ type orderedTxns struct {
 	txns []*SignedTxn
 	idx  map[Hash]*SignedTxn
 
-	order map[Hash]int
+	order map[int]Hash
 }
 
 func newOrderedTxns() *orderedTxns {
 	return &orderedTxns{
 		txns:  make([]*SignedTxn, 0),
 		idx:   make(map[Hash]*SignedTxn),
-		order: make(map[Hash]int),
+		order: make(map[int]Hash),
 	}
 }
 
@@ -29,8 +29,17 @@ func (ot *orderedTxns) Insert(input *SignedTxn) {
 	ot.txns = append(ot.txns, input)
 }
 
-func (ot *orderedTxns) SetOrder(order map[Hash]int) {
-	ot.order = order
+func (ot *orderedTxns) SetOrder(order map[int]Hash) {
+	for i, hash := range order {
+		ot.setOrder(i, hash)
+	}
+}
+
+func (ot *orderedTxns) setOrder(num int, txHash Hash) {
+	if _, ok := ot.order[num]; ok {
+		ot.setOrder(num+1, txHash)
+	}
+	ot.order[num] = txHash
 }
 
 func (ot *orderedTxns) SortBy(lessFunc func(i, j int) bool) {
@@ -43,11 +52,18 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 		logrus.WithField("txpool", "ordered-txns").
 			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.WrCall)
 		delete(ot.idx, txnHash)
-		delete(ot.order, txnHash)
+		//delete(ot.order, txnHash)
 	}
 	for i, txn := range ot.txns {
 		if txn.TxnHash == txnHash {
 			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
+		}
+	}
+	for i, hash := range ot.order {
+		if hash == txnHash {
+			delete(ot.order, i)
+
+			// ot.order = append(ot.order[:i], ot.order[i+1:]...)
 		}
 	}
 }
@@ -74,7 +90,8 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 
 	txns := make([]*SignedTxn, numLimit)
 
-	for hash, num := range ot.order {
+	for num, hash := range ot.order {
+		// FIXME: if num > numLimit, panic here
 		txns[num] = ot.idx[hash]
 	}
 

@@ -93,7 +93,7 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	return nil
 }
 
-func (tp *TxPool) SetOrder(order map[Hash]int) {
+func (tp *TxPool) SetOrder(order map[int]Hash) {
 	tp.Lock()
 	defer tp.Unlock()
 	tp.unpackedTxns.SetOrder(order)
