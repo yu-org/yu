@@ -93,6 +93,12 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	return nil
 }
 
+func (tp *TxPool) SetOrder(order map[Hash]int) {
+	tp.Lock()
+	defer tp.Unlock()
+	tp.unpackedTxns.SetOrder(order)
+}
+
 func (tp *TxPool) SortBy(lessFunc func(i, j int) bool) {
 	tp.Lock()
 	defer tp.Unlock()

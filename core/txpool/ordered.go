@@ -4,21 +4,20 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
-	"sort"
 )
 
 type orderedTxns struct {
 	txns []*SignedTxn
 	idx  map[Hash]*SignedTxn
 
-	// order map[Hash]int
+	order map[Hash]int
 }
 
 func newOrderedTxns() *orderedTxns {
 	return &orderedTxns{
-		txns: make([]*SignedTxn, 0),
-		idx:  make(map[Hash]*SignedTxn),
-		// order: make(map[Hash]int),
+		txns:  make([]*SignedTxn, 0),
+		idx:   make(map[Hash]*SignedTxn),
+		order: make(map[Hash]int),
 	}
 }
 
@@ -28,27 +27,15 @@ func (ot *orderedTxns) Insert(input *SignedTxn) {
 
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
-
-	//for element := ot.txns.Front(); element != nil; element = element.Next() {
-	//	tx := element.Value.(*SignedTxn)
-	//	// fixme: cannot only use tips to judge.
-	//	if input.Raw.WrCall.Tips > tx.Raw.WrCall.Tips {
-	//		e := ot.txns.InsertBefore(input, element)
-	//		ot.idx[input.TxnHash] = e
-	//		return
-	//	}
-	//}
-	//e := ot.txns.PushBack(input)
-	//ot.idx[input.TxnHash] = e
 }
 
 func (ot *orderedTxns) SetOrder(order map[Hash]int) {
-	panic("implement me")
-	// ot.order = order
+	ot.order = order
 }
 
 func (ot *orderedTxns) SortBy(lessFunc func(i, j int) bool) {
-	sort.Slice(ot.txns, lessFunc)
+	panic("implement me")
+	// sort.Slice(ot.txns, lessFunc)
 }
 
 func (ot *orderedTxns) delete(txnHash Hash) {
@@ -56,7 +43,7 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 		logrus.WithField("txpool", "ordered-txns").
 			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.WrCall)
 		delete(ot.idx, txnHash)
-		// delete(ot.order, txnHash)
+		delete(ot.order, txnHash)
 	}
 	for i, txn := range ot.txns {
 		if txn.TxnHash == txnHash {
@@ -87,13 +74,16 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 
 	txns := make([]*SignedTxn, numLimit)
 
-	//for hash, num := range ot.order {
-	//	txns[num]
-	//}
+	for hash, num := range ot.order {
+		txns[num] = ot.idx[hash]
+	}
 
 	for i := 0; i < int(numLimit); i++ {
-
 		txn := ot.txns[i]
+		if txn != nil {
+			continue
+		}
+
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").
 				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash, txn.Raw.WrCall)

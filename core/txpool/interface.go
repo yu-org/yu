@@ -22,6 +22,7 @@ type ItxPool interface {
 	CheckTxn(stxn *SignedTxn) error
 
 	Insert(txn *SignedTxn) error
+	SetOrder(order map[Hash]int)
 	SortBy(lessFunc func(i, j int) bool)
 
 	// Pack packs some txns to send to tripods
