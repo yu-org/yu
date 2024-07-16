@@ -3,6 +3,7 @@ package tripod
 import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/env"
 	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
@@ -171,8 +172,16 @@ func (t *Tripod) GetWriting(name string) Writing {
 	return t.writings[name]
 }
 
+func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (Writing, error) {
+	return t.Land.GetWriting(tripodName, funcName)
+}
+
 func (t *Tripod) GetReading(name string) Reading {
 	return t.readings[name]
+}
+
+func (t *Tripod) GetReadingFromLand(tripodName, funcName string) (Reading, error) {
+	return t.Land.GetReading(tripodName, funcName)
 }
 
 func (t *Tripod) AllReadingNames() []string {
@@ -219,4 +228,26 @@ func (t *Tripod) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
 	}
 	return err
+}
+
+func (t *Tripod) HandleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+	logrus.Error("push error: ", err.Error())
+	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
+	t.HandleReceipt(ctx, receipt, block, stxn)
+	return receipt
+}
+
+func (t *Tripod) HandleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
+	t.HandleReceipt(ctx, receipt, block, stxn)
+	return receipt
+}
+
+func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+	receipt.FillMetadata(block, stxn, ctx.LeiCost)
+	receipt.BlockStage = ExecuteTxnsStage
+
+	if t.Sub != nil {
+		t.Sub.Emit(receipt)
+	}
 }
