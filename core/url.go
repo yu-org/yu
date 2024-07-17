@@ -34,6 +34,14 @@ type SignedWrCall struct {
 	Call      *WrCall `json:"call"`
 }
 
+func (s *SignedWrCall) GetTripod() string {
+	return s.Call.TripodName
+}
+
+func (s *SignedWrCall) GetFuncName() string {
+	return s.Call.FuncName
+}
+
 type WritingPostBody struct {
 	// hex string
 	Pubkey string `json:"pubkey"`
