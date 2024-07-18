@@ -42,11 +42,6 @@ func (ot *orderedTxns) setOrder(num int, txHash Hash) {
 	ot.order[num] = txHash
 }
 
-func (ot *orderedTxns) SortBy(lessFunc func(i, j int) bool) {
-	panic("implement me")
-	// sort.Slice(ot.txns, lessFunc)
-}
-
 func (ot *orderedTxns) delete(txnHash Hash) {
 	if stxn, ok := ot.idx[txnHash]; ok {
 		logrus.WithField("txpool", "ordered-txns").
@@ -90,6 +85,8 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 
 	txns := make([]*SignedTxn, numLimit)
 
+	ot.excludeEmptyOrder()
+
 	for num, hash := range ot.order {
 		// FIXME: if num > numLimit, panic here
 		txns[num] = ot.idx[hash]
@@ -108,6 +105,19 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		}
 	}
 	return txns
+}
+
+func (ot *orderedTxns) excludeEmptyOrder() {
+	for num, hash := range ot.order {
+		if _, ok := ot.idx[hash]; !ok {
+			delete(ot.order, num)
+		}
+	}
+}
+
+func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
+	orderedTxs := fn(ot.txns)
+	ot.txns = orderedTxs
 }
 
 func (ot *orderedTxns) GetAll() []*SignedTxn {

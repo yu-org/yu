@@ -98,7 +98,7 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 	}
 
 	for _, txn := range txns {
-		if k.Pool.Exist(txn) {
+		if k.CheckReplayAttack(txn) {
 			continue
 		}
 		txn.FromP2P = true
