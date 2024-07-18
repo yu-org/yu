@@ -63,10 +63,10 @@ func (tp *TxPool) WithTripodCheck(tripodName string, tc TxnChecker) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) Exist(stxn *SignedTxn) bool {
+func (tp *TxPool) Exist(txnHash Hash) bool {
 	tp.RLock()
 	defer tp.RUnlock()
-	return tp.unpackedTxns.Exist(stxn.TxnHash)
+	return tp.unpackedTxns.Exist(txnHash)
 }
 
 func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
