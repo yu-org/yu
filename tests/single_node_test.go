@@ -33,7 +33,7 @@ func runChain(wg *sync.WaitGroup) {
 	go chain.Startup()
 
 	blockInterval := time.Duration(poaCfg.BlockInterval) * time.Second
-	time.Sleep(blockInterval * 10)
+	time.Sleep(blockInterval * 16)
 
 	chain.Stop()
 
