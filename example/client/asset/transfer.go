@@ -11,7 +11,7 @@ import (
 	. "github.com/yu-org/yu/example/client/callchain"
 )
 
-func QueryAccount(pubkey PubKey) {
+func QueryAccount(pubkey PubKey) uint64 {
 	params := map[string]string{"account": pubkey.Address().String()}
 	paramsByt, err := json.Marshal(params)
 	if err != nil {
@@ -37,6 +37,7 @@ func QueryAccount(pubkey PubKey) {
 	//	panic(err)
 	//}
 	logrus.Infof("get account(%s) balance(%v)", pubkey.Address().String(), respMap["amount"])
+	return respMap["amount"].(uint64)
 }
 
 type CreateAccountInfo struct {
