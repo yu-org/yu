@@ -20,7 +20,6 @@ func TestSingleNode(t *testing.T) {
 	go runChain(&wg)
 	transferAsset()
 	wg.Wait()
-
 }
 
 func runChain(wg *sync.WaitGroup) {
