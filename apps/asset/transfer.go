@@ -72,7 +72,7 @@ func (a *Asset) QueryBalance(ctx *ReadContext) {
 		return
 	}
 	amount := a.GetBalance(&account)
-	ctx.JsonOk(H{"amount": amount})
+	ctx.JsonOk(H{"amount": amount.Uint64()})
 }
 
 func (a *Asset) Transfer(ctx *WriteContext) (err error) {
