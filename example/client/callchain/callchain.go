@@ -40,12 +40,9 @@ func CallChainByReading(rdCall *RdCall) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func CallChainByWriting(wrCall *WrCall) error {
+func CallChainByWriting(postWriting *WritingPostBody) error {
 	u := url.URL{Scheme: "http", Host: "localhost:7999", Path: WrApiPath}
-	postBody := WritingPostBody{
-		Call: wrCall,
-	}
-	bodyByt, err := json.Marshal(postBody)
+	bodyByt, err := json.Marshal(postWriting)
 	if err != nil {
 		return err
 	}
@@ -56,7 +53,7 @@ func CallChainByWriting(wrCall *WrCall) error {
 	return err
 }
 
-func CallChainByWritingWithSig(privKey *ecdsa.PrivateKey, wrCall *WrCall) error {
+func CallChainByWritingWithECDSA(privKey *ecdsa.PrivateKey, wrCall *WrCall) error {
 	msgByt, err := json.Marshal(wrCall)
 	if err != nil {
 		return err

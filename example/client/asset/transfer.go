@@ -2,21 +2,32 @@ package asset
 
 import (
 	"encoding/json"
+	"github.com/HyperService-Consortium/go-hexutil"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/example/client/callchain"
 )
 
 func QueryAccount(pubkey PubKey) {
+	params := map[string]string{"account": pubkey.Address().String()}
+	paramsByt, err := json.Marshal(params)
+	if err != nil {
+		panic(err)
+	}
 	rdCall := &RdCall{
 		TripodName: "asset",
 		FuncName:   "QueryBalance",
+		Params:     string(paramsByt),
 	}
-	resp := CallChainByReading(rdCall, map[string]string{"account": pubkey.Address().String()})
+	resp, err := CallChainByReading(rdCall)
+	if err != nil {
+		panic(err)
+	}
 	respMap := make(context.H)
-	err := json.Unmarshal(resp, &respMap)
+	err = json.Unmarshal(resp, &respMap)
 	if err != nil {
 		panic("json decode qryAccount response error: " + err.Error())
 	}
@@ -45,7 +56,24 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 		Params:     string(paramsByt),
 		LeiPrice:   0,
 	}
-	CallChainByWritingWithSig(privkey, pubkey, wrCall)
+	byt, err := json.Marshal(wrCall)
+	if err != nil {
+		panic(err)
+	}
+	msgHash := BytesToHash(byt)
+	sig, err := privkey.SignData(msgHash.Bytes())
+	if err != nil {
+		panic(err)
+	}
+	postBody := &core.WritingPostBody{
+		Pubkey:    pubkey.String(),
+		Signature: hexutil.Encode(sig),
+		Call:      wrCall,
+	}
+	err = CallChainByWriting(postBody)
+	if err != nil {
+		panic(err)
+	}
 }
 
 type TransferInfo struct {
@@ -68,5 +96,22 @@ func TransferBalance(privkey PrivKey, pubkey PubKey, to Address, amount, leiPric
 		Params:     string(paramsByt),
 		LeiPrice:   leiPrice,
 	}
-	CallChainByWritingWithSig(privkey, pubkey, wrCall)
+	byt, err := json.Marshal(wrCall)
+	if err != nil {
+		panic(err)
+	}
+	msgHash := BytesToHash(byt)
+	sig, err := privkey.SignData(msgHash.Bytes())
+	if err != nil {
+		panic(err)
+	}
+	postBody := &core.WritingPostBody{
+		Pubkey:    pubkey.String(),
+		Signature: hexutil.Encode(sig),
+		Call:      wrCall,
+	}
+	err = CallChainByWriting(postBody)
+	if err != nil {
+		panic(err)
+	}
 }
