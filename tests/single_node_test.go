@@ -18,12 +18,14 @@ import (
 func TestSingleNode(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go runChain(&wg)
+
+	go runChain(t, &wg)
+	time.Sleep(2 * time.Second)
 	transferAsset(t)
 	wg.Wait()
 }
 
-func runChain(wg *sync.WaitGroup) {
+func runChain(t *testing.T, wg *sync.WaitGroup) {
 	poaCfg := poa.DefaultCfg(0)
 	startup.InitDefaultKernelConfig()
 

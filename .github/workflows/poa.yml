@@ -28,5 +28,5 @@ jobs:
     - name: Build poa
       run: go build -v
 
-    #- name: Test
-    #  run: go test -v ./...
+    - name: Test Single Node
+      run: go test -v ./tests/single_node_test.go
