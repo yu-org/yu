@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/apps/asset"
 	"github.com/yu-org/yu/apps/poa"
@@ -10,6 +9,7 @@ import (
 	"github.com/yu-org/yu/core/types"
 	cliAsset "github.com/yu-org/yu/example/client/asset"
 	"github.com/yu-org/yu/example/client/callchain"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -26,8 +26,12 @@ func TestSingleNode(t *testing.T) {
 }
 
 func runChain(t *testing.T, wg *sync.WaitGroup) {
+
 	poaCfg := poa.DefaultCfg(0)
 	startup.InitDefaultKernelConfig()
+
+	// reset the history data
+	os.RemoveAll(startup.KernelCfg.DataDir)
 
 	assetTri := asset.NewAsset("yu-coin")
 	poaTri := poa.NewPoa(poaCfg)
@@ -68,20 +72,23 @@ func transferAsset(t *testing.T) {
 		transfer2    uint64 = 100
 	)
 
-	logrus.Info("--- send Creating Account ---")
+	t.Log("--- send Creating Account ---")
 	cliAsset.CreateAccount(privkey, pubkey, createAmount)
 	time.Sleep(4 * time.Second)
+	balance := cliAsset.QueryAccount(pubkey)
+	assert.Equal(t, createAmount, balance)
 
-	logrus.Info("--- send Transferring 1 ---")
+	t.Log("--- send Transferring 1 ---")
 	cliAsset.TransferBalance(privkey, pubkey, toPubkey.Address(), transfer1, 0)
-	time.Sleep(4 * time.Second)
-
-	logrus.Info("--- send Transferring 2 ---")
-	cliAsset.TransferBalance(privkey, pubkey, toPubkey.Address(), transfer2, 0)
 	time.Sleep(6 * time.Second)
 
 	balance1 := cliAsset.QueryAccount(pubkey)
 	assert.Equal(t, createAmount-transfer1, balance1)
+
+	t.Log("--- send Transferring 2 ---")
+	cliAsset.TransferBalance(privkey, pubkey, toPubkey.Address(), transfer2, 0)
+	time.Sleep(6 * time.Second)
+
 	balance2 := cliAsset.QueryAccount(toPubkey)
 	assert.Equal(t, createAmount-transfer1-transfer2, balance2)
 }
