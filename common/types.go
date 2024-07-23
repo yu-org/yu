@@ -145,6 +145,7 @@ var (
 
 const Separator = "|"
 
+// HashesToHex returns hash_hex|hash_hex|...
 func HashesToHex(hs []Hash) string {
 	var buffer bytes.Buffer
 	for _, h := range hs {
