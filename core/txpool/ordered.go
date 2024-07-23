@@ -93,10 +93,11 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	}
 
 	for i := 0; i < int(numLimit); i++ {
-		txn := ot.txns[i]
-		if txn != nil {
+		if txns[i] != nil {
 			continue
 		}
+
+		txn := ot.txns[i]
 
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").
