@@ -1,14 +1,12 @@
 package blockchain
 
 import (
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
-	"gorm.io/gorm"
 )
 
 type BlockChain struct {
@@ -45,13 +43,16 @@ func (bc *BlockChain) NewEmptyBlock() *Block {
 
 func (bc *BlockChain) GetGenesis() (*Block, error) {
 	var block BlocksScheme
-	err := bc.chain.Db().Where("height = ?", 0).First(&block).Error
+	result := bc.chain.Db().Where("height = ?", 0).Find(&block)
+	err := result.Error
+
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yerror.ErrBlockNotFound
-		}
 		return nil, err
 	}
+	if result.RowsAffected == 0 {
+		return nil, yerror.ErrBlockNotFound
+	}
+
 	cb, err := block.toBlock()
 	if err != nil {
 		return nil, err
@@ -117,14 +118,16 @@ func (bc *BlockChain) ExistsBlock(blockHash Hash) (bool, error) {
 
 func (bc *BlockChain) GetCompactBlock(blockHash Hash) (*CompactBlock, error) {
 	var bs BlocksScheme
-	err := bc.chain.Db().Where(&BlocksScheme{
+	result := bc.chain.Db().Where(&BlocksScheme{
 		Hash: blockHash.String(),
-	}).First(&bs).Error
+	}).Find(&bs)
+	err := result.Error
+
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yerror.ErrBlockNotFound
-		}
 		return nil, err
+	}
+	if result.RowsAffected == 0 {
+		return nil, yerror.ErrBlockNotFound
 	}
 	return bs.toBlock()
 }
@@ -139,15 +142,18 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*Block, error) {
 
 func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error) {
 	var bs BlocksScheme
-	err := bc.chain.Db().Where(&BlocksScheme{
+	result := bc.chain.Db().Where(&BlocksScheme{
 		Height:   height,
 		Finalize: true,
-	}).First(&bs).Error
+	}).Find(&bs)
+	err := result.Error
+
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yerror.ErrBlockNotFound
-		}
 		return nil, err
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, yerror.ErrBlockNotFound
 	}
 	return bs.toBlock()
 }
@@ -286,12 +292,13 @@ func (bc *BlockChain) LastFinalized() (*Block, error) {
 
 func (bc *BlockChain) GetEndCompactBlock() (*CompactBlock, error) {
 	var bs BlocksScheme
-	err := bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").First(&bs).Error
+	result := bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").Find(&bs)
+	err := result.Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, yerror.ErrBlockNotFound
-		}
 		return nil, err
+	}
+	if result.RowsAffected == 0 {
+		return nil, yerror.ErrBlockNotFound
 	}
 	return bs.toBlock()
 }
