@@ -143,16 +143,21 @@ var (
 	NullAddress Address = [AddressLen]byte{}
 )
 
+const Separator = "|"
+
 func HashesToHex(hs []Hash) string {
 	var buffer bytes.Buffer
 	for _, h := range hs {
 		buffer.WriteString(ToHex(h.Bytes()))
+		buffer.WriteString(Separator)
 	}
-	return buffer.String()
+
+	hexHashes := buffer.String()
+	return strings.TrimSuffix(hexHashes, Separator)
 }
 
 func HexToHashes(s string) (hs []Hash) {
-	arr := strings.SplitN(s, "", HashLen)
+	arr := strings.Split(s, Separator)
 	for _, hx := range arr {
 		hs = append(hs, HexToHash(hx))
 	}
