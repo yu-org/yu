@@ -17,6 +17,8 @@ type WriteContext struct {
 	Events []*Event
 	Extra  []byte
 
+	ExtraInterface any
+
 	LeiCost uint64
 }
 

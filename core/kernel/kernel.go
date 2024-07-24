@@ -142,3 +142,11 @@ func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
 func (k *Kernel) GetTripodInstance(name string) any {
 	return k.Land.GetTripodInstance(name)
 }
+
+func (k *Kernel) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
+	txn, _ = k.Pool.GetTxn(txnHash)
+	if txn == nil {
+		txn, err = k.TxDB.GetTxn(txnHash)
+	}
+	return
+}
