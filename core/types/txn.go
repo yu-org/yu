@@ -8,7 +8,6 @@ import (
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
-	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
 )
 
@@ -229,8 +228,8 @@ type UnsignedTxn struct {
 
 func NewUnsignedTxn(wrCall *WrCall) (*UnsignedTxn, error) {
 	return &UnsignedTxn{
-		WrCall:    wrCall,
-		Timestamp: ytime.NowNanoTsU64(),
+		WrCall: wrCall,
+		// Timestamp: ytime.NowNanoTsU64(),
 	}, nil
 }
 
