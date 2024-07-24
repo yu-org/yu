@@ -4,7 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
 	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
@@ -63,7 +65,20 @@ func (st *SignedTxn) SetParams(params string) {
 	st.Raw.WrCall.Params = params
 }
 
-func (st *SignedTxn) GetCallerAddr() *Address {
+func (st *SignedTxn) GetCaller() *Address {
+	if st.Pubkey == nil {
+		return nil
+	}
+	pubkey, err := keypair.PubKeyFromBytes(st.Pubkey)
+	if err != nil {
+		logrus.Error("GetCaller failed: ", err)
+		return nil
+	}
+	caller := pubkey.Address()
+	return &caller
+}
+
+func (st *SignedTxn) GetEthFormatCaller() *Address {
 	if st.Pubkey == nil {
 		return nil
 	}

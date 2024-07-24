@@ -72,23 +72,27 @@ func transferAsset(t *testing.T) {
 		transfer2    uint64 = 100
 	)
 
-	t.Log("--- send Creating Account ---")
+	t.Log("-------- send Creating Account --------")
 	cliAsset.CreateAccount(privkey, pubkey, createAmount)
-	time.Sleep(4 * time.Second)
+	time.Sleep(10 * time.Second)
 	balance := cliAsset.QueryAccount(pubkey)
 	assert.Equal(t, createAmount, balance)
 
-	t.Log("--- send Transferring 1 ---")
+	t.Log("-------- send Transferring 1 --------")
 	cliAsset.TransferBalance(privkey, pubkey, toPubkey.Address(), transfer1, 0)
-	time.Sleep(6 * time.Second)
+	time.Sleep(8 * time.Second)
 
 	balance1 := cliAsset.QueryAccount(pubkey)
+	toBalance1 := cliAsset.QueryAccount(toPubkey)
 	assert.Equal(t, createAmount-transfer1, balance1)
+	assert.Equal(t, transfer1, toBalance1)
 
-	t.Log("--- send Transferring 2 ---")
+	t.Log("-------- send Transferring 2 --------")
 	cliAsset.TransferBalance(privkey, pubkey, toPubkey.Address(), transfer2, 0)
 	time.Sleep(6 * time.Second)
 
-	balance2 := cliAsset.QueryAccount(toPubkey)
+	balance2 := cliAsset.QueryAccount(pubkey)
+	toBalance2 := cliAsset.QueryAccount(toPubkey)
 	assert.Equal(t, createAmount-transfer1-transfer2, balance2)
+	assert.Equal(t, transfer1+transfer2, toBalance2)
 }

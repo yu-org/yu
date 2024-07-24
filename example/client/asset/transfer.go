@@ -2,8 +2,8 @@ package asset
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/HyperService-Consortium/go-hexutil"
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
@@ -12,7 +12,8 @@ import (
 )
 
 func QueryAccount(pubkey PubKey) uint64 {
-	params := map[string]string{"account": pubkey.Address().String()}
+	addr := pubkey.Address()
+	params := map[string]string{"account": addr.String()}
 	paramsByt, err := json.Marshal(params)
 	if err != nil {
 		panic(err)
@@ -36,7 +37,7 @@ func QueryAccount(pubkey PubKey) uint64 {
 	//if err != nil {
 	//	panic(err)
 	//}
-	logrus.Infof("get account(%s) balance(%v)", pubkey.Address().String(), respMap["amount"])
+	fmt.Printf("get account(%s) balance(%v) \n", addr.String(), respMap["amount"])
 	return respMap["amount"].(uint64)
 }
 
@@ -67,7 +68,7 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 		panic(err)
 	}
 	postBody := &core.WritingPostBody{
-		Pubkey:    pubkey.String(),
+		Pubkey:    pubkey.StringWithType(),
 		Signature: hexutil.Encode(sig),
 		Call:      wrCall,
 	}

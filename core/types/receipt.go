@@ -34,7 +34,7 @@ func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 	wrCall := stxn.Raw.WrCall
 
-	r.Caller = stxn.GetCallerAddr()
+	r.Caller = stxn.GetCaller()
 	r.TripodName = wrCall.TripodName
 	r.WritingName = wrCall.FuncName
 	r.BlockHash = block.Hash
