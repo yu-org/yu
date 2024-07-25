@@ -3,8 +3,8 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
@@ -70,7 +70,7 @@ func (st *SignedTxn) GetCaller() *Address {
 	}
 	pubkey, err := keypair.PubKeyFromBytes(st.Pubkey)
 	if err != nil {
-		logrus.Error("GetCaller failed: ", err)
+		fmt.Println("GetCaller failed: ", err)
 		return nil
 	}
 	caller := pubkey.Address()

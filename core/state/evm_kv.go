@@ -144,7 +144,7 @@ package state
 //
 //	// todo: optimize combine all key-values stashes
 //	for _, stash := range db.stashes {
-//		err = stash.commit(mpt)
+//		err = stash.apply(mpt)
 //		if err != nil {
 //			db.DiscardAll()
 //			return NullHash, err
@@ -298,7 +298,7 @@ package state
 //	e.indexes[addr.String()] = len(e.stashes) - 1
 //}
 //
-//func (e *EvmTxnStashes) commit(mpt *Trie) error {
+//func (e *EvmTxnStashes) apply(mpt *Trie) error {
 //	for _, stash := range e.stashes {
 //		switch stash.ops {
 //		case SetOp:

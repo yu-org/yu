@@ -47,12 +47,17 @@ var (
 	EmptyRoot = HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 )
 
-func NewSpmtKV(kvdb Kvdb) IState {
+func NewSpmtKV(root []byte, kvdb Kvdb) IState {
 	indexDB := kvdb.New(SpmtIndex)
 	nodesDB := kvdb.New(Nodes)
 	valuesDB := kvdb.New(Values)
 
-	spmt := smt.NewSparseMerkleTree(nodesDB, valuesDB, hasher())
+	var spmt *smt.SparseMerkleTree
+	if root == nil {
+		spmt = smt.NewSparseMerkleTree(nodesDB, valuesDB, hasher())
+	} else {
+		spmt = smt.ImportSparseMerkleTree(nodesDB, valuesDB, hasher(), root)
+	}
 
 	return &SpmtKV{
 		indexDB:      indexDB,
@@ -129,19 +134,20 @@ func (skv *SpmtKV) exist(triName string, key []byte) bool {
 	return value != nil
 }
 
+// FIXME
 func (skv *SpmtKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
 	return skv.getByBlockHash(triName.Name(), key, blockHash)
 }
 
 func (skv *SpmtKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
 	key = makeKey(triName, key)
-	stateRoot, err := skv.getIndexDB(blockHash)
-	if err != nil {
-		return nil, err
-	}
+	//stateRoot, err := skv.getIndexDB(blockHash)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	mpt := smt.ImportSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher(), stateRoot)
-	value, err := mpt.Get(key)
+	// mpt := smt.ImportSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher(), stateRoot)
+	value, err := skv.spmt.Get(key)
 	if bytes.Equal(value, []byte{}) {
 		// because of https://github.com/celestiaorg/smt/blob/master/smt.go#L14
 		value = nil
@@ -158,12 +164,13 @@ func (skv *SpmtKV) Commit() ([]byte, error) {
 	//if lastStateRoot == nil {
 	//	lastStateRoot = EmptyRoot.Bytes()
 	//}
-	spmt := smt.NewSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher())
+
+	//spmt := smt.NewSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher())
 
 	// todo: optimize combine all key-values stashes
 	for element := skv.stashes.Front(); element != nil; element = element.Next() {
 		stashes := element.Value.(*TxnStashes)
-		err := stashes.commit(spmt)
+		err := stashes.apply(skv.spmt)
 		if err != nil {
 			skv.DiscardAll()
 			return nil, err
@@ -175,7 +182,7 @@ func (skv *SpmtKV) Commit() ([]byte, error) {
 	//	skv.DiscardAll()
 	//	return NullHash, err
 	//}
-	stateRoot := spmt.Root()
+	stateRoot := skv.spmt.Root()
 
 	err := skv.setIndexDB(skv.currentBlock, stateRoot)
 	if err != nil {
@@ -277,7 +284,7 @@ func (k *TxnStashes) get(key []byte) (*Ops, []byte) {
 	return nil, nil
 }
 
-func (k *TxnStashes) commit(mpt *smt.SparseMerkleTree) error {
+func (k *TxnStashes) apply(mpt *smt.SparseMerkleTree) error {
 	for element := k.stashes.Front(); element != nil; element = element.Next() {
 		stash := element.Value.(*KvStash)
 		switch stash.ops {

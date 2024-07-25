@@ -2,13 +2,12 @@ package asset
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/HyperService-Consortium/go-hexutil"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core"
-	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/example/client/callchain"
+	"math/big"
 )
 
 func QueryAccount(pubkey PubKey) uint64 {
@@ -27,7 +26,7 @@ func QueryAccount(pubkey PubKey) uint64 {
 	if err != nil {
 		panic(err)
 	}
-	respMap := make(context.H)
+	respMap := make(map[string]*big.Int)
 	err = json.Unmarshal(resp, &respMap)
 	if err != nil {
 		panic("json decode qryAccount response error: " + err.Error())
@@ -37,8 +36,7 @@ func QueryAccount(pubkey PubKey) uint64 {
 	//if err != nil {
 	//	panic(err)
 	//}
-	fmt.Printf("get account(%s) balance(%v) \n", addr.String(), respMap["amount"])
-	return respMap["amount"].(uint64)
+	return respMap["amount"].Uint64()
 }
 
 type CreateAccountInfo struct {
@@ -108,7 +106,7 @@ func TransferBalance(privkey PrivKey, pubkey PubKey, to Address, amount, leiPric
 		panic(err)
 	}
 	postBody := &core.WritingPostBody{
-		Pubkey:    pubkey.String(),
+		Pubkey:    pubkey.StringWithType(),
 		Signature: hexutil.Encode(sig),
 		Call:      wrCall,
 	}

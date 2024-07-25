@@ -67,12 +67,13 @@ func (a *Asset) QueryBalance(ctx *ReadContext) {
 		return
 	}
 	account := HexToAddress(req.Account)
+
 	if !a.ExistAccount(&account) {
 		ctx.ErrOk(AccountNotFound(account))
 		return
 	}
 	amount := a.GetBalance(&account)
-	ctx.JsonOk(H{"amount": amount.Uint64()})
+	ctx.JsonOk(map[string]*big.Int{"amount": amount})
 }
 
 func (a *Asset) Transfer(ctx *WriteContext) (err error) {
@@ -81,7 +82,8 @@ func (a *Asset) Transfer(ctx *WriteContext) (err error) {
 	to := ctx.GetAddress("to")
 	amount := big.NewInt(int64(ctx.GetUint64("amount")))
 
-	logrus.WithField("asset", "transfer").Debugf("from(%s) to(%s) amount(%d)", from.String(), to.String(), amount)
+	logrus.WithField("asset", "transfer").
+		Debugf("from(%s) to(%s) amount(%d)", from.String(), to.String(), amount)
 	err = a.transfer(from, to, amount)
 	if err != nil {
 		return
