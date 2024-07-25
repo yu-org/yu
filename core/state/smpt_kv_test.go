@@ -49,7 +49,7 @@ func TestKvCommit(t *testing.T) {
 
 	_, err = statekv.Commit()
 	if err != nil {
-		t.Fatalf("commit state-kv error: %s", err.Error())
+		t.Fatalf("apply state-kv error: %s", err.Error())
 	}
 
 	statekv.FinalizeBlock(NullHash)

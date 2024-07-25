@@ -70,7 +70,7 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 		Chain = blockchain.NewBlockChain(KernelCfg.NodeType, &KernelCfg.BlockChain, TxnDB)
 	}
 	if Pool == nil {
-		Pool = txpool.WithDefaultChecks(KernelCfg.NodeType, &KernelCfg.Txpool, TxnDB)
+		Pool = txpool.WithDefaultChecks(KernelCfg.NodeType, &KernelCfg.Txpool)
 	}
 	if StateDB == nil {
 		StateDB = state.NewStateDB(kvdb)

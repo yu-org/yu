@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	pubkey, privkey, err := GenKeyPair(Sr25519)
 	if err != nil {
 		panic("generate key error: " + err.Error())

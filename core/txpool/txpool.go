@@ -17,13 +17,12 @@ type TxPool struct {
 	TxnMaxSize int
 
 	unpackedTxns IunpackedTxns
-	txdb         ItxDB
 
 	baseChecks   []TxnCheckFn
 	tripodChecks map[string]TxnCheckFn
 }
 
-func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
+func NewTxPool(nodeType int, cfg *TxpoolConf) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
@@ -31,15 +30,14 @@ func NewTxPool(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
 		poolSize:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
-		txdb:         base,
 		baseChecks:   make([]TxnCheckFn, 0),
 		tripodChecks: make(map[string]TxnCheckFn),
 	}
 	return tp
 }
 
-func WithDefaultChecks(nodeType int, cfg *TxpoolConf, base ItxDB) *TxPool {
-	tp := NewTxPool(nodeType, cfg, base)
+func WithDefaultChecks(nodeType int, cfg *TxpoolConf) *TxPool {
+	tp := NewTxPool(nodeType, cfg)
 	return tp.withDefaultBaseChecks()
 }
 
@@ -65,14 +63,10 @@ func (tp *TxPool) WithTripodCheck(tripodName string, tc TxnChecker) ItxPool {
 	return tp
 }
 
-func (tp *TxPool) Exist(stxn *SignedTxn) bool {
+func (tp *TxPool) Exist(txnHash Hash) bool {
 	tp.RLock()
 	defer tp.RUnlock()
-	if tp.unpackedTxns.Exist(stxn.TxnHash) {
-		return true
-	}
-	// check replay attack
-	return tp.txdb.ExistTxn(stxn.TxnHash)
+	return tp.unpackedTxns.Exist(txnHash)
 }
 
 func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
@@ -91,6 +85,18 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	}
 	tp.unpackedTxns.Insert(stxn)
 	return nil
+}
+
+func (tp *TxPool) SetOrder(order map[int]Hash) {
+	tp.Lock()
+	defer tp.Unlock()
+	tp.unpackedTxns.SetOrder(order)
+}
+
+func (tp *TxPool) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
+	tp.Lock()
+	defer tp.Unlock()
+	tp.unpackedTxns.SortTxns(fn)
 }
 
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {

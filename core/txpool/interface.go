@@ -18,10 +18,12 @@ type ItxPool interface {
 	// NecessaryCheck uses for SyncTxns
 	NecessaryCheck(stxn *SignedTxn) error
 
-	Exist(stxn *SignedTxn) bool
+	Exist(txnHash Hash) bool
 	CheckTxn(stxn *SignedTxn) error
 
 	Insert(txn *SignedTxn) error
+	SetOrder(order map[int]Hash)
+	SortTxns(fn func(txns []*SignedTxn) []*SignedTxn)
 
 	// Pack packs some txns to send to tripods
 	Pack(numLimit uint64) ([]*SignedTxn, error)
@@ -43,5 +45,7 @@ type IunpackedTxns interface {
 	Get(txnHash Hash) *SignedTxn
 	GetAll() []*SignedTxn
 	Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn
+	SortTxns(fn func(txns []*SignedTxn) []*SignedTxn)
+	SetOrder(order map[int]Hash)
 	Size() int
 }

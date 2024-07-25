@@ -22,5 +22,6 @@ type IState interface {
 }
 
 func NewStateDB(kvdb kv.Kvdb) IState {
-	return NewSpmtKV(kvdb)
+	// FIXME
+	return NewSpmtKV(nil, kvdb)
 }

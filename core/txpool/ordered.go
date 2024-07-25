@@ -1,47 +1,65 @@
 package txpool
 
 import (
-	"container/list"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
 )
 
 type orderedTxns struct {
-	txns *list.List
-	idx  map[Hash]*list.Element
+	txns []*SignedTxn
+	idx  map[Hash]*SignedTxn
+
+	order map[int]Hash
 }
 
 func newOrderedTxns() *orderedTxns {
 	return &orderedTxns{
-		txns: list.New(),
-		idx:  make(map[Hash]*list.Element),
+		txns:  make([]*SignedTxn, 0),
+		idx:   make(map[Hash]*SignedTxn),
+		order: make(map[int]Hash),
 	}
 }
 
 func (ot *orderedTxns) Insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").
-		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash.String(), input.Raw.WrCall)
-	for element := ot.txns.Front(); element != nil; element = element.Next() {
-		tx := element.Value.(*SignedTxn)
-		// fixme: cannot only use tips to judge.
-		if input.Raw.WrCall.Tips > tx.Raw.WrCall.Tips {
-			e := ot.txns.InsertBefore(input, element)
-			ot.idx[input.TxnHash] = e
-			return
-		}
+		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
+
+	ot.idx[input.TxnHash] = input
+	ot.txns = append(ot.txns, input)
+}
+
+func (ot *orderedTxns) SetOrder(order map[int]Hash) {
+	for i, hash := range order {
+		ot.setOrder(i, hash)
 	}
-	e := ot.txns.PushBack(input)
-	ot.idx[input.TxnHash] = e
+}
+
+func (ot *orderedTxns) setOrder(num int, txHash Hash) {
+	if _, ok := ot.order[num]; ok {
+		ot.setOrder(num+1, txHash)
+	}
+	ot.order[num] = txHash
 }
 
 func (ot *orderedTxns) delete(txnHash Hash) {
-	if e, ok := ot.idx[txnHash]; ok {
-		stxn := e.Value.(*SignedTxn)
+	if stxn, ok := ot.idx[txnHash]; ok {
 		logrus.WithField("txpool", "ordered-txns").
 			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.WrCall)
-		ot.txns.Remove(e)
 		delete(ot.idx, txnHash)
+		//delete(ot.order, txnHash)
+	}
+	for i, txn := range ot.txns {
+		if txn.TxnHash == txnHash {
+			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
+		}
+	}
+	for i, hash := range ot.order {
+		if hash == txnHash {
+			delete(ot.order, i)
+
+			// ot.order = append(ot.order[:i], ot.order[i+1:]...)
+		}
 	}
 }
 
@@ -57,38 +75,56 @@ func (ot *orderedTxns) Exist(txnHash Hash) bool {
 }
 
 func (ot *orderedTxns) Get(txnHash Hash) *SignedTxn {
-	if e, ok := ot.idx[txnHash]; ok {
-		return e.Value.(*SignedTxn)
-	}
-	return nil
+	return ot.idx[txnHash]
 }
 
 func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
-	txns := make([]*SignedTxn, 0)
 	if numLimit > uint64(ot.Size()) {
 		numLimit = uint64(ot.Size())
 	}
-	var packedNum uint64 = 0
-	for element := ot.txns.Front(); element != nil && packedNum < numLimit; element = element.Next() {
-		txn := element.Value.(*SignedTxn)
+
+	txns := make([]*SignedTxn, numLimit)
+
+	ot.excludeEmptyOrder()
+
+	for num, hash := range ot.order {
+		// FIXME: if num > numLimit, panic here
+		txns[num] = ot.idx[hash]
+	}
+
+	for i := 0; i < int(numLimit); i++ {
+		if txns[i] != nil {
+			continue
+		}
+
+		txn := ot.txns[i]
+
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").
-				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
-			txns = append(txns, txn)
-			packedNum++
+				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash, txn.Raw.WrCall)
+			txns[i] = txn
 		}
 	}
 	return txns
 }
 
-func (ot *orderedTxns) GetAll() []*SignedTxn {
-	var txns []*SignedTxn
-	for element := ot.txns.Front(); element != nil; element = element.Next() {
-		txns = append(txns, element.Value.(*SignedTxn))
+func (ot *orderedTxns) excludeEmptyOrder() {
+	for num, hash := range ot.order {
+		if _, ok := ot.idx[hash]; !ok {
+			delete(ot.order, num)
+		}
 	}
-	return txns
+}
+
+func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
+	orderedTxs := fn(ot.txns)
+	ot.txns = orderedTxs
+}
+
+func (ot *orderedTxns) GetAll() []*SignedTxn {
+	return ot.txns
 }
 
 func (ot *orderedTxns) Size() int {
-	return ot.txns.Len()
+	return len(ot.txns)
 }

@@ -21,7 +21,7 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 		return err
 	}
 
-	if k.Pool.Exist(stxn) {
+	if k.CheckReplayAttack(stxn.TxnHash) {
 		return nil
 	}
 
@@ -52,6 +52,13 @@ func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error
 	}
 	rd(ctx)
 	return ctx.Response(), nil
+}
+
+func (k *Kernel) CheckReplayAttack(txnHash common.Hash) bool {
+	if k.Pool.Exist(txnHash) {
+		return true
+	}
+	return k.TxDB.ExistTxn(txnHash)
 }
 
 //func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {

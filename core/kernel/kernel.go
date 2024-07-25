@@ -15,6 +15,8 @@ import (
 type Kernel struct {
 	sync.Mutex
 
+	cfg *KernelConf
+
 	RunMode RunMode
 
 	stopChan chan struct{}
@@ -34,6 +36,7 @@ func NewKernel(
 	land *Land,
 ) *Kernel {
 	k := &Kernel{
+		cfg:      cfg,
 		RunMode:  cfg.RunMode,
 		stopChan: make(chan struct{}),
 		leiLimit: cfg.LeiLimit,
@@ -98,7 +101,7 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 	}
 
 	for _, txn := range txns {
-		if k.Pool.Exist(txn) {
+		if k.CheckReplayAttack(txn.TxnHash) {
 			continue
 		}
 		txn.FromP2P = true

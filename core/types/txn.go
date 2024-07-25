@@ -2,10 +2,12 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
-	ytime "github.com/yu-org/yu/utils/time"
 	"unsafe"
 )
 
@@ -46,11 +48,36 @@ func (st *SignedTxn) GetParams() string {
 	return st.Raw.WrCall.Params
 }
 
+func (st *SignedTxn) GetTips() uint64 {
+	return st.Raw.WrCall.Tips
+}
+
+func (st *SignedTxn) GetLeiPrice() uint64 {
+	return st.Raw.WrCall.LeiPrice
+}
+
+func (st *SignedTxn) ParamsIsJson() bool {
+	return json.Valid([]byte(st.GetParams()))
+}
+
 func (st *SignedTxn) SetParams(params string) {
 	st.Raw.WrCall.Params = params
 }
 
-func (st *SignedTxn) GetCallerAddr() *Address {
+func (st *SignedTxn) GetCaller() *Address {
+	if st.Pubkey == nil {
+		return nil
+	}
+	pubkey, err := keypair.PubKeyFromBytes(st.Pubkey)
+	if err != nil {
+		fmt.Println("GetCaller failed: ", err)
+		return nil
+	}
+	caller := pubkey.Address()
+	return &caller
+}
+
+func (st *SignedTxn) GetEthFormatCaller() *Address {
 	if st.Pubkey == nil {
 		return nil
 	}
@@ -201,8 +228,8 @@ type UnsignedTxn struct {
 
 func NewUnsignedTxn(wrCall *WrCall) (*UnsignedTxn, error) {
 	return &UnsignedTxn{
-		WrCall:    wrCall,
-		Timestamp: ytime.NowNanoTsU64(),
+		WrCall: wrCall,
+		// Timestamp: ytime.NowNanoTsU64(),
 	}, nil
 }
 

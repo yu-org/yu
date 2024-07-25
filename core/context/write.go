@@ -49,7 +49,7 @@ func (c *WriteContext) GetTxnHash() Hash {
 }
 
 func (c *WriteContext) GetCaller() *Address {
-	return c.Txn.GetCallerAddr()
+	return c.Txn.GetCaller()
 }
 
 func (c *WriteContext) FromP2P() bool {

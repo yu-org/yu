@@ -9,9 +9,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
-defaults:
-  run:
-    working-directory: 'example/poa'
+#defaults:
+#  run:
+#    working-directory: 'example/poa'
 
 jobs:
 
@@ -26,7 +26,17 @@ jobs:
         go-version: 1.21
 
     - name: Build poa
-      run: go build -v
+      run: cd example/poa && go build -v
 
-    #- name: Test
-    #  run: go test -v ./...
+  test-single-node:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.21
+
+    - name: Test Single Node
+      run: go test -v ./tests/single_node_test.go
