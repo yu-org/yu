@@ -6,8 +6,14 @@ name: ci
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - '!**/docs/**'
+      - '!**/README.md'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '!**/docs/**'
+      - '!**/README.md'
 
 #defaults:
 #  run:
