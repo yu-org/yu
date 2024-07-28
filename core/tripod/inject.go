@@ -4,10 +4,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common/yerror"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
-var InjectTag = "tripod"
+var (
+	InjectTag = "tripod"
+	OmitEmpty = "omitempty"
+)
 
 func ResolveTripod(v interface{}) *Tripod {
 	tri := reflect.Indirect(reflect.ValueOf(v)).FieldByName("Tripod")
@@ -20,13 +24,20 @@ func Inject(tripodInterface interface{}) error {
 	triStruct := reflect.Indirect(reflect.ValueOf(tripodInterface))
 	for i := 0; i < triStruct.NumField(); i++ {
 		tag := triStruct.Type().Field(i).Tag
-		name, hasTag := tag.Lookup(InjectTag)
+		tagValue, hasTag := tag.Lookup(InjectTag)
 		if !hasTag {
 			continue
 		}
-		triToInject, ok := tri.Land.TripodsMap[name]
+		arr := strings.Split(tagValue, ",")
+		tripodName := arr[0]
+		triToInject, ok := tri.Land.TripodsMap[tripodName]
 		if !ok {
-			return yerror.TripodNotFound(name)
+			if len(arr) > 1 {
+				if arr[1] == OmitEmpty {
+					continue
+				}
+			}
+			return yerror.TripodNotFound(tripodName)
 		}
 		field := triStruct.Field(i)
 		if field.CanSet() {
@@ -36,7 +47,7 @@ func Inject(tripodInterface interface{}) error {
 			field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 			field.Set(reflect.ValueOf(triToInject.Instance))
 		}
-		logrus.Debugf("inject tripod(%s) into %s", name, tri.name)
+		logrus.Debugf("inject tripod(%s) into %s", tripodName, tri.name)
 	}
 	return nil
 }
