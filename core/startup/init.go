@@ -6,26 +6,29 @@ import (
 	"os"
 )
 
-func InitKernelConfigFromPath(cfgPath string) {
-	config.LoadTomlConf(cfgPath, KernelCfg)
-	initDataDir()
-	initLog(KernelCfg)
+func InitKernelConfigFromPath(cfgPath string) *config.KernelConf {
+	cfg := new(config.KernelConf)
+	config.LoadTomlConf(cfgPath, cfg)
+	initDataDir(cfg.DataDir)
+	initLog(cfg)
+	return cfg
 }
 
-func InitKernelConfig(cfg *config.KernelConf) {
-	KernelCfg = cfg
-	initDataDir()
-	initLog(KernelCfg)
+//func InitKernelConfig(cfg *config.KernelConf) {
+//	KernelCfg = cfg
+//	initDataDir()
+//	initLog(KernelCfg)
+//}
+
+func InitDefaultKernelConfig() *config.KernelConf {
+	cfg := config.InitDefaultCfg()
+	initDataDir(cfg.DataDir)
+	initLog(cfg)
+	return cfg
 }
 
-func InitDefaultKernelConfig() {
-	KernelCfg = config.InitDefaultCfg()
-	initDataDir()
-	initLog(KernelCfg)
-}
-
-func initDataDir() {
-	err := os.MkdirAll(KernelCfg.DataDir, 0700)
+func initDataDir(fpath string) {
+	err := os.MkdirAll(fpath, 0700)
 	if err != nil {
 		panic(err)
 	}

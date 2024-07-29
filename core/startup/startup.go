@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	KernelCfg = new(config.KernelConf)
+	// KernelCfg = new(config.KernelConf)
 
 	Chain   types.IBlockChain
 	TxnDB   types.ItxDB
@@ -31,22 +31,22 @@ var (
 	Land = tripod.NewLand()
 )
 
-func DefaultStartup(tripodInstances ...interface{}) {
-	k := InitDefaultKernel(tripodInstances...)
+func DefaultStartup(cfg *config.KernelConf, tripodInstances ...interface{}) {
+	k := InitDefaultKernel(cfg, tripodInstances...)
 	k.Startup()
 }
 
-func StartUp(tripodInstances ...interface{}) {
-	k := InitKernel(tripodInstances...)
+func StartUp(cfg *config.KernelConf, tripodInstances ...interface{}) {
+	k := InitKernel(cfg, tripodInstances...)
 	k.Startup()
 }
 
-func InitDefaultKernel(tripodInstances ...interface{}) *kernel.Kernel {
-	tripodInstances = append(tripodInstances, synchronizer.NewSynchronizer(KernelCfg.SyncMode))
-	return InitKernel(tripodInstances...)
+func InitDefaultKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.Kernel {
+	tripodInstances = append(tripodInstances, synchronizer.NewSynchronizer(cfg.SyncMode))
+	return InitKernel(cfg, tripodInstances...)
 }
 
-func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
+func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.Kernel {
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
 		tripods = append(tripods, tripod.ResolveTripod(v))
@@ -56,21 +56,21 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 	gin.SetMode(gin.ReleaseMode)
 
 	// init database
-	KernelCfg.KVDB.Path = path.Join(KernelCfg.DataDir, KernelCfg.KVDB.Path)
-	KernelCfg.BlockChain.ChainDB.Dsn = path.Join(KernelCfg.DataDir, KernelCfg.BlockChain.ChainDB.Dsn)
-	kvdb, err := kv.NewKvdb(&KernelCfg.KVDB)
+	cfg.KVDB.Path = path.Join(cfg.DataDir, cfg.KVDB.Path)
+	cfg.BlockChain.ChainDB.Dsn = path.Join(cfg.DataDir, cfg.BlockChain.ChainDB.Dsn)
+	kvdb, err := kv.NewKvdb(&cfg.KVDB)
 	if err != nil {
 		logrus.Fatal("init kvdb error: ", err)
 	}
 
 	if TxnDB == nil {
-		TxnDB = txdb.NewTxDB(KernelCfg.NodeType, kvdb)
+		TxnDB = txdb.NewTxDB(cfg.NodeType, kvdb)
 	}
 	if Chain == nil {
-		Chain = blockchain.NewBlockChain(KernelCfg.NodeType, &KernelCfg.BlockChain, TxnDB)
+		Chain = blockchain.NewBlockChain(cfg.NodeType, &cfg.BlockChain, TxnDB)
 	}
 	if Pool == nil {
-		Pool = txpool.WithDefaultChecks(KernelCfg.NodeType, &KernelCfg.Txpool)
+		Pool = txpool.WithDefaultChecks(cfg.NodeType, &cfg.Txpool)
 	}
 	if StateDB == nil {
 		StateDB = state.NewStateDB(kvdb)
@@ -84,7 +84,7 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 		TxDB:       TxnDB,
 		Pool:       Pool,
 		Sub:        subscribe.NewSubscription(),
-		P2pNetwork: p2p.NewP2P(&KernelCfg.P2P),
+		P2pNetwork: p2p.NewP2P(&cfg.P2P),
 	}
 
 	for i, t := range tripods {
@@ -106,5 +106,5 @@ func InitKernel(tripodInstances ...interface{}) *kernel.Kernel {
 		}
 	}
 
-	return kernel.NewKernel(KernelCfg, chainEnv, Land)
+	return kernel.NewKernel(cfg, chainEnv, Land)
 }

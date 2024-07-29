@@ -28,15 +28,15 @@ func TestSingleNode(t *testing.T) {
 func runChain(t *testing.T, wg *sync.WaitGroup) {
 
 	poaCfg := poa.DefaultCfg(0)
-	startup.InitDefaultKernelConfig()
+	yuCfg := startup.InitDefaultKernelConfig()
 
 	// reset the history data
-	os.RemoveAll(startup.KernelCfg.DataDir)
+	os.RemoveAll(yuCfg.DataDir)
 
 	assetTri := asset.NewAsset("yu-coin")
 	poaTri := poa.NewPoa(poaCfg)
 
-	chain := startup.InitDefaultKernel(poaTri, assetTri)
+	chain := startup.InitDefaultKernel(yuCfg, poaTri, assetTri)
 	go chain.Startup()
 
 	blockInterval := time.Duration(poaCfg.BlockInterval) * time.Second
