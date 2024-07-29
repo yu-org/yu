@@ -89,7 +89,9 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 
 	for num, hash := range ot.order {
 		// FIXME: if num > numLimit, panic here
-		txns[num] = ot.idx[hash]
+		if filter(ot.idx[hash]) {
+			txns[num] = ot.idx[hash]
+		}
 	}
 
 	for i := 0; i < int(numLimit); i++ {
