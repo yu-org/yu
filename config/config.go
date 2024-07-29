@@ -34,6 +34,10 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
+	// for test, when blockchain runs till MaxBlockNum, it will stop
+	// 0 means never stop.
+	MaxBlockNum BlockNum `toml:"max_block_num"`
+
 	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`

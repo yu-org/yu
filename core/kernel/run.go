@@ -29,9 +29,13 @@ func (k *Kernel) Run() {
 				logrus.Info("Stop the Chain!")
 				return
 			default:
-				err := k.LocalRun()
+				block, err := k.LocalRun()
 				if err != nil {
-					logrus.Panicf("local-run blockchain error: %s", err.Error())
+					logrus.Panicf("local-run blockchain error: %s on Block(%d)", err.Error(), block.Height)
+				}
+				if block.Height == k.cfg.MaxBlockNum {
+					logrus.Infof("Stop the Chain on Block(%d)", block.Height)
+					return
 				}
 			}
 
@@ -48,10 +52,10 @@ func (k *Kernel) Run() {
 
 }
 
-func (k *Kernel) LocalRun() (err error) {
-	newBlock, err := k.makeNewBasicBlock()
+func (k *Kernel) LocalRun() (newBlock *Block, err error) {
+	newBlock, err = k.makeNewBasicBlock()
 	if err != nil {
-		return err
+		return
 	}
 
 	// start a new block
@@ -60,7 +64,7 @@ func (k *Kernel) LocalRun() (err error) {
 		return nil
 	})
 	if err != nil {
-		return err
+		return
 	}
 
 	// end block and append to Chain
@@ -69,14 +73,15 @@ func (k *Kernel) LocalRun() (err error) {
 		return nil
 	})
 	if err != nil {
-		return err
+		return
 	}
 
 	// finalize this block
-	return k.Land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *Tripod) error {
 		tri.BlockCycle.FinalizeBlock(newBlock)
 		return nil
 	})
+	return
 }
 
 func (k *Kernel) makeGenesisBlock() *Block {
