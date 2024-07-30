@@ -23,6 +23,8 @@ type Tripod struct {
 	Init       Init
 	BlockCycle BlockCycle
 
+	PreTxnHandler PreTxnHandler
+
 	Committer Committer
 
 	Instance interface{}
@@ -63,6 +65,9 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 		t.name = tripodName
 	}
 
+	if isImplementInterface(tripodInstance, (*PreTxnHandler)(nil)) {
+		t.SetPreTxnHandler(tripodInstance.(PreTxnHandler))
+	}
 	if isImplementInterface(tripodInstance, (*TxnChecker)(nil)) {
 		t.SetTxnChecker(tripodInstance.(TxnChecker))
 	}
@@ -133,6 +138,10 @@ func (t *Tripod) SetBlockVerifier(bv BlockVerifier) {
 
 func (t *Tripod) SetTxnChecker(tc TxnChecker) {
 	t.TxnChecker = tc
+}
+
+func (t *Tripod) SetPreTxnHandler(pth PreTxnHandler) {
+	t.PreTxnHandler = pth
 }
 
 func (t *Tripod) SetWritings(wrs ...Writing) {
