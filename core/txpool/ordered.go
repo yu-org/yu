@@ -50,11 +50,13 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 		delete(ot.idx, txnHash)
 		//delete(ot.order, txnHash)
 	}
-	for i, txn := range ot.txns {
-		if txn.TxnHash == txnHash {
+	for i := 0; i < len(ot.txns); i++ {
+		if ot.txns[i].TxnHash == txnHash {
 			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
+			i--
 		}
 	}
+
 	//for i, hash := range ot.order {
 	//	if hash == txnHash {
 	//		delete(ot.order, i)
