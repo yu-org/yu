@@ -23,6 +23,7 @@ var (
 	PoolOverflow  error = errors.New("pool size is full")
 	TxnTimeoutErr error = errors.New("Txn time out")
 	TxnTooLarge   error = errors.New("the size of txn is too large")
+	TxnDuplicated error = errors.New("Transaction duplicated")
 )
 
 var ErrBlockNotFound error = errors.New("block not found")

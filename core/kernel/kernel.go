@@ -13,7 +13,7 @@ import (
 )
 
 type Kernel struct {
-	sync.Mutex
+	mutex sync.Mutex
 
 	cfg *KernelConf
 
