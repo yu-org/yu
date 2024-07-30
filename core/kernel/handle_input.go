@@ -3,6 +3,7 @@ package kernel
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/types"
@@ -21,11 +22,7 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 		return err
 	}
 
-	if k.CheckReplayAttack(stxn.TxnHash) {
-		return nil
-	}
-
-	err = k.Pool.CheckTxn(stxn)
+	err = k.handleTxnLocally(stxn)
 	if err != nil {
 		return err
 	}
@@ -37,6 +34,19 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 		}
 	}()
 
+	return nil
+}
+
+func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
+	k.mutex.Lock()
+	defer k.mutex.Unlock()
+	if k.CheckReplayAttack(stxn.TxnHash) {
+		return yerror.TxnDuplicated
+	}
+	err := k.Pool.CheckTxn(stxn)
+	if err != nil {
+		return err
+	}
 	return k.Pool.Insert(stxn)
 }
 
