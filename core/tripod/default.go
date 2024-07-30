@@ -26,6 +26,12 @@ func (*DefaultBlockCycle) StartBlock(*Block)    {}
 func (*DefaultBlockCycle) EndBlock(*Block)      {}
 func (*DefaultBlockCycle) FinalizeBlock(*Block) {}
 
+type DefaultPreTxnHandler struct{}
+
+func (*DefaultPreTxnHandler) PreHandleTxn(*SignedTxn) error {
+	return nil
+}
+
 type DefaultCommitter struct{}
 
 func (*DefaultCommitter) Commit(*Block) {}

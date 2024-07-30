@@ -53,6 +53,7 @@ func NewTripodWithName(name string) *Tripod {
 		TxnChecker:    new(DefaultTxnChecker),
 		Init:          new(DefaultInit),
 		BlockCycle:    new(DefaultBlockCycle),
+		PreTxnHandler: new(DefaultPreTxnHandler),
 		Committer:     new(DefaultCommitter),
 	}
 }
