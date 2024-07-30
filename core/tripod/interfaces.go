@@ -25,3 +25,7 @@ type BlockCycle interface {
 type Committer interface {
 	Commit(ctx *Block)
 }
+
+type PreTxnHandler interface {
+	PreHandleTxn(*SignedTxn) error
+}

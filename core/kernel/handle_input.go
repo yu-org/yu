@@ -6,6 +6,7 @@ import (
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
+	"github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 )
 
@@ -40,12 +41,18 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
-	err := k.Pool.CheckTxn(stxn)
+	err := k.Land.RangeList(func(tri *tripod.Tripod) error {
+		return tri.PreTxnHandler.PreHandleTxn(stxn)
+	})
 	if err != nil {
 		return err
 	}
 	if k.CheckReplayAttack(stxn.TxnHash) {
 		return yerror.TxnDuplicated
+	}
+	err = k.Pool.CheckTxn(stxn)
+	if err != nil {
+		return err
 	}
 	return k.Pool.Insert(stxn)
 }
