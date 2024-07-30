@@ -33,7 +33,7 @@ func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
 		Pubkey:    pubkey,
 		Signature: sig,
 	}
-	stx.TxnHash, err = stx.Hash()
+	stx.TxnHash, err = stx.GenerateHash()
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func SignedTxnFromPb(pb *goproto.SignedTxn) (*SignedTxn, error) {
 	}, nil
 }
 
-func (st *SignedTxn) Hash() (Hash, error) {
+func (st *SignedTxn) GenerateHash() (Hash, error) {
 	var hash Hash
 	byt, err := st.Encode()
 	if err != nil {
