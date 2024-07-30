@@ -40,12 +40,12 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
-	if k.CheckReplayAttack(stxn.TxnHash) {
-		return yerror.TxnDuplicated
-	}
 	err := k.Pool.CheckTxn(stxn)
 	if err != nil {
 		return err
+	}
+	if k.CheckReplayAttack(stxn.TxnHash) {
+		return yerror.TxnDuplicated
 	}
 	return k.Pool.Insert(stxn)
 }
