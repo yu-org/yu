@@ -43,41 +43,37 @@ func RenderJson(ctx *gin.Context, code int, err error, data any) {
 }
 
 func (k *Kernel) GetReceipts(ctx *gin.Context) {
-	blockHashStr := ctx.GetString("block_hash")
-	blockHash := common.HexToHash(blockHashStr)
-	block, err := k.Chain.GetBlock(blockHash)
+	receipts, err := k.getReceipts(ctx)
 	if err != nil {
-		RenderError(ctx, BlockFailure, err)
+		RenderError(ctx, ReceiptFailure, err)
 		return
-	}
-	var receipts []*types.Receipt
-	for _, txHash := range block.Compact().TxnsHashes {
-		receipt, err := k.TxDB.GetReceipt(txHash)
-		if err != nil {
-			RenderError(ctx, ReceiptFailure, err)
-			return
-		}
-		receipts = append(receipts, receipt)
 	}
 	RenderSuccess(ctx, receipts)
 }
 
 func (k *Kernel) GetReceiptsCount(ctx *gin.Context) {
+	receipts, err := k.getReceipts(ctx)
+	if err != nil {
+		RenderError(ctx, ReceiptFailure, err)
+		return
+	}
+	RenderSuccess(ctx, len(receipts))
+}
+
+func (k *Kernel) getReceipts(ctx *gin.Context) ([]*types.Receipt, error) {
 	blockHashStr := ctx.GetString("block_hash")
 	blockHash := common.HexToHash(blockHashStr)
 	block, err := k.Chain.GetBlock(blockHash)
 	if err != nil {
-		RenderError(ctx, BlockFailure, err)
-		return
+		return nil, err
 	}
 	var receipts []*types.Receipt
 	for _, txHash := range block.Compact().TxnsHashes {
 		receipt, err := k.TxDB.GetReceipt(txHash)
 		if err != nil {
-			RenderError(ctx, ReceiptFailure, err)
-			return
+			return nil, err
 		}
 		receipts = append(receipts, receipt)
 	}
-	RenderSuccess(ctx, len(receipts))
+	return receipts, nil
 }
