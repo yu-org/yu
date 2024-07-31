@@ -10,17 +10,22 @@ import (
 func (k *Kernel) HandleHttp() {
 	r := gin.Default()
 
-	// POST request
-	r.POST(WrApiPath, func(c *gin.Context) {
+	api := r.Group(RootApiPath)
+	// POST writing call
+	api.POST(WrCallType, func(c *gin.Context) {
 		k.handleHttpWr(c)
 	})
-	// POST request
-	r.POST(RdApiPath, func(c *gin.Context) {
+	// POST reading call
+	api.POST(RdCallType, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
 
+	api.GET("receipts", k.GetReceipts)
+	api.GET("receipts_count", k.GetReceiptsCount)
+
 	if k.cfg.IsAdmin {
-		r.GET(StopChainPath, func(c *gin.Context) {
+		admin := api.Group(AdminType)
+		admin.GET("stop", func(c *gin.Context) {
 			k.stopChan <- struct{}{}
 		})
 	}

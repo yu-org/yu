@@ -30,10 +30,6 @@ var (
 	SubResultsPath = "/subscribe/results"
 )
 
-var (
-	StopChainPath = filepath.Join(AdminApiPath, "stop")
-)
-
 type SignedWrCall struct {
 	Pubkey    []byte  `json:"pubkey"`
 	Signature []byte  `json:"signature"`
