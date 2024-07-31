@@ -61,3 +61,23 @@ func (k *Kernel) GetReceipts(ctx *gin.Context) {
 	}
 	RenderSuccess(ctx, receipts)
 }
+
+func (k *Kernel) GetReceiptsCount(ctx *gin.Context) {
+	blockHashStr := ctx.GetString("block_hash")
+	blockHash := common.HexToHash(blockHashStr)
+	block, err := k.Chain.GetBlock(blockHash)
+	if err != nil {
+		RenderError(ctx, BlockFailure, err)
+		return
+	}
+	var receipts []*types.Receipt
+	for _, txHash := range block.Compact().TxnsHashes {
+		receipt, err := k.TxDB.GetReceipt(txHash)
+		if err != nil {
+			RenderError(ctx, ReceiptFailure, err)
+			return
+		}
+		receipts = append(receipts, receipt)
+	}
+	RenderSuccess(ctx, len(receipts))
+}

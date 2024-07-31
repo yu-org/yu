@@ -21,6 +21,7 @@ func (k *Kernel) HandleHttp() {
 	})
 
 	api.GET("receipts", k.GetReceipts)
+	api.GET("receipts_count", k.GetReceiptsCount)
 
 	if k.cfg.IsAdmin {
 		admin := api.Group(AdminType)
