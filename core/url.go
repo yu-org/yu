@@ -16,6 +16,7 @@ const (
 	RootApiPath = "/api"
 	WrCallType  = "writing"
 	RdCallType  = "reading"
+	AdminType   = "admin"
 
 	TripodNameKey = "tripod_name"
 	FuncNameKey   = "func_name"
@@ -25,7 +26,12 @@ const (
 var (
 	WrApiPath      = filepath.Join(RootApiPath, WrCallType)
 	RdApiPath      = filepath.Join(RootApiPath, RdCallType)
+	AdminApiPath   = filepath.Join(RootApiPath, AdminType)
 	SubResultsPath = "/subscribe/results"
+)
+
+var (
+	StopChainPath = filepath.Join(AdminApiPath, "stop")
 )
 
 type SignedWrCall struct {

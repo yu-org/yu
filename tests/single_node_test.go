@@ -9,6 +9,7 @@ import (
 	"github.com/yu-org/yu/core/types"
 	cliAsset "github.com/yu-org/yu/example/client/asset"
 	"github.com/yu-org/yu/example/client/callchain"
+	"net/http"
 	"os"
 	"sync"
 	"testing"
@@ -29,7 +30,8 @@ func runChain(t *testing.T, wg *sync.WaitGroup) {
 
 	poaCfg := poa.DefaultCfg(0)
 	yuCfg := startup.InitDefaultKernelConfig()
-	yuCfg.MaxBlockNum = 10
+	// yuCfg.MaxBlockNum = 10
+	yuCfg.IsAdmin = true
 
 	// reset the history data
 	os.RemoveAll(yuCfg.DataDir)
@@ -91,4 +93,7 @@ func transferAsset(t *testing.T) {
 	toBalance2 := cliAsset.QueryAccount(toPubkey)
 	assert.Equal(t, createAmount-transfer1-transfer2, balance2)
 	assert.Equal(t, transfer1+transfer2, toBalance2)
+
+	_, err = http.Get("http://localhost:7999/api/admin/stop")
+	assert.NoError(t, err)
 }
