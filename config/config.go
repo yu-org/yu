@@ -34,15 +34,17 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
-	// for test, when blockchain runs till MaxBlockNum, it will stop
-	// 0 means never stop.
-	MaxBlockNum BlockNum `toml:"max_block_num"`
-
 	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
 	Txpool     TxpoolConf     `toml:"txpool"`
 	P2P        P2pConf        `toml:"p2p"`
+
+	//---------for test------------
+	IsAdmin bool `toml:"is_admin"`
+	// for test, when blockchain runs till MaxBlockNum, it will stop
+	// 0 means never stop.
+	MaxBlockNum BlockNum `toml:"max_block_num"`
 }
 
 type P2pConf struct {

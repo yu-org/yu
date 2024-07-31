@@ -19,6 +19,12 @@ func (k *Kernel) HandleHttp() {
 		k.handleHttpRd(c)
 	})
 
+	if k.cfg.IsAdmin {
+		r.GET(StopChainPath, func(c *gin.Context) {
+			k.stopChan <- struct{}{}
+		})
+	}
+
 	err := r.Run(k.httpPort)
 	if err != nil {
 		logrus.Fatal("serve http failed: ", err)
