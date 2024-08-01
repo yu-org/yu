@@ -22,6 +22,7 @@ on:
 jobs:
 
   build:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -35,6 +36,7 @@ jobs:
       run: cd example/poa && go build -v
 
   test-single-node:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
