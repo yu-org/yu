@@ -23,7 +23,7 @@ Complete the Grant Agreement with Starknet
 
 Dec 28, 2023  
 Reddio uses Yu to develop Itachi: https://github.com/reddio-com/itachi     
-https://github.com/reddio-com/itachi/commit/8fe8df17d6d0bbf1991ddb9b921b13e848f5bd07  
+First commit: https://github.com/reddio-com/itachi/commit/8fe8df17d6d0bbf1991ddb9b921b13e848f5bd07  
 
 May 8, 2024  
 VersechainLabs uses Yu to develop versechain, forked by Itachi:  https://github.com/VersechainLabs/versechain  
