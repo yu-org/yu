@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
@@ -24,6 +25,8 @@ func newOrderedTxns() *orderedTxns {
 func (ot *orderedTxns) Insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").
 		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
+
+	fmt.Println("*** txpool insert: ", input.TxnHash.String())
 
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
@@ -52,6 +55,7 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 	}
 	for i := 0; i < len(ot.txns); i++ {
 		if ot.txns[i].TxnHash == txnHash {
+			fmt.Println("*** txpool delete: ", txnHash.String())
 			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
 			i--
 		}
