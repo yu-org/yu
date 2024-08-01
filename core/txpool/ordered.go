@@ -121,6 +121,12 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		if filter(txn) {
 			logrus.WithField("txpool", "ordered-txns").
 				Tracef("Pack txn(%s) from Txpool, txn content: %v", txn.TxnHash, txn.Raw.WrCall)
+			params := make(map[string]any)
+			err := txn.BindJsonParams(&params)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println("pack txn: ", params)
 			txns = append(txns, txn)
 			// txns[i] = txn
 		}
