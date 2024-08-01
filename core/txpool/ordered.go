@@ -111,12 +111,14 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	//	}
 	//}
 
+	fmt.Println("numLimit = ", numLimit)
+
 	for i := 0; i < int(numLimit); i++ {
 		//if txns[i] != nil {
 		//	continue
 		//}
 
-		fmt.Println("index of packing tx: ", i)
+		// fmt.Println("index of packing tx: ", i)
 
 		txn := ot.txns[i]
 
