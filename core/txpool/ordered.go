@@ -71,6 +71,8 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 }
 
 func (ot *orderedTxns) Deletes(txnHashes []Hash) {
+	fmt.Println("txpool count = ", ot.Size())
+	fmt.Println("delete txs count = ", len(txnHashes))
 	for _, hash := range txnHashes {
 		ot.delete(hash)
 	}
