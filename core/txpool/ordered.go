@@ -72,6 +72,14 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 
 func (ot *orderedTxns) Deletes(txnHashes []Hash) {
 	fmt.Println("txpool count = ", ot.Size())
+	for _, txn := range ot.txns {
+		params := make(map[string]any)
+		err := txn.BindJsonParams(params)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("txn is: ", params)
+	}
 	fmt.Println("delete txs count = ", len(txnHashes))
 	for _, hash := range txnHashes {
 		ot.delete(hash)
