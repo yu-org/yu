@@ -111,7 +111,7 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	//	}
 	//}
 
-	fmt.Println("numLimit = ", numLimit)
+	fmt.Printf("numLimit = %d, length of txpool is %d\n", numLimit, ot.Size())
 
 	for i := 0; i < int(numLimit); i++ {
 		//if txns[i] != nil {
