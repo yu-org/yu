@@ -27,6 +27,12 @@ func (ot *orderedTxns) Insert(input *SignedTxn) {
 		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
 
 	// fmt.Println("*** txpool insert: ", input.TxnHash.String())
+	params := make(map[string]any)
+	err := input.BindJsonParams(&params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("insert txn is: ", params)
 
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
@@ -72,14 +78,14 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 
 func (ot *orderedTxns) Deletes(txnHashes []Hash) {
 	fmt.Println("txpool count = ", ot.Size())
-	for _, txn := range ot.txns {
-		params := make(map[string]any)
-		err := txn.BindJsonParams(&params)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("txn is: ", params)
-	}
+	//for _, txn := range ot.txns {
+	//	params := make(map[string]any)
+	//	err := txn.BindJsonParams(&params)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	fmt.Println("txn is: ", params)
+	//}
 	fmt.Println("delete txs count = ", len(txnHashes))
 	for _, hash := range txnHashes {
 		ot.delete(hash)
