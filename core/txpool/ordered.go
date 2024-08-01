@@ -116,6 +116,8 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 		//	continue
 		//}
 
+		fmt.Println("index of packing tx: ", i)
+
 		txn := ot.txns[i]
 
 		if filter(txn) {
