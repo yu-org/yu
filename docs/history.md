@@ -15,11 +15,13 @@ https://talk.nervos.org/t/a-customizable-blockchain-framework-for-ckb-sidechain
 Nov 5, 2023  
 Post on eth research:  
 https://ethresear.ch/t/introducing-yu-a-very-suitable-for-l3-independency-application-blockchain-framework   
-Post on Starknet Community:
-https://community.starknet.io/t/introducing-yu-a-very-suitable-for-l3-independency-application-blockchain-framework  
+Post on Starknet Community:  
+https://community.starknet.io/t/introducing-yu-a-very-suitable-for-l3-independency-application-blockchain-framework   
+Post on Taiko Community:    
+https://community.taiko.xyz/t/introducing-yu-a-very-suitable-for-l3-independency-application-blockchain-framework  
 
 Nov 14, 2023  
-Complete the Grant Agreement with Starknet
+Complete the Grant Agreement with Starknet and then get the grant.
 
 Dec 28, 2023  
 Reddio uses Yu to develop Itachi: https://github.com/reddio-com/itachi     
