@@ -69,9 +69,8 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("--------------handle txn is: ", params)
 
-		fmt.Printf("replay attack: tx(%s): %v \n", tx.TxnHash, params)
+		fmt.Printf("*************replay attack: tx(%s): %v \n", tx.TxnHash, params)
 		return yerror.TxnDuplicated
 	}
 	err = k.Pool.CheckTxn(stxn)
