@@ -15,6 +15,8 @@ type PoaConfig struct {
 	BlockInterval int `toml:"block_interval"`
 	// the number of packing txns from txpool, default 5000
 	PackNum uint64 `toml:"pack_num"`
+
+	PrettyLog bool `toml:"pretty_log"`
 }
 
 var DefaultSecrets = []string{
@@ -34,6 +36,7 @@ func DefaultCfg(idx int) *PoaConfig {
 		},
 		BlockInterval: 3,
 		PackNum:       30000,
+		PrettyLog:     true,
 	}
 	var myPubkey PubKey
 	for i, secret := range DefaultSecrets {
