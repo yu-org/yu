@@ -33,6 +33,8 @@ type Poa struct {
 	recvChan      chan *Block
 	// local node index in addrs
 	nodeIdx int
+
+	cfg *PoaConfig
 }
 
 type ValidatorInfo struct {
@@ -45,10 +47,10 @@ func NewPoa(cfg *PoaConfig) *Poa {
 	if err != nil {
 		logrus.Fatal("resolve poa config error: ", err)
 	}
-	return newPoa(pub, priv, infos, cfg.BlockInterval, cfg.PackNum)
+	return newPoa(pub, priv, infos, cfg)
 }
 
-func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interval int, packNum uint64) *Poa {
+func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, cfg *PoaConfig) *Poa {
 	tri := NewTripod()
 
 	var nodeIdx int
@@ -73,10 +75,11 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, interva
 		myPubkey:       myPubkey,
 		myPrivKey:      myPrivkey,
 		currentHeight:  atomic.NewUint32(0),
-		blockInterval:  interval,
-		packNum:        packNum,
+		blockInterval:  cfg.BlockInterval,
+		packNum:        cfg.PackNum,
 		recvChan:       make(chan *Block, 10),
 		nodeIdx:        nodeIdx,
+		cfg:            cfg,
 	}
 	//p.SetInit(p)
 	//p.SetTxnChecker(p)
@@ -164,7 +167,9 @@ func (h *Poa) StartBlock(block *Block) {
 
 	h.setCurrentHeight(block.Height)
 
-	log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
+	if h.cfg.PrettyLog {
+		log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
+	}
 
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
@@ -245,7 +250,9 @@ func (h *Poa) FinalizeBlock(block *Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("finalize block")
 
-	log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
+	if h.cfg.PrettyLog {
+		log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
+	}
 	h.Chain.Finalize(block.Hash)
 }
 
