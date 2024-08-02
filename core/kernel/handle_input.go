@@ -53,9 +53,25 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		return tri.PreTxnHandler.PreHandleTxn(stxn)
 	})
 	if err != nil {
+		fmt.Println("preTxnHandler err: ", err)
 		return err
 	}
 	if k.CheckReplayAttack(stxn.TxnHash) {
+		tx, _ := k.Pool.GetTxn(stxn.TxnHash)
+
+		tx, err = k.TxDB.GetTxn(stxn.TxnHash)
+		if err != nil {
+			return err
+		}
+
+		params := make(map[string]any)
+		err = tx.BindJsonParams(&params)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("--------------handle txn is: ", params)
+
+		fmt.Printf("replay attack: tx(%s): %v \n", tx.TxnHash, params)
 		return yerror.TxnDuplicated
 	}
 	err = k.Pool.CheckTxn(stxn)
