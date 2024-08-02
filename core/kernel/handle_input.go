@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -22,6 +23,13 @@ func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
+
+	params := make(map[string]any)
+	err = stxn.BindJsonParams(&params)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("--------------handle txn is: ", params)
 
 	err = k.handleTxnLocally(stxn)
 	if err != nil {
