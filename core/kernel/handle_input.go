@@ -85,7 +85,7 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		panic(err)
 	}
 
-	fmt.Printf("******* ready to insert: tx(%s): %v \n", stxn.TxnHash, params)
+	fmt.Printf("******* ready to insert: tx(%s): %v \n", stxn.TxnHash.String(), params)
 
 	return k.Pool.Insert(stxn)
 }
