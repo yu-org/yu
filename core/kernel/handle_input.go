@@ -78,6 +78,15 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		fmt.Printf("[Txpool.checkTxn] %s err: %v \n", stxn.TxnHash, err)
 		return err
 	}
+
+	params := make(map[string]any)
+	err = stxn.BindJsonParams(&params)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("******* ready to insert: tx(%s): %v \n", stxn.TxnHash, params)
+
 	return k.Pool.Insert(stxn)
 }
 
