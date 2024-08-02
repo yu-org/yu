@@ -57,6 +57,7 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		return err
 	}
 	if k.CheckReplayAttack(stxn.TxnHash) {
+		fmt.Println("replay attack!! ", stxn.TxnHash.String())
 		tx, _ := k.Pool.GetTxn(stxn.TxnHash)
 
 		tx, err = k.TxDB.GetTxn(stxn.TxnHash)
@@ -85,7 +86,7 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		panic(err)
 	}
 
-	fmt.Printf("******* ready to insert: tx(%s): %v \n", stxn.TxnHash.String(), params)
+	// fmt.Printf("******* ready to insert: tx(%s): %v \n", stxn.TxnHash.String(), params)
 
 	return k.Pool.Insert(stxn)
 }
