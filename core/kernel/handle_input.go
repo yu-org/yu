@@ -53,7 +53,7 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 		return tri.PreTxnHandler.PreHandleTxn(stxn)
 	})
 	if err != nil {
-		fmt.Println("preTxnHandler err: ", err)
+		fmt.Println("**** preTxnHandler err: ", err)
 		return err
 	}
 	if k.CheckReplayAttack(stxn.TxnHash) {
@@ -75,6 +75,7 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	}
 	err = k.Pool.CheckTxn(stxn)
 	if err != nil {
+		fmt.Printf("[Txpool.checkTxn] %s err: %v \n", stxn.TxnHash, err)
 		return err
 	}
 	return k.Pool.Insert(stxn)
