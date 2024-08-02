@@ -1,14 +1,17 @@
 package tests
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/yu-org/yu/apps/asset"
 	"github.com/yu-org/yu/apps/poa"
+	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/startup"
 	"github.com/yu-org/yu/core/types"
 	cliAsset "github.com/yu-org/yu/example/client/asset"
 	"github.com/yu-org/yu/example/client/callchain"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -93,6 +96,16 @@ func transferAsset(t *testing.T) {
 	toBalance2 := cliAsset.QueryAccount(toPubkey)
 	assert.Equal(t, createAmount-transfer1-transfer2, balance2)
 	assert.Equal(t, transfer1+transfer2, toBalance2)
+
+	resp, err := http.Get("http://localhost:7999/api/receipts_count?block_number=3")
+	assert.NoError(t, err)
+
+	byt, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	apiResp := new(kernel.APIResponse)
+	err = json.Unmarshal(byt, apiResp)
+	assert.NoError(t, err)
+	t.Log("receipt count = ", apiResp.Data)
 
 	_, err = http.Get("http://localhost:7999/api/admin/stop")
 	assert.NoError(t, err)
