@@ -51,9 +51,10 @@ func NewExample() *Example {
 }
 
 func main() {
+	yuCfg := startup.InitDefaultKernelConfig()
 	poaConf := poa.DefaultCfg(0)
-	startup.InitDefaultKernelConfig()
-	startup.DefaultStartup(poa.NewPoa(poaConf), NewExample())
+	
+	startup.DefaultStartup(yuCfg, poa.NewPoa(poaConf), NewExample())
 }
 ```
 Build and Run
