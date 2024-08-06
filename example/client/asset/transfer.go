@@ -67,6 +67,7 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 	}
 	postBody := &core.WritingPostBody{
 		Pubkey:    pubkey.StringWithType(),
+		Address:   pubkey.Address().String(),
 		Signature: hexutil.Encode(sig),
 		Call:      wrCall,
 	}
@@ -108,6 +109,7 @@ func TransferBalance(privkey PrivKey, pubkey PubKey, to Address, amount, leiPric
 	postBody := &core.WritingPostBody{
 		Pubkey:    pubkey.StringWithType(),
 		Signature: hexutil.Encode(sig),
+		Address:   pubkey.Address().String(),
 		Call:      wrCall,
 	}
 	err = CallChainByWriting(postBody)

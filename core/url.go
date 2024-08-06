@@ -32,6 +32,7 @@ var (
 
 type SignedWrCall struct {
 	Pubkey    []byte  `json:"pubkey"`
+	Address   []byte  `json:"address"`
 	Signature []byte  `json:"signature"`
 	Call      *WrCall `json:"call"`
 }
@@ -47,6 +48,8 @@ func (s *SignedWrCall) GetFuncName() string {
 type WritingPostBody struct {
 	// hex string
 	Pubkey string `json:"pubkey"`
+	// hex string
+	Address string `json:"address"`
 	// hex string
 	Signature string  `json:"signature"`
 	Call      *WrCall `json:"call"`
@@ -75,8 +78,17 @@ func GetSignedWrCall(ctx *gin.Context) (*SignedWrCall, error) {
 		}
 	}
 
+	var addr []byte
+	if wpb.Address != "" {
+		addr, err = hexutil.Decode(wpb.Address)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &SignedWrCall{
 		Pubkey:    pubkey,
+		Address:   addr,
 		Signature: sig,
 		Call:      wpb.Call,
 	}, err

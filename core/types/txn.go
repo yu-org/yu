@@ -3,10 +3,8 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"github.com/golang/protobuf/proto"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/keypair"
 	"github.com/yu-org/yu/core/types/goproto"
 	"unsafe"
 )
@@ -14,6 +12,7 @@ import (
 type SignedTxn struct {
 	Raw       *UnsignedTxn
 	TxnHash   Hash
+	Address   []byte
 	Pubkey    []byte
 	Signature []byte
 	FromP2P   bool
@@ -23,13 +22,14 @@ type TxnChecker interface {
 	CheckTxn(*SignedTxn) error
 }
 
-func NewSignedTxn(wrCall *WrCall, pubkey, sig []byte) (*SignedTxn, error) {
+func NewSignedTxn(wrCall *WrCall, pubkey, addr, sig []byte) (*SignedTxn, error) {
 	raw, err := NewUnsignedTxn(wrCall)
 	if err != nil {
 		return nil, err
 	}
 	stx := &SignedTxn{
 		Raw:       raw,
+		Address:   addr,
 		Pubkey:    pubkey,
 		Signature: sig,
 	}
@@ -65,16 +65,8 @@ func (st *SignedTxn) SetParams(params string) {
 }
 
 func (st *SignedTxn) GetCaller() *Address {
-	if st.Pubkey == nil {
-		return nil
-	}
-	pubkey, err := keypair.PubKeyFromBytes(st.Pubkey)
-	if err != nil {
-		fmt.Println("GetCaller failed: ", err)
-		return nil
-	}
-	caller := pubkey.Address()
-	return &caller
+	addr := BytesToAddress(st.Address)
+	return &addr
 }
 
 func (st *SignedTxn) GetEthFormatCaller() *Address {
