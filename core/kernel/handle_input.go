@@ -13,7 +13,7 @@ import (
 // HandleTxn handles txn from outside.
 // You can also self-define your input by calling HandleTxn (not only by default http and ws)
 func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
-	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Signature)
+	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
 	if err != nil {
 		return err
 	}
