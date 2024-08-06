@@ -67,16 +67,6 @@ func (st *SignedTxn) SetParams(params string) {
 func (st *SignedTxn) GetCaller() *Address {
 	addr := BytesToAddress(st.Address)
 	return &addr
-	//if st.Pubkey == nil {
-	//	return nil
-	//}
-	//pubkey, err := keypair.PubKeyFromBytes(st.Pubkey)
-	//if err != nil {
-	//	fmt.Println("GetCaller failed: ", err)
-	//	return nil
-	//}
-	//caller := pubkey.Address()
-	//return &caller
 }
 
 func (st *SignedTxn) GetEthFormatCaller() *Address {
