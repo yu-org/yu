@@ -34,6 +34,10 @@ func (l *Land) GetTripodInstance(name string) interface{} {
 	return nil
 }
 
+func (l *Land) GetTripod(name string) *Tripod {
+	return l.TripodsMap[name]
+}
+
 func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	tripod, ok := l.TripodsMap[tripodName]
 	if !ok {
