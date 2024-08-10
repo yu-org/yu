@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
@@ -17,6 +18,14 @@ type APIResponse struct {
 	Code   int    `json:"code"`
 	ErrMsg string `json:"err_msg"`
 	Data   any    `json:"data"`
+}
+
+func (a *APIResponse) IsSuccess() bool {
+	return a.Code == Success
+}
+
+func (a *APIResponse) Error() error {
+	return errors.New(a.ErrMsg)
 }
 
 func RenderSuccess(ctx *gin.Context, data any) {
