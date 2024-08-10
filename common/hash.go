@@ -94,12 +94,12 @@ func (h Hash) Format(s fmt.State, c rune) {
 
 // UnmarshalText parses a hash in hex syntax.
 func (h *Hash) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedText("Hash", input, h[:])
+	return hexutil.UnmarshalFixedText("Hash", input, *h)
 }
 
 // UnmarshalJSON parses a hash in hex syntax.
 func (h *Hash) UnmarshalJSON(input []byte) error {
-	return hexutil.UnmarshalFixedJSON(hashT, input, h[:])
+	return hexutil.UnmarshalFixedJSON(hashT, input, *h)
 }
 
 // MarshalText returns the hex representation of h.
@@ -110,11 +110,12 @@ func (h Hash) MarshalText() ([]byte, error) {
 // SetBytes sets the hash to the value of b.
 // If b is larger than len(h), b will be cropped from the left.
 func (h *Hash) SetBytes(b []byte) {
-	if len(b) > len(h) {
-		b = b[len(b)-HashLen:]
-	}
+	//if len(b) > len(*h) {
+	//	b = b[len(b)-HashLen:]
+	//}
 
-	copy(h[HashLen-len(b):], b)
+	// copy(h[HashLen-len(b):], b)
+	copy(*h, b)
 }
 
 // Generate implements testing/quick.Generator.
@@ -127,17 +128,17 @@ func (h Hash) Generate(rand *rand.Rand, size int) reflect.Value {
 }
 
 // Scan implements Scanner for database/sql.
-func (h *Hash) Scan(src interface{}) error {
-	srcB, ok := src.([]byte)
-	if !ok {
-		return fmt.Errorf("can't scan %T into Hash", src)
-	}
-	if len(srcB) != HashLen {
-		return fmt.Errorf("can't scan []byte of len %d into Hash, want %d", len(srcB), HashLen)
-	}
-	copy(h[:], srcB)
-	return nil
-}
+//func (h *Hash) Scan(src interface{}) error {
+//	srcB, ok := src.([]byte)
+//	if !ok {
+//		return fmt.Errorf("can't scan %T into Hash", src)
+//	}
+//	if len(srcB) != HashLen {
+//		return fmt.Errorf("can't scan []byte of len %d into Hash, want %d", len(srcB), HashLen)
+//	}
+//	copy(h[:], srcB)
+//	return nil
+//}
 
 // Value implements valuer for database/sql.
 func (h Hash) Value() (driver.Value, error) {
@@ -164,7 +165,7 @@ type UnprefixedHash Hash
 
 // UnmarshalText decodes the hash from hex. The 0x prefix is optional.
 func (h *UnprefixedHash) UnmarshalText(input []byte) error {
-	return hexutil.UnmarshalFixedUnprefixedText("UnprefixedHash", input, h[:])
+	return hexutil.UnmarshalFixedUnprefixedText("UnprefixedHash", input, *h)
 }
 
 // MarshalText encodes the hash as hex.

@@ -134,12 +134,12 @@ const (
 )
 
 type (
-	Hash    [HashLen]byte
+	Hash    []byte
 	Address [AddressLen]byte
 )
 
 var (
-	NullHash    Hash    = [HashLen]byte{}
+	NullHash    Hash    = []byte{}
 	NullAddress Address = [AddressLen]byte{}
 )
 
