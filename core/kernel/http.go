@@ -3,7 +3,7 @@ package kernel
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/core"
+	. "github.com/yu-org/yu/core/protocol"
 	"net/http"
 )
 
