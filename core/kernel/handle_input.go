@@ -4,14 +4,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
-	"github.com/yu-org/yu/core"
 	"github.com/yu-org/yu/core/context"
+	"github.com/yu-org/yu/core/protocol"
 	. "github.com/yu-org/yu/core/types"
 )
 
 // HandleTxn handles txn from outside.
 // You can also self-define your input by calling HandleTxn (not only by default http and ws)
-func (k *Kernel) HandleTxn(signedWrCall *core.SignedWrCall) error {
+func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
 	if err != nil {
 		return err

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/HyperService-Consortium/go-hexutil"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core"
 	. "github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/core/protocol"
 	. "github.com/yu-org/yu/example/client/callchain"
 	"math/big"
 )
@@ -65,7 +65,7 @@ func CreateAccount(privkey PrivKey, pubkey PubKey, amount uint64) {
 	if err != nil {
 		panic(err)
 	}
-	postBody := &core.WritingPostBody{
+	postBody := &protocol.WritingPostBody{
 		Pubkey:    pubkey.StringWithType(),
 		Address:   pubkey.Address().String(),
 		Signature: hexutil.Encode(sig),
@@ -106,7 +106,7 @@ func TransferBalance(privkey PrivKey, pubkey PubKey, to Address, amount, leiPric
 	if err != nil {
 		panic(err)
 	}
-	postBody := &core.WritingPostBody{
+	postBody := &protocol.WritingPostBody{
 		Pubkey:    pubkey.StringWithType(),
 		Signature: hexutil.Encode(sig),
 		Address:   pubkey.Address().String(),
