@@ -11,8 +11,9 @@ import (
 type WriteContext struct {
 	*ParamsResponse
 
-	Block *Block
-	Txn   *SignedTxn
+	Block    *Block
+	Txn      *SignedTxn
+	TxnIndex int
 
 	Events []*Event
 	Extra  []byte
@@ -22,7 +23,7 @@ type WriteContext struct {
 	LeiCost uint64
 }
 
-func NewWriteContext(stxn *SignedTxn, block *Block) (*WriteContext, error) {
+func NewWriteContext(stxn *SignedTxn, block *Block, idx int) (*WriteContext, error) {
 	paramsStr := stxn.Raw.WrCall.Params
 	rctx, err := NewParamsResponseFromStr(paramsStr)
 	if err != nil {
@@ -30,6 +31,7 @@ func NewWriteContext(stxn *SignedTxn, block *Block) (*WriteContext, error) {
 	}
 	return &WriteContext{
 		Txn:            stxn,
+		TxnIndex:       idx,
 		Block:          block,
 		ParamsResponse: rctx,
 		Events:         make([]*Event, 0),
