@@ -114,9 +114,9 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 
 	receipts := make(map[Hash]*Receipt)
 
-	for _, stxn := range stxns {
+	for i, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
-		ctx, err := context.NewWriteContext(stxn, block)
+		ctx, err := context.NewWriteContext(stxn, block, i)
 		if err != nil {
 			receipt := k.HandleError(err, ctx, block, stxn)
 			receipts[stxn.TxnHash] = receipt
