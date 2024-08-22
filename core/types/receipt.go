@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	. "github.com/yu-org/yu/common"
@@ -43,11 +44,18 @@ func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 }
 
 func (r *Receipt) Encode() ([]byte, error) {
-	return json.Marshal(r)
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(r)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func (r *Receipt) Decode(data []byte) error {
-	return json.Unmarshal(data, r)
+	decoder := json.NewDecoder(bytes.NewBuffer(data))
+	return decoder.Decode(r)
 }
 
 func (r *Receipt) Hash() ([]byte, error) {
