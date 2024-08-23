@@ -1,6 +1,7 @@
 package synchronizer
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/libp2p/go-libp2p/core/peer"
 	. "github.com/yu-org/yu/common"
@@ -29,16 +30,20 @@ func (b *Synchronizer) NewHsReq(fetchRange *BlocksRange) (*HandShakeRequest, err
 }
 
 func (hs *HandShakeRequest) Encode() ([]byte, error) {
-	return json.Marshal(hs)
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(hs)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func DecodeHsRequest(data []byte) (*HandShakeRequest, error) {
 	var hs HandShakeRequest
-	err := json.Unmarshal(data, &hs)
-	if err != nil {
-		return nil, err
-	}
-	return &hs, nil
+	decoder := json.NewDecoder(bytes.NewBuffer(data))
+	err := decoder.Decode(&hs)
+	return &hs, err
 }
 
 type HandShakeInfo struct {
@@ -92,12 +97,19 @@ type HandShakeResp struct {
 }
 
 func (hs *HandShakeResp) Encode() ([]byte, error) {
-	return json.Marshal(hs)
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	err := encoder.Encode(hs)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func DecodeHsResp(data []byte) (*HandShakeResp, error) {
 	var hs HandShakeResp
-	err := json.Unmarshal(data, &hs)
+	decoder := json.NewDecoder(bytes.NewBuffer(data))
+	err := decoder.Decode(&hs)
 	return &hs, err
 }
 
@@ -116,6 +128,7 @@ func (tr TxnsRequest) Encode() ([]byte, error) {
 }
 
 func DecodeTxnsRequest(data []byte) (tr TxnsRequest, err error) {
-	err = json.Unmarshal(data, &tr)
+	decoder := json.NewDecoder(bytes.NewBuffer(data))
+	err = decoder.Decode(&tr)
 	return
 }
