@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"github.com/sirupsen/logrus"
@@ -7,8 +7,21 @@ import (
 	"github.com/yu-org/yu/example/client/asset"
 	"github.com/yu-org/yu/example/client/callchain"
 	"go.uber.org/atomic"
+	"net/http"
+	"sync"
+	"testing"
 	"time"
 )
+
+func BenchmarkTransfer(b *testing.B) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go runChain(&wg)
+	time.Sleep(2 * time.Second)
+	benchmark(b)
+	wg.Wait()
+}
 
 type pair struct {
 	pub keypair.PubKey
@@ -17,7 +30,7 @@ type pair struct {
 
 var counter = atomic.NewInt64(0)
 
-func main() {
+func benchmark(b *testing.B) {
 	var users []pair
 	for i := 0; i < 100; i++ {
 		pub, priv := keypair.GenSrKey()
@@ -27,7 +40,7 @@ func main() {
 		})
 	}
 
-	go caculateTPS()
+	go caculateTPS(b)
 	sub, err := callchain.NewSubscriber()
 	if err != nil {
 		logrus.Fatal(err)
@@ -44,7 +57,7 @@ func main() {
 
 	logrus.Infof("create accounts (%d) cost %d ms", len(users), time.Since(start).Milliseconds())
 
-	for {
+	for n := 0; n < b.N; n++ {
 		for i, user := range users {
 			var to common.Address
 			if i == len(users)-1 {
@@ -58,15 +71,17 @@ func main() {
 			time.Sleep(10 * time.Microsecond)
 		}
 	}
+
+	http.Get("http://localhost:7999/api/admin/stop")
 }
 
-func caculateTPS() {
+func caculateTPS(b *testing.B) {
 	var sec int64 = 0
 	for {
 		select {
 		case <-time.Tick(time.Second):
 			sec++
-			logrus.Info("TPS: ", counter.Load()/sec)
+			b.Log("TPS: ", counter.Load()/sec)
 		}
 	}
 }

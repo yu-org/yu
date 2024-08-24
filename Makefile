@@ -2,6 +2,9 @@
 test:
 	go test -v ./tests/single_node_test.go
 
+benchmark:
+	go test -v -bench ./tests/bench_transfer_test.go -count 10
+
 check-mod-tidy:
 	@go mod tidy
 	@if [ -n "$$(git status --porcelain)" ]; then \
