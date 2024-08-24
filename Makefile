@@ -2,8 +2,8 @@
 test:
 	go test -v ./tests/single_node_test.go
 
-benchmark:
-	go test -v -bench ./tests/bench_transfer_test.go -count 10
+benchTPS:
+	go test -v ./tests/bench_transfer_test.go
 
 check-mod-tidy:
 	@go mod tidy
