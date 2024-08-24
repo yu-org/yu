@@ -34,6 +34,7 @@ func runChainForTPS(wg *sync.WaitGroup) {
 	yuCfg := startup.InitDefaultKernelConfig()
 	// yuCfg.MaxBlockNum = 10
 	yuCfg.IsAdmin = true
+	yuCfg.Txpool.PoolSize = 10000000
 
 	// reset the history data
 	os.RemoveAll(yuCfg.DataDir)

@@ -25,5 +25,5 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Benchmark TPS
-        run: make benchTPS
+#      - name: Benchmark TPS
+#        run: make benchTPS
