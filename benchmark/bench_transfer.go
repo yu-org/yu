@@ -3,16 +3,16 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/keypair"
-	. "github.com/yu-org/yu/example/client/asset"
-	. "github.com/yu-org/yu/example/client/callchain"
+	"github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/example/client/asset"
+	"github.com/yu-org/yu/example/client/callchain"
 	"go.uber.org/atomic"
 	"time"
 )
 
 type pair struct {
-	pub PubKey
-	prv PrivKey
+	pub keypair.PubKey
+	prv keypair.PrivKey
 }
 
 var counter = atomic.NewInt64(0)
@@ -20,7 +20,7 @@ var counter = atomic.NewInt64(0)
 func main() {
 	var users []pair
 	for i := 0; i < 100; i++ {
-		pub, priv := GenSrKey()
+		pub, priv := keypair.GenSrKey()
 		users = append(users, pair{
 			prv: priv,
 			pub: pub,
@@ -28,12 +28,16 @@ func main() {
 	}
 
 	go caculateTPS()
-	go SubEvent(nil)
+	sub, err := callchain.NewSubscriber()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	go sub.SubEvent(nil)
 
 	start := time.Now()
 
 	for _, user := range users {
-		CreateAccount(Websocket, user.prv, user.pub, 1_0000_0000)
+		asset.CreateAccount(user.prv, user.pub, 1_0000_0000)
 		counter.Inc()
 		time.Sleep(10 * time.Microsecond)
 	}
@@ -49,7 +53,7 @@ func main() {
 				to = users[i+1].pub.Address()
 			}
 
-			TransferBalance(Websocket, user.prv, user.pub, to, 10, 0)
+			asset.TransferBalance(user.prv, user.pub, to, 10, 0)
 			counter.Inc()
 			time.Sleep(10 * time.Microsecond)
 		}
