@@ -47,6 +47,8 @@ func InitDefaultKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *
 }
 
 func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.Kernel {
+	beforeStartUp(cfg)
+
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
 		tripods = append(tripods, tripod.ResolveTripod(v))
