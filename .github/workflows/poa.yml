@@ -36,7 +36,7 @@ jobs:
       run: make check-mod-tidy
 
     - name: Build poa
-      run: cd example/poa && go build -v
+      run: cd example/poa && go build -race -v
 
   test-single-node:
     if: github.event.pull_request.draft == false
