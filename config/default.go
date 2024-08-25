@@ -5,15 +5,15 @@ import "path"
 func InitDefaultCfg() *KernelConf {
 	dataDir := "yu"
 	cfg := &KernelConf{
-		RunMode:      0,
-		DataDir:      dataDir,
-		HttpPort:     "7999",
-		WsPort:       "8999",
-		LogLevel:     "info",
-		LogOutput:    path.Join(dataDir, "yu.log"),
-		LeiLimit:     50000,
-		EnablePProf:  true,
-		PProfAddress: "10199",
+		RunMode:     0,
+		DataDir:     dataDir,
+		HttpPort:    "7999",
+		WsPort:      "8999",
+		LogLevel:    "info",
+		LogOutput:   path.Join(dataDir, "yu.log"),
+		LeiLimit:    50000,
+		EnablePProf: true,
+		PProfPort:   "10199",
 	}
 
 	cfg.P2P = P2pConf{

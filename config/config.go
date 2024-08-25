@@ -46,8 +46,8 @@ type KernelConf struct {
 	// 0 means never stop.
 	MaxBlockNum BlockNum `toml:"max_block_num"`
 
-	EnablePProf  bool   `toml:"enable_pprof"`
-	PProfAddress string `toml:"pprof_address"`
+	EnablePProf bool   `toml:"enable_pprof"`
+	PProfPort   string `toml:"pprof_port"`
 }
 
 type P2pConf struct {

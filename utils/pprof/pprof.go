@@ -6,9 +6,9 @@ import (
 	_ "net/http/pprof"
 )
 
-func StartPProf(addr string) {
+func StartPProf(address string) {
 	go func() {
-		err := http.ListenAndServe(addr, nil)
+		err := http.ListenAndServe(address, nil)
 		if err != nil {
 			logrus.Error("Failure in running pprof server: ", err)
 		}
