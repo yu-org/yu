@@ -5,11 +5,10 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
-	"sync"
 )
 
 type TxPool struct {
-	sync.RWMutex
+	// sync.RWMutex
 
 	nodeType int
 
@@ -64,8 +63,8 @@ func (tp *TxPool) WithTripodCheck(tripodName string, tc TxnChecker) ItxPool {
 }
 
 func (tp *TxPool) Exist(txnHash Hash) bool {
-	tp.RLock()
-	defer tp.RUnlock()
+	//tp.RLock()
+	//defer tp.RUnlock()
 	return tp.unpackedTxns.Exist(txnHash)
 }
 
@@ -78,8 +77,8 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 }
 
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
-	tp.Lock()
-	defer tp.Unlock()
+	//tp.Lock()
+	//defer tp.Unlock()
 	if tp.nodeType == LightNode {
 		return nil
 	}
@@ -88,26 +87,26 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 }
 
 func (tp *TxPool) SetOrder(order map[int]Hash) {
-	tp.Lock()
-	defer tp.Unlock()
+	//tp.Lock()
+	//defer tp.Unlock()
 	tp.unpackedTxns.SetOrder(order)
 }
 
 func (tp *TxPool) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
-	tp.Lock()
-	defer tp.Unlock()
+	//tp.Lock()
+	//defer tp.Unlock()
 	tp.unpackedTxns.SortTxns(fn)
 }
 
 func (tp *TxPool) GetTxn(hash Hash) (*SignedTxn, error) {
-	tp.RLock()
-	defer tp.RUnlock()
+	//tp.RLock()
+	//defer tp.RUnlock()
 	return tp.unpackedTxns.Get(hash), nil
 }
 
 func (tp *TxPool) GetAllTxns() ([]*SignedTxn, error) {
-	tp.RLock()
-	defer tp.RUnlock()
+	//tp.RLock()
+	//defer tp.RUnlock()
 	return tp.unpackedTxns.GetAll(), nil
 }
 
@@ -118,22 +117,22 @@ func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
 }
 
 func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
-	tp.RLock()
-	defer tp.RUnlock()
+	//tp.RLock()
+	//defer tp.RUnlock()
 	txns := tp.unpackedTxns.Gets(numLimit, filter)
 	return txns, nil
 }
 
 func (tp *TxPool) Reset(txns SignedTxns) error {
-	tp.Lock()
-	defer tp.Unlock()
+	//tp.Lock()
+	//defer tp.Unlock()
 	tp.unpackedTxns.Deletes(txns.Hashes())
 	return nil
 }
 
 func (tp *TxPool) ResetByHashes(hashes []Hash) error {
-	tp.Lock()
-	defer tp.Unlock()
+	//tp.Lock()
+	//defer tp.Unlock()
 	tp.unpackedTxns.Deletes(hashes)
 	return nil
 }

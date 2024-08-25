@@ -4,9 +4,11 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
+	"sync"
 )
 
 type orderedTxns struct {
+	sync.RWMutex
 	txns []*SignedTxn
 	idx  map[Hash]*SignedTxn
 
@@ -25,8 +27,10 @@ func (ot *orderedTxns) Insert(input *SignedTxn) {
 	logrus.WithField("txpool", "ordered-txns").
 		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
 
+	ot.Lock()
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
+	ot.Unlock()
 }
 
 func (ot *orderedTxns) SetOrder(order map[int]Hash) {
@@ -67,21 +71,29 @@ func (ot *orderedTxns) delete(txnHash Hash) {
 }
 
 func (ot *orderedTxns) Deletes(txnHashes []Hash) {
+	ot.Lock()
+	defer ot.Unlock()
 	for _, hash := range txnHashes {
 		ot.delete(hash)
 	}
 }
 
 func (ot *orderedTxns) Exist(txnHash Hash) bool {
+	ot.RLock()
+	defer ot.RUnlock()
 	_, ok := ot.idx[txnHash]
 	return ok
 }
 
 func (ot *orderedTxns) Get(txnHash Hash) *SignedTxn {
+	ot.RLock()
+	defer ot.RUnlock()
 	return ot.idx[txnHash]
 }
 
 func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+	ot.RLock()
+	defer ot.RUnlock()
 	if numLimit > uint64(ot.Size()) {
 		numLimit = uint64(ot.Size())
 	}
@@ -123,14 +135,20 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 //}
 
 func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
+	ot.Lock()
 	orderedTxs := fn(ot.txns)
 	ot.txns = orderedTxs
+	ot.Unlock()
 }
 
 func (ot *orderedTxns) GetAll() []*SignedTxn {
+	ot.RLock()
+	defer ot.RUnlock()
 	return ot.txns
 }
 
 func (ot *orderedTxns) Size() int {
+	ot.RLock()
+	defer ot.RUnlock()
 	return len(ot.txns)
 }
