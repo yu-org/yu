@@ -7,11 +7,14 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"sync/atomic"
 )
 
 type BlockChain struct {
 	nodeType int
-	chain    ysql.SqlDB
+
+	currentBlock atomic.Pointer[Block]
+	chain        ysql.SqlDB
 	ItxDB
 }
 
@@ -26,10 +29,14 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 		logrus.Fatal("create blockchain scheme: ", err)
 	}
 
+	var currentBlock atomic.Pointer[Block]
+	currentBlock.Store(nil)
+
 	return &BlockChain{
-		nodeType: nodeType,
-		chain:    chain,
-		ItxDB:    txdb,
+		nodeType:     nodeType,
+		currentBlock: currentBlock,
+		chain:        chain,
+		ItxDB:        txdb,
 	}
 }
 
@@ -78,12 +85,21 @@ func (bc *BlockChain) SetGenesis(b *Block) error {
 	}
 
 	if len(blocks) == 0 {
-		return bc.AppendBlock(b)
+		return bc.appendBlock(b)
 	}
 	return nil
 }
 
 func (bc *BlockChain) AppendBlock(b *Block) error {
+	err := bc.appendBlock(b)
+	if err != nil {
+		return err
+	}
+	bc.currentBlock.Store(b)
+	return nil
+}
+
+func (bc *BlockChain) appendBlock(b *Block) error {
 	cb := b.Compact()
 	if bc.nodeType == LightNode {
 		cb.TxnsHashes = nil
@@ -291,6 +307,23 @@ func (bc *BlockChain) LastFinalized() (*Block, error) {
 }
 
 func (bc *BlockChain) GetEndCompactBlock() (*CompactBlock, error) {
+	block := bc.currentBlock.Load()
+	if block == nil {
+		compactBlock, err := bc.getEndCompactBlockFromDB()
+		if err != nil {
+			return nil, err
+		}
+		b, err := bc.getBlockByCompact(compactBlock)
+		if err != nil {
+			return nil, err
+		}
+		bc.currentBlock.Store(b)
+		return compactBlock, nil
+	}
+	return block.Compact(), nil
+}
+
+func (bc *BlockChain) getEndCompactBlockFromDB() (*CompactBlock, error) {
 	var bs BlocksScheme
 	result := bc.chain.Db().Raw("select * from blockchain where height = (select max(height) from blockchain)").Find(&bs)
 	err := result.Error
@@ -304,11 +337,19 @@ func (bc *BlockChain) GetEndCompactBlock() (*CompactBlock, error) {
 }
 
 func (bc *BlockChain) GetEndBlock() (*Block, error) {
-	cBlock, err := bc.GetEndCompactBlock()
-	if err != nil {
-		return nil, err
+	block := bc.currentBlock.Load()
+	if block == nil {
+		compactBlock, err := bc.getEndCompactBlockFromDB()
+		if err != nil {
+			return nil, err
+		}
+		block, err = bc.getBlockByCompact(compactBlock)
+		if err != nil {
+			return nil, err
+		}
+		bc.currentBlock.Store(block)
 	}
-	return bc.getBlockByCompact(cBlock)
+	return block, nil
 }
 
 func (bc *BlockChain) GetAllCompactBlocks() ([]*CompactBlock, error) {
