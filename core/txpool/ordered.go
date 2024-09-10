@@ -1,10 +1,12 @@
 package txpool
 
 import (
+	"sync"
+
 	"github.com/sirupsen/logrus"
+
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
-	"sync"
 )
 
 type orderedTxns struct {
@@ -142,9 +144,13 @@ func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
 }
 
 func (ot *orderedTxns) GetAll() []*SignedTxn {
+	txns := make([]*SignedTxn, 0)
 	ot.RLock()
 	defer ot.RUnlock()
-	return ot.txns
+	for _, txn := range ot.txns {
+		txns = append(txns, txn)
+	}
+	return txns
 }
 
 func (ot *orderedTxns) Size() int {
