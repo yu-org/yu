@@ -13,6 +13,7 @@ import (
 type BlockChain struct {
 	nodeType int
 
+	chainID      uint64
 	currentBlock atomic.Pointer[Block]
 	chain        ysql.SqlDB
 	ItxDB
@@ -34,6 +35,7 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 
 	return &BlockChain{
 		nodeType:     nodeType,
+		chainID:      cfg.ChainID,
 		currentBlock: currentBlock,
 		chain:        chain,
 		ItxDB:        txdb,
@@ -44,8 +46,12 @@ func (bc *BlockChain) ConvergeType() ConvergeType {
 	return Longest
 }
 
+func (bc *BlockChain) ChainID() uint64 {
+	return bc.chainID
+}
+
 func (bc *BlockChain) NewEmptyBlock() *Block {
-	return &Block{Header: &Header{}, Txns: nil}
+	return &Block{Header: &Header{ChainID: bc.chainID}, Txns: nil}
 }
 
 func (bc *BlockChain) GetGenesis() (*Block, error) {

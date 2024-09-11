@@ -38,6 +38,7 @@ type (
 
 	// WrCall from clients, it is an instance of an 'Writing'.
 	WrCall struct {
+		ChainID    uint64 `json:"chain_id"`
 		TripodName string `json:"tripod_name"`
 		FuncName   string `json:"func_name"`
 		Params     string `json:"params"`

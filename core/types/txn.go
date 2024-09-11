@@ -40,6 +40,10 @@ func NewSignedTxn(wrCall *WrCall, pubkey, addr, sig []byte) (*SignedTxn, error) 
 	return stx, nil
 }
 
+func (st *SignedTxn) ChainID() uint64 {
+	return st.Raw.WrCall.ChainID
+}
+
 func (st *SignedTxn) BindJson(v any) error {
 	return BindJsonParams(st.Raw.WrCall.Params, v)
 }

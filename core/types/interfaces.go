@@ -59,6 +59,7 @@ type IBlockChain interface {
 	ItxDB
 	ConvergeType() ConvergeType
 
+	ChainID() uint64
 	NewEmptyBlock() *Block
 
 	GetGenesis() (*Block, error)
