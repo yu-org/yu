@@ -235,9 +235,10 @@ func (ut *UnsignedTxn) BindJsonParams(v interface{}) error {
 
 func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 	return &goproto.UnsignedTxn{
-		Ecall: &goproto.Ecall{
+		WrCall: &goproto.WrCall{
+			ChainId:    ut.WrCall.ChainID,
 			TripodName: ut.WrCall.TripodName,
-			ExecName:   ut.WrCall.FuncName,
+			FuncName:   ut.WrCall.FuncName,
 			Params:     ut.WrCall.Params,
 			LeiPrice:   ut.WrCall.LeiPrice,
 			Tips:       ut.WrCall.Tips,
@@ -249,11 +250,12 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
 	return &UnsignedTxn{
 		WrCall: &WrCall{
-			TripodName: pb.Ecall.TripodName,
-			FuncName:   pb.Ecall.ExecName,
-			Params:     pb.Ecall.Params,
-			LeiPrice:   pb.Ecall.LeiPrice,
-			Tips:       pb.Ecall.Tips,
+			ChainID:    pb.WrCall.ChainId,
+			TripodName: pb.WrCall.TripodName,
+			FuncName:   pb.WrCall.FuncName,
+			Params:     pb.WrCall.Params,
+			LeiPrice:   pb.WrCall.LeiPrice,
+			Tips:       pb.WrCall.Tips,
 		},
 		Timestamp: pb.Timestamp,
 	}
