@@ -7,7 +7,11 @@ import (
 	"github.com/celestiaorg/smt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/infra/storage/kv"
+	"github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/infra/storage/kv"
+	"github.com/yu-org/yu/metrics"
+	"strconv"
+	"time"
 )
 
 //                         Merkle Patricia Trie
@@ -20,17 +24,17 @@ import (
 
 type SpmtKV struct {
 	// blockHash -> stateRoot
-	indexDB KV
+	indexDB kv.KV
 
 	// for spmt
-	nodesDB  KV
-	valuesDB KV
+	nodesDB  kv.KV
+	valuesDB kv.KV
 
 	spmt *smt.SparseMerkleTree
 
-	prevBlock      Hash
-	currentBlock   Hash
-	finalizedBlock Hash
+	prevBlock      *types.Block
+	currentBlock   *types.Block
+	finalizedBlock *types.Block
 
 	// FIXME: use ArrayList
 	stashes *list.List // []*TxnStashes
@@ -47,7 +51,7 @@ var (
 	EmptyRoot = HexToHash("56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
 )
 
-func NewSpmtKV(root []byte, kvdb Kvdb) IState {
+func NewSpmtKV(root []byte, kvdb kv.Kvdb) IState {
 	indexDB := kvdb.New(SpmtIndex)
 	nodesDB := kvdb.New(Nodes)
 	valuesDB := kvdb.New(Values)
@@ -64,8 +68,8 @@ func NewSpmtKV(root []byte, kvdb Kvdb) IState {
 		nodesDB:      nodesDB,
 		valuesDB:     valuesDB,
 		spmt:         spmt,
-		prevBlock:    NullHash,
-		currentBlock: NullHash,
+		prevBlock:    nil,
+		currentBlock: nil,
 		stashes:      list.New(),
 	}
 }
@@ -135,11 +139,11 @@ func (skv *SpmtKV) exist(triName string, key []byte) bool {
 }
 
 // FIXME
-func (skv *SpmtKV) GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error) {
-	return skv.getByBlockHash(triName.Name(), key, blockHash)
+func (skv *SpmtKV) GetByBlockHash(triName NameString, key []byte, block *types.Block) ([]byte, error) {
+	return skv.getByBlockHash(triName.Name(), key, block)
 }
 
-func (skv *SpmtKV) getByBlockHash(triName string, key []byte, blockHash Hash) ([]byte, error) {
+func (skv *SpmtKV) getByBlockHash(triName string, key []byte, block *types.Block) ([]byte, error) {
 	key = makeKey(triName, key)
 	//stateRoot, err := skv.getIndexDB(blockHash)
 	//if err != nil {
@@ -166,6 +170,11 @@ func (skv *SpmtKV) Commit() ([]byte, error) {
 	//}
 
 	//spmt := smt.NewSparseMerkleTree(skv.nodesDB, skv.valuesDB, hasher())
+
+	start := time.Now()
+	defer func() {
+		metrics.StateCommitDuration.WithLabelValues(strconv.FormatInt(int64(skv.currentBlock.Height), 10)).Observe(time.Since(start).Seconds())
+	}()
 
 	// todo: optimize combine all key-values stashes
 	for element := skv.stashes.Front(); element != nil; element = element.Next() {
@@ -214,21 +223,21 @@ func (skv *SpmtKV) DiscardAll() {
 	skv.stashes.Init()
 }
 
-func (skv *SpmtKV) StartBlock(blockHash Hash) {
+func (skv *SpmtKV) StartBlock(block *types.Block) {
 	skv.prevBlock = skv.currentBlock
-	skv.currentBlock = blockHash
+	skv.currentBlock = block
 }
 
-func (skv *SpmtKV) FinalizeBlock(blockHash Hash) {
-	skv.finalizedBlock = blockHash
+func (skv *SpmtKV) FinalizeBlock(block *types.Block) {
+	skv.finalizedBlock = block
 }
 
-func (skv *SpmtKV) setIndexDB(blockHash Hash, stateRoot []byte) error {
-	return skv.indexDB.Set(blockHash.Bytes(), stateRoot)
+func (skv *SpmtKV) setIndexDB(block *types.Block, stateRoot []byte) error {
+	return skv.indexDB.Set(block.Hash.Bytes(), stateRoot)
 }
 
-func (skv *SpmtKV) getIndexDB(blockHash Hash) ([]byte, error) {
-	stateRoot, err := skv.indexDB.Get(blockHash.Bytes())
+func (skv *SpmtKV) getIndexDB(block *types.Block) ([]byte, error) {
+	stateRoot, err := skv.indexDB.Get(block.Hash.Bytes())
 	if err != nil {
 		return nil, err
 	}
