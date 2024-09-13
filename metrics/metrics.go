@@ -1,6 +1,8 @@
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 var (
 	BlockNumLabel = "block_num"
@@ -47,9 +49,20 @@ var (
 		},
 		[]string{BlockNumLabel, TripodLabel},
 	)
+
+	StateCommitDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "yu",
+			Subsystem: "state",
+			Name:      "state_commit",
+			Help:      "State Commit duration",
+		},
+		[]string{BlockNumLabel},
+	)
 )
 
 func init() {
 	prometheus.MustRegister(TxsPackCounter)
 	prometheus.MustRegister(StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
+	prometheus.MustRegister(StateCommitDuration)
 }
