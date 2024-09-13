@@ -50,6 +50,16 @@ var (
 		[]string{BlockNumLabel, TripodLabel},
 	)
 
+	AppendBlockDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "yu",
+			Subsystem: "block",
+			Name:      "append_block",
+			Help:      "append block duration",
+		},
+		[]string{BlockNumLabel},
+	)
+
 	StateCommitDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "yu",
@@ -63,6 +73,6 @@ var (
 
 func init() {
 	prometheus.MustRegister(TxsPackCounter)
-	prometheus.MustRegister(StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
+	prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
 	prometheus.MustRegister(StateCommitDuration)
 }
