@@ -1,7 +1,7 @@
 package state
 
 import (
-	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 )
 
@@ -12,13 +12,13 @@ type IState interface {
 	Get(triName NameString, key []byte) ([]byte, error)
 	GetFinalized(triName NameString, key []byte) ([]byte, error)
 	Exist(triName NameString, key []byte) bool
-	GetByBlockHash(triName NameString, key []byte, blockHash Hash) ([]byte, error)
+	GetByBlockHash(triName NameString, key []byte, block *types.Block) ([]byte, error)
 	Commit() ([]byte, error)
 	NextTxn()
 	Discard()
 	DiscardAll()
-	StartBlock(blockHash Hash)
-	FinalizeBlock(blockHash Hash)
+	StartBlock(block *types.Block)
+	FinalizeBlock(block *types.Block)
 }
 
 func NewStateDB(kvdb kv.Kvdb) IState {

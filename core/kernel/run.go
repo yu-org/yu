@@ -7,7 +7,10 @@ import (
 	"github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/metrics"
 	ytime "github.com/yu-org/yu/utils/time"
+	"strconv"
+	"time"
 )
 
 func (k *Kernel) Run() {
@@ -60,16 +63,20 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 
 	// start a new block
 	err = k.Land.RangeList(func(tri *Tripod) error {
+		start := time.Now()
 		tri.BlockCycle.StartBlock(newBlock)
+		metrics.StartBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
 	if err != nil {
 		return
 	}
 
-	// end block and append to Chain
+	// end block
 	err = k.Land.RangeList(func(tri *Tripod) error {
+		start := time.Now()
 		tri.BlockCycle.EndBlock(newBlock)
+		metrics.EndBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
 	if err != nil {
@@ -78,7 +85,9 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 
 	// finalize this block
 	err = k.Land.RangeList(func(tri *Tripod) error {
+		start := time.Now()
 		tri.BlockCycle.FinalizeBlock(newBlock)
+		metrics.FinalizeBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
 	return

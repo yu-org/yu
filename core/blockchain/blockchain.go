@@ -7,7 +7,10 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"github.com/yu-org/yu/metrics"
+	"strconv"
 	"sync/atomic"
+	"time"
 )
 
 type BlockChain struct {
@@ -106,6 +109,10 @@ func (bc *BlockChain) AppendBlock(b *Block) error {
 }
 
 func (bc *BlockChain) appendBlock(b *Block) error {
+	start := time.Now()
+	defer func() {
+		metrics.AppendBlockDuration.WithLabelValues(strconv.FormatInt(int64(b.Height), 10)).Observe(time.Since(start).Seconds())
+	}()
 	cb := b.Compact()
 	if bc.nodeType == LightNode {
 		cb.TxnsHashes = nil
