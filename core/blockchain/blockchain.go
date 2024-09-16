@@ -16,9 +16,10 @@ import (
 type BlockChain struct {
 	nodeType int
 
-	chainID      uint64
-	currentBlock atomic.Pointer[Block]
-	chain        ysql.SqlDB
+	chainID            uint64
+	currentBlock       atomic.Pointer[Block]
+	lastFinalizedBlock atomic.Pointer[Block]
+	chain              ysql.SqlDB
 	ItxDB
 }
 
@@ -33,15 +34,18 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 		logrus.Fatal("create blockchain scheme: ", err)
 	}
 
-	var currentBlock atomic.Pointer[Block]
+	var currentBlock, lastFinalizedBlock atomic.Pointer[Block]
+
 	currentBlock.Store(nil)
+	lastFinalizedBlock.Store(nil)
 
 	return &BlockChain{
-		nodeType:     nodeType,
-		chainID:      cfg.ChainID,
-		currentBlock: currentBlock,
-		chain:        chain,
-		ItxDB:        txdb,
+		nodeType:           nodeType,
+		chainID:            cfg.ChainID,
+		currentBlock:       currentBlock,
+		lastFinalizedBlock: lastFinalizedBlock,
+		chain:              chain,
+		ItxDB:              txdb,
 	}
 }
 
@@ -293,13 +297,22 @@ func (bc *BlockChain) ChildrenCompact(prevBlockHash Hash) ([]*CompactBlock, erro
 	return blocks, nil
 }
 
-func (bc *BlockChain) Finalize(blockHash Hash) error {
-	return bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
-		Hash: blockHash.String(),
+func (bc *BlockChain) Finalize(block *Block) error {
+	err := bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
+		Hash: block.Hash.String(),
 	}).Updates(BlocksScheme{Finalize: true}).Error
+	if err != nil {
+		return err
+	}
+	bc.lastFinalizedBlock.Store(block)
+	return nil
 }
 
 func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
+	block := bc.lastFinalizedBlock.Load()
+	if block != nil {
+		return block.Compact(), nil
+	}
 	var bss []BlocksScheme
 	err := bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
 		Finalize: true,
@@ -312,6 +325,10 @@ func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 }
 
 func (bc *BlockChain) LastFinalized() (*Block, error) {
+	block := bc.lastFinalizedBlock.Load()
+	if block != nil {
+		return block, nil
+	}
 	cBlock, err := bc.LastFinalizedCompact()
 	if err != nil {
 		return nil, err

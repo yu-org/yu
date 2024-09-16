@@ -48,7 +48,7 @@ func (b *Synchronizer) defineGenesis(genesisBlock *Block) {
 	if err != nil {
 		logrus.Panic("set genesis block failed: ", err)
 	}
-	err = b.Chain.Finalize(genesisHash)
+	err = b.Chain.Finalize(genesisBlock)
 	if err != nil {
 		logrus.Panic("finalize genesis block failed: ", err)
 	}
