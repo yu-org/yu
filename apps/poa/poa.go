@@ -253,7 +253,7 @@ func (h *Poa) FinalizeBlock(block *Block) {
 	if h.cfg.PrettyLog {
 		log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
 	}
-	h.Chain.Finalize(block.Hash)
+	h.Chain.Finalize(block)
 }
 
 func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {

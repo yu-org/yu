@@ -84,7 +84,7 @@ type IBlockChain interface {
 	Children(prevBlockHash Hash) ([]*Block, error)
 	ChildrenCompact(prevBlockHash Hash) ([]*CompactBlock, error)
 
-	Finalize(blockHash Hash) error
+	Finalize(block *Block) error
 	LastFinalized() (*Block, error)
 	LastFinalizedCompact() (*CompactBlock, error)
 

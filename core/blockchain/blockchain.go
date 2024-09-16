@@ -297,10 +297,15 @@ func (bc *BlockChain) ChildrenCompact(prevBlockHash Hash) ([]*CompactBlock, erro
 	return blocks, nil
 }
 
-func (bc *BlockChain) Finalize(blockHash Hash) error {
-	return bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
-		Hash: blockHash.String(),
+func (bc *BlockChain) Finalize(block *Block) error {
+	err := bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
+		Hash: block.Hash.String(),
 	}).Updates(BlocksScheme{Finalize: true}).Error
+	if err != nil {
+		return err
+	}
+	bc.lastFinalizedBlock.Store(block)
+	return nil
 }
 
 func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
