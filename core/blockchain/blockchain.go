@@ -1,7 +1,7 @@
 package blockchain
 
 import (
-	lru "github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -21,7 +21,7 @@ type BlockChain struct {
 
 	currentBlock       atomic.Pointer[Block]
 	lastFinalizedBlock atomic.Pointer[Block]
-	finalizedBlocks    *lru.Cache
+	finalizedBlocks    *lru.Cache[BlockNum, *Block]
 
 	chain ysql.SqlDB
 	ItxDB
@@ -43,7 +43,7 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 	currentBlock.Store(nil)
 	lastFinalizedBlock.Store(nil)
 
-	finalizedBlocks, err := lru.New(cfg.CacheSize)
+	finalizedBlocks, err := lru.New[BlockNum, *Block](cfg.CacheSize)
 	if err != nil {
 		logrus.Fatal("init cache failed: ", err)
 	}
@@ -185,7 +185,7 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*Block, error) {
 
 func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error) {
 	if block, ok := bc.finalizedBlocks.Get(height); ok {
-		return block.(*Block).Compact(), nil
+		return block.Compact(), nil
 	}
 	var bs BlocksScheme
 	result := bc.chain.Db().Where(&BlocksScheme{
@@ -206,7 +206,7 @@ func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, e
 
 func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*Block, error) {
 	if block, ok := bc.finalizedBlocks.Get(height); ok {
-		return block.(*Block), nil
+		return block, nil
 	}
 	cBlock, err := bc.GetCompactBlockByHeight(height)
 	if err != nil {
