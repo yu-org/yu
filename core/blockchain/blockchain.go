@@ -43,7 +43,7 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 	currentBlock.Store(nil)
 	lastFinalizedBlock.Store(nil)
 
-	finalizedBlocks, err := lru.New[BlockNum, *Block](cfg.CacheSize)
+	finalizedBlocks, err := lru.New(cfg.CacheSize)
 	if err != nil {
 		logrus.Fatal("init cache failed: ", err)
 	}
