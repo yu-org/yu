@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -16,22 +17,25 @@ import (
 type BlockChain struct {
 	nodeType int
 
-	chainID            uint64
+	chainID uint64
+
 	currentBlock       atomic.Pointer[Block]
 	lastFinalizedBlock atomic.Pointer[Block]
-	chain              ysql.SqlDB
+	finalizedBlocks    *lru.Cache[BlockNum, *Block]
+
+	chain ysql.SqlDB
 	ItxDB
 }
 
 func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockChain {
 	chain, err := ysql.NewSqlDB(&cfg.ChainDB)
 	if err != nil {
-		logrus.Fatal("init blockchain SQL db error: ", err)
+		logrus.Fatal("init blockchain SQL db failed: ", err)
 	}
 
 	err = chain.CreateIfNotExist(&BlocksScheme{})
 	if err != nil {
-		logrus.Fatal("create blockchain scheme: ", err)
+		logrus.Fatal("create blockchain scheme failed: ", err)
 	}
 
 	var currentBlock, lastFinalizedBlock atomic.Pointer[Block]
@@ -39,11 +43,17 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 	currentBlock.Store(nil)
 	lastFinalizedBlock.Store(nil)
 
+	finalizedBlocks, err := lru.New[BlockNum, *Block](cfg.CacheSize)
+	if err != nil {
+		logrus.Fatal("init cache failed: ", err)
+	}
+
 	return &BlockChain{
 		nodeType:           nodeType,
 		chainID:            cfg.ChainID,
 		currentBlock:       currentBlock,
 		lastFinalizedBlock: lastFinalizedBlock,
+		finalizedBlocks:    finalizedBlocks,
 		chain:              chain,
 		ItxDB:              txdb,
 	}
@@ -174,6 +184,9 @@ func (bc *BlockChain) GetBlock(blockHash Hash) (*Block, error) {
 }
 
 func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error) {
+	if block, ok := bc.finalizedBlocks.Get(height); ok {
+		return block.Compact(), nil
+	}
 	var bs BlocksScheme
 	result := bc.chain.Db().Where(&BlocksScheme{
 		Height:   height,
@@ -192,6 +205,9 @@ func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, e
 }
 
 func (bc *BlockChain) GetBlockByHeight(height BlockNum) (*Block, error) {
+	if block, ok := bc.finalizedBlocks.Get(height); ok {
+		return block, nil
+	}
 	cBlock, err := bc.GetCompactBlockByHeight(height)
 	if err != nil {
 		return nil, err
@@ -305,6 +321,7 @@ func (bc *BlockChain) Finalize(block *Block) error {
 		return err
 	}
 	bc.lastFinalizedBlock.Store(block)
+	bc.finalizedBlocks.Add(block.Height, block)
 	return nil
 }
 
