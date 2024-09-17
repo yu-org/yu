@@ -74,8 +74,9 @@ type P2pConf struct {
 }
 
 type BlockchainConf struct {
-	ChainID uint64    `toml:"chain_id"`
-	ChainDB SqlDbConf `toml:"chain_db"`
+	ChainID   uint64    `toml:"chain_id"`
+	ChainDB   SqlDbConf `toml:"chain_db"`
+	CacheSize int       `toml:"cache_size"`
 }
 
 type TxpoolConf struct {

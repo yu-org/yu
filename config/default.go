@@ -32,10 +32,12 @@ func InitDefaultCfg() *KernelConf {
 		Hosts:  nil,
 	}
 	cfg.BlockChain = BlockchainConf{
+		ChainID: 0,
 		ChainDB: SqlDbConf{
 			SqlDbType: "sqlite",
 			Dsn:       "chain.db",
 		},
+		CacheSize: 10,
 	}
 	cfg.Txpool = TxpoolConf{
 		PoolSize:   2048,
