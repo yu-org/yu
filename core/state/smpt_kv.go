@@ -10,7 +10,6 @@ import (
 	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/metrics"
-	"strconv"
 	"time"
 )
 
@@ -173,7 +172,7 @@ func (skv *SpmtKV) Commit() ([]byte, error) {
 
 	start := time.Now()
 	defer func() {
-		metrics.StateCommitDuration.WithLabelValues(strconv.FormatInt(int64(skv.currentBlock.Height), 10)).Observe(time.Since(start).Seconds())
+		metrics.StateCommitDuration.WithLabelValues().Observe(time.Since(start).Seconds())
 	}()
 
 	// todo: optimize combine all key-values stashes

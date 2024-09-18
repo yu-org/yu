@@ -67,12 +67,12 @@ var (
 			Name:      "state_commit",
 			Help:      "State Commit duration",
 		},
-		[]string{BlockNumLabel},
+		[]string{},
 	)
 )
 
 func init() {
 	prometheus.MustRegister(TxsPackCounter)
-	prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
+	// prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
 	prometheus.MustRegister(StateCommitDuration)
 }
