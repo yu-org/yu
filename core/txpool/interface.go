@@ -6,8 +6,9 @@ import (
 )
 
 type ItxPool interface {
-	// PoolSize return pool Size of txpool
-	PoolSize() uint64
+	// Capacity return pool Size of txpool
+	Capacity() int
+	Size() int
 
 	WithBaseCheck(checkFn TxnChecker) ItxPool
 	WithTripodCheck(tripodName string, checker TxnChecker) ItxPool

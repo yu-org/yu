@@ -12,7 +12,7 @@ type TxPool struct {
 
 	nodeType int
 
-	poolSize   uint64
+	capacity   int
 	TxnMaxSize int
 
 	unpackedTxns IunpackedTxns
@@ -26,7 +26,7 @@ func NewTxPool(nodeType int, cfg *TxpoolConf) *TxPool {
 
 	tp := &TxPool{
 		nodeType:     nodeType,
-		poolSize:     cfg.PoolSize,
+		capacity:     cfg.PoolSize,
 		TxnMaxSize:   cfg.TxnMaxSize,
 		unpackedTxns: ordered,
 		baseChecks:   make([]TxnCheckFn, 0),
@@ -48,8 +48,12 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 	return tp
 }
 
-func (tp *TxPool) PoolSize() uint64 {
-	return tp.poolSize
+func (tp *TxPool) Capacity() int {
+	return tp.capacity
+}
+
+func (tp *TxPool) Size() int {
+	return tp.unpackedTxns.Size()
 }
 
 func (tp *TxPool) WithBaseCheck(tc TxnChecker) ItxPool {
@@ -158,7 +162,7 @@ func (tp *TxPool) NecessaryCheck(stxn *SignedTxn) (err error) {
 }
 
 func (tp *TxPool) checkPoolLimit(*SignedTxn) error {
-	if uint64(tp.unpackedTxns.Size()) >= tp.poolSize {
+	if tp.unpackedTxns.Size() >= tp.capacity {
 		return PoolOverflow
 	}
 	return nil

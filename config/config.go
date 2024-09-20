@@ -80,8 +80,8 @@ type BlockchainConf struct {
 }
 
 type TxpoolConf struct {
-	PoolSize   uint64 `toml:"pool_size"`
-	TxnMaxSize int    `toml:"txn_max_size"`
+	PoolSize   int `toml:"pool_size"`
+	TxnMaxSize int `toml:"txn_max_size"`
 }
 
 func LoadTomlConf(fpath string, cfg interface{}) {
