@@ -5,6 +5,7 @@ import (
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/metrics"
 )
 
 type TxPool struct {
@@ -123,6 +124,7 @@ func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
 func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
 	//tp.RLock()
 	//defer tp.RUnlock()
+	metrics.TxpoolSizeGauge.Set(float64(tp.unpackedTxns.Size()))
 	txns := tp.unpackedTxns.Gets(numLimit, filter)
 	return txns, nil
 }

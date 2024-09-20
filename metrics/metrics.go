@@ -5,19 +5,17 @@ import (
 )
 
 var (
-	BlockNumLabel = "block_num"
-	TripodLabel   = "tripod"
+	TripodLabel = "tripod"
 )
 
 var (
-	TxsPackCounter = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
+	TxpoolSizeGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
 			Namespace: "yu",
-			Subsystem: "transaction",
-			Name:      "txs_pack",
-			Help:      "Total number of count of packing txn",
+			Subsystem: "txpool",
+			Name:      "txpool_size",
+			Help:      "Total number of txpool",
 		},
-		[]string{BlockNumLabel},
 	)
 
 	StartBlockDuration = prometheus.NewHistogramVec(
@@ -27,7 +25,7 @@ var (
 			Name:      "start_block",
 			Help:      "Start Block duration",
 		},
-		[]string{BlockNumLabel, TripodLabel},
+		[]string{TripodLabel},
 	)
 
 	EndBlockDuration = prometheus.NewHistogramVec(
@@ -37,7 +35,7 @@ var (
 			Name:      "end_block",
 			Help:      "End Block duration",
 		},
-		[]string{BlockNumLabel, TripodLabel},
+		[]string{TripodLabel},
 	)
 
 	FinalizeBlockDuration = prometheus.NewHistogramVec(
@@ -47,7 +45,7 @@ var (
 			Name:      "finalize_block",
 			Help:      "Finalize Block duration",
 		},
-		[]string{BlockNumLabel, TripodLabel},
+		[]string{TripodLabel},
 	)
 
 	AppendBlockDuration = prometheus.NewHistogramVec(
@@ -57,7 +55,7 @@ var (
 			Name:      "append_block",
 			Help:      "append block duration",
 		},
-		[]string{BlockNumLabel},
+		[]string{},
 	)
 
 	StateCommitDuration = prometheus.NewHistogramVec(
@@ -72,7 +70,7 @@ var (
 )
 
 func init() {
-	prometheus.MustRegister(TxsPackCounter)
+	prometheus.MustRegister(TxpoolSizeGauge)
 	// prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
 	prometheus.MustRegister(StateCommitDuration)
 }
