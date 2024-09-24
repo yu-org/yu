@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"container/list"
 	"crypto/sha256"
-	"fmt"
 	"github.com/celestiaorg/smt"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
@@ -53,7 +52,6 @@ var (
 
 func NewSpmtKV(root []byte, kvdb kv.Kvdb) IState {
 	indexDB := kvdb.New(SpmtIndex)
-	fmt.Println("NewSpmtKV.indexDB = ", indexDB)
 	nodesDB := kvdb.New(Nodes)
 	valuesDB := kvdb.New(Values)
 
@@ -234,8 +232,6 @@ func (skv *SpmtKV) FinalizeBlock(block *types.Block) {
 }
 
 func (skv *SpmtKV) setIndexDB(block *types.Block, stateRoot []byte) error {
-	fmt.Println("spmtKV indexDB is ", skv.indexDB)
-	fmt.Println("block is", block)
 	return skv.indexDB.Set(block.Hash.Bytes(), stateRoot)
 }
 

@@ -75,7 +75,7 @@ func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.
 		Pool = txpool.WithDefaultChecks(cfg.NodeType, &cfg.Txpool)
 	}
 	if StateDB == nil {
-		StateDB = state.NewStateDB(kvdb)
+		StateDB = state.NewStateDB(cfg.StatedbType, kvdb)
 	}
 
 	// StartGrpcServer(cfg)
