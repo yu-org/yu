@@ -34,6 +34,8 @@ type KernelConf struct {
 
 	LeiLimit uint64 `toml:"lei_limit"`
 
+	StatedbType string `toml:"statedb_type"`
+
 	KVDB KVconf `toml:"kvdb"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`

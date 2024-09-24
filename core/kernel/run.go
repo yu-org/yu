@@ -177,7 +177,7 @@ func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.StateRoot == NullHash {
+	if block.StateRoot == NullHash && stateRoot != nil {
 		block.StateRoot = BytesToHash(stateRoot)
 	}
 

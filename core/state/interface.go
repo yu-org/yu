@@ -21,7 +21,12 @@ type IState interface {
 	FinalizeBlock(block *types.Block)
 }
 
-func NewStateDB(kvdb kv.Kvdb) IState {
+func NewStateDB(typ string, kvdb kv.Kvdb) IState {
 	// FIXME
-	return NewSpmtKV(nil, kvdb)
+	switch typ {
+	case "no":
+		return new(NoStateDB)
+	default:
+		return NewSpmtKV(nil, kvdb)
+	}
 }
