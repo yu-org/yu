@@ -235,7 +235,7 @@ func (skv *SpmtKV) FinalizeBlock(block *types.Block) {
 
 func (skv *SpmtKV) setIndexDB(block *types.Block, stateRoot []byte) error {
 	fmt.Println("spmtKV indexDB is ", skv.indexDB)
-	fmt.Println("block is", block.Hash)
+	fmt.Println("block is", block)
 	return skv.indexDB.Set(block.Hash.Bytes(), stateRoot)
 }
 
