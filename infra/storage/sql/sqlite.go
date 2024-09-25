@@ -29,6 +29,10 @@ func (s *Sqlite) CreateIfNotExist(table interface{}) error {
 	return s.Migrator().CreateTable(table)
 }
 
+func (s *Sqlite) AutoMigrate(table any) error {
+	return s.DB.AutoMigrate(table)
+}
+
 func (*Sqlite) Type() storage.StoreType {
 	return storage.Embedded
 }

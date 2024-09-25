@@ -30,7 +30,7 @@ func NewBlockChain(nodeType int, cfg *config.BlockchainConf, txdb ItxDB) *BlockC
 		logrus.Fatal("init blockchain SQL db failed: ", err)
 	}
 
-	err = chain.CreateIfNotExist(&BlocksScheme{})
+	err = chain.AutoMigrate(&BlocksScheme{})
 	if err != nil {
 		logrus.Fatal("create blockchain scheme failed: ", err)
 	}
