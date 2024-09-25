@@ -11,6 +11,7 @@ type SqlDB interface {
 	storage.StorageType
 	Db() *gorm.DB
 	CreateIfNotExist(table interface{}) error
+	AutoMigrate(table any) error
 }
 
 func NewSqlDB(cfg *config.SqlDbConf) (SqlDB, error) {

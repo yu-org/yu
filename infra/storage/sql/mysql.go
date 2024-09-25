@@ -29,6 +29,10 @@ func (m *Mysql) CreateIfNotExist(table interface{}) error {
 	return m.Migrator().CreateTable(table)
 }
 
+func (m *Mysql) AutoMigrate(table any) error {
+	return m.DB.AutoMigrate(table)
+}
+
 func (*Mysql) Type() storage.StoreType {
 	return storage.Server
 }

@@ -13,7 +13,7 @@ type BlocksScheme struct {
 	ChainID     uint64
 	Hash        string `gorm:"primaryKey"`
 	PrevHash    string
-	Height      BlockNum
+	Height      BlockNum `gorm:"index"`
 	TxnRoot     string
 	StateRoot   string
 	ReceiptRoot string

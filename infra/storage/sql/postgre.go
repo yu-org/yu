@@ -29,6 +29,10 @@ func (p *PostgreSql) CreateIfNotExist(table interface{}) error {
 	return p.Migrator().CreateTable(table)
 }
 
+func (p *PostgreSql) AutoMigrate(table any) error {
+	return p.DB.AutoMigrate(table)
+}
+
 func (*PostgreSql) Type() storage.StoreType {
 	return storage.Server
 }
