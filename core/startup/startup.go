@@ -17,6 +17,7 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
+	"os"
 	"path"
 )
 
@@ -59,7 +60,14 @@ func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.
 
 	// init database
 	cfg.KVDB.Path = path.Join(cfg.DataDir, cfg.KVDB.Path)
-	cfg.BlockChain.ChainDB.Dsn = path.Join(cfg.DataDir, cfg.BlockChain.ChainDB.Dsn)
+
+	if cfg.BlockChain.ChainDB.Dsn == "" {
+		cfg.BlockChain.ChainDB.Dsn = os.Getenv("chain_db_dsn")
+	}
+	if cfg.BlockChain.ChainDB.SqlDbType == "sqlite" {
+		cfg.BlockChain.ChainDB.Dsn = path.Join(cfg.DataDir, cfg.BlockChain.ChainDB.Dsn)
+	}
+
 	kvdb, err := kv.NewKvdb(&cfg.KVDB)
 	if err != nil {
 		logrus.Fatal("init kvdb error: ", err)
