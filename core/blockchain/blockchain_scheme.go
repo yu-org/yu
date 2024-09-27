@@ -11,7 +11,7 @@ import (
 
 type BlocksScheme struct {
 	ChainID     uint64
-	Hash        string `gorm:"primaryKey"`
+	Hash        string `gorm:"primaryKey;type:varchar(100)"`
 	PrevHash    string
 	Height      BlockNum `gorm:"index"`
 	TxnRoot     string
