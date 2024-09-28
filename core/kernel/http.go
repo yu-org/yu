@@ -20,6 +20,8 @@ func (k *Kernel) HandleHttp() {
 		k.handleHttpRd(c)
 	})
 
+	api.GET("receipt", k.GetReceipt)
+
 	api.GET("receipts", k.GetReceipts)
 	api.GET("receipts_count", k.GetReceiptsCount)
 

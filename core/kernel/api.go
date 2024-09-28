@@ -9,6 +9,17 @@ import (
 	"strconv"
 )
 
+func (k *Kernel) GetReceipt(ctx *gin.Context) {
+	txHashStr := ctx.Query("tx_hash")
+	txHash := common.HexToHash(txHashStr)
+	receipt, err := k.TxDB.GetReceipt(txHash)
+	if err != nil {
+		protocol.RenderError(ctx, protocol.ReceiptFailure, err)
+		return
+	}
+	protocol.RenderSuccess(ctx, receipt)
+}
+
 func (k *Kernel) GetReceipts(ctx *gin.Context) {
 	receipts, err := k.getReceipts(ctx)
 	if err != nil {
