@@ -46,7 +46,7 @@ func NewMEVless(cfg *Config) (*MEVless, error) {
 		wsClients:     make(map[*websocket.Conn]bool),
 	}
 
-	tri.SetWritings(tri.OrderTx)
+	tri.SetPublicWritings(tri.OrderTx)
 
 	go tri.HandleSubscribe()
 	return tri, nil

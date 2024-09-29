@@ -19,7 +19,7 @@ func NewAsset(tokenName string) *Asset {
 	df := NewTripod()
 
 	a := &Asset{df, tokenName}
-	a.SetWritings(a.Transfer, a.CreateAccount)
+	a.SetPublicWritings(a.Transfer, a.CreateAccount)
 	a.SetReadings(a.QueryBalance)
 
 	//a.SetTxnChecker(func(txn *SignedTxn) error {

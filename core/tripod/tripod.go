@@ -155,7 +155,7 @@ func (t *Tripod) SetPrivateWritings(wrs ...Writing) {
 	}
 }
 
-func (t *Tripod) SetWritings(wrs ...Writing) {
+func (t *Tripod) SetPublicWritings(wrs ...Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
 		t.writings[name] = wr
@@ -188,7 +188,7 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) GetWriting(name string) Writing {
+func (t *Tripod) GetPublicWriting(name string) Writing {
 	return t.writings[name]
 }
 

@@ -55,7 +55,7 @@ func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	if !ok {
 		return nil, TripodNotFound(tripodName)
 	}
-	fn := tripod.GetWriting(wrName)
+	fn := tripod.GetPublicWriting(wrName)
 	if fn == nil {
 		return nil, WritingNotFound(wrName)
 	}
