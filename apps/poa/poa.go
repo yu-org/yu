@@ -6,31 +6,34 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/apps/MEVless"
+	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
-	. "github.com/yu-org/yu/core/keypair"
-	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/utils/log"
 	"go.uber.org/atomic"
 	"time"
 )
 
 type Poa struct {
-	*Tripod
+	*tripod.Tripod
+
+	MevLess *MEVless.MEVless `tripod:"mevless,omitempty"`
 
 	// key: crypto address, generate from pubkey
-	validatorsMap map[Address]peer.ID
-	myPubkey      PubKey
-	myPrivKey     PrivKey
+	validatorsMap map[common.Address]peer.ID
+	myPubkey      keypair.PubKey
+	myPrivKey     keypair.PrivKey
 
-	validatorsList []Address
+	validatorsList []common.Address
 
 	currentHeight *atomic.Uint32
 
 	blockInterval int
 	packNum       uint64
-	recvChan      chan *Block
+	recvChan      chan *types.Block
 	// local node index in addrs
 	nodeIdx int
 
@@ -38,7 +41,7 @@ type Poa struct {
 }
 
 type ValidatorInfo struct {
-	Pubkey PubKey
+	Pubkey keypair.PubKey
 	P2pID  peer.ID
 }
 
@@ -50,13 +53,13 @@ func NewPoa(cfg *PoaConfig) *Poa {
 	return newPoa(pub, priv, infos, cfg)
 }
 
-func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, cfg *PoaConfig) *Poa {
-	tri := NewTripod()
+func newPoa(myPubkey keypair.PubKey, myPrivkey keypair.PrivKey, addrIps []ValidatorInfo, cfg *PoaConfig) *Poa {
+	tri := tripod.NewTripod()
 
 	var nodeIdx int
 
-	validatorsAddr := make([]Address, 0)
-	validators := make(map[Address]peer.ID)
+	validatorsAddr := make([]common.Address, 0)
+	validators := make(map[common.Address]peer.ID)
 	for _, addrIp := range addrIps {
 		addr := addrIp.Pubkey.Address()
 		validators[addr] = addrIp.P2pID
@@ -77,7 +80,7 @@ func newPoa(myPubkey PubKey, myPrivkey PrivKey, addrIps []ValidatorInfo, cfg *Po
 		currentHeight:  atomic.NewUint32(0),
 		blockInterval:  cfg.BlockInterval,
 		packNum:        cfg.PackNum,
-		recvChan:       make(chan *Block, 10),
+		recvChan:       make(chan *types.Block, 10),
 		nodeIdx:        nodeIdx,
 		cfg:            cfg,
 	}
@@ -95,17 +98,17 @@ func (h *Poa) ValidatorsP2pID() (peers []peer.ID) {
 	return
 }
 
-func (h *Poa) LocalAddress() Address {
+func (h *Poa) LocalAddress() common.Address {
 	return h.myPubkey.Address()
 }
 
-func (h *Poa) CheckTxn(txn *SignedTxn) error {
+func (h *Poa) CheckTxn(txn *types.SignedTxn) error {
 	// return metamask.CheckMetamaskSig(txn)
 	return nil
 }
 
-func (h *Poa) VerifyBlock(block *Block) error {
-	minerPubkey, err := PubKeyFromBytes(block.MinerPubkey)
+func (h *Poa) VerifyBlock(block *types.Block) error {
+	minerPubkey, err := keypair.PubKeyFromBytes(block.MinerPubkey)
 	if err != nil {
 		logrus.Warnf("parse pubkey(%s) error: %v", block.MinerPubkey, err)
 		return err
@@ -120,16 +123,16 @@ func (h *Poa) VerifyBlock(block *Block) error {
 	return nil
 }
 
-func (h *Poa) InitChain(block *Block) {
+func (h *Poa) InitChain(block *types.Block) {
 
 	go func() {
 		for {
-			msg, err := h.P2pNetwork.SubP2P(StartBlockTopic)
+			msg, err := h.P2pNetwork.SubP2P(common.StartBlockTopic)
 			if err != nil {
 				logrus.Error("subscribe message from P2P error: ", err)
 				continue
 			}
-			p2pBlock, err := DecodeBlock(msg)
+			p2pBlock, err := types.DecodeBlock(msg)
 			if err != nil {
 				logrus.Error("decode p2pBlock from p2p error: ", err)
 				continue
@@ -139,13 +142,13 @@ func (h *Poa) InitChain(block *Block) {
 			}
 
 			logrus.Debugf("accept block(%s), height(%d), miner(%s)",
-				p2pBlock.Hash.String(), p2pBlock.Height, ToHex(p2pBlock.MinerPubkey))
+				p2pBlock.Hash.String(), p2pBlock.Height, common.ToHex(p2pBlock.MinerPubkey))
 
 			if h.getCurrentHeight() > p2pBlock.Height {
 				continue
 			}
 
-			err = h.RangeList(func(tri *Tripod) error {
+			err = h.RangeList(func(tri *tripod.Tripod) error {
 				return tri.BlockVerifier.VerifyBlock(block)
 			})
 			if err != nil {
@@ -158,11 +161,12 @@ func (h *Poa) InitChain(block *Block) {
 	}()
 }
 
-func (h *Poa) StartBlock(block *Block) {
+func (h *Poa) StartBlock(block *types.Block) {
 	now := time.Now()
 	defer func() {
 		duration := time.Since(now)
-		time.Sleep(time.Duration(h.blockInterval)*time.Second - duration)
+		// fmt.Println("-------start-block last: ", duration.String(), "block-number = ", block.Height)
+		time.Sleep(time.Duration(h.blockInterval)*time.Millisecond - duration)
 	}()
 
 	h.setCurrentHeight(block.Height)
@@ -174,27 +178,37 @@ func (h *Poa) StartBlock(block *Block) {
 	if !h.AmILeader(block.Height) {
 		if h.useP2pOrSkip(block) {
 			logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
-				block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
+				block.Height, block.Hash.String(), common.ToHex(block.MinerPubkey))
 			return
 		}
 	}
 
 	logrus.Infof(" I am Leader! I mine the block for height (%d)! ", block.Height)
-	txns, err := h.Pool.Pack(h.packNum)
+	var (
+		txns []*types.SignedTxn
+		err  error
+	)
+
+	if h.MevLess != nil {
+		txns, err = h.MevLess.Pack(block.Height, h.packNum)
+	} else {
+		txns, err = h.Pool.Pack(h.packNum)
+	}
+
 	if err != nil {
 		logrus.Panic("pack txns from pool: ", err)
 	}
 
 	// logrus.Info("---- the num of pack txns is ", len(txns))
 
-	txnRoot, err := MakeTxnRoot(txns)
+	txnRoot, err := types.MakeTxnRoot(txns)
 	if err != nil {
 		logrus.Panic("make txn-root failed: ", err)
 	}
 	block.TxnRoot = txnRoot
 
 	byt, _ := block.Encode()
-	block.Hash = BytesToHash(Sha256(byt))
+	block.Hash = common.BytesToHash(common.Sha256(byt))
 
 	// miner signs block
 	block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
@@ -212,26 +226,27 @@ func (h *Poa) StartBlock(block *Block) {
 		logrus.Panic("encode raw-block failed: ", err)
 	}
 
-	err = h.P2pNetwork.PubP2P(StartBlockTopic, blockByt)
+	err = h.P2pNetwork.PubP2P(common.StartBlockTopic, blockByt)
 	if err != nil {
 		logrus.Panic("publish block to p2p failed: ", err)
 	}
 }
 
-func (h *Poa) EndBlock(block *Block) {
+func (h *Poa) EndBlock(block *types.Block) {
 	chain := h.Chain
 
+	// now := time.Now()
 	err := h.Execute(block)
 	if err != nil {
 		logrus.Panic("execute block failed: ", err)
 	}
-
 	// TODO: sync the state (execute receipt) with other nodes
 
 	err = chain.AppendBlock(block)
 	if err != nil {
 		logrus.Panic("append block failed: ", err)
 	}
+	// fmt.Println("execute block last: ", time.Since(now).String())
 
 	err = h.Pool.Reset(block.Txns)
 	if err != nil {
@@ -246,7 +261,7 @@ func (h *Poa) EndBlock(block *Block) {
 	h.State.FinalizeBlock(block)
 }
 
-func (h *Poa) FinalizeBlock(block *Block) {
+func (h *Poa) FinalizeBlock(block *types.Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("finalize block")
 
@@ -256,23 +271,23 @@ func (h *Poa) FinalizeBlock(block *Block) {
 	h.Chain.Finalize(block)
 }
 
-func (h *Poa) CompeteLeader(blockHeight BlockNum) Address {
+func (h *Poa) CompeteLeader(blockHeight common.BlockNum) common.Address {
 	idx := (int(blockHeight) - 1) % len(h.validatorsList)
 	leader := h.validatorsList[idx]
 	logrus.Debugf("compete a leader(%s) in round(%d)", leader.String(), blockHeight)
 	return leader
 }
 
-func (h *Poa) AmILeader(blockHeight BlockNum) bool {
+func (h *Poa) AmILeader(blockHeight common.BlockNum) bool {
 	return h.CompeteLeader(blockHeight) == h.LocalAddress()
 }
 
-func (h *Poa) IsValidator(addr Address) bool {
+func (h *Poa) IsValidator(addr common.Address) bool {
 	_, ok := h.validatorsMap[addr]
 	return ok
 }
 
-func (h *Poa) useP2pOrSkip(localBlock *Block) bool {
+func (h *Poa) useP2pOrSkip(localBlock *types.Block) bool {
 LOOP:
 	select {
 	case p2pBlock := <-h.recvChan:
@@ -282,26 +297,26 @@ LOOP:
 		localBlock.CopyFrom(p2pBlock)
 		h.State.StartBlock(localBlock)
 		return true
-	case <-time.NewTicker(h.calulateWaitTime(localBlock)).C:
+	case <-time.NewTicker(h.calculateWaitTime(localBlock)).C:
 		return false
 	}
 }
 
-func (h *Poa) calulateWaitTime(block *Block) time.Duration {
-	height := int(block.Height)
-	shouldLeaderIdx := (height - 1) % len(h.validatorsList)
-	n := shouldLeaderIdx - h.nodeIdx
-	if n < 0 {
-		n = -n
-	}
+func (h *Poa) calculateWaitTime(block *types.Block) time.Duration {
+	//height := int(block.Height)
+	//shouldLeaderIdx := (height - 1) % len(h.validatorsList)
+	//n := shouldLeaderIdx - h.nodeIdx
+	//if n < 0 {
+	//	n = -n
+	//}
 
-	return time.Duration(h.blockInterval+n) * time.Second
+	return time.Duration(h.blockInterval) * time.Millisecond
 }
 
-func (h *Poa) getCurrentHeight() BlockNum {
-	return BlockNum(h.currentHeight.Load())
+func (h *Poa) getCurrentHeight() common.BlockNum {
+	return common.BlockNum(h.currentHeight.Load())
 }
 
-func (h *Poa) setCurrentHeight(height BlockNum) {
+func (h *Poa) setCurrentHeight(height common.BlockNum) {
 	h.currentHeight.Store(uint32(height))
 }

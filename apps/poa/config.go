@@ -1,6 +1,7 @@
 package poa
 
 import (
+	"github.com/BurntSushi/toml"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/keypair"
@@ -11,12 +12,21 @@ type PoaConfig struct {
 	// secret for generating keypair.
 	MySecret   string           `toml:"my_secret"`
 	Validators []*ValidatorConf `toml:"validators"`
-	// block out interval, seconds
+	// block out interval, millisecond
 	BlockInterval int `toml:"block_interval"`
 	// the number of packing txns from txpool, default 5000
 	PackNum uint64 `toml:"pack_num"`
 
 	PrettyLog bool `toml:"pretty_log"`
+}
+
+func LoadCfgFromPath(path string) *PoaConfig {
+	cfg := new(PoaConfig)
+	_, err := toml.DecodeFile(path, cfg)
+	if err != nil {
+		logrus.Fatal("load poa-config file (%s) failed: %v", path, err)
+	}
+	return cfg
 }
 
 var DefaultSecrets = []string{
@@ -34,7 +44,7 @@ func DefaultCfg(idx int) *PoaConfig {
 			{Pubkey: "", P2pIp: "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"},
 			{Pubkey: "", P2pIp: "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"},
 		},
-		BlockInterval: 3,
+		BlockInterval: 3000,
 		PackNum:       30000,
 		PrettyLog:     true,
 	}
