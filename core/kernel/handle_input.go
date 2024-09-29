@@ -11,15 +11,42 @@ import (
 	"github.com/yu-org/yu/metrics"
 )
 
-// HandleTxn handles txn from outside.
-// You can also self-define your input by calling HandleTxn (not only by default http and ws)
-func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
+// PublicHandleTxn handles txn from outside.
+// You can also self-define your input by calling PublicHandleTxn (not only by default http and ws)
+func (k *Kernel) PublicHandleTxn(signedWrCall *protocol.SignedWrCall) error {
 	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
 	if err != nil {
 		return err
 	}
 	wrCall := signedWrCall.Call
 	_, err = k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+	if err != nil {
+		return err
+	}
+
+	err = k.handleTxnLocally(stxn)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err = k.pubUnpackedTxns(FromArray(stxn))
+		if err != nil {
+			logrus.Error("publish unpacked txns error: ", err)
+		}
+	}()
+
+	return nil
+}
+
+// PrivateHandleTxn handles txn from inside.
+func (k *Kernel) PrivateHandleTxn(signedWrCall *protocol.SignedWrCall) error {
+	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
+	if err != nil {
+		return err
+	}
+	wrCall := signedWrCall.Call
+	_, err = k.Land.GetPrivateWriting(wrCall.TripodName, wrCall.FuncName)
 	if err != nil {
 		return err
 	}
