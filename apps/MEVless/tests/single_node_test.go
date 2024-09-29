@@ -10,8 +10,8 @@ import (
 	cliAsset "github.com/yu-org/yu/example/client/asset"
 	"github.com/yu-org/yu/example/client/callchain"
 
-	"github.com/yu-org/nine-tripods/MEVless"
-	"github.com/yu-org/nine-tripods/consensus/poa"
+	"github.com/yu-org/yu/apps/MEVless"
+	"github.com/yu-org/yu/apps/poa"
 
 	"os"
 	"sync"

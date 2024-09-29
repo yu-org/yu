@@ -19,7 +19,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.13.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/tendermint/tendermint v0.34.24
 	go.etcd.io/bbolt v1.3.6
