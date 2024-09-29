@@ -26,13 +26,13 @@ func newOrderedTxns() *orderedTxns {
 }
 
 func (ot *orderedTxns) Insert(input *SignedTxn) {
-	logrus.WithField("txpool", "ordered-txns").
-		Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
+	//logrus.WithField("txpool", "ordered-txns").
+	//	Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
 
 	ot.Lock()
+	defer ot.Unlock()
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
-	ot.Unlock()
 }
 
 func (ot *orderedTxns) SetOrder(order map[int]Hash) {

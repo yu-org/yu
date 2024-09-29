@@ -2,11 +2,13 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
+
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/protocol"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/metrics"
 )
 
 // HandleTxn handles txn from outside.
@@ -38,6 +40,7 @@ func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 }
 
 func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
+	metrics.KernelHandleTxnCounter.WithLabelValues().Inc()
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 	tri := k.Land.GetTripod(stxn.TripodName())

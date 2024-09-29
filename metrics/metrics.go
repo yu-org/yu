@@ -9,12 +9,26 @@ var (
 )
 
 var (
+	KernelHandleTxnCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "yu",
+		Subsystem: "kernel",
+		Name:      "handle_txn_count",
+		Help:      "Counter of Kernel Handle Txn",
+	}, []string{})
+
+	TxPoolInsertCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "yu",
+		Subsystem: "txpool",
+		Name:      "insert_count",
+		Help:      "Counter of txpool insert",
+	}, []string{})
+
 	TxpoolSizeGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "yu",
 			Subsystem: "txpool",
-			Name:      "txpool_size",
-			Help:      "Total number of txpool",
+			Name:      "size_gauge",
+			Help:      "Gauge of number of txpool",
 		},
 	)
 
@@ -70,6 +84,8 @@ var (
 )
 
 func init() {
+	prometheus.MustRegister(KernelHandleTxnCounter)
+	prometheus.MustRegister(TxPoolInsertCounter)
 	prometheus.MustRegister(TxpoolSizeGauge)
 	// prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
 	prometheus.MustRegister(StateCommitDuration)
