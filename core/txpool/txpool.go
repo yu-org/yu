@@ -82,8 +82,7 @@ func (tp *TxPool) CheckTxn(stxn *SignedTxn) (err error) {
 }
 
 func (tp *TxPool) Insert(stxn *SignedTxn) error {
-	//tp.Lock()
-	//defer tp.Unlock()
+	metrics.TxPoolInsertCounter.WithLabelValues().Inc()
 	if tp.nodeType == LightNode {
 		return nil
 	}
