@@ -32,6 +32,8 @@ type Tripod struct {
 	name string
 	// Key: Writing Name
 	writings map[string]Writing
+	// key: Writing Name
+	privateWritings map[string]Writing
 	// Key: Reading Name
 	readings map[string]Reading
 	// key: p2p-handler type code
@@ -44,10 +46,11 @@ func NewTripod() *Tripod {
 
 func NewTripodWithName(name string) *Tripod {
 	return &Tripod{
-		name:        name,
-		writings:    make(map[string]Writing),
-		readings:    make(map[string]Reading),
-		P2pHandlers: make(map[int]P2pHandler),
+		name:            name,
+		writings:        make(map[string]Writing),
+		privateWritings: make(map[string]Writing),
+		readings:        make(map[string]Reading),
+		P2pHandlers:     make(map[int]P2pHandler),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -145,7 +148,14 @@ func (t *Tripod) SetPreTxnHandler(pth PreTxnHandler) {
 	t.PreTxnHandler = pth
 }
 
-func (t *Tripod) SetWritings(wrs ...Writing) {
+func (t *Tripod) SetPrivateWritings(wrs ...Writing) {
+	for _, wr := range wrs {
+		name := getFuncName(wr)
+		t.privateWritings[name] = wr
+	}
+}
+
+func (t *Tripod) SetPublicWritings(wrs ...Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
 		t.writings[name] = wr
@@ -178,8 +188,12 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) GetWriting(name string) Writing {
+func (t *Tripod) GetPublicWriting(name string) Writing {
 	return t.writings[name]
+}
+
+func (t *Tripod) GetPrivateWritings(name string) Writing {
+	return t.privateWritings[name]
 }
 
 func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (Writing, error) {
