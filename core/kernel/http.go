@@ -45,7 +45,7 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	err = k.PublicHandleTxn(signedWrCall)
+	err = k.HandleTxn(signedWrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 	}
