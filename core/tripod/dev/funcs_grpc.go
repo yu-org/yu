@@ -1,6 +1,13 @@
 package dev
 
 //
+//import (
+//	"context"
+//	. "github.com/yu-org/yu/core/context"
+//	"github.com/yu-org/yu/core/types/goproto"
+//	"google.golang.org/grpc"
+//)
+//
 //type GrpcWrRd struct {
 //	targetAddr string
 //	tripodName string
@@ -48,7 +55,7 @@ package dev
 //	ctx.Events = events
 //	return nil
 //}
-
+//
 //func (rpc *GrpcWrRd) Read(ctx *ReadContext) error {
 //	conn, err := grpc.Dial(rpc.targetAddr)
 //	if err != nil {
@@ -69,7 +76,7 @@ package dev
 //	if res.Error != nil {
 //		return errors.New(res.Error.GetMsg())
 //	}
-//
-//	ctx.Bytes(res.GetResponse())
-//	return nil
-//}
+////
+////	ctx.Bytes(res.GetResponse())
+////	return nil
+////}
