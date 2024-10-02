@@ -32,7 +32,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TripodClient interface {
 	CheckTxn(ctx context.Context, in *TripodTxnRequest, opts ...grpc.CallOption) (*Err, error)
-	VerifyBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Bool, error)
+	VerifyBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
 	StartBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
 	EndBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
 	FinalizeBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
@@ -56,9 +56,9 @@ func (c *tripodClient) CheckTxn(ctx context.Context, in *TripodTxnRequest, opts 
 	return out, nil
 }
 
-func (c *tripodClient) VerifyBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Bool, error) {
+func (c *tripodClient) VerifyBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Bool)
+	out := new(Err)
 	err := c.cc.Invoke(ctx, Tripod_VerifyBlock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (c *tripodClient) FinalizeBlock(ctx context.Context, in *TripodBlockRequest
 // for forward compatibility.
 type TripodServer interface {
 	CheckTxn(context.Context, *TripodTxnRequest) (*Err, error)
-	VerifyBlock(context.Context, *TripodBlockRequest) (*Bool, error)
+	VerifyBlock(context.Context, *TripodBlockRequest) (*Err, error)
 	StartBlock(context.Context, *TripodBlockRequest) (*Err, error)
 	EndBlock(context.Context, *TripodBlockRequest) (*Err, error)
 	FinalizeBlock(context.Context, *TripodBlockRequest) (*Err, error)
@@ -117,7 +117,7 @@ type UnimplementedTripodServer struct{}
 func (UnimplementedTripodServer) CheckTxn(context.Context, *TripodTxnRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckTxn not implemented")
 }
-func (UnimplementedTripodServer) VerifyBlock(context.Context, *TripodBlockRequest) (*Bool, error) {
+func (UnimplementedTripodServer) VerifyBlock(context.Context, *TripodBlockRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyBlock not implemented")
 }
 func (UnimplementedTripodServer) StartBlock(context.Context, *TripodBlockRequest) (*Err, error) {
