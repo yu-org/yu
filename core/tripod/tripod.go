@@ -2,6 +2,7 @@ package tripod
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	yucontext "github.com/yu-org/yu/core/context"
@@ -118,70 +119,64 @@ func (t *Tripod) Name() string {
 	return t.name
 }
 
-func (t *Tripod) StartBlock(b *Block) {
+func (t *Tripod) StartBlock(b *Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.StartBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
-			logrus.Errorf("tripod(%s) StartBlock failed: %v", t.name, err)
-			return
+			return err
 		}
 		if resp.Error != "" {
-			logrus.Errorf("tripod(%s) StartBlock failed: %v", t.name, resp.Error)
-			return
+			return errors.New(resp.Error)
 		}
 		block, err := BlockFromPb(resp.Block)
 		if err != nil {
-			logrus.Errorf("tripod(%s) StartBlock failed, decode block failed: %v", t.name, err)
-			return
+			return err
 		}
 		b.CopyFrom(block)
 	} else {
 		t.BlockCycle.StartBlock(b)
 	}
+	return nil
 }
 
-func (t *Tripod) EndBlock(b *Block) {
+func (t *Tripod) EndBlock(b *Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.EndBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
-			logrus.Errorf("tripod(%s) EndBlock failed: %v", t.name, err)
-			return
+			return err
 		}
 		if resp.Error != "" {
-			logrus.Errorf("tripod(%s) EndBlock failed: %v", t.name, resp.Error)
-			return
+			return errors.New(resp.Error)
 		}
 		block, err := BlockFromPb(resp.Block)
 		if err != nil {
-			logrus.Errorf("tripod(%s) EndBlock failed, decode block failed: %v", t.name, err)
-			return
+			return err
 		}
 		b.CopyFrom(block)
 	} else {
 		t.BlockCycle.EndBlock(b)
 	}
+	return nil
 }
 
-func (t *Tripod) FinalizeBlock(b *Block) {
+func (t *Tripod) FinalizeBlock(b *Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.FinalizeBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
-			logrus.Errorf("tripod(%s) FinalizeBlock failed: %v", t.name, err)
-			return
+			return err
 		}
 		if resp.Error != "" {
-			logrus.Errorf("tripod(%s) FinalizeBlock failed: %v", t.name, resp.Error)
-			return
+			return errors.New(resp.Error)
 		}
 		block, err := BlockFromPb(resp.Block)
 		if err != nil {
-			logrus.Errorf("tripod(%s) FinalizeBlock failed, decode block failed: %v", t.name, err)
-			return
+			return err
 		}
 		b.CopyFrom(block)
 	} else {
 		t.BlockCycle.FinalizeBlock(b)
 	}
+	return nil
 }
 
 func (t *Tripod) GetCurrentCompactBlock() (*CompactBlock, error) {

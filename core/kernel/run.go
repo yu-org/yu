@@ -49,9 +49,12 @@ func (k *Kernel) LoopRun() (newBlock *Block, err error) {
 	// start a new block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.StartBlock(newBlock)
+		err = tri.StartBlock(newBlock)
+		if err != nil {
+			logrus.Errorf("tripod(%s) StartBlock failed: %v", tri.Name(), err)
+		}
+		return err
 		// metrics.StartBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
-		return nil
 	})
 	if err != nil {
 		return
@@ -60,9 +63,12 @@ func (k *Kernel) LoopRun() (newBlock *Block, err error) {
 	// end block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.EndBlock(newBlock)
+		err = tri.EndBlock(newBlock)
+		if err != nil {
+			logrus.Errorf("tripod(%s) EndBlock failed: %v", tri.Name(), err)
+		}
+		return err
 		// metrics.EndBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
-		return nil
 	})
 	if err != nil {
 		return
@@ -71,9 +77,12 @@ func (k *Kernel) LoopRun() (newBlock *Block, err error) {
 	// finalize this block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.FinalizeBlock(newBlock)
+		err = tri.FinalizeBlock(newBlock)
+		if err != nil {
+			logrus.Errorf("tripod(%s) FinalizeBlock failed: %v", tri.Name(), err)
+		}
+		return err
 		// metrics.FinalizeBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
-		return nil
 	})
 	return
 }
