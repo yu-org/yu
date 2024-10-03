@@ -20,39 +20,27 @@ func (k *Kernel) Run() {
 		}
 
 	}()
-
-	switch k.RunMode {
-	case LocalNode:
-		for {
-			select {
-			case <-k.stopChan:
-				logrus.Info("Stop the Chain!")
-				return
-			default:
-				block, err := k.LocalRun()
-				if err != nil {
-					logrus.Panicf("local-run blockchain error: %s on Block(%d)", err.Error(), block.Height)
-				}
-				if block.Height == k.cfg.MaxBlockNum {
-					logrus.Infof("Stop the Chain on Block(%d)", block.Height)
-					return
-				}
+	for {
+		select {
+		case <-k.stopChan:
+			logrus.Info("Stop the Chain!")
+			return
+		default:
+			block, err := k.LoopRun()
+			if err != nil {
+				logrus.Panicf("local-run blockchain error: %s on Block(%d)", err.Error(), block.Height)
 			}
-
-		}
-	case MasterWorker:
-		for {
-			err := k.MasterWorkerRun()
-			logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
+			if block.Height == k.cfg.MaxBlockNum {
+				logrus.Infof("Stop the Chain on Block(%d)", block.Height)
+				return
+			}
 		}
 
-	default:
-		logrus.Panic(NoRunMode)
 	}
 
 }
 
-func (k *Kernel) LocalRun() (newBlock *Block, err error) {
+func (k *Kernel) LoopRun() (newBlock *Block, err error) {
 	newBlock, err = k.makeNewBasicBlock()
 	if err != nil {
 		return
@@ -61,7 +49,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	// start a new block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.BlockCycle.StartBlock(newBlock)
+		tri.StartBlock(newBlock)
 		// metrics.StartBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
@@ -72,7 +60,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	// end block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.BlockCycle.EndBlock(newBlock)
+		tri.EndBlock(newBlock)
 		// metrics.EndBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
@@ -83,7 +71,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	// finalize this block
 	err = k.Land.RangeList(func(tri *Tripod) error {
 		// start := time.Now()
-		tri.BlockCycle.FinalizeBlock(newBlock)
+		tri.FinalizeBlock(newBlock)
 		// metrics.FinalizeBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
 		return nil
 	})
@@ -188,42 +176,43 @@ func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	return err
 }
 
-func (k *Kernel) MasterWorkerRun() error {
-	//workersIps, err := k.allWorkersIP()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//newBlock := k.Chain.NewDefaultBlock()
-	//
-	//err = k.nortifyWorker(workersIps, StartBlockPath, newBlock)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//// todo: if need broadcast block,
-	//// k.readyBroadcastBlock(newBlock)
-	//
-	//err = k.SyncTxns(newBlock)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//err = k.nortifyWorker(workersIps, EndBlockPath, newBlock)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//go func() {
-	//	err := k.nortifyWorker(workersIps, ExecuteTxnsPath, newBlock)
-	//	if err != nil {
-	//		logrus.Errorf("nortify worker executing txns error: %s", err.Error())
-	//	}
-	//}()
-	//
-	//return k.nortifyWorker(workersIps, FinalizeBlockPath, newBlock)
-	return nil
-}
+//func (k *Kernel) MasterWorkerRun() (newBlock *Block, err error) {
+//	newBlock, err = k.makeNewBasicBlock()
+//	if err != nil {
+//		return
+//	}
+//
+//	// start a new block
+//	err = k.Land.RangeList(func(tri *Tripod) error {
+//		// start := time.Now()
+//		tri.BlockCycle.StartBlock(newBlock)
+//		// metrics.StartBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
+//		return nil
+//	})
+//	if err != nil {
+//		return
+//	}
+//
+//	// end block
+//	err = k.Land.RangeList(func(tri *Tripod) error {
+//		// start := time.Now()
+//		tri.BlockCycle.EndBlock(newBlock)
+//		// metrics.EndBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
+//		return nil
+//	})
+//	if err != nil {
+//		return
+//	}
+//
+//	// finalize this block
+//	err = k.Land.RangeList(func(tri *Tripod) error {
+//		// start := time.Now()
+//		tri.BlockCycle.FinalizeBlock(newBlock)
+//		// metrics.FinalizeBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
+//		return nil
+//	})
+//	return
+//}
 
 func (k *Kernel) HandleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())

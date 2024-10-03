@@ -1,12 +1,15 @@
 package tripod
 
 import (
+	"context"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/context"
+	yucontext "github.com/yu-org/yu/core/context"
 	. "github.com/yu-org/yu/core/env"
 	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types/goproto"
+	"google.golang.org/grpc"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -30,6 +33,8 @@ type Tripod struct {
 	Instance interface{}
 
 	name string
+	// only MasterWorker mode need this
+	rpcClient goproto.TripodClient
 	// Key: Writing Name
 	writings map[string]Writing
 	// key: Writing Name
@@ -59,6 +64,11 @@ func NewTripodWithName(name string) *Tripod {
 		PreTxnHandler: new(DefaultPreTxnHandler),
 		Committer:     new(DefaultCommitter),
 	}
+}
+
+func (t *Tripod) WithGrpcConn(rpcConn *grpc.ClientConn) *Tripod {
+	t.rpcClient = goproto.NewTripodClient(rpcConn)
+	return t
 }
 
 func (t *Tripod) SetInstance(tripodInstance any) {
@@ -106,6 +116,72 @@ func isImplementInterface(value any, ifacePtr interface{}) bool {
 
 func (t *Tripod) Name() string {
 	return t.name
+}
+
+func (t *Tripod) StartBlock(b *Block) {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.StartBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			logrus.Errorf("tripod(%s) StartBlock failed: %v", t.name, err)
+			return
+		}
+		if resp.Error != "" {
+			logrus.Errorf("tripod(%s) StartBlock failed: %v", t.name, resp.Error)
+			return
+		}
+		block, err := BlockFromPb(resp.Block)
+		if err != nil {
+			logrus.Errorf("tripod(%s) StartBlock failed, decode block failed: %v", t.name, err)
+			return
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.StartBlock(b)
+	}
+}
+
+func (t *Tripod) EndBlock(b *Block) {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.EndBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			logrus.Errorf("tripod(%s) EndBlock failed: %v", t.name, err)
+			return
+		}
+		if resp.Error != "" {
+			logrus.Errorf("tripod(%s) EndBlock failed: %v", t.name, resp.Error)
+			return
+		}
+		block, err := BlockFromPb(resp.Block)
+		if err != nil {
+			logrus.Errorf("tripod(%s) EndBlock failed, decode block failed: %v", t.name, err)
+			return
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.EndBlock(b)
+	}
+}
+
+func (t *Tripod) FinalizeBlock(b *Block) {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.FinalizeBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			logrus.Errorf("tripod(%s) FinalizeBlock failed: %v", t.name, err)
+			return
+		}
+		if resp.Error != "" {
+			logrus.Errorf("tripod(%s) FinalizeBlock failed: %v", t.name, resp.Error)
+			return
+		}
+		block, err := BlockFromPb(resp.Block)
+		if err != nil {
+			logrus.Errorf("tripod(%s) FinalizeBlock failed, decode block failed: %v", t.name, err)
+			return
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.FinalizeBlock(b)
+	}
 }
 
 func (t *Tripod) GetCurrentCompactBlock() (*CompactBlock, error) {
@@ -254,20 +330,20 @@ func (t *Tripod) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	return err
 }
 
-func (t *Tripod) HandleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (t *Tripod) HandleError(err error, ctx *yucontext.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	logrus.Error("push error: ", err.Error())
 	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (t *Tripod) HandleEvent(ctx *yucontext.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
 	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+func (t *Tripod) HandleReceipt(ctx *yucontext.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
 	receipt.BlockStage = ExecuteTxnsStage
 

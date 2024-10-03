@@ -33,9 +33,9 @@ const (
 type TripodClient interface {
 	CheckTxn(ctx context.Context, in *TripodTxnRequest, opts ...grpc.CallOption) (*Err, error)
 	VerifyBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
-	StartBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
-	EndBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
-	FinalizeBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error)
+	StartBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error)
+	EndBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error)
+	FinalizeBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error)
 }
 
 type tripodClient struct {
@@ -66,9 +66,9 @@ func (c *tripodClient) VerifyBlock(ctx context.Context, in *TripodBlockRequest, 
 	return out, nil
 }
 
-func (c *tripodClient) StartBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error) {
+func (c *tripodClient) StartBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Err)
+	out := new(TripodBlockResponse)
 	err := c.cc.Invoke(ctx, Tripod_StartBlock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -76,9 +76,9 @@ func (c *tripodClient) StartBlock(ctx context.Context, in *TripodBlockRequest, o
 	return out, nil
 }
 
-func (c *tripodClient) EndBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error) {
+func (c *tripodClient) EndBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Err)
+	out := new(TripodBlockResponse)
 	err := c.cc.Invoke(ctx, Tripod_EndBlock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -86,9 +86,9 @@ func (c *tripodClient) EndBlock(ctx context.Context, in *TripodBlockRequest, opt
 	return out, nil
 }
 
-func (c *tripodClient) FinalizeBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*Err, error) {
+func (c *tripodClient) FinalizeBlock(ctx context.Context, in *TripodBlockRequest, opts ...grpc.CallOption) (*TripodBlockResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Err)
+	out := new(TripodBlockResponse)
 	err := c.cc.Invoke(ctx, Tripod_FinalizeBlock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -102,9 +102,9 @@ func (c *tripodClient) FinalizeBlock(ctx context.Context, in *TripodBlockRequest
 type TripodServer interface {
 	CheckTxn(context.Context, *TripodTxnRequest) (*Err, error)
 	VerifyBlock(context.Context, *TripodBlockRequest) (*Err, error)
-	StartBlock(context.Context, *TripodBlockRequest) (*Err, error)
-	EndBlock(context.Context, *TripodBlockRequest) (*Err, error)
-	FinalizeBlock(context.Context, *TripodBlockRequest) (*Err, error)
+	StartBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error)
+	EndBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error)
+	FinalizeBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error)
 }
 
 // UnimplementedTripodServer should be embedded to have
@@ -120,13 +120,13 @@ func (UnimplementedTripodServer) CheckTxn(context.Context, *TripodTxnRequest) (*
 func (UnimplementedTripodServer) VerifyBlock(context.Context, *TripodBlockRequest) (*Err, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyBlock not implemented")
 }
-func (UnimplementedTripodServer) StartBlock(context.Context, *TripodBlockRequest) (*Err, error) {
+func (UnimplementedTripodServer) StartBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartBlock not implemented")
 }
-func (UnimplementedTripodServer) EndBlock(context.Context, *TripodBlockRequest) (*Err, error) {
+func (UnimplementedTripodServer) EndBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EndBlock not implemented")
 }
-func (UnimplementedTripodServer) FinalizeBlock(context.Context, *TripodBlockRequest) (*Err, error) {
+func (UnimplementedTripodServer) FinalizeBlock(context.Context, *TripodBlockRequest) (*TripodBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FinalizeBlock not implemented")
 }
 func (UnimplementedTripodServer) testEmbeddedByValue() {}

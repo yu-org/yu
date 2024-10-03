@@ -1,9 +1,10 @@
 package dev
 
-//
 //import (
 //	"context"
+//	"errors"
 //	. "github.com/yu-org/yu/core/context"
+//	"github.com/yu-org/yu/core/types"
 //	"github.com/yu-org/yu/core/types/goproto"
 //	"google.golang.org/grpc"
 //)
@@ -23,7 +24,7 @@ package dev
 //}
 //
 //func (rpc *GrpcWrRd) Write(ctx *WriteContext) error {
-//	conn, err := grpc.Dial(rpc.targetAddr)
+//	conn, err := grpc.NewClient(rpc.targetAddr)
 //	if err != nil {
 //		return err
 //	}
@@ -48,9 +49,9 @@ package dev
 //		return errors.New(res.Error.GetMsg())
 //	}
 //
-//	events := make([]*Event, 0)
+//	events := make([]*types.Event, 0)
 //	for _, value := range res.Values {
-//		events = append(events, &Event{Value: value})
+//		events = append(events, &types.Event{Value: value})
 //	}
 //	ctx.Events = events
 //	return nil
@@ -76,7 +77,7 @@ package dev
 //	if res.Error != nil {
 //		return errors.New(res.Error.GetMsg())
 //	}
-////
-////	ctx.Bytes(res.GetResponse())
-////	return nil
-////}
+//	//
+//	//	ctx.Bytes(res.GetResponse())
+//	//	return nil
+//}
