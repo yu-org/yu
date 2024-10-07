@@ -68,7 +68,7 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 		return
 	}
 
-	err = k.PublicHandleTxn(signedWrCall)
+	err = k.HandleTxn(signedWrCall)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
