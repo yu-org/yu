@@ -50,6 +50,10 @@ type ReadRequest struct {
 	Key string `json:"key"`
 }
 
+type ReadResponse struct {
+	Value string `json:"value"`
+}
+
 // 此处定制开发一个 Reading
 func (q *QuickStart) ReadA(ctx *context.ReadContext) {
 	req := new(ReadRequest)
@@ -63,7 +67,7 @@ func (q *QuickStart) ReadA(ctx *context.ReadContext) {
 		ctx.ErrOk(err)
 		return
 	}
-	ctx.JsonOk(value)
+	ctx.JsonOk(ReadResponse{Value: string(value)})
 }
 
 func main() {
