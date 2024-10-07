@@ -86,7 +86,7 @@ func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.
 		StateDB = state.NewStateDB(cfg.StatedbType, kvdb)
 	}
 
-	// StartGrpcServer(cfg)
+	StartGrpcServer(cfg)
 
 	chainEnv := &env.ChainEnv{
 		State:      StateDB,
