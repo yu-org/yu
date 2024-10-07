@@ -5,6 +5,12 @@ test:
 benchTPS:
 	go test -v ./tests/bench_transfer_test.go
 
+reset:
+	@if [ -d "yu" ]; then \
+		echo "Deleting 'yu' directory..."; \
+		rm -rf yu; \
+	fi
+
 check-mod-tidy:
 	@go mod tidy
 	@if [ -n "$$(git status --porcelain)" ]; then \
