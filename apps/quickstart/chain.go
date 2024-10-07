@@ -17,7 +17,7 @@ func NewQuickStart() *QuickStart {
 		tripod.NewTripod(),
 	}
 	// 此处需要手动将自定义的 Writing 注册到 tripod 中，
-	tri.SetPublicWritings(tri.WriteA)
+	tri.SetWritings(tri.WriteA)
 	// 此处需要手动将自定义的 Reading 注册到 tripod 中
 	tri.SetReadings(tri.ReadA)
 	return tri
