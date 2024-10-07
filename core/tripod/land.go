@@ -38,24 +38,12 @@ func (l *Land) GetTripod(name string) *Tripod {
 	return l.TripodsMap[name]
 }
 
-func (l *Land) GetPrivateWriting(tripodName, wrName string) (Writing, error) {
-	tripod, ok := l.TripodsMap[tripodName]
-	if !ok {
-		return nil, TripodNotFound(tripodName)
-	}
-	fn := tripod.GetPrivateWritings(wrName)
-	if fn == nil {
-		return nil, WritingNotFound(wrName)
-	}
-	return fn, nil
-}
-
 func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	tripod, ok := l.TripodsMap[tripodName]
 	if !ok {
 		return nil, TripodNotFound(tripodName)
 	}
-	fn := tripod.GetPublicWriting(wrName)
+	fn := tripod.GetWriting(wrName)
 	if fn == nil {
 		return nil, WritingNotFound(wrName)
 	}
