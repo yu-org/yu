@@ -49,34 +49,24 @@ func (ot *orderedTxns) SetOrder(order map[int]Hash) {
 //	ot.order[num] = txHash
 //}
 
-func (ot *orderedTxns) delete(txnHash Hash) {
-	if stxn, ok := ot.idx[txnHash]; ok {
-		logrus.WithField("txpool", "ordered-txns").
-			Tracef("DELETE txn(%s) from txpool, txn content: %v", stxn.TxnHash.String(), stxn.Raw.WrCall)
+func (ot *orderedTxns) Deletes(txnHashes []Hash) {
+	txnMap := make(map[Hash]struct{})
+	for _, txnHash := range txnHashes {
+		txnMap[txnHash] = struct{}{}
+	}
+	ot.Lock()
+	defer func() {
+		ot.Unlock()
+	}()
+	for txnHash := range txnMap {
 		delete(ot.idx, txnHash)
-		//delete(ot.order, txnHash)
 	}
 	for i := 0; i < len(ot.txns); i++ {
-		if ot.txns[i].TxnHash == txnHash {
+		_, ok := txnMap[ot.txns[i].TxnHash]
+		if ok {
 			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
 			i--
 		}
-	}
-
-	//for i, hash := range ot.order {
-	//	if hash == txnHash {
-	//		delete(ot.order, i)
-	//
-	//		// ot.order = append(ot.order[:i], ot.order[i+1:]...)
-	//	}
-	//}
-}
-
-func (ot *orderedTxns) Deletes(txnHashes []Hash) {
-	ot.Lock()
-	defer ot.Unlock()
-	for _, hash := range txnHashes {
-		ot.delete(hash)
 	}
 }
 
