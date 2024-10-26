@@ -17,6 +17,10 @@ func NewBronzeWithName(name string) *Bronze {
 	return &Bronze{name: name}
 }
 
+func (b *Bronze) Name() string {
+	return b.name
+}
+
 func (b *Bronze) SetChainEnv(env *env.ChainEnv) {
 	b.ChainEnv = env
 }

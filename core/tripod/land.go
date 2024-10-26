@@ -9,17 +9,26 @@ type Land struct {
 	OrderedTripods []*Tripod
 	// Key: the Name of Tripod
 	TripodsMap map[string]*Tripod
+
+	bronzes map[string]*Bronze
 }
 
 func NewLand() *Land {
 	return &Land{
 		TripodsMap:     make(map[string]*Tripod),
 		OrderedTripods: make([]*Tripod, 0),
+		bronzes:        make(map[string]*Bronze),
 	}
 }
 
-func (l *Land) SetTripods(Tripods ...*Tripod) {
-	for _, tri := range Tripods {
+func (l *Land) SetBronzes(bronzes ...*Bronze) {
+	for _, bronze := range bronzes {
+		l.bronzes[bronze.Name()] = bronze
+	}
+}
+
+func (l *Land) SetTripods(tripods ...*Tripod) {
+	for _, tri := range tripods {
 		triName := tri.Name()
 		l.TripodsMap[triName] = tri
 
