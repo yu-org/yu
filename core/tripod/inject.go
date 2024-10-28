@@ -27,9 +27,9 @@ func ResolveBronze(v any) *Bronze {
 }
 
 // InjectToTripod injects tripod/bronze into tripod.
-func InjectToTripod(tripodInterface any) error {
-	tri := ResolveTripod(tripodInterface)
-	triStruct := reflect.Indirect(reflect.ValueOf(tripodInterface))
+func InjectToTripod(tripodInstance any) error {
+	tri := ResolveTripod(tripodInstance)
+	triStruct := reflect.Indirect(reflect.ValueOf(tripodInstance))
 	for i := 0; i < triStruct.NumField(); i++ {
 		tag := triStruct.Type().Field(i).Tag
 		fieldToBeInjected := triStruct.Field(i)
@@ -48,9 +48,9 @@ func InjectToTripod(tripodInterface any) error {
 }
 
 // InjectToBronze injects bronze into bronze.
-func InjectToBronze(land *Land, bronzeInterface any) error {
-	bro := ResolveBronze(bronzeInterface)
-	broStruct := reflect.Indirect(reflect.ValueOf(bronzeInterface))
+func InjectToBronze(land *Land, bronzeInstance any) error {
+	bro := ResolveBronze(bronzeInstance)
+	broStruct := reflect.Indirect(reflect.ValueOf(bronzeInstance))
 	for i := 0; i < broStruct.NumField(); i++ {
 		tag := broStruct.Type().Field(i).Tag
 		fieldToBeInjected := broStruct.Field(i)
