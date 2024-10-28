@@ -6,17 +6,17 @@ import (
 )
 
 type Land struct {
-	OrderedTripods []*Tripod
+	orderedTripods []*Tripod
 	// Key: the Name of Tripod
-	TripodsMap map[string]*Tripod
+	tripodsMap map[string]*Tripod
 
 	bronzes map[string]*Bronze
 }
 
 func NewLand() *Land {
 	return &Land{
-		TripodsMap:     make(map[string]*Tripod),
-		OrderedTripods: make([]*Tripod, 0),
+		tripodsMap:     make(map[string]*Tripod),
+		orderedTripods: make([]*Tripod, 0),
 		bronzes:        make(map[string]*Bronze),
 	}
 }
@@ -30,25 +30,25 @@ func (l *Land) SetBronzes(bronzes ...*Bronze) {
 func (l *Land) SetTripods(tripods ...*Tripod) {
 	for _, tri := range tripods {
 		triName := tri.Name()
-		l.TripodsMap[triName] = tri
+		l.tripodsMap[triName] = tri
 
-		l.OrderedTripods = append(l.OrderedTripods, tri)
+		l.orderedTripods = append(l.orderedTripods, tri)
 	}
 }
 
 func (l *Land) GetTripodInstance(name string) interface{} {
-	if tri, ok := l.TripodsMap[name]; ok {
+	if tri, ok := l.tripodsMap[name]; ok {
 		return tri.Instance
 	}
 	return nil
 }
 
 func (l *Land) GetTripod(name string) *Tripod {
-	return l.TripodsMap[name]
+	return l.tripodsMap[name]
 }
 
 func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
-	tripod, ok := l.TripodsMap[tripodName]
+	tripod, ok := l.tripodsMap[tripodName]
 	if !ok {
 		return nil, TripodNotFound(tripodName)
 	}
@@ -60,7 +60,7 @@ func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 }
 
 func (l *Land) GetReading(tripodName, rdName string) (Reading, error) {
-	tri, ok := l.TripodsMap[tripodName]
+	tri, ok := l.tripodsMap[tripodName]
 	if !ok {
 		return nil, TripodNotFound(tripodName)
 	}
@@ -72,7 +72,7 @@ func (l *Land) GetReading(tripodName, rdName string) (Reading, error) {
 }
 
 func (l *Land) RangeMap(fn func(string, *Tripod) error) error {
-	for name, tri := range l.TripodsMap {
+	for name, tri := range l.tripodsMap {
 		err := fn(name, tri)
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (l *Land) RangeMap(fn func(string, *Tripod) error) error {
 }
 
 func (l *Land) RangeList(fn func(*Tripod) error) error {
-	for _, tri := range l.OrderedTripods {
+	for _, tri := range l.orderedTripods {
 		err := fn(tri)
 		if err != nil {
 			return err

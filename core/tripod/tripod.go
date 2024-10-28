@@ -27,7 +27,7 @@ type Tripod struct {
 
 	Committer Committer
 
-	Instance interface{}
+	Instance any
 
 	name string
 	// Key: Writing Name

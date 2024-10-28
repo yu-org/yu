@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	InjectTag = "tripod"
-	OmitEmpty = "omitempty"
+	TripodInjectTag = "tripod"
+	BronzeInjectTag = "bronze"
+	OmitEmpty       = "omitempty"
 )
 
 func ResolveTripod(v interface{}) *Tripod {
@@ -24,30 +25,72 @@ func Inject(tripodInterface interface{}) error {
 	triStruct := reflect.Indirect(reflect.ValueOf(tripodInterface))
 	for i := 0; i < triStruct.NumField(); i++ {
 		tag := triStruct.Type().Field(i).Tag
-		tagValue, hasTag := tag.Lookup(InjectTag)
-		if !hasTag {
-			continue
-		}
-		arr := strings.Split(tagValue, ",")
-		tripodName := arr[0]
-		triToInject, ok := tri.Land.TripodsMap[tripodName]
-		if !ok {
-			if len(arr) > 1 {
-				if arr[1] == OmitEmpty {
-					continue
-				}
-			}
-			return yerror.TripodNotFound(tripodName)
-		}
 		field := triStruct.Field(i)
-		if field.CanSet() {
-			field.Set(reflect.ValueOf(triToInject.Instance))
-		} else {
-			// set private field
-			field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
-			field.Set(reflect.ValueOf(triToInject.Instance))
+
+		err := injectTripod(tri, field, tag)
+		if err != nil {
+			return err
 		}
-		logrus.Debugf("inject tripod(%s) into %s", tripodName, tri.name)
+
+		err = injectBronze(tri, field, tag)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func injectTripod(tri *Tripod, field reflect.Value, tag reflect.StructTag) error {
+	tagValue, hasTag := tag.Lookup(TripodInjectTag)
+	if !hasTag {
+		return nil
+	}
+	arr := strings.Split(tagValue, ",")
+	tripodName := arr[0]
+	triToInject, ok := tri.Land.tripodsMap[tripodName]
+	if !ok {
+		if len(arr) > 1 {
+			if arr[1] == OmitEmpty {
+				return nil
+			}
+		}
+		return yerror.TripodNotFound(tripodName)
+	}
+	if field.CanSet() {
+		field.Set(reflect.ValueOf(triToInject.Instance))
+	} else {
+		// set private field
+		field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
+		field.Set(reflect.ValueOf(triToInject.Instance))
+	}
+	logrus.Debugf("inject tripod(%s) into %s", triToInject.Name(), tri.name)
+
+	return nil
+}
+
+func injectBronze(tri *Tripod, field reflect.Value, tag reflect.StructTag) error {
+	tagValue, hasTag := tag.Lookup(BronzeInjectTag)
+	if !hasTag {
+		return nil
+	}
+	arr := strings.Split(tagValue, ",")
+	bronzeName := arr[0]
+	bronzeToInject, ok := tri.Land.bronzes[bronzeName]
+	if !ok {
+		if len(arr) > 1 {
+			if arr[1] == OmitEmpty {
+				return nil
+			}
+		}
+		return yerror.BronzeNotFound(bronzeName)
+	}
+	if field.CanSet() {
+		field.Set(reflect.ValueOf(bronzeToInject.Instance))
+	} else {
+		// set private field
+		field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
+		field.Set(reflect.ValueOf(bronzeToInject.Instance))
+	}
+	logrus.Debugf("inject bronze(%s) into %s", bronzeToInject.Name(), tri.name)
 	return nil
 }
