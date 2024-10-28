@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	yucontext "github.com/yu-org/yu/core/context"
-	"github.com/yu-org/yu/core/types/goproto"
-	"google.golang.org/grpc"
 	"github.com/yu-org/yu/common"
+	yucontext "github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types/goproto"
+	"google.golang.org/grpc"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -125,7 +125,7 @@ func (t *Tripod) StartBlock(b *types.Block) error {
 		if resp.Error != "" {
 			return errors.New(resp.Error)
 		}
-		block, err := BlockFromPb(resp.Block)
+		block, err := types.BlockFromPb(resp.Block)
 		if err != nil {
 			return err
 		}
@@ -145,7 +145,7 @@ func (t *Tripod) EndBlock(b *types.Block) error {
 		if resp.Error != "" {
 			return errors.New(resp.Error)
 		}
-		block, err := BlockFromPb(resp.Block)
+		block, err := types.BlockFromPb(resp.Block)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func (t *Tripod) FinalizeBlock(b *types.Block) error {
 		if resp.Error != "" {
 			return errors.New(resp.Error)
 		}
-		block, err := BlockFromPb(resp.Block)
+		block, err := types.BlockFromPb(resp.Block)
 		if err != nil {
 			return err
 		}
@@ -175,7 +175,6 @@ func (t *Tripod) FinalizeBlock(b *types.Block) error {
 	}
 	return nil
 }
-
 
 func (t *Tripod) GetCurrentCompactBlock() (*types.CompactBlock, error) {
 	return t.Chain.GetEndCompactBlock()
