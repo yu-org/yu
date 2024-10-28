@@ -44,7 +44,7 @@ func runChain(t *testing.T, wg *sync.WaitGroup) {
 	mevLessTri, err := MEVless.NewMEVless(mevLessCfg)
 	assert.NoError(t, err)
 
-	chain := startup.InitDefaultKernel(yuCfg, poaTri, assetTri, mevLessTri)
+	chain := startup.InitDefaultKernel(yuCfg).WithTripods(poaTri, assetTri, mevLessTri)
 	chain.Startup()
 
 	wg.Done()

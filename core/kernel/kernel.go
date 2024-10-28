@@ -2,22 +2,22 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/config"
-	. "github.com/yu-org/yu/core/env"
-	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/tripod/dev"
-	. "github.com/yu-org/yu/core/types"
-	. "github.com/yu-org/yu/utils/ip"
+	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/core/env"
+	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/tripod/dev"
+	"github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/utils/ip"
 	"sync"
 )
 
 type Kernel struct {
 	mutex sync.Mutex
 
-	cfg *KernelConf
+	cfg *config.KernelConf
 
-	RunMode RunMode
+	RunMode common.RunMode
 
 	stopChan chan struct{}
 
@@ -25,23 +25,23 @@ type Kernel struct {
 	wsPort   string
 	leiLimit uint64
 
-	*ChainEnv
+	*env.ChainEnv
 
-	Land *Land
+	Land *tripod.Land
 }
 
 func NewKernel(
-	cfg *KernelConf,
-	env *ChainEnv,
-	land *Land,
+	cfg *config.KernelConf,
+	env *env.ChainEnv,
+	land *tripod.Land,
 ) *Kernel {
 	k := &Kernel{
 		cfg:      cfg,
 		RunMode:  cfg.RunMode,
 		stopChan: make(chan struct{}),
 		leiLimit: cfg.LeiLimit,
-		httpPort: MakePort(cfg.HttpPort),
-		wsPort:   MakePort(cfg.WsPort),
+		httpPort: ip.MakePort(cfg.HttpPort),
+		wsPort:   ip.MakePort(cfg.WsPort),
 		ChainEnv: env,
 		Land:     land,
 	}
@@ -50,9 +50,9 @@ func NewKernel(
 
 	// Configure the handlers in P2P network
 
-	handlersMap := make(map[int]P2pHandler, 0)
+	handlersMap := make(map[int]dev.P2pHandler, 0)
 
-	land.RangeList(func(tri *Tripod) error {
+	land.RangeList(func(tri *tripod.Tripod) error {
 		for code, handler := range tri.P2pHandlers {
 			handlersMap[code] = handler
 		}
@@ -69,7 +69,7 @@ func NewKernel(
 	return k
 }
 
-func (k *Kernel) WithExecuteFn(fn ExecuteFn) {
+func (k *Kernel) WithExecuteFn(fn env.ExecuteFn) {
 	k.Execute = fn
 }
 
@@ -88,7 +88,7 @@ func (k *Kernel) Stop() {
 
 func (k *Kernel) InitBlockChain() {
 	genesisBlock := k.makeGenesisBlock()
-	k.Land.RangeList(func(tri *Tripod) error {
+	k.Land.RangeList(func(tri *tripod.Tripod) error {
 		tri.Init.InitChain(genesisBlock)
 		return nil
 	})
@@ -123,30 +123,81 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 	return nil
 }
 
-func (k *Kernel) subUnpackedTxns() (SignedTxns, error) {
-	byt, err := k.P2pNetwork.SubP2P(UnpackedTxnsTopic)
+func (k *Kernel) subUnpackedTxns() (types.SignedTxns, error) {
+	byt, err := k.P2pNetwork.SubP2P(common.UnpackedTxnsTopic)
 	if err != nil {
 		return nil, err
 	}
-	return DecodeSignedTxns(byt)
+	return types.DecodeSignedTxns(byt)
 }
 
-func (k *Kernel) pubUnpackedTxns(txns SignedTxns) error {
+func (k *Kernel) pubUnpackedTxns(txns types.SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return k.P2pNetwork.PubP2P(UnpackedTxnsTopic, byt)
+	return k.P2pNetwork.PubP2P(common.UnpackedTxnsTopic, byt)
 }
 
 func (k *Kernel) GetTripodInstance(name string) any {
 	return k.Land.GetTripodInstance(name)
 }
 
-func (k *Kernel) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
+func (k *Kernel) GetTxn(txnHash common.Hash) (txn *types.SignedTxn, err error) {
 	txn, _ = k.Pool.GetTxn(txnHash)
 	if txn == nil {
 		txn, err = k.TxDB.GetTxn(txnHash)
 	}
 	return
+}
+
+// WithBronzes fill the bronzes, if you have bronzes, must use it, and then WithTripods.
+func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
+	bronzes := make([]*tripod.Bronze, 0)
+	for _, v := range bronzeInstances {
+		bronzes = append(bronzes, tripod.ResolveBronze(v))
+	}
+
+	for i, t := range bronzes {
+		t.SetChainEnv(k.ChainEnv)
+		t.SetLand(k.Land)
+		t.SetInstance(bronzeInstances[i])
+	}
+
+	k.Land.SetBronzes(bronzes...)
+
+	for _, bronzeInstance := range bronzeInstances {
+		err := tripod.InjectToBronze(k.Land, bronzeInstance)
+		if err != nil {
+			logrus.Fatal("inject bronze failed: ", err)
+		}
+	}
+	return k
+}
+
+func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
+	tripods := make([]*tripod.Tripod, 0)
+	for _, v := range tripodInstances {
+		tripods = append(tripods, tripod.ResolveTripod(v))
+	}
+
+	for i, t := range tripods {
+		t.SetChainEnv(k.ChainEnv)
+		t.SetLand(k.Land)
+		t.SetInstance(tripodInstances[i])
+	}
+
+	k.Land.SetTripods(tripods...)
+
+	for _, tri := range tripods {
+		k.Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
+	}
+
+	for _, tripodInstance := range tripodInstances {
+		err := tripod.InjectToTripod(tripodInstance)
+		if err != nil {
+			logrus.Fatal("inject tripod failed: ", err)
+		}
+	}
+	return k
 }

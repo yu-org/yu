@@ -102,6 +102,18 @@ func (t ErrTripodNotFound) Error() string {
 	return errors.Errorf("Tripod(%s) NOT Found", t.TripodName).Error()
 }
 
+type ErrBronzeNotFound struct {
+	BronzeName string
+}
+
+func BronzeNotFound(name string) ErrBronzeNotFound {
+	return ErrBronzeNotFound{name}
+}
+
+func (b ErrBronzeNotFound) Error() string {
+	return errors.Errorf("Bronze(%s) NOT Found", b.BronzeName).Error()
+}
+
 type ErrWritingNotFound struct {
 	WritingName string
 }

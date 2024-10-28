@@ -22,9 +22,9 @@ func main() {
 	poaConf := poa.DefaultCfg(idx)
 
 	cfg := startup.InitKernelConfigFromPath("yu_conf/kernel.toml")
-	startup.DefaultStartup(
-		cfg,
-		poa.NewPoa(poaConf),
-		asset.NewAsset("YuCoin"),
-	)
+	startup.InitDefaultKernel(cfg).
+		WithTripods(
+			poa.NewPoa(poaConf),
+			asset.NewAsset("YuCoin"),
+		).Startup()
 }

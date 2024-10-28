@@ -42,7 +42,7 @@ func runChainForTPS(wg *sync.WaitGroup) {
 	assetTri := asset.NewAsset("yu-coin")
 	poaTri := poa.NewPoa(poaCfg)
 
-	chain := startup.InitDefaultKernel(yuCfg, poaTri, assetTri)
+	chain := startup.InitDefaultKernel(yuCfg).WithTripods(poaTri, assetTri)
 	chain.Startup()
 
 	wg.Done()
