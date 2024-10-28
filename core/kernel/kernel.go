@@ -170,7 +170,7 @@ func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 	}
 
 	for _, tripodInterface := range tripodInstances {
-		err := tripod.Inject(tripodInterface)
+		err := tripod.InjectToTripod(tripodInterface)
 		if err != nil {
 			logrus.Fatal("inject tripod failed: ", err)
 		}
@@ -193,9 +193,9 @@ func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
 	k.Land.SetBronzes(bronzes...)
 
 	for _, bronzeInterface := range bronzeInstances {
-		err := tripod.Inject(bronzeInterface)
+		err := tripod.InjectToBronze(k.Land, bronzeInterface)
 		if err != nil {
-			logrus.Fatal("inject tripod failed: ", err)
+			logrus.Fatal("inject bronze to tripod failed: ", err)
 		}
 	}
 	return k
