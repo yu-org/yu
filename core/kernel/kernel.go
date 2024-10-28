@@ -151,6 +151,30 @@ func (k *Kernel) GetTxn(txnHash common.Hash) (txn *types.SignedTxn, err error) {
 	return
 }
 
+// WithBronzes fill the bronzes, if you have bronzes, must use it, and then WithTripods.
+func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
+	bronzes := make([]*tripod.Bronze, 0)
+	for _, v := range bronzeInstances {
+		bronzes = append(bronzes, tripod.ResolveBronze(v))
+	}
+
+	for i, t := range bronzes {
+		t.SetChainEnv(k.ChainEnv)
+		t.SetLand(k.Land)
+		t.SetInstance(bronzeInstances[i])
+	}
+
+	k.Land.SetBronzes(bronzes...)
+
+	for _, bronzeInstance := range bronzeInstances {
+		err := tripod.InjectToBronze(k.Land, bronzeInstance)
+		if err != nil {
+			logrus.Fatal("inject bronze failed: ", err)
+		}
+	}
+	return k
+}
+
 func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
@@ -173,29 +197,6 @@ func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 		err := tripod.InjectToTripod(tripodInstance)
 		if err != nil {
 			logrus.Fatal("inject tripod failed: ", err)
-		}
-	}
-	return k
-}
-
-func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
-	bronzes := make([]*tripod.Bronze, 0)
-	for _, v := range bronzeInstances {
-		bronzes = append(bronzes, tripod.ResolveBronze(v))
-	}
-
-	for i, t := range bronzes {
-		t.SetChainEnv(k.ChainEnv)
-		t.SetLand(k.Land)
-		t.SetInstance(bronzeInstances[i])
-	}
-
-	k.Land.SetBronzes(bronzes...)
-
-	for _, bronzeInstance := range bronzeInstances {
-		err := tripod.InjectToBronze(k.Land, bronzeInstance)
-		if err != nil {
-			logrus.Fatal("inject bronze to tripod failed: ", err)
 		}
 	}
 	return k
