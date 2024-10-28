@@ -4,13 +4,13 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
 	yucontext "github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/env"
-	. "github.com/yu-org/yu/core/tripod/dev"
-	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/core/types/goproto"
 	"google.golang.org/grpc"
+	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/env"
+	"github.com/yu-org/yu/core/tripod/dev"
+	"github.com/yu-org/yu/core/types"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -18,11 +18,11 @@ import (
 )
 
 type Tripod struct {
-	*ChainEnv
+	*env.ChainEnv
 	*Land
 
 	BlockVerifier BlockVerifier
-	TxnChecker    TxnChecker
+	TxnChecker    types.TxnChecker
 
 	Init       Init
 	BlockCycle BlockCycle
@@ -31,17 +31,17 @@ type Tripod struct {
 
 	Committer Committer
 
-	Instance interface{}
+	Instance any
 
 	name string
 	// only MasterWorker mode need this
 	rpcClient goproto.TripodClient
 	// Key: Writing Name
-	writings map[string]Writing
+	writings map[string]dev.Writing
 	// Key: Reading Name
-	readings map[string]Reading
+	readings map[string]dev.Reading
 	// key: p2p-handler type code
-	P2pHandlers map[int]P2pHandler
+	P2pHandlers map[int]dev.P2pHandler
 }
 
 func NewTripod() *Tripod {
@@ -51,9 +51,9 @@ func NewTripod() *Tripod {
 func NewTripodWithName(name string) *Tripod {
 	return &Tripod{
 		name:        name,
-		writings:    make(map[string]Writing),
-		readings:    make(map[string]Reading),
-		P2pHandlers: make(map[int]P2pHandler),
+		writings:    make(map[string]dev.Writing),
+		readings:    make(map[string]dev.Reading),
+		P2pHandlers: make(map[int]dev.P2pHandler),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -80,8 +80,8 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 	if isImplementInterface(tripodInstance, (*PreTxnHandler)(nil)) {
 		t.SetPreTxnHandler(tripodInstance.(PreTxnHandler))
 	}
-	if isImplementInterface(tripodInstance, (*TxnChecker)(nil)) {
-		t.SetTxnChecker(tripodInstance.(TxnChecker))
+	if isImplementInterface(tripodInstance, (*types.TxnChecker)(nil)) {
+		t.SetTxnChecker(tripodInstance.(types.TxnChecker))
 	}
 	if isImplementInterface(tripodInstance, (*BlockCycle)(nil)) {
 		t.SetBlockCycle(tripodInstance.(BlockCycle))
@@ -116,7 +116,7 @@ func (t *Tripod) Name() string {
 	return t.name
 }
 
-func (t *Tripod) StartBlock(b *Block) error {
+func (t *Tripod) StartBlock(b *types.Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.StartBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
@@ -136,7 +136,7 @@ func (t *Tripod) StartBlock(b *Block) error {
 	return nil
 }
 
-func (t *Tripod) EndBlock(b *Block) error {
+func (t *Tripod) EndBlock(b *types.Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.EndBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
@@ -156,7 +156,7 @@ func (t *Tripod) EndBlock(b *Block) error {
 	return nil
 }
 
-func (t *Tripod) FinalizeBlock(b *Block) error {
+func (t *Tripod) FinalizeBlock(b *types.Block) error {
 	if t.rpcClient != nil {
 		resp, err := t.rpcClient.FinalizeBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
 		if err != nil {
@@ -176,15 +176,16 @@ func (t *Tripod) FinalizeBlock(b *Block) error {
 	return nil
 }
 
-func (t *Tripod) GetCurrentCompactBlock() (*CompactBlock, error) {
+
+func (t *Tripod) GetCurrentCompactBlock() (*types.CompactBlock, error) {
 	return t.Chain.GetEndCompactBlock()
 }
 
-func (t *Tripod) GetCurrentBlock() (*Block, error) {
+func (t *Tripod) GetCurrentBlock() (*types.Block, error) {
 	return t.Chain.GetEndBlock()
 }
 
-func (t *Tripod) SetChainEnv(env *ChainEnv) {
+func (t *Tripod) SetChainEnv(env *env.ChainEnv) {
 	t.ChainEnv = env
 }
 
@@ -208,7 +209,7 @@ func (t *Tripod) SetBlockVerifier(bv BlockVerifier) {
 	t.BlockVerifier = bv
 }
 
-func (t *Tripod) SetTxnChecker(tc TxnChecker) {
+func (t *Tripod) SetTxnChecker(tc types.TxnChecker) {
 	t.TxnChecker = tc
 }
 
@@ -216,21 +217,21 @@ func (t *Tripod) SetPreTxnHandler(pth PreTxnHandler) {
 	t.PreTxnHandler = pth
 }
 
-func (t *Tripod) SetWritings(wrs ...Writing) {
+func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	for _, wr := range wrs {
 		name := getFuncName(wr)
 		t.writings[name] = wr
 	}
 }
 
-func (t *Tripod) SetReadings(readings ...Reading) {
+func (t *Tripod) SetReadings(readings ...dev.Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
 		t.readings[name] = r
 	}
 }
 
-func (t *Tripod) SetP2pHandler(code int, handler P2pHandler) *Tripod {
+func (t *Tripod) SetP2pHandler(code int, handler dev.P2pHandler) *Tripod {
 	t.P2pHandlers[code] = handler
 	logrus.Infof("register P2pHandler(%d) into Tripod(%s) \n", code, t.name)
 	return t
@@ -249,19 +250,19 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) GetWriting(name string) Writing {
+func (t *Tripod) GetWriting(name string) dev.Writing {
 	return t.writings[name]
 }
 
-func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (Writing, error) {
+func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (dev.Writing, error) {
 	return t.Land.GetWriting(tripodName, funcName)
 }
 
-func (t *Tripod) GetReading(name string) Reading {
+func (t *Tripod) GetReading(name string) dev.Reading {
 	return t.readings[name]
 }
 
-func (t *Tripod) GetReadingFromLand(tripodName, funcName string) (Reading, error) {
+func (t *Tripod) GetReadingFromLand(tripodName, funcName string) (dev.Reading, error) {
 	return t.Land.GetReading(tripodName, funcName)
 }
 
@@ -281,7 +282,7 @@ func (t *Tripod) AllWritingNames() []string {
 	return allNames
 }
 
-func (t *Tripod) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
+func (t *Tripod) PostExecute(block *types.Block, receipts map[common.Hash]*types.Receipt) error {
 	t.Land.RangeList(func(t *Tripod) error {
 		t.Committer.Commit(block)
 		return nil
@@ -300,33 +301,33 @@ func (t *Tripod) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.StateRoot == NullHash {
-		block.StateRoot = BytesToHash(stateRoot)
+	if block.StateRoot == common.NullHash {
+		block.StateRoot = common.BytesToHash(stateRoot)
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.ReceiptRoot == NullHash {
-		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	if block.ReceiptRoot == common.NullHash {
+		block.ReceiptRoot, err = types.CaculateReceiptRoot(receipts)
 	}
 	return err
 }
 
-func (t *Tripod) HandleError(err error, ctx *yucontext.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (t *Tripod) HandleError(err error, ctx *yucontext.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
 	logrus.Error("push error: ", err.Error())
-	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
+	receipt := types.NewReceipt(ctx.Events, err, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleEvent(ctx *yucontext.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
-	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
+func (t *Tripod) HandleEvent(ctx *yucontext.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
+	receipt := types.NewReceipt(ctx.Events, nil, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleReceipt(ctx *yucontext.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+func (t *Tripod) HandleReceipt(ctx *yucontext.WriteContext, receipt *types.Receipt, block *types.Block, stxn *types.SignedTxn) {
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
-	receipt.BlockStage = ExecuteTxnsStage
+	receipt.BlockStage = common.ExecuteTxnsStage
 
 	if t.Sub != nil {
 		t.Sub.Emit(receipt)

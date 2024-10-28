@@ -64,7 +64,7 @@ func TestInject(t *testing.T) {
 
 	land.SetTripods(testTri.Tripod, dayu.Tripod, boyi.Tripod)
 
-	err := Inject(testTri)
+	err := InjectToTripod(testTri)
 	assert.NoError(t, err)
 	assert.Equal(t, dayuStr, testTri.Dayu.String())
 	assert.Equal(t, boyiStr, testTri.boyi.String())

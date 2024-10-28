@@ -32,28 +32,22 @@ var (
 	Land = tripod.NewLand()
 )
 
-func DefaultStartup(cfg *config.KernelConf, tripodInstances ...interface{}) {
-	k := InitDefaultKernel(cfg, tripodInstances...)
+func DefaultStartup(cfg *config.KernelConf) {
+	k := InitDefaultKernel(cfg)
 	k.Startup()
 }
 
-func StartUp(cfg *config.KernelConf, tripodInstances ...interface{}) {
-	k := InitKernel(cfg, tripodInstances...)
+func StartUp(cfg *config.KernelConf) {
+	k := InitKernel(cfg)
 	k.Startup()
 }
 
-func InitDefaultKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.Kernel {
-	tripodInstances = append(tripodInstances, synchronizer.NewSynchronizer(cfg.SyncMode))
-	return InitKernel(cfg, tripodInstances...)
+func InitDefaultKernel(cfg *config.KernelConf) *kernel.Kernel {
+	return InitKernel(cfg).WithTripods(synchronizer.NewSynchronizer(cfg.SyncMode))
 }
 
-func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.Kernel {
+func InitKernel(cfg *config.KernelConf) *kernel.Kernel {
 	beforeStartUp(cfg)
-
-	tripods := make([]*tripod.Tripod, 0)
-	for _, v := range tripodInstances {
-		tripods = append(tripods, tripod.ResolveTripod(v))
-	}
 
 	codec.GlobalCodec = &codec.RlpCodec{}
 	gin.SetMode(gin.ReleaseMode)
@@ -95,25 +89,6 @@ func InitKernel(cfg *config.KernelConf, tripodInstances ...interface{}) *kernel.
 		Pool:       Pool,
 		Sub:        subscribe.NewSubscription(),
 		P2pNetwork: p2p.NewP2P(&cfg.P2P),
-	}
-
-	for i, t := range tripods {
-		t.SetChainEnv(chainEnv)
-		t.SetLand(Land)
-		t.SetInstance(tripodInstances[i])
-	}
-
-	Land.SetTripods(tripods...)
-
-	for _, tri := range tripods {
-		Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
-	}
-
-	for _, tripodInterface := range tripodInstances {
-		err = tripod.Inject(tripodInterface)
-		if err != nil {
-			logrus.Fatal("inject tripod failed: ", err)
-		}
 	}
 
 	return kernel.NewKernel(cfg, chainEnv, Land)
