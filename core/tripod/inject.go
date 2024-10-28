@@ -70,14 +70,16 @@ func InjectToBronze(land *Land, bronzeInstance any) error {
 			}
 			return yerror.BronzeNotFound(bronzeName)
 		}
-		if fieldToBeInjected.CanSet() {
-			fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
-		} else {
-			// set private field
-			fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
-			fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+		if fieldToBeInjected.IsNil() {
+			if fieldToBeInjected.CanSet() {
+				fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+			} else {
+				// set private field
+				fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
+				fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+			}
+			logrus.Debugf("inject bronze(%s) into bronze(%s)", bronzeToInject.Name(), bro.name)
 		}
-		logrus.Debugf("inject bronze(%s) into bronze(%s)", bronzeToInject.Name(), bro.name)
 	}
 	return nil
 }
@@ -98,14 +100,17 @@ func injectTripodToTripod(tri *Tripod, fieldToBeInjected reflect.Value, tag refl
 		}
 		return yerror.TripodNotFound(tripodName)
 	}
-	if fieldToBeInjected.CanSet() {
-		fieldToBeInjected.Set(reflect.ValueOf(triToInject.Instance))
-	} else {
-		// set private field
-		fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
-		fieldToBeInjected.Set(reflect.ValueOf(triToInject.Instance))
+
+	if fieldToBeInjected.IsNil() {
+		if fieldToBeInjected.CanSet() {
+			fieldToBeInjected.Set(reflect.ValueOf(triToInject.Instance))
+		} else {
+			// set private field
+			fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
+			fieldToBeInjected.Set(reflect.ValueOf(triToInject.Instance))
+		}
+		logrus.Debugf("inject tripod(%s) into tripod(%s)", triToInject.Name(), tri.name)
 	}
-	logrus.Debugf("inject tripod(%s) into tripod(%s)", triToInject.Name(), tri.name)
 
 	return nil
 }
@@ -126,13 +131,17 @@ func injectBronzeToTripod(tri *Tripod, fieldToBeInjected reflect.Value, tag refl
 		}
 		return yerror.BronzeNotFound(bronzeName)
 	}
-	if fieldToBeInjected.CanSet() {
-		fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
-	} else {
-		// set private field
-		fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
-		fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+
+	if fieldToBeInjected.IsNil() {
+		if fieldToBeInjected.CanSet() {
+			fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+		} else {
+			// set private field
+			fieldToBeInjected = reflect.NewAt(fieldToBeInjected.Type(), unsafe.Pointer(fieldToBeInjected.UnsafeAddr())).Elem()
+			fieldToBeInjected.Set(reflect.ValueOf(bronzeToInject.Instance))
+		}
+		logrus.Debugf("inject bronze(%s) into tripod(%s)", bronzeToInject.Name(), tri.name)
 	}
-	logrus.Debugf("inject bronze(%s) into tripod(%s)", bronzeToInject.Name(), tri.name)
+
 	return nil
 }
