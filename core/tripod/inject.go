@@ -20,6 +20,12 @@ func ResolveTripod(v interface{}) *Tripod {
 	return trip
 }
 
+func ResolveBronze(v any) *Bronze {
+	bro := reflect.Indirect(reflect.ValueOf(v)).FieldByName("Bronze")
+	bronze := bro.Interface().(*Bronze)
+	return bronze
+}
+
 func Inject(tripodInterface interface{}) error {
 	tri := ResolveTripod(tripodInterface)
 	triStruct := reflect.Indirect(reflect.ValueOf(tripodInterface))

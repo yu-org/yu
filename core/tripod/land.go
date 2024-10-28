@@ -30,8 +30,8 @@ func (l *Land) SetBronzes(bronzes ...*Bronze) {
 func (l *Land) SetTripods(tripods ...*Tripod) {
 	for _, tri := range tripods {
 		triName := tri.Name()
-		l.tripodsMap[triName] = tri
 
+		l.tripodsMap[triName] = tri
 		l.orderedTripods = append(l.orderedTripods, tri)
 	}
 }

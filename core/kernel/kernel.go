@@ -4,8 +4,8 @@ import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/config"
-	. "github.com/yu-org/yu/core/env"
-	. "github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/env"
+	"github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/tripod/dev"
 	. "github.com/yu-org/yu/core/types"
 	. "github.com/yu-org/yu/utils/ip"
@@ -25,15 +25,15 @@ type Kernel struct {
 	wsPort   string
 	leiLimit uint64
 
-	*ChainEnv
+	*env.ChainEnv
 
-	Land *Land
+	Land *tripod.Land
 }
 
 func NewKernel(
 	cfg *KernelConf,
-	env *ChainEnv,
-	land *Land,
+	env *env.ChainEnv,
+	land *tripod.Land,
 ) *Kernel {
 	k := &Kernel{
 		cfg:      cfg,
@@ -52,7 +52,7 @@ func NewKernel(
 
 	handlersMap := make(map[int]P2pHandler, 0)
 
-	land.RangeList(func(tri *Tripod) error {
+	land.RangeList(func(tri *tripod.Tripod) error {
 		for code, handler := range tri.P2pHandlers {
 			handlersMap[code] = handler
 		}
@@ -69,7 +69,7 @@ func NewKernel(
 	return k
 }
 
-func (k *Kernel) WithExecuteFn(fn ExecuteFn) {
+func (k *Kernel) WithExecuteFn(fn env.ExecuteFn) {
 	k.Execute = fn
 }
 
@@ -88,7 +88,7 @@ func (k *Kernel) Stop() {
 
 func (k *Kernel) InitBlockChain() {
 	genesisBlock := k.makeGenesisBlock()
-	k.Land.RangeList(func(tri *Tripod) error {
+	k.Land.RangeList(func(tri *tripod.Tripod) error {
 		tri.Init.InitChain(genesisBlock)
 		return nil
 	})
@@ -149,4 +149,54 @@ func (k *Kernel) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 		txn, err = k.TxDB.GetTxn(txnHash)
 	}
 	return
+}
+
+func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
+	tripods := make([]*tripod.Tripod, 0)
+	for _, v := range tripodInstances {
+		tripods = append(tripods, tripod.ResolveTripod(v))
+	}
+
+	for i, t := range tripods {
+		t.SetChainEnv(k.ChainEnv)
+		t.SetLand(k.Land)
+		t.SetInstance(tripodInstances[i])
+	}
+
+	k.Land.SetTripods(tripods...)
+
+	for _, tri := range tripods {
+		k.Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
+	}
+
+	for _, tripodInterface := range tripodInstances {
+		err := tripod.Inject(tripodInterface)
+		if err != nil {
+			logrus.Fatal("inject tripod failed: ", err)
+		}
+	}
+	return k
+}
+
+func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
+	bronzes := make([]*tripod.Bronze, 0)
+	for _, v := range bronzeInstances {
+		bronzes = append(bronzes, tripod.ResolveBronze(v))
+	}
+
+	for i, t := range bronzes {
+		t.SetChainEnv(k.ChainEnv)
+		t.SetLand(k.Land)
+		t.SetInstance(bronzeInstances[i])
+	}
+
+	k.Land.SetBronzes(bronzes...)
+
+	for _, bronzeInterface := range bronzeInstances {
+		err := tripod.Inject(bronzeInterface)
+		if err != nil {
+			logrus.Fatal("inject tripod failed: ", err)
+		}
+	}
+	return k
 }
