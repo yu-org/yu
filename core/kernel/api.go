@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/yu-org/yu/common"
@@ -8,6 +9,44 @@ import (
 	"github.com/yu-org/yu/core/types"
 	"strconv"
 )
+
+func (k *Kernel) GetBlock(ctx *gin.Context) {
+	blockNumStr := ctx.Query("number")
+	blockHashStr := ctx.Query("hash")
+
+	if blockNumStr != "" {
+		blockNum, err := hexutil.DecodeUint64(blockNumStr)
+		if err != nil {
+			protocol.RenderError(ctx, protocol.BlockFailure, err)
+			return
+		}
+		block, err := k.Chain.GetBlockByHeight(common.BlockNum(blockNum))
+		if err != nil {
+			protocol.RenderError(ctx, protocol.BlockFailure, err)
+			return
+		}
+		protocol.RenderSuccess(ctx, block)
+		return
+	}
+
+	if blockHashStr != "" {
+		blockHash := common.HexToHash(blockHashStr)
+		block, err := k.Chain.GetBlock(blockHash)
+		if err != nil {
+			protocol.RenderError(ctx, protocol.BlockFailure, err)
+			return
+		}
+		protocol.RenderSuccess(ctx, block)
+		return
+	}
+
+	block, err := k.Chain.GetEndBlock()
+	if err != nil {
+		protocol.RenderError(ctx, protocol.BlockFailure, err)
+		return
+	}
+	protocol.RenderSuccess(ctx, block)
+}
 
 func (k *Kernel) GetReceipt(ctx *gin.Context) {
 	txHashStr := ctx.Query("tx_hash")
