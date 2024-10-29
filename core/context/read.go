@@ -46,6 +46,10 @@ func (rc *ReadContext) GetBlockHash() *common.Hash {
 	return rc.BlockHash
 }
 
+func (rc *ReadContext) GetParams() string {
+	return rc.rdCall.Params
+}
+
 func (rc *ReadContext) Json(code int, v any) {
 	rc.resp = &ResponseData{
 		StatusCode:    code,
