@@ -42,6 +42,7 @@ func (r *Receipt) String() string {
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 	wrCall := stxn.Raw.WrCall
 
+	r.TxHash = stxn.TxnHash
 	r.Caller = stxn.GetCaller()
 	r.TripodName = wrCall.TripodName
 	r.WritingName = wrCall.FuncName
