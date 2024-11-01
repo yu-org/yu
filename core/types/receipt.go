@@ -36,7 +36,7 @@ func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
 func (r *Receipt) String() string {
 	return fmt.Sprintf(
 		"Receipt:{ tx_hash: %s,\n caller: %s,\n block_stage: %s,\n block_hash: %s,\n Height: %d,\n tripod_name: %s,\n writing_name: %s,\n lei_cost: %d,\n events: %v,\n error: %v,\n  extra: %s,\n }",
-		r.TxHash.String(), r.Caller.String(), r.BlockStage, r.BlockHash, r.Height, r.TripodName, r.WritingName, r.LeiCost, r.Events, r.Error, string(r.Extra))
+		r.TxHash.String(), r.Caller.String(), r.BlockStage, r.BlockHash.String(), r.Height, r.TripodName, r.WritingName, r.LeiCost, r.Events, r.Error, string(r.Extra))
 }
 
 func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
