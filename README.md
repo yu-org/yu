@@ -1,12 +1,21 @@
-# 禹
+<div align="center">
+<img src="docs/images/yu-github-logo.png" height=100></img>
 
+---
+
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://github.com/yu-org/yu/blob/main/LICENSE)
+[![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
+![Build Status](https://github.com/yu-org/yu/workflows/ci/badge.svg)
+</div>
+
+# 禹
 Yu is a highly customizable blockchain framework.  
 
 [Book](https://yu-org.github.io/yu-docs/en/)  
 [中文文档](https://yu-org.github.io/yu-docs/zh/)
 
 ### Overall Structure
-![image](docs/yu_flow_chart.png)
+![image](docs/images/yu_flow_chart.png)
 
 ### Usage 
 ```go
