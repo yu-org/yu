@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/types"
 )
 
 type WriteContext struct {
 	*ParamsResponse
 
-	Block    *Block
-	Txn      *SignedTxn
+	Block    *types.Block
+	Txn      *types.SignedTxn
 	TxnIndex int
 
-	Events []*Event
+	Events []*types.Event
 	Extra  []byte
 
 	ExtraInterface any
@@ -23,7 +23,7 @@ type WriteContext struct {
 	LeiCost uint64
 }
 
-func NewWriteContext(stxn *SignedTxn, block *Block, idx int) (*WriteContext, error) {
+func NewWriteContext(stxn *types.SignedTxn, block *types.Block, idx int) (*WriteContext, error) {
 	paramsStr := stxn.Raw.WrCall.Params
 	rctx, err := NewParamsResponseFromStr(paramsStr)
 	if err != nil {
@@ -34,23 +34,23 @@ func NewWriteContext(stxn *SignedTxn, block *Block, idx int) (*WriteContext, err
 		TxnIndex:       idx,
 		Block:          block,
 		ParamsResponse: rctx,
-		Events:         make([]*Event, 0),
+		Events:         make([]*types.Event, 0),
 	}, nil
 }
 
 func (c *WriteContext) BindJson(v any) error {
-	return BindJsonParams(c.ParamsStr, v)
+	return common.BindJsonParams(c.ParamsStr, v)
 }
 
 func (c *WriteContext) GetTimestamp() uint64 {
 	return c.Block.Timestamp
 }
 
-func (c *WriteContext) GetTxnHash() Hash {
+func (c *WriteContext) GetTxnHash() common.Hash {
 	return c.Txn.TxnHash
 }
 
-func (c *WriteContext) GetCaller() *Address {
+func (c *WriteContext) GetCaller() *common.Address {
 	return c.Txn.GetCaller()
 }
 
@@ -67,12 +67,12 @@ func (c *WriteContext) SetLeiFn(fn func() uint64) {
 }
 
 func (c *WriteContext) EmitEvent(bytes []byte) {
-	event := &Event{Value: bytes}
+	event := &types.Event{Value: bytes}
 	c.Events = append(c.Events, event)
 }
 
 func (c *WriteContext) EmitStringEvent(format string, values ...any) {
-	event := &Event{Value: []byte(fmt.Sprintf(format, values...))}
+	event := &types.Event{Value: []byte(fmt.Sprintf(format, values...))}
 	c.Events = append(c.Events, event)
 }
 
@@ -82,7 +82,7 @@ func (c *WriteContext) EmitJsonEvent(value any) error {
 		logrus.Error("json encode to bytes error: ", err)
 		return err
 	}
-	event := &Event{Value: byt}
+	event := &types.Event{Value: byt}
 	c.Events = append(c.Events, event)
 	return nil
 }
