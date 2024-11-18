@@ -248,6 +248,12 @@ func (ut *UnsignedTxn) ToPb() *goproto.UnsignedTxn {
 }
 
 func UnsignedTxnFromPb(pb *goproto.UnsignedTxn) *UnsignedTxn {
+	if pb == nil {
+		return nil
+	}
+	if pb.WrCall == nil {
+		return nil
+	}
 	return &UnsignedTxn{
 		WrCall: &WrCall{
 			ChainID:    pb.WrCall.ChainId,
