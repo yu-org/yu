@@ -78,5 +78,5 @@ func main() {
 
 	poaTri := poa.NewPoa(poaCfg)
 	qsTri := NewQuickStart()
-	startup.DefaultStartup(yuCfg, poaTri, qsTri)
+	startup.InitDefaultKernel(yuCfg).WithTripods(poaTri, qsTri).Startup()
 }
