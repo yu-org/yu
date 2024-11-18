@@ -11,8 +11,6 @@ type SampleKV struct {
 
 func (s *SampleKV) Set(triName NameString, key, value []byte) {
 	//TODO implement me
-	tx, _ := s.kvdb.NewKvTxn()
-
 	panic("implement me")
 }
 
