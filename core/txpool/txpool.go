@@ -34,6 +34,7 @@ func NewTxPool(nodeType int, cfg *TxpoolConf) *TxPool {
 		unpackedTxns: ordered,
 		baseChecks:   make([]TxnCheckFn, 0),
 		tripodChecks: make(map[string]TxnCheckFn),
+		filter:       func(*SignedTxn) bool { return true },
 	}
 	return tp
 }
