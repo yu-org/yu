@@ -20,6 +20,8 @@ type TxPool struct {
 
 	baseChecks   []TxnCheckFn
 	tripodChecks map[string]TxnCheckFn
+
+	filter func(txn *SignedTxn) bool
 }
 
 func NewTxPool(nodeType int, cfg *TxpoolConf) *TxPool {
@@ -47,6 +49,10 @@ func (tp *TxPool) withDefaultBaseChecks() *TxPool {
 		tp.checkTxnSize,
 	}
 	return tp
+}
+
+func (tp *TxPool) SetPackFilter(fn func(txn *SignedTxn) bool) {
+	tp.filter = fn
 }
 
 func (tp *TxPool) Capacity() int {
@@ -115,9 +121,9 @@ func (tp *TxPool) GetAllTxns() ([]*SignedTxn, error) {
 }
 
 func (tp *TxPool) Pack(numLimit uint64) ([]*SignedTxn, error) {
-	return tp.PackFor(numLimit, func(*SignedTxn) bool {
-		return true
-	})
+	metrics.TxpoolSizeGauge.Set(float64(tp.unpackedTxns.Size()))
+	txns := tp.unpackedTxns.Gets(numLimit, tp.filter)
+	return txns, nil
 }
 
 func (tp *TxPool) PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {

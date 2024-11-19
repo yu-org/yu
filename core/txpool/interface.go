@@ -14,6 +14,8 @@ type ItxPool interface {
 	WithBaseCheck(checkFn TxnChecker) ItxPool
 	WithTripodCheck(tripodName string, checker TxnChecker) ItxPool
 
+	SetPackFilter(fn func(txn *SignedTxn) bool)
+
 	BaseCheck(*SignedTxn) error
 	TripodsCheck(stxn *SignedTxn) error
 
