@@ -164,6 +164,12 @@ func (h *Poa) InitChain(block *types.Block) {
 }
 
 func (h *Poa) StartBlock(block *types.Block) {
+	now := time.Now()
+	defer func() {
+		duration := time.Since(now)
+		// fmt.Println("-------start-block last: ", duration.String(), "block-number = ", block.Height)
+		time.Sleep(time.Duration(h.blockInterval)*time.Millisecond - duration)
+	}()
 	h.setCurrentHeight(block.Height)
 
 	if h.cfg.PrettyLog {
@@ -228,12 +234,7 @@ func (h *Poa) StartBlock(block *types.Block) {
 }
 
 func (h *Poa) EndBlock(block *types.Block) {
-	now := time.Now()
-	defer func() {
-		duration := time.Since(now)
-		// fmt.Println("-------start-block last: ", duration.String(), "block-number = ", block.Height)
-		time.Sleep(time.Duration(h.blockInterval)*time.Millisecond - duration)
-	}()
+
 	chain := h.Chain
 
 	// now := time.Now()
