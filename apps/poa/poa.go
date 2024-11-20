@@ -3,9 +3,13 @@ package poa
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"go.uber.org/atomic"
+
 	"github.com/yu-org/yu/apps/MEVless"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -13,8 +17,6 @@ import (
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/utils/log"
-	"go.uber.org/atomic"
-	"time"
 )
 
 type Poa struct {
@@ -162,13 +164,6 @@ func (h *Poa) InitChain(block *types.Block) {
 }
 
 func (h *Poa) StartBlock(block *types.Block) {
-	now := time.Now()
-	defer func() {
-		duration := time.Since(now)
-		// fmt.Println("-------start-block last: ", duration.String(), "block-number = ", block.Height)
-		time.Sleep(time.Duration(h.blockInterval)*time.Millisecond - duration)
-	}()
-
 	h.setCurrentHeight(block.Height)
 
 	if h.cfg.PrettyLog {
@@ -233,6 +228,12 @@ func (h *Poa) StartBlock(block *types.Block) {
 }
 
 func (h *Poa) EndBlock(block *types.Block) {
+	now := time.Now()
+	defer func() {
+		duration := time.Since(now)
+		// fmt.Println("-------start-block last: ", duration.String(), "block-number = ", block.Height)
+		time.Sleep(time.Duration(h.blockInterval)*time.Millisecond - duration)
+	}()
 	chain := h.Chain
 
 	// now := time.Now()

@@ -64,9 +64,9 @@ func (ot *orderedTxns) Deletes(txnHashes []Hash) {
 	for i := 0; i < len(ot.txns) && len(txnMap) > 0; i++ {
 		_, ok := txnMap[ot.txns[i].TxnHash]
 		if ok {
+			delete(txnMap, ot.txns[i].TxnHash)
 			ot.txns = append(ot.txns[:i], ot.txns[i+1:]...)
 			i--
-			delete(txnMap, ot.txns[i].TxnHash)
 		}
 	}
 }
