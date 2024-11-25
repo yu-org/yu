@@ -1,12 +1,16 @@
 package tripod
 
 import (
+	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/core/context"
+	yucontext "github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/types/goproto"
+	"google.golang.org/grpc"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -30,6 +34,8 @@ type Tripod struct {
 	Instance any
 
 	name string
+	// only MasterWorker mode need this
+	rpcClient goproto.TripodClient
 	// Key: Writing Name
 	writings map[string]dev.Writing
 	// Key: Reading Name
@@ -56,6 +62,11 @@ func NewTripodWithName(name string) *Tripod {
 		PreTxnHandler: new(DefaultPreTxnHandler),
 		Committer:     new(DefaultCommitter),
 	}
+}
+
+func (t *Tripod) WithGrpcConn(rpcConn *grpc.ClientConn) *Tripod {
+	t.rpcClient = goproto.NewTripodClient(rpcConn)
+	return t
 }
 
 func (t *Tripod) SetInstance(tripodInstance any) {
@@ -103,6 +114,66 @@ func isImplementInterface(value any, ifacePtr interface{}) bool {
 
 func (t *Tripod) Name() string {
 	return t.name
+}
+
+func (t *Tripod) StartBlock(b *types.Block) error {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.StartBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			return err
+		}
+		if resp.Error != "" {
+			return errors.New(resp.Error)
+		}
+		block, err := types.BlockFromPb(resp.Block)
+		if err != nil {
+			return err
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.StartBlock(b)
+	}
+	return nil
+}
+
+func (t *Tripod) EndBlock(b *types.Block) error {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.EndBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			return err
+		}
+		if resp.Error != "" {
+			return errors.New(resp.Error)
+		}
+		block, err := types.BlockFromPb(resp.Block)
+		if err != nil {
+			return err
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.EndBlock(b)
+	}
+	return nil
+}
+
+func (t *Tripod) FinalizeBlock(b *types.Block) error {
+	if t.rpcClient != nil {
+		resp, err := t.rpcClient.FinalizeBlock(context.Background(), &goproto.TripodBlockRequest{Block: b.ToPb()})
+		if err != nil {
+			return err
+		}
+		if resp.Error != "" {
+			return errors.New(resp.Error)
+		}
+		block, err := types.BlockFromPb(resp.Block)
+		if err != nil {
+			return err
+		}
+		b.CopyFrom(block)
+	} else {
+		t.BlockCycle.FinalizeBlock(b)
+	}
+	return nil
 }
 
 func (t *Tripod) GetCurrentCompactBlock() (*types.CompactBlock, error) {
@@ -240,20 +311,20 @@ func (t *Tripod) PostExecute(block *types.Block, receipts map[common.Hash]*types
 	return err
 }
 
-func (t *Tripod) HandleError(err error, ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
+func (t *Tripod) HandleError(err error, ctx *yucontext.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
 	logrus.Error("push error: ", err.Error())
 	receipt := types.NewReceipt(ctx.Events, err, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleEvent(ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
+func (t *Tripod) HandleEvent(ctx *yucontext.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
 	receipt := types.NewReceipt(ctx.Events, nil, ctx.Extra)
 	t.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt, block *types.Block, stxn *types.SignedTxn) {
+func (t *Tripod) HandleReceipt(ctx *yucontext.WriteContext, receipt *types.Receipt, block *types.Block, stxn *types.SignedTxn) {
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
 	receipt.BlockStage = common.ExecuteTxnsStage
 

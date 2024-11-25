@@ -152,7 +152,7 @@ func runNode(poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
 
 	k := kernel.NewKernel(cfg, env, land)
 	for i := 0; i < 10; i++ {
-		err := k.LocalRun()
+		err := k.LoopRun()
 		if err != nil {
 			panic(err)
 		}
