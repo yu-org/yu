@@ -122,6 +122,7 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) error {
 func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
 	byt, err := bb.receiptKV.Get(txHash.Bytes())
 	if err != nil {
+		logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
 		return nil, err
 	}
 	if byt == nil {
