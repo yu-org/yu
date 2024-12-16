@@ -71,7 +71,9 @@ type IBlockChain interface {
 	GetBlock(blockHash Hash) (*Block, error)
 
 	GetCompactBlockByHeight(height BlockNum) (*CompactBlock, error)
+	GetFinalizedCompactBlockByHeight(height BlockNum) (*CompactBlock, error)
 	GetBlockByHeight(height BlockNum) (*Block, error)
+	GetFinalizedBlockByHeight(height BlockNum) (*Block, error)
 
 	GetAllCompactBlocksByHeight(height BlockNum) ([]*CompactBlock, error)
 	GetAllBlocksByHeight(height BlockNum) ([]*Block, error)
