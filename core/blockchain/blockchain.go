@@ -195,8 +195,7 @@ func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, e
 	}
 	var bs BlocksScheme
 	result := bc.chain.Db().Where(&BlocksScheme{
-		Height:   height,
-		Finalize: true,
+		Height: height,
 	}).Find(&bs)
 	err := result.Error
 
