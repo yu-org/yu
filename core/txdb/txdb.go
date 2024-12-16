@@ -1,6 +1,7 @@
 package txdb
 
 import (
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
@@ -79,6 +80,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	for _, txn := range txns {
 		txbyt, err := txn.Encode()
 		if err != nil {
+			logrus.Errorf("TxDB.SetTxns set tx(%s) failed: %v", txn.TxnHash.String(), err)
 			return err
 		}
 		err = kvtx.Set(txn.TxnHash.Bytes(), txbyt)
