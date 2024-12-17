@@ -359,7 +359,7 @@ func (bc *BlockChain) Finalize(block *Block) error {
 		return err
 	}
 	bc.lastFinalizedBlock.Store(block)
-	logrus.Infof("lastFinalizedBlock Stored ：", bc.lastFinalizedBlock.Load().Height)
+	logrus.Info("lastFinalizedBlock Stored ：", bc.lastFinalizedBlock.Load().Height)
 	bc.finalizedBlocks.Add(block.Height, block)
 	return nil
 }
@@ -367,10 +367,10 @@ func (bc *BlockChain) Finalize(block *Block) error {
 func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 	block := bc.lastFinalizedBlock.Load()
 	if block != nil {
-		logrus.Infof("LastFinalizedCompact lastFinalizedBlock Loaded", block.Height)
+		logrus.Info("LastFinalizedCompact lastFinalizedBlock Loaded", block.Height)
 		return block.Compact(), nil
 	}
-	logrus.Infof("LastFinalizedCompact lastFinalizedBlock Not Loaded")
+	logrus.Info("LastFinalizedCompact lastFinalizedBlock Not Loaded")
 	var bs BlocksScheme
 	err := bc.chain.Db().Model(&BlocksScheme{}).
 		Where("finalize = ?", true).
@@ -386,10 +386,10 @@ func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 func (bc *BlockChain) LastFinalized() (*Block, error) {
 	block := bc.lastFinalizedBlock.Load()
 	if block != nil {
-		logrus.Infof("LastFinalized lastFinalizedBlock Loaded", block.Height)
+		logrus.Info("LastFinalized lastFinalizedBlock Loaded", block.Height)
 		return block, nil
 	}
-	logrus.Infof("LastFinalized lastFinalizedBlock Not Loaded")
+	logrus.Info("LastFinalized lastFinalizedBlock Not Loaded")
 	cBlock, err := bc.LastFinalizedCompact()
 	if err != nil {
 		return nil, err
