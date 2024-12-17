@@ -1,6 +1,9 @@
 package blockchain
 
 import (
+	"fmt"
+	"sync/atomic"
+
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
@@ -8,7 +11,6 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
-	"sync/atomic"
 )
 
 type BlockChain struct {
@@ -367,22 +369,25 @@ func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 	if block != nil {
 		return block.Compact(), nil
 	}
-	var bss []BlocksScheme
-	err := bc.chain.Db().Model(&BlocksScheme{}).Where(&BlocksScheme{
-		Finalize: true,
-	}).Order("height").Find(&bss).Error
+	var bs BlocksScheme
+	err := bc.chain.Db().Model(&BlocksScheme{}).
+		Where("finalize = ?", true).
+		Order("height DESC").
+		Limit(1).
+		First(&bs).Error
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
-	bs := bss[len(bss)-1]
 	return bs.toBlock()
 }
 
 func (bc *BlockChain) LastFinalized() (*Block, error) {
 	block := bc.lastFinalizedBlock.Load()
 	if block != nil {
+		fmt.Println("lastFinalizedBlock Loaded", block.Height)
 		return block, nil
 	}
+	fmt.Println("lastFinalizedBlock Not Loaded")
 	cBlock, err := bc.LastFinalizedCompact()
 	if err != nil {
 		return nil, err
