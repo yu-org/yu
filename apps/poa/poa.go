@@ -266,11 +266,13 @@ func (h *Poa) EndBlock(block *types.Block) {
 func (h *Poa) FinalizeBlock(block *types.Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("finalize block")
-
 	if h.cfg.PrettyLog {
 		log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
 	}
-	h.Chain.Finalize(block)
+	err := h.Chain.Finalize(block)
+	if err != nil {
+		logrus.Error("finalize block failed:", err)
+	}
 }
 
 func (h *Poa) CompeteLeader(blockHeight common.BlockNum) common.Address {
