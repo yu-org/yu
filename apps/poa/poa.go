@@ -238,10 +238,12 @@ func (h *Poa) EndBlock(block *types.Block) {
 	chain := h.Chain
 
 	// now := time.Now()
+	logrus.Infof("Start Execute Block %d", block.Height)
 	err := h.Execute(block)
 	if err != nil {
 		logrus.Panic("execute block failed: ", err)
 	}
+	logrus.Infof("End Execute Block %d", block.Height)
 	// TODO: sync the state (execute receipt) with other nodes
 
 	err = chain.AppendBlock(block)
