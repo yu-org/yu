@@ -373,9 +373,9 @@ func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 		Where("finalize = ?", true).
 		Order("height DESC").
 		Limit(1).
-		First(&bs).Error
+		Find(&bs).Error
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	return bs.toBlock()
 }

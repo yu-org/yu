@@ -271,7 +271,7 @@ func (h *Poa) FinalizeBlock(block *types.Block) {
 	}
 	err := h.Chain.Finalize(block)
 	if err != nil {
-		logrus.Info("finalize block failed: %s", err)
+		logrus.Error("finalize block failed:", err)
 	}
 }
 
