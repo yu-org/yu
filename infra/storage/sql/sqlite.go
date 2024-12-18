@@ -4,6 +4,9 @@ import (
 	"github.com/yu-org/yu/infra/storage"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"os"
+	"time"
 )
 
 type Sqlite struct {
@@ -11,7 +14,11 @@ type Sqlite struct {
 }
 
 func NewSqlite(dsn string) (*Sqlite, error) {
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{CreateBatchSize: 50000})
+	newLogger := logger.New(os.Stderr, logger.Config{SlowThreshold: time.Second})
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
+		Logger:          newLogger,
+		CreateBatchSize: 50000,
+	})
 	if err != nil {
 		return nil, err
 	}
