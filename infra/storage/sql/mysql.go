@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"log"
 	"os"
 	"time"
 )
@@ -14,7 +15,8 @@ type Mysql struct {
 }
 
 func NewMysql(dsn string) (*Mysql, error) {
-	newLogger := logger.New(os.Stdout, logger.Config{SlowThreshold: time.Second})
+	newLogger := logger.New(
+		log.New(os.Stdout, "/r/n", log.LstdFlags), logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})
