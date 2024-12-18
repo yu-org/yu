@@ -14,7 +14,7 @@ type PostgreSql struct {
 }
 
 func NewPostgreSql(dsn string) (*PostgreSql, error) {
-	newLogger := logger.New(os.Stderr, logger.Config{SlowThreshold: time.Second})
+	newLogger := logger.New(os.Stdout, logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

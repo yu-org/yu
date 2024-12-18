@@ -14,7 +14,7 @@ type Mysql struct {
 }
 
 func NewMysql(dsn string) (*Mysql, error) {
-	newLogger := logger.New(os.Stderr, logger.Config{SlowThreshold: time.Second})
+	newLogger := logger.New(os.Stdout, logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: newLogger,
 	})

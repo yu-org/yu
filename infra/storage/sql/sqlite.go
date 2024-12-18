@@ -14,7 +14,7 @@ type Sqlite struct {
 }
 
 func NewSqlite(dsn string) (*Sqlite, error) {
-	newLogger := logger.New(os.Stderr, logger.Config{SlowThreshold: time.Second})
+	newLogger := logger.New(os.Stdout, logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger:          newLogger,
 		CreateBatchSize: 50000,
