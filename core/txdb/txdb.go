@@ -130,5 +130,8 @@ func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
 	}
 	receipt := new(Receipt)
 	err = receipt.Decode(byt)
+	if err != nil {
+		logrus.Errorf("TxDB.GetReceipt(%s), Decode failed: %s, error: %v", txHash.String(), string(byt), err)
+	}
 	return receipt, err
 }
