@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
+
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/env"
@@ -9,12 +10,9 @@ import (
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/utils/ip"
-	"sync"
 )
 
 type Kernel struct {
-	mutex sync.Mutex
-
 	cfg *config.KernelConf
 
 	RunMode common.RunMode

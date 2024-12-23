@@ -43,7 +43,7 @@ type ItxPool interface {
 }
 
 type IunpackedTxns interface {
-	Insert(input *SignedTxn)
+	Insert(input *SignedTxn) error
 	Deletes(txnHashes []Hash)
 	Exist(txnHash Hash) bool
 	Get(txnHash Hash) *SignedTxn

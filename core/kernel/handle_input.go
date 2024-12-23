@@ -41,8 +41,6 @@ func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 
 func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	metrics.KernelHandleTxnCounter.WithLabelValues().Inc()
-	k.mutex.Lock()
-	defer k.mutex.Unlock()
 	tri := k.Land.GetTripod(stxn.TripodName())
 	if tri != nil {
 		err := tri.PreTxnHandler.PreHandleTxn(stxn)

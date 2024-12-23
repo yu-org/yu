@@ -93,8 +93,7 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	if tp.nodeType == LightNode {
 		return nil
 	}
-	tp.unpackedTxns.Insert(stxn)
-	return nil
+	return tp.unpackedTxns.Insert(stxn)
 }
 
 func (tp *TxPool) SetOrder(order map[int]Hash) {

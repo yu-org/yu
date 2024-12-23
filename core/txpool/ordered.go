@@ -1,6 +1,7 @@
 package txpool
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -25,14 +26,17 @@ func newOrderedTxns() *orderedTxns {
 	}
 }
 
-func (ot *orderedTxns) Insert(input *SignedTxn) {
+func (ot *orderedTxns) Insert(input *SignedTxn) error {
 	//logrus.WithField("txpool", "ordered-txns").
 	//	Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
-
 	ot.Lock()
 	defer ot.Unlock()
+	if _, ok := ot.idx[input.TxnHash]; ok {
+		return fmt.Errorf("insert txn %s duplicated", input.TxnHash.String())
+	}
 	ot.idx[input.TxnHash] = input
 	ot.txns = append(ot.txns, input)
+	return nil
 }
 
 func (ot *orderedTxns) SetOrder(order map[int]Hash) {
