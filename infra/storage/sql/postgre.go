@@ -1,27 +1,40 @@
 package sql
 
 import (
-	"github.com/yu-org/yu/infra/storage"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"log"
 	"os"
 	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
+	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/infra/storage"
 )
 
 type PostgreSql struct {
 	*gorm.DB
 }
 
-func NewPostgreSql(dsn string) (*PostgreSql, error) {
+func NewPostgreSql(cfg *config.SqlDbConf) (*PostgreSql, error) {
 	newLogger := logger.New(
 		log.New(os.Stdout, "/r/n", log.LstdFlags), logger.Config{SlowThreshold: time.Second})
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(cfg.Dsn), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+	if cfg.MaxOpenConnections > 0 {
+		sqlDB.SetMaxOpenConns(cfg.MaxOpenConnections)
+	}
+	if cfg.MaxIdleConnections > 0 {
+		sqlDB.SetMaxIdleConns(cfg.MaxIdleConnections)
 	}
 	return &PostgreSql{db}, nil
 }

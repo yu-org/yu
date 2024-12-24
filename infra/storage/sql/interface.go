@@ -1,10 +1,11 @@
 package sql
 
 import (
+	"gorm.io/gorm"
+
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/infra/storage"
-	"gorm.io/gorm"
 )
 
 type SqlDB interface {
@@ -17,11 +18,11 @@ type SqlDB interface {
 func NewSqlDB(cfg *config.SqlDbConf) (SqlDB, error) {
 	switch cfg.SqlDbType {
 	case "sqlite":
-		return NewSqlite(cfg.Dsn)
+		return NewSqlite(cfg)
 	case "mysql":
-		return NewMysql(cfg.Dsn)
+		return NewMysql(cfg)
 	case "postgre":
-		return NewPostgreSql(cfg.Dsn)
+		return NewPostgreSql(cfg)
 	default:
 		return nil, yerror.NoSqlDbType
 	}
