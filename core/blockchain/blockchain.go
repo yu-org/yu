@@ -156,7 +156,7 @@ func (bc *BlockChain) appendCompactBlock(b *CompactBlock) error {
 
 func (bc *BlockChain) ExistsBlock(blockHash Hash) (bool, error) {
 	var bss []BlocksScheme
-	err := bc.chain.Db().Where(&BlocksScheme{
+	err := bc.chain.Db().Debug().Where(&BlocksScheme{
 		Hash: blockHash.String(),
 	}).Find(&bss).Error
 	if err != nil {
@@ -168,7 +168,7 @@ func (bc *BlockChain) ExistsBlock(blockHash Hash) (bool, error) {
 
 func (bc *BlockChain) GetCompactBlock(blockHash Hash) (*CompactBlock, error) {
 	var bs BlocksScheme
-	result := bc.chain.Db().Where(&BlocksScheme{
+	result := bc.chain.Db().Debug().Where(&BlocksScheme{
 		Hash: blockHash.String(),
 	}).Find(&bs)
 	err := result.Error
@@ -195,7 +195,7 @@ func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, e
 		return block.Compact(), nil
 	}
 	var bs BlocksScheme
-	result := bc.chain.Db().Where(&BlocksScheme{
+	result := bc.chain.Db().Debug().Where(&BlocksScheme{
 		Height: height,
 	}).Find(&bs)
 	err := result.Error
@@ -439,7 +439,7 @@ func (bc *BlockChain) GetEndBlock() (*Block, error) {
 }
 
 func (bc *BlockChain) GetAllCompactBlocks() ([]*CompactBlock, error) {
-	rows, err := bc.chain.Db().Model(&BlocksScheme{}).Rows()
+	rows, err := bc.chain.Db().Debug().Model(&BlocksScheme{}).Rows()
 	if err != nil {
 		return nil, err
 	}
