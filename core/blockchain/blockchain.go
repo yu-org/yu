@@ -376,11 +376,12 @@ func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 		return block.Compact(), nil
 	}
 	var bs BlocksScheme
-	err := bc.chain.Db().Model(&BlocksScheme{}).
-		Where("finalize = ?", true).
-		Order("height DESC").
-		Limit(1).
-		Find(&bs).Error
+	//err := bc.chain.Db().Model(&BlocksScheme{}).
+	//	Where("finalize = ?", true).
+	//	Order("height DESC").
+	//	Limit(1).
+	//	Find(&bs).Error
+	err := bc.chain.Db().Raw("select * from blockchain where finalize = ? ORDER BY height DESC LIMIT 1", true).Find(&bs).Error
 	if err != nil {
 		return nil, err
 	}
