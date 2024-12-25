@@ -221,10 +221,12 @@ func (bc *BlockChain) GetFinalizedCompactBlockByHeight(height BlockNum) (*Compac
 		return block.Compact(), nil
 	}
 	var bs BlocksScheme
-	result := bc.chain.Db().Where(&BlocksScheme{
-		Height:   height,
-		Finalize: true,
-	}).Find(&bs)
+	//result := bc.chain.Db().Where(&BlocksScheme{
+	//	Height:   height,
+	//	Finalize: true,
+	//}).Find(&bs)
+
+	result := bc.chain.Db().Raw("SELECT * FROM blockchain WHERE height = ? AND finalize = ?", height, true).Find(&bs)
 	err := result.Error
 
 	if err != nil {
