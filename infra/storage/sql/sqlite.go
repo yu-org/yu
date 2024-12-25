@@ -22,6 +22,7 @@ func NewSqlite(cfg *config.SqlDbConf) (*Sqlite, error) {
 		log.New(os.Stdout, "/r/n", log.LstdFlags), logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(sqlite.Open(cfg.Dsn), &gorm.Config{
 		Logger:          newLogger,
+		PrepareStmt:     true,
 		CreateBatchSize: 50000,
 	})
 	if err != nil {
