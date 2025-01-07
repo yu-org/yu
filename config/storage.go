@@ -7,6 +7,9 @@ type KVconf struct {
 	Path string `toml:"path"`
 	// distributed kvdb
 	Hosts []string `toml:"hosts"`
+
+	UseSQlDbConf bool      `toml:"use_sql_db"`
+	SQLDbConf    SqlDbConf `toml:"sql_db"`
 }
 
 type SqlDbConf struct {

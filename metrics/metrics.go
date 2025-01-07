@@ -89,4 +89,5 @@ func init() {
 	prometheus.MustRegister(TxpoolSizeGauge)
 	// prometheus.MustRegister(AppendBlockDuration, StartBlockDuration, EndBlockDuration, FinalizeBlockDuration)
 	prometheus.MustRegister(StateCommitDuration)
+	initTxnDBMetrics()
 }
