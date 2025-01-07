@@ -1,8 +1,12 @@
 package startup
 
 import (
+	"os"
+	"path"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
 	"github.com/yu-org/yu/apps/synchronizer"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/blockchain"
@@ -17,8 +21,6 @@ import (
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/utils/codec"
-	"os"
-	"path"
 )
 
 var (
