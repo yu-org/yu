@@ -10,6 +10,7 @@ import (
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/infra/storage/sql"
+	"github.com/yu-org/yu/metrics"
 )
 
 const (
@@ -32,7 +33,21 @@ type txnkvdb struct {
 	txnKV kv.KV
 }
 
-func (t *txnkvdb) GetTxn(txnHash Hash) (*SignedTxn, error) {
+const (
+	txnType       = "txn"
+	receiptType   = "receipt"
+	successStatus = "success"
+	errStatus     = "err"
+)
+
+func getStatusValue(err error) string {
+	if err == nil {
+		return successStatus
+	}
+	return err.Error()
+}
+
+func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 	t.RLock()
 	defer t.RUnlock()
 	byt, err := t.txnKV.Get(txnHash.Bytes())
@@ -51,7 +66,7 @@ func (t *txnkvdb) ExistTxn(txnHash Hash) bool {
 	return t.txnKV.Exist(txnHash.Bytes())
 }
 
-func (t *txnkvdb) SetTxns(txns []*SignedTxn) error {
+func (t *txnkvdb) SetTxns(txns []*SignedTxn) (err error) {
 	t.Lock()
 	defer t.Unlock()
 	kvtx, err := t.txnKV.NewKvTxn()
@@ -102,7 +117,10 @@ func NewTxDB(nodeTyp int, kvdb kv.Kvdb, kvdbConf *config.KVconf) (ItxDB, error) 
 	return txdb, nil
 }
 
-func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
+func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(txnType, "getTxn", getStatusValue(err)).Inc()
+	}()
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
@@ -117,7 +135,10 @@ func (bb *TxDB) GetTxn(txnHash Hash) (*SignedTxn, error) {
 	return bb.txnKV.GetTxn(txnHash)
 }
 
-func (bb *TxDB) GetTxns(txnHashes []Hash) ([]*SignedTxn, error) {
+func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(txnType, "getTxn", getStatusValue(err)).Inc()
+	}()
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
@@ -146,7 +167,10 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	return bb.txnKV.ExistTxn(txnHash)
 }
 
-func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
+func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(txnType, "setTxns", getStatusValue(err)).Inc()
+	}()
 	if bb.nodeType == LightNode {
 		return nil
 	}
@@ -167,7 +191,10 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) error {
 	return bb.txnKV.SetTxns(txns)
 }
 
-func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) error {
+func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, "setReceipts", getStatusValue(err)).Inc()
+	}()
 	if bb.enableUseSql {
 		for txHash, receipt := range receipts {
 			if err := bb.SetReceipt(txHash, receipt); err != nil {
@@ -179,7 +206,10 @@ func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) error {
 	return bb.receiptKV.SetReceipts(receipts)
 }
 
-func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) error {
+func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, "setReceipt", getStatusValue(err)).Inc()
+	}()
 	if bb.enableUseSql {
 		byt, err := receipt.Encode()
 		if err != nil {
@@ -193,7 +223,10 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) error {
 	return bb.receiptKV.SetReceipt(txHash, receipt)
 }
 
-func (bb *TxDB) GetReceipt(txHash Hash) (*Receipt, error) {
+func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, "getReceipt", getStatusValue(err)).Inc()
+	}()
 	if bb.enableUseSql {
 		var records []TxnDBSchema
 		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "receipt", string(txHash.Bytes())).Find(&records).Error
