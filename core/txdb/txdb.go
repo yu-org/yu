@@ -41,16 +41,16 @@ func NewTxDB(nodeTyp int, kvdb kv.Kvdb, kvdbConf *config.KVconf) (ItxDB, error) 
 		txnKV:     kvdb.New(Txns),
 		receiptKV: kvdb.New(Results),
 	}
-	if kvdbConf.UseSQlDbConf {
+	if kvdbConf != nil && kvdbConf.UseSQlDbConf {
 		db, err := sql.NewSqlDB(&kvdbConf.SQLDbConf)
 		if err != nil {
 			return nil, err
 		}
 		txdb.db = db
 		txdb.enableUseSql = true
-	}
-	if err := txdb.db.AutoMigrate(&TxnDBSchema{}); err != nil {
-		return nil, err
+		if err := txdb.db.AutoMigrate(&TxnDBSchema{}); err != nil {
+			return nil, err
+		}
 	}
 	return txdb, nil
 }
