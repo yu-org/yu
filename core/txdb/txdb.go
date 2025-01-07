@@ -44,7 +44,7 @@ func getStatusValue(err error) string {
 	if err == nil {
 		return successStatus
 	}
-	return err.Error()
+	return errStatus
 }
 
 func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
