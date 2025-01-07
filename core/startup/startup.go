@@ -71,7 +71,9 @@ func InitKernel(cfg *config.KernelConf) *kernel.Kernel {
 
 	if TxnDB == nil {
 		TxnDB, err = txdb.NewTxDB(cfg.NodeType, kvdb, &cfg.KVDB)
-		logrus.Fatal("init kvdb error: ", err)
+		if err != nil {
+			logrus.Fatal("init kvdb error: ", err)
+		}
 	}
 	if Chain == nil {
 		Chain = blockchain.NewBlockChain(cfg.NodeType, &cfg.BlockChain, TxnDB)

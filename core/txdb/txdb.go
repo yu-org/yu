@@ -126,7 +126,7 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 	}
 	if bb.enableUseSql {
 		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "txn", string(txnHash.Bytes())).Find(&records).Error
+		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "txn", txnHash.String()).Find(&records).Error
 		// find result in sql database
 		if err == nil && len(records) > 0 {
 			return DecodeSignedTxn([]byte(records[0].Value))
@@ -159,7 +159,7 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	}
 	if bb.enableUseSql {
 		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "txn", string(txnHash.Bytes())).Find(&records).Error
+		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "txn", txnHash.String()).Find(&records).Error
 		if err == nil && len(records) > 0 {
 			return true
 		}
@@ -181,7 +181,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 				logrus.Errorf("TxDB.SetTxns set tx(%s) failed: %v", txn.TxnHash.String(), err)
 				return err
 			}
-			if err := bb.db.Db().Exec("insert into txndb (type,key,value) values (?,?,?)", "txn", string(txn.TxnHash.Bytes()), string(txbyt)).Error; err != nil {
+			if err := bb.db.Db().Exec("insert into txndb (type,key,value) values (?,?,?)", "txn", txn.TxnHash.String(), string(txbyt)).Error; err != nil {
 				logrus.Errorf("Insert TxDB.SetTxns tx(%s) failed: %v", txn.TxnHash.String(), err)
 				return err
 			}
@@ -215,7 +215,7 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 		if err != nil {
 			return err
 		}
-		if err := bb.db.Db().Exec("insert into txndb (type,key,value) values (?,?,?)", "receipt", string(txHash.Bytes()), string(byt)).Error; err != nil {
+		if err := bb.db.Db().Exec("insert into txndb (type,key,value) values (?,?,?)", "receipt", txHash.String(), string(byt)).Error; err != nil {
 			return err
 		}
 		return nil
@@ -229,7 +229,7 @@ func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	}()
 	if bb.enableUseSql {
 		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "receipt", string(txHash.Bytes())).Find(&records).Error
+		err := bb.db.Db().Raw("select value from txndb where type = ? and key = ?", "receipt", txHash.String()).Find(&records).Error
 		if err == nil && len(records) > 0 {
 			receipt := new(Receipt)
 			err = receipt.Decode([]byte(records[0].Value))
