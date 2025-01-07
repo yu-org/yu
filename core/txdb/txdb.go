@@ -148,6 +148,9 @@ func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
 		if err != nil {
 			return nil, err
 		}
+		if result == nil {
+			continue
+		}
 		txns = append(txns, result)
 	}
 	return txns, nil
