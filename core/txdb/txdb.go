@@ -90,7 +90,7 @@ func (t *txnkvdb) SetTxns(txns []*SignedTxn) (err error) {
 type TxnDBSchema struct {
 	Type    string `gorm:"type:varchar(10)"`
 	HashKey string `gorm:"primaryKey,length:255;type:text"`
-	Value   []byte `gorm:"type:blob"`
+	Value   []byte `gorm:"type:mediumblob"`
 }
 
 func (TxnDBSchema) TableName() string {
