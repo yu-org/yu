@@ -232,9 +232,6 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 }
 
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, "getReceipt", getStatusValue(err)).Inc()
-	}()
 	r, err := bb.receiptKV.GetReceipt(txHash)
 	if err == nil && r == nil {
 		var records []TxnDBSchema
