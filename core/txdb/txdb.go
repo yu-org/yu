@@ -34,11 +34,20 @@ type txnkvdb struct {
 }
 
 const (
+	sqlSourceType = "sql"
+	kvSourceType  = "kv"
 	txnType       = "txn"
 	receiptType   = "receipt"
 	successStatus = "success"
 	errStatus     = "err"
 )
+
+func getSourceTypeValue(enableSQL bool) string {
+	if enableSQL {
+		return sqlSourceType
+	}
+	return kvSourceType
+}
 
 func getStatusValue(err error) string {
 	if err == nil {
@@ -118,9 +127,6 @@ func NewTxDB(nodeTyp int, kvdb kv.Kvdb, kvdbConf *config.KVconf) (ItxDB, error) 
 }
 
 func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(txnType, "getTxn", getStatusValue(err)).Inc()
-	}()
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
@@ -129,16 +135,17 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "txn", txnHash.String()).Find(&records).Error
 		// find result in sql database
 		if err == nil && len(records) > 0 {
-			return DecodeSignedTxn(records[0].Value)
+			res, err := DecodeSignedTxn(records[0].Value)
+			metrics.TxnDBCounter.WithLabelValues(txnType, sqlSourceType, "getTxn", getStatusValue(err)).Inc()
+			return res, err
 		}
 	}
-	return bb.txnKV.GetTxn(txnHash)
+	res, err := bb.txnKV.GetTxn(txnHash)
+	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", getStatusValue(err)).Inc()
+	return res, err
 }
 
 func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(txnType, "getTxn", getStatusValue(err)).Inc()
-	}()
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
@@ -171,12 +178,12 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 }
 
 func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(txnType, "setTxns", getStatusValue(err)).Inc()
-	}()
 	if bb.nodeType == LightNode {
 		return nil
 	}
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(txnType, getSourceTypeValue(bb.enableUseSql), "setTxns", getStatusValue(err)).Inc()
+	}()
 	if bb.enableUseSql {
 		for _, txn := range txns {
 			txbyt, err := txn.Encode()
@@ -195,9 +202,6 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 }
 
 func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, "setReceipts", getStatusValue(err)).Inc()
-	}()
 	if bb.enableUseSql {
 		for txHash, receipt := range receipts {
 			if err := bb.SetReceipt(txHash, receipt); err != nil {
@@ -211,7 +215,7 @@ func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
 
 func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, "setReceipt", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(bb.enableUseSql), "setReceipt", getStatusValue(err)).Inc()
 	}()
 	if bb.enableUseSql {
 		byt, err := receipt.Encode()
@@ -227,21 +231,19 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 }
 
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
-	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, "getReceipt", getStatusValue(err)).Inc()
-	}()
 	if bb.enableUseSql {
 		var records []TxnDBSchema
 		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "receipt", txHash.String()).Find(&records).Error
 		if err == nil && len(records) > 0 {
 			receipt := new(Receipt)
 			err = receipt.Decode(records[0].Value)
-			if err == nil {
-				return receipt, nil
-			}
+			metrics.TxnDBCounter.WithLabelValues(receiptType, sqlSourceType, "getReceipt", getStatusValue(err)).Inc()
+			return receipt, err
 		}
 	}
-	return bb.receiptKV.GetReceipt(txHash)
+	res, err := bb.receiptKV.GetReceipt(txHash)
+	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", getStatusValue(err)).Inc()
+	return res, err
 }
 
 type receipttxnkvdb struct {
