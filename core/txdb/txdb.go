@@ -124,7 +124,8 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
-	if bb.enableUseSql {
+	r, err := bb.txnKV.GetTxn(txnHash)
+	if err == nil && r == nil {
 		var records []TxnDBSchema
 		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "txn", txnHash.String()).Find(&records).Error
 		// find result in sql database
@@ -132,7 +133,7 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 			return DecodeSignedTxn(records[0].Value)
 		}
 	}
-	return bb.txnKV.GetTxn(txnHash)
+	return r, err
 }
 
 func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
@@ -160,14 +161,15 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	if bb.nodeType == LightNode {
 		return false
 	}
-	if bb.enableUseSql {
+	find := bb.txnKV.ExistTxn(txnHash)
+	if !find {
 		var records []TxnDBSchema
 		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "txn", txnHash.String()).Find(&records).Error
 		if err == nil && len(records) > 0 {
 			return true
 		}
 	}
-	return bb.txnKV.ExistTxn(txnHash)
+	return find
 }
 
 func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
@@ -230,7 +232,8 @@ func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	defer func() {
 		metrics.TxnDBCounter.WithLabelValues(receiptType, "getReceipt", getStatusValue(err)).Inc()
 	}()
-	if bb.enableUseSql {
+	r, err := bb.receiptKV.GetReceipt(txHash)
+	if err == nil && r == nil {
 		var records []TxnDBSchema
 		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "receipt", txHash.String()).Find(&records).Error
 		if err == nil && len(records) > 0 {
@@ -241,7 +244,7 @@ func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 			}
 		}
 	}
-	return bb.receiptKV.GetReceipt(txHash)
+	return r, err
 }
 
 type receipttxnkvdb struct {
