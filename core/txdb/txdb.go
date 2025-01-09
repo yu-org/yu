@@ -9,7 +9,6 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
-	"github.com/yu-org/yu/infra/storage/sql"
 	"github.com/yu-org/yu/metrics"
 )
 
@@ -23,9 +22,6 @@ type TxDB struct {
 
 	txnKV     *txnkvdb
 	receiptKV *receipttxnkvdb
-
-	enableUseSql bool
-	db           sql.SqlDB
 }
 
 type txnkvdb struct {
@@ -112,17 +108,6 @@ func NewTxDB(nodeTyp int, kvdb kv.Kvdb, kvdbConf *config.KVconf) (ItxDB, error) 
 		txnKV:     &txnkvdb{txnKV: kvdb.New(Txns)},
 		receiptKV: &receipttxnkvdb{receiptKV: kvdb.New(Results)},
 	}
-	if kvdbConf != nil && kvdbConf.UseSQlDbConf {
-		db, err := sql.NewSqlDB(&kvdbConf.SQLDbConf)
-		if err != nil {
-			return nil, err
-		}
-		txdb.db = db
-		txdb.enableUseSql = true
-		if err := txdb.db.AutoMigrate(&TxnDBSchema{}); err != nil {
-			return nil, err
-		}
-	}
 	return txdb, nil
 }
 
@@ -131,16 +116,6 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 		return nil, nil
 	}
 	r, err := bb.txnKV.GetTxn(txnHash)
-	if err == nil && r == nil {
-		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "txn", txnHash.String()).Find(&records).Error
-		// find result in sql database
-		if err == nil && len(records) > 0 {
-			res, err := DecodeSignedTxn(records[0].Value)
-			metrics.TxnDBCounter.WithLabelValues(txnType, sqlSourceType, "getTxn", getStatusValue(err)).Inc()
-			return res, err
-		}
-	}
 	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", getStatusValue(err)).Inc()
 	return r, err
 }
@@ -168,13 +143,6 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 		return false
 	}
 	find := bb.txnKV.ExistTxn(txnHash)
-	if !find {
-		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "txn", txnHash.String()).Find(&records).Error
-		if err == nil && len(records) > 0 {
-			return true
-		}
-	}
 	return find
 }
 
@@ -183,66 +151,27 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 		return nil
 	}
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(txnType, getSourceTypeValue(bb.enableUseSql), "setTxns", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(txnType, getSourceTypeValue(false), "setTxns", getStatusValue(err)).Inc()
 	}()
-	if bb.enableUseSql {
-		for _, txn := range txns {
-			txbyt, err := txn.Encode()
-			if err != nil {
-				logrus.Errorf("TxDB.SetTxns set tx(%s) failed: %v", txn.TxnHash.String(), err)
-				return err
-			}
-			if err := bb.db.Db().Exec("insert into txndb (type, hash_key, value) values (?,?,?)", "txn", txn.TxnHash.String(), txbyt).Error; err != nil {
-				logrus.Errorf("Insert TxDB.SetTxns tx(%s) failed: %v", txn.TxnHash.String(), err)
-				return err
-			}
-		}
-		return nil
-	}
 	return bb.txnKV.SetTxns(txns)
 }
 
 func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
-	if bb.enableUseSql {
-		for txHash, receipt := range receipts {
-			if err := bb.SetReceipt(txHash, receipt); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+	defer func() {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(false), "setReceipts", getStatusValue(err)).Inc()
+	}()
 	return bb.receiptKV.SetReceipts(receipts)
 }
 
 func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(bb.enableUseSql), "setReceipt", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(false), "setReceipt", getStatusValue(err)).Inc()
 	}()
-	if bb.enableUseSql {
-		byt, err := receipt.Encode()
-		if err != nil {
-			return err
-		}
-		if err := bb.db.Db().Exec("insert into txndb (type, hash_key, value) values (?,?,?)", "receipt", txHash.String(), byt).Error; err != nil {
-			return err
-		}
-		return nil
-	}
 	return bb.receiptKV.SetReceipt(txHash, receipt)
 }
 
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	r, err := bb.receiptKV.GetReceipt(txHash)
-	if err == nil && r == nil {
-		var records []TxnDBSchema
-		err := bb.db.Db().Raw("select value from txndb where type = ? and hash_key = ?", "receipt", txHash.String()).Find(&records).Error
-		if err == nil && len(records) > 0 {
-			receipt := new(Receipt)
-			err = receipt.Decode(records[0].Value)
-			metrics.TxnDBCounter.WithLabelValues(receiptType, sqlSourceType, "getReceipt", getStatusValue(err)).Inc()
-			return receipt, err
-		}
-	}
 	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", getStatusValue(err)).Inc()
 	return r, err
 }
