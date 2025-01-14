@@ -1,10 +1,12 @@
 package kernel
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
 	. "github.com/yu-org/yu/core/protocol"
-	"net/http"
 )
 
 func (k *Kernel) HandleHttp() {
@@ -29,7 +31,7 @@ func (k *Kernel) HandleHttp() {
 	if k.cfg.IsAdmin {
 		admin := api.Group(AdminType)
 		admin.GET("stop", func(c *gin.Context) {
-			k.stopChan <- struct{}{}
+			close(k.stopChan)
 		})
 	}
 
