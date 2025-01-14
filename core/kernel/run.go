@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"github.com/sirupsen/logrus"
+
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
@@ -10,17 +11,20 @@ import (
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
-func (k *Kernel) Run() {
-	go func() {
-		for {
-			err := k.AcceptUnpkgTxns()
-			if err != nil {
-				logrus.Errorf("accept unpacked txns error: %s", err.Error())
-			}
+func (k *Kernel) AcceptUnpkgTxnsJob() {
+	for {
+		err := k.AcceptUnpkgTxns()
+		if err != nil {
+			logrus.Errorf("accept unpacked txns error: %s", err.Error())
 		}
+	}
+}
 
+func (k *Kernel) Run() {
+	defer func() {
+		logrus.Info("Run exit")
+		k.wg.Done()
 	}()
-
 	switch k.RunMode {
 	case LocalNode:
 		for {
@@ -42,14 +46,18 @@ func (k *Kernel) Run() {
 		}
 	case MasterWorker:
 		for {
-			err := k.MasterWorkerRun()
-			logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
+			select {
+			case <-k.stopChan:
+				return
+			default:
+			}
+			if err := k.MasterWorkerRun(); err != nil {
+				logrus.Errorf("master-worker-run blockchain error: %s", err.Error())
+			}
 		}
-
 	default:
 		logrus.Panic(NoRunMode)
 	}
-
 }
 
 func (k *Kernel) LocalRun() (newBlock *Block, err error) {
