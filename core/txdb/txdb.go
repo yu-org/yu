@@ -57,6 +57,7 @@ func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 	defer t.RUnlock()
 	byt, err := t.txnKV.Get(txnHash.Bytes())
 	if err != nil {
+		logrus.Errorf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
 		return nil, err
 	}
 	if byt == nil {

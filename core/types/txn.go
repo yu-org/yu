@@ -3,10 +3,12 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"unsafe"
+
 	"github.com/golang/protobuf/proto"
+	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/types/goproto"
-	"unsafe"
 )
 
 type SignedTxn struct {
@@ -139,6 +141,7 @@ func DecodeSignedTxn(data []byte) (st *SignedTxn, err error) {
 	var pb goproto.SignedTxn
 	err = proto.Unmarshal(data, &pb)
 	if err != nil {
+		logrus.Errorf("DecodeSignedTxn: data: %v, error: %v", data, err)
 		return nil, err
 	}
 	return SignedTxnFromPb(&pb)
