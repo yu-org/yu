@@ -1,6 +1,8 @@
 package blockchain
 
 import (
+	"fmt"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
@@ -92,6 +94,7 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 	} else {
 		PeerID, err = peer.Decode(b.PeerID)
 		if err != nil {
+			logrus.Errorf("toBlock peer.Decode ,PeerID: %s, error: %v", b.PeerID, err)
 			return nil, err
 		}
 	}
@@ -99,6 +102,10 @@ func (b *BlocksScheme) toBlock() (*CompactBlock, error) {
 	var validators goproto.Validators
 	err = proto.Unmarshal(b.Validators, &validators)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":      err,
+			"validators": fmt.Sprintf("%x", b.Validators),
+		}).Error("toBlock proto.Unmarshal error")
 		return nil, err
 	}
 
