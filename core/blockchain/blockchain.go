@@ -207,6 +207,7 @@ func (bc *BlockChain) GetCompactBlockByHeight(height BlockNum) (*CompactBlock, e
 	err := result.Error
 
 	if err != nil {
+		logrus.Error("GetCompactBlockByHeight height: ", height, " error: ", err)
 		return nil, err
 	}
 
