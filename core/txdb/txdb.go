@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	Txns    = "txns"
-	Results = "results"
+	Txns       = "txns"
+	Results    = "results"
+	maxRetries = 5
 )
 
 type TxDB struct {
@@ -52,18 +53,46 @@ func getStatusValue(err error) string {
 	return errStatus
 }
 
+// func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
+// 	t.RLock()
+// 	defer t.RUnlock()
+// 	byt, err := t.txnKV.Get(txnHash.Bytes())
+// 	if err != nil {
+// 		logrus.Errorf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
+// 		return nil, err
+// 	}
+// 	if byt == nil {
+// 		return nil, nil
+// 	}
+// 	return DecodeSignedTxn(byt)
+// }
+
 func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
-	t.RLock()
-	defer t.RUnlock()
-	byt, err := t.txnKV.Get(txnHash.Bytes())
-	if err != nil {
-		logrus.Errorf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
-		return nil, err
+	var byt []byte
+
+	for i := 0; i < maxRetries; i++ {
+		t.RLock()
+		byt, err = t.txnKV.Get(txnHash.Bytes())
+		t.RUnlock()
+		if err != nil {
+			logrus.Errorf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
+			return nil, err
+		}
+		if byt == nil {
+			return nil, nil
+		}
+		txn, err = DecodeSignedTxn(byt)
+		if err == nil {
+			if i > 0 {
+				logrus.Warnf("TxDB.GetTxn(%s), retry %d times, data: %s", txnHash.String(), i, string(byt))
+			}
+			return txn, nil
+		} else {
+			logrus.Errorf("TxDB.GetTxn(%s), DecodeSignedTxn failed, data: %s, retry %d times, error: %v", txnHash.String(), string(byt), i, err)
+		}
 	}
-	if byt == nil {
-		return nil, nil
-	}
-	return DecodeSignedTxn(byt)
+
+	return nil, err
 }
 
 func (t *txnkvdb) ExistTxn(txnHash Hash) bool {
@@ -117,6 +146,9 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 		return nil, nil
 	}
 	r, err := bb.txnKV.GetTxn(txnHash)
+	if err != nil {
+		logrus.Errorf("TxDB.GetTxn(%s), failed: %v", txnHash.String(), err)
+	}
 	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", getStatusValue(err)).Inc()
 	return r, err
 }
@@ -182,23 +214,53 @@ type receipttxnkvdb struct {
 	receiptKV kv.KV
 }
 
+// func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
+// 	r.RLock()
+// 	defer r.RUnlock()
+// 	byt, err := r.receiptKV.Get(txHash.Bytes())
+// 	if err != nil {
+// 		logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
+// 		return nil, err
+// 	}
+// 	if byt == nil {
+// 		return nil, nil
+// 	}
+// 	receipt := new(Receipt)
+// 	err = receipt.Decode(byt)
+// 	if err != nil {
+// 		logrus.Errorf("TxDB.GetReceipt(%s), Decode failed: %s, error: %v", txHash.String(), string(byt), err)
+// 	}
+// 	return receipt, err
+// }
+
 func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
-	r.RLock()
-	defer r.RUnlock()
-	byt, err := r.receiptKV.Get(txHash.Bytes())
-	if err != nil {
-		logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
-		return nil, err
+	var byt []byte
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		r.RLock()
+		byt, err = r.receiptKV.Get(txHash.Bytes())
+		r.RUnlock()
+		if err != nil {
+			logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
+			return nil, err
+		}
+		if byt == nil {
+			return nil, nil
+		}
+		receipt := new(Receipt)
+		err = receipt.Decode(byt)
+		if err == nil {
+			if i > 0 {
+				logrus.Infof("TxDB.GetReceipt(%s), succeeded after %d retries, data: %s", txHash.String(), i, string(byt))
+			}
+			return receipt, nil
+		} else {
+			logrus.Errorf("TxDB.GetReceipt(%s), Decode failed: %s, retry %d times, error: %v", txHash.String(), string(byt), i, err)
+		}
 	}
-	if byt == nil {
-		return nil, nil
-	}
-	receipt := new(Receipt)
-	err = receipt.Decode(byt)
-	if err != nil {
-		logrus.Errorf("TxDB.GetReceipt(%s), Decode failed: %s, error: %v", txHash.String(), string(byt), err)
-	}
-	return receipt, err
+
+	return nil, err
 }
 
 func (r *receipttxnkvdb) SetReceipt(txHash Hash, receipt *Receipt) error {
