@@ -21,8 +21,7 @@ func NewMysql(cfg *config.SqlDbConf) (*Mysql, error) {
 	newLogger := logger.New(
 		log.New(os.Stdout, "/r/n", log.LstdFlags), logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(mysql.Open(cfg.Dsn), &gorm.Config{
-		Logger:      newLogger,
-		PrepareStmt: true,
+		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err
