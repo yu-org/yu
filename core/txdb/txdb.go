@@ -183,8 +183,8 @@ type receipttxnkvdb struct {
 }
 
 func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 	byt, err := r.receiptKV.Get(txHash.Bytes())
 	if err != nil {
 		logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
