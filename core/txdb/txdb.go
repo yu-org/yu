@@ -71,9 +71,9 @@ func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 	var byt []byte
 
 	for i := 0; i < maxRetries; i++ {
-		t.RLock()
+		t.Lock()
 		byt, err = t.txnKV.Get(txnHash.Bytes())
-		t.RUnlock()
+		t.Unlock()
 		if err != nil {
 			logrus.Errorf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
 			return nil, err
@@ -238,9 +238,9 @@ func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 	var err error
 
 	for i := 0; i < maxRetries; i++ {
-		r.RLock()
+		r.Lock()
 		byt, err = r.receiptKV.Get(txHash.Bytes())
-		r.RUnlock()
+		r.Unlock()
 		if err != nil {
 			logrus.Errorf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
 			return nil, err
