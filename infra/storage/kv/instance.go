@@ -27,11 +27,3 @@ func (k *KvInstance) Delete(key []byte) error {
 func (k *KvInstance) Exist(key []byte) bool {
 	return k.kvdb.Exist(k.prefix, key)
 }
-
-func (k *KvInstance) Iter(key []byte) (Iterator, error) {
-	return k.kvdb.Iter(k.prefix, key)
-}
-
-func (k *KvInstance) NewKvTxn() (KvTxn, error) {
-	return k.kvdb.NewKvTxn(k.prefix)
-}
