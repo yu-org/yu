@@ -6,7 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	. "github.com/yu-org/yu/common"
-	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/storage/kv"
 	"github.com/yu-org/yu/metrics"
@@ -132,7 +131,7 @@ func (TxnDBSchema) TableName() string {
 	return "txndb"
 }
 
-func NewTxDB(nodeTyp int, kvdb kv.Kvdb, kvdbConf *config.KVconf) (ItxDB, error) {
+func NewTxDB(nodeTyp int, kvdb kv.Kvdb) (ItxDB, error) {
 	txdb := &TxDB{
 		nodeType:  nodeTyp,
 		txnKV:     &txnkvdb{txnKV: kvdb.New(Txns)},

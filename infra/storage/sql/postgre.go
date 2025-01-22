@@ -22,7 +22,7 @@ func NewPostgreSql(cfg *config.SqlDbConf) (*PostgreSql, error) {
 		log.New(os.Stdout, "/r/n", log.LstdFlags), logger.Config{SlowThreshold: time.Second})
 	db, err := gorm.Open(postgres.Open(cfg.Dsn), &gorm.Config{
 		Logger:      newLogger,
-		PrepareStmt: true,
+		PrepareStmt: false,
 	})
 	if err != nil {
 		return nil, err
