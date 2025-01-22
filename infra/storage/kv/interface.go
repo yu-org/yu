@@ -15,6 +15,8 @@ type Kvdb interface {
 	Set(prefix string, key []byte, value []byte) error
 	Delete(prefix string, key []byte) error
 	Exist(prefix string, key []byte) bool
+	Iter(prefix string, key []byte) (Iterator, error)
+	NewKvTxn(prefix string) (KvTxn, error)
 }
 
 func NewKvdb(cfg *KVconf) (Kvdb, error) {
@@ -36,6 +38,8 @@ type KV interface {
 	Set(key []byte, value []byte) error
 	Delete(key []byte) error
 	Exist(key []byte) bool
+	Iter(key []byte) (Iterator, error)
+	NewKvTxn() (KvTxn, error)
 }
 
 type Iterator interface {
