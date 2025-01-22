@@ -9,7 +9,7 @@ import (
 )
 
 type Pebble struct {
-	sync.Mutex
+	sync.RWMutex
 	db *pebble.DB
 }
 
@@ -34,8 +34,8 @@ func (p *Pebble) New(prefix string) KV {
 }
 
 func (p *Pebble) Get(prefix string, key []byte) ([]byte, error) {
-	p.Lock()
-	defer p.Unlock()
+	p.RLock()
+	defer p.RUnlock()
 	key = makeKey(prefix, key)
 	// pebble only returns ErrNotFound, if no value, we should return nil []byte.
 	value, closer, err := p.db.Get(key)
