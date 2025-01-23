@@ -18,3 +18,12 @@ type SqlDbConf struct {
 	MaxOpenConnections int    `toml:"max_open_connections"`
 	MaxIdleConnections int    `toml:"max_idle_connections"`
 }
+
+type SqliteDBConf struct {
+	Path string `toml:"path"`
+}
+
+type TxnConf struct {
+	UseTxnConf          bool `toml:"use_txn_conf"`
+	EnableSqliteStorage bool `toml:"enable_sqlite_storage"`
+}

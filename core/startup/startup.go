@@ -20,6 +20,7 @@ import (
 	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
+	"github.com/yu-org/yu/infra/storage/sql"
 	"github.com/yu-org/yu/utils/codec"
 )
 
@@ -68,9 +69,13 @@ func InitKernel(cfg *config.KernelConf) *kernel.Kernel {
 	if err != nil {
 		logrus.Fatal("init kvdb error: ", err)
 	}
-
+	if cfg.SqliteDBConf.Path == "" {
+		cfg.SqliteDBConf.Path = "sqlite.db"
+	}
+	cfg.SqliteDBConf.Path = path.Join(cfg.DataDir, cfg.SqliteDBConf.Path)
+	sql.Init(cfg.SqliteDBConf)
 	if TxnDB == nil {
-		TxnDB, err = txdb.NewTxDB(cfg.NodeType, kvdb)
+		TxnDB, err = txdb.NewTxDB(cfg.NodeType, kvdb, cfg.TxnConf)
 		if err != nil {
 			logrus.Fatal("init kvdb error: ", err)
 		}

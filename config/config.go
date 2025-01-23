@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/BurntSushi/toml"
 	"github.com/sirupsen/logrus"
+
 	. "github.com/yu-org/yu/common"
 )
 
@@ -37,6 +38,9 @@ type KernelConf struct {
 	StatedbType string `toml:"statedb_type"`
 
 	KVDB KVconf `toml:"kvdb"`
+
+	TxnConf      TxnConf      `toml:"txn_conf"`
+	SqliteDBConf SqliteDBConf `toml:"sqlite_db_conf"`
 	//---------component config---------
 	BlockChain BlockchainConf `toml:"block_chain"`
 	Txpool     TxpoolConf     `toml:"txpool"`
