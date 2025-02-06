@@ -84,6 +84,7 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 	if bb.enableSqlite {
 		txn, err := bb.txnSqlite.GetTxn(txnHash)
 		if err != nil {
+			metrics.TxnDBCounter.WithLabelValues(txnType, sqlSourceType, "getTxn", getStatusValue(err)).Inc()
 			return nil, err
 		}
 		if txn != nil {
@@ -168,6 +169,7 @@ func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	if bb.enableSqlite {
 		r, err := bb.receiptSqlite.GetReceipt(txHash)
 		if err != nil {
+			metrics.TxnDBCounter.WithLabelValues(receiptType, sqlSourceType, "getReceipt", getStatusValue(err)).Inc()
 			return nil, err
 		}
 		if r != nil {
