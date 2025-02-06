@@ -16,7 +16,10 @@ type sqliteDbConn struct {
 }
 
 type txnSqliteStorage struct {
-	txnConn *sqliteDbConn
+	txnConn       *sqliteDbConn
+	getTxnStmt    *sql.Stmt
+	existStmt     *sql.Stmt
+	insertTxnStmt *sql.Stmt
 }
 
 func (ts *txnSqliteStorage) initdb() error {
@@ -25,7 +28,25 @@ func (ts *txnSqliteStorage) initdb() error {
 		return err
 	}
 	ts.txnConn = &sqliteDbConn{db: db}
-	return ts.applyScheme()
+	if err := ts.applyScheme(); err != nil {
+		return err
+	}
+	stmt, err := db.Prepare("select value from txn where key=?")
+	if err != nil {
+		return err
+	}
+	ts.getTxnStmt = stmt
+	stmt, err = db.Prepare("select count(*) from txn where key=?")
+	if err != nil {
+		return err
+	}
+	ts.existStmt = stmt
+	stmt, err = db.Prepare("insert into txn (key, value) values(?, ?)")
+	if err != nil {
+		return err
+	}
+	ts.insertTxnStmt = stmt
+	return nil
 }
 
 func (ts *txnSqliteStorage) applyScheme() error {
@@ -49,33 +70,21 @@ func (ts *txnSqliteStorage) SetTxns(txns []*SignedTxn) (err error) {
 
 	ts.txnConn.Lock()
 	defer ts.txnConn.Unlock()
-	tx, err := ts.txnConn.db.Begin()
-	if err != nil {
-		return err
-	}
-	stmt, err := tx.Prepare("insert into txn (key, value) values(?, ?)")
-	if err != nil {
-		return err
-	}
+
 	for index, key := range keys {
-		_, err := stmt.Exec(key, values[index])
+		_, err := ts.insertTxnStmt.Exec(key, values[index])
 		if err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func (ts *txnSqliteStorage) ExistTxn(txnHash Hash) bool {
 	h := txnHash.Bytes()
 	ts.txnConn.Lock()
 	defer ts.txnConn.Unlock()
-	db := ts.txnConn.db
-	stmt, err := db.Prepare("select count(*) from txn where key=?")
-	if err != nil {
-		return false
-	}
-	row, err := stmt.Query(h)
+	row, err := ts.existStmt.Query(h)
 	if err != nil {
 		return false
 	}
@@ -102,12 +111,7 @@ func (ts *txnSqliteStorage) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 func (ts *txnSqliteStorage) getTxn(txnHash []byte) (value []byte, err error) {
 	ts.txnConn.Lock()
 	defer ts.txnConn.Unlock()
-	db := ts.txnConn.db
-	stmt, err := db.Prepare("select value from txn where key=?")
-	if err != nil {
-		return nil, err
-	}
-	r, err := stmt.Query(txnHash)
+	r, err := ts.getTxnStmt.Query(txnHash)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +127,9 @@ func (ts *txnSqliteStorage) getTxn(txnHash []byte) (value []byte, err error) {
 }
 
 type receiptSqliteStorage struct {
-	conn *sqliteDbConn
+	conn              *sqliteDbConn
+	getReceiptStmt    *sql.Stmt
+	insertReceiptStmt *sql.Stmt
 }
 
 func (rs *receiptSqliteStorage) initdb() error {
@@ -132,7 +138,21 @@ func (rs *receiptSqliteStorage) initdb() error {
 		return err
 	}
 	rs.conn = &sqliteDbConn{db: db}
-	return rs.applyScheme()
+	err = rs.applyScheme()
+	if err != nil {
+		return err
+	}
+	stmt, err := db.Prepare("select value from receipt where key=?")
+	if err != nil {
+		return err
+	}
+	rs.getReceiptStmt = stmt
+	stmt, err = db.Prepare("insert into receipt (key, value) values(?, ?)")
+	if err != nil {
+		return err
+	}
+	rs.insertReceiptStmt = stmt
+	return nil
 }
 
 func (rs *receiptSqliteStorage) applyScheme() error {
@@ -155,21 +175,13 @@ func (rs *receiptSqliteStorage) SetReceipts(receipts map[Hash]*Receipt) error {
 	}
 	rs.conn.Lock()
 	defer rs.conn.Unlock()
-	tx, err := rs.conn.db.Begin()
-	if err != nil {
-		return err
-	}
-	stmt, err := tx.Prepare("insert into receipt (key, value) values(?, ?)")
-	if err != nil {
-		return err
-	}
 	for index, key := range keys {
-		_, err := stmt.Exec(key, values[index])
+		_, err := rs.insertReceiptStmt.Exec(key, values[index])
 		if err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	return nil
 }
 
 func (rs *receiptSqliteStorage) SetReceipt(txHash Hash, receipt *Receipt) error {
@@ -180,24 +192,14 @@ func (rs *receiptSqliteStorage) SetReceipt(txHash Hash, receipt *Receipt) error 
 	}
 	rs.conn.Lock()
 	defer rs.conn.Unlock()
-	db := rs.conn.db
-	stmt, err := db.Prepare("insert into receipt (key, value) values(?, ?)")
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(key, value)
+	_, err = rs.insertReceiptStmt.Exec(key, value)
 	return err
 }
 
 func (rs *receiptSqliteStorage) GetReceipt(txHash Hash) (*Receipt, error) {
 	rs.conn.Lock()
 	defer rs.conn.Unlock()
-	db := rs.conn.db
-	stmt, err := db.Prepare("select value from receipt where key=?")
-	if err != nil {
-		return nil, err
-	}
-	row, err := stmt.Query(txHash.Bytes())
+	row, err := rs.getReceiptStmt.Query(txHash.Bytes())
 	if err != nil {
 		return nil, err
 	}
