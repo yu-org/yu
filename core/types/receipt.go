@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/infra/trie"
 )
@@ -22,7 +24,8 @@ type Receipt struct {
 	Events []*Event `json:"events,omitempty"`
 	Error  string   `json:"error,omitempty"`
 
-	Extra []byte `json:"extra,omitempty"`
+	Extra         []byte `json:"extra,omitempty"`
+	SaveTimestamp int64  `json:"save_timestamp,omitempty"`
 }
 
 func NewReceipt(events []*Event, err error, extra []byte) *Receipt {
@@ -52,6 +55,9 @@ func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 }
 
 func (r *Receipt) Encode() ([]byte, error) {
+	if r.SaveTimestamp == 0 {
+		r.SaveTimestamp = time.Now().Unix()
+	}
 	var buf bytes.Buffer
 	encoder := json.NewEncoder(&buf)
 	err := encoder.Encode(r)

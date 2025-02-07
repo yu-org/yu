@@ -3,8 +3,6 @@ package txdb
 import (
 	"sync"
 
-	"github.com/sirupsen/logrus"
-
 	. "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
@@ -30,25 +28,17 @@ type TxDB struct {
 }
 
 type txnkvdb struct {
-	sync.RWMutex
+	sync.Mutex
 	txnKV kv.KV
 }
 
 const (
-	sqlSourceType = "sql"
 	kvSourceType  = "kv"
 	txnType       = "txn"
 	receiptType   = "receipt"
 	successStatus = "success"
 	errStatus     = "err"
 )
-
-func getSourceTypeValue(enableSQL bool) string {
-	if enableSQL {
-		return sqlSourceType
-	}
-	return kvSourceType
-}
 
 func getStatusValue(err error) string {
 	if err == nil {
@@ -77,27 +67,25 @@ func NewTxDB(nodeTyp int, kvdb kv.Kvdb, txnConf config.TxnConf) (ItxDB, error) {
 	return txdb, nil
 }
 
+func (bb *TxDB) getTxn(txnHash Hash) (stxn *SignedTxn, err error) {
+	r, err := bb.txnKV.GetTxn(txnHash)
+	if err != nil {
+		return nil, err
+	}
+	return r, err
+}
+
 func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 	if bb.nodeType == LightNode {
 		return nil, nil
 	}
-	if bb.enableSqlite {
-		txn, err := bb.txnSqlite.GetTxn(txnHash)
-		if err != nil {
-			metrics.TxnDBCounter.WithLabelValues(txnType, sqlSourceType, "getTxn", getStatusValue(err)).Inc()
-			return nil, err
-		}
-		if txn != nil {
-			metrics.TxnDBCounter.WithLabelValues(txnType, sqlSourceType, "getTxn", getStatusValue(err)).Inc()
-			return txn, nil
-		}
-	}
-	r, err := bb.txnKV.GetTxn(txnHash)
+	txn, err := bb.getTxn(txnHash)
 	if err != nil {
-		logrus.Debugf("TxDB.GetTxn(%s), failed: %v", txnHash.String(), err)
+		metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", errStatus).Inc()
+		return nil, err
 	}
-	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", getStatusValue(err)).Inc()
-	return r, err
+	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxn", successStatus).Inc()
+	return txn, nil
 }
 
 func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
@@ -106,8 +94,9 @@ func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
 	}
 	txns := make([]*SignedTxn, 0)
 	for _, txnHash := range txnHashes {
-		result, err := bb.GetTxn(txnHash)
+		result, err := bb.getTxn(txnHash)
 		if err != nil {
+			metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxns", errStatus).Inc()
 			return nil, err
 		}
 		if result == nil {
@@ -115,6 +104,7 @@ func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
 		}
 		txns = append(txns, result)
 	}
+	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "getTxns", successStatus).Inc()
 	return txns, nil
 }
 
@@ -122,13 +112,8 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	if bb.nodeType == LightNode {
 		return false
 	}
-	if bb.enableSqlite {
-		exists := bb.txnSqlite.ExistTxn(txnHash)
-		if exists {
-			return exists
-		}
-	}
 	find := bb.txnKV.ExistTxn(txnHash)
+	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "exist", successStatus).Inc()
 	return find
 }
 
@@ -137,52 +122,36 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 		return nil
 	}
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(txnType, getSourceTypeValue(bb.enableSqlite), "setTxns", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "setTxns", getStatusValue(err)).Inc()
 	}()
-	if bb.enableSqlite {
-		return bb.txnSqlite.SetTxns(txns)
-	}
 	return bb.txnKV.SetTxns(txns)
 }
 
 func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(bb.enableSqlite), "setReceipts", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "setReceipts", getStatusValue(err)).Inc()
 	}()
-	if bb.enableSqlite {
-		return bb.receiptSqlite.SetReceipts(receipts)
-	}
 	return bb.receiptKV.SetReceipts(receipts)
 }
 
 func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 	defer func() {
-		metrics.TxnDBCounter.WithLabelValues(receiptType, getSourceTypeValue(bb.enableSqlite), "setReceipt", getStatusValue(err)).Inc()
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "setReceipt", getStatusValue(err)).Inc()
 	}()
-	if bb.enableSqlite {
-		return bb.receiptSqlite.SetReceipt(txHash, receipt)
-	}
 	return bb.receiptKV.SetReceipt(txHash, receipt)
 }
 
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
-	if bb.enableSqlite {
-		r, err := bb.receiptSqlite.GetReceipt(txHash)
-		if err != nil {
-			metrics.TxnDBCounter.WithLabelValues(receiptType, sqlSourceType, "getReceipt", getStatusValue(err)).Inc()
-			return nil, err
-		}
-		if r != nil {
-			metrics.TxnDBCounter.WithLabelValues(receiptType, sqlSourceType, "getReceipt", getStatusValue(err)).Inc()
-			return r, nil
-		}
-	}
 	r, err := bb.receiptKV.GetReceipt(txHash)
-	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", getStatusValue(err)).Inc()
-	return r, err
+	if err != nil {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", errStatus).Inc()
+		return nil, err
+	}
+	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", successStatus).Inc()
+	return r, nil
 }
 
 type receipttxnkvdb struct {
-	sync.RWMutex
+	sync.Mutex
 	receiptKV kv.KV
 }
