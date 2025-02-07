@@ -52,12 +52,10 @@ func (r *Receipt) FillMetadata(block *Block, stxn *SignedTxn, leiCost uint64) {
 	r.BlockHash = block.Hash
 	r.Height = block.Height
 	r.LeiCost = leiCost
+	r.SaveTimestamp = time.Now().Unix()
 }
 
 func (r *Receipt) Encode() ([]byte, error) {
-	if r.SaveTimestamp == 0 {
-		r.SaveTimestamp = time.Now().Unix()
-	}
 	var buf bytes.Buffer
 	encoder := json.NewEncoder(&buf)
 	err := encoder.Encode(r)
