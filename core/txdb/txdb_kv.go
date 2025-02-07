@@ -1,7 +1,7 @@
 package txdb
 
 import (
-	"github.com/sirupsen/logrus"
+	"time"
 
 	. "github.com/yu-org/yu/common"
 	. "github.com/yu-org/yu/core/types"
@@ -9,13 +9,11 @@ import (
 
 func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 	var byt []byte
-
 	for i := 0; i < maxRetries; i++ {
-		t.RLock()
+		t.Lock()
 		byt, err = t.txnKV.Get(txnHash.Bytes())
-		t.RUnlock()
+		t.Unlock()
 		if err != nil {
-			logrus.Debugf("TxDB.GetTxn(%s), t.txnKV.Get(txnHash.Bytes()) failed: %v", txnHash.String(), err)
 			return nil, err
 		}
 		if byt == nil {
@@ -23,38 +21,41 @@ func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 		}
 		txn, err = DecodeSignedTxn(byt)
 		if err == nil {
-			if i > 0 {
-				logrus.Debugf("TxDB.GetTxn(%s), retry %d times, data: %s", txnHash.String(), i, string(byt))
-			}
 			return txn, nil
-		} else {
-			logrus.Debugf("TxDB.GetTxn(%s), DecodeSignedTxn failed, data: %s, retry %d times, error: %v", txnHash.String(), string(byt), i, err)
+		}
+		if i < maxRetries-1 {
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
-
 	return nil, err
 }
 
 func (t *txnkvdb) ExistTxn(txnHash Hash) bool {
-	t.RLock()
-	defer t.RUnlock()
-	return t.txnKV.Exist(txnHash.Bytes())
+	key := txnHash.Bytes()
+	t.Lock()
+	defer t.Unlock()
+	return t.txnKV.Exist(key)
 }
 
 func (t *txnkvdb) SetTxns(txns []*SignedTxn) (err error) {
+	keys := make([][]byte, 0)
+	values := make([][]byte, 0)
+	for _, txn := range txns {
+		txbyt, err := txn.Encode()
+		if err != nil {
+			return err
+		}
+		keys = append(keys, txn.TxnHash.Bytes())
+		values = append(values, txbyt)
+	}
 	t.Lock()
 	defer t.Unlock()
 	kvtx, err := t.txnKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
-	for _, txn := range txns {
-		txbyt, err := txn.Encode()
-		if err != nil {
-			logrus.Debugf("TxDB.SetTxns set tx(%s) failed: %v", txn.TxnHash.String(), err)
-			return err
-		}
-		err = kvtx.Set(txn.TxnHash.Bytes(), txbyt)
+	for i := 0; i < len(txns); i++ {
+		err = kvtx.Set(keys[i], values[i])
 		if err != nil {
 			return err
 		}
@@ -65,13 +66,11 @@ func (t *txnkvdb) SetTxns(txns []*SignedTxn) (err error) {
 func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 	var byt []byte
 	var err error
-
 	for i := 0; i < maxRetries; i++ {
-		r.RLock()
+		r.Lock()
 		byt, err = r.receiptKV.Get(txHash.Bytes())
-		r.RUnlock()
+		r.Unlock()
 		if err != nil {
-			logrus.Debugf("TxDB.GetReceipt(%s), failed: %s, error: %v", txHash.String(), string(byt), err)
 			return nil, err
 		}
 		if byt == nil {
@@ -80,41 +79,45 @@ func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 		receipt := new(Receipt)
 		err = receipt.Decode(byt)
 		if err == nil {
-			if i > 0 {
-				logrus.Debugf("TxDB.GetReceipt(%s), succeeded after %d retries, data: %s", txHash.String(), i, string(byt))
-			}
 			return receipt, nil
-		} else {
-			logrus.Debugf("TxDB.GetReceipt(%s), Decode failed: %s, retry %d times, error: %v", txHash.String(), string(byt), i, err)
+		}
+		if i < maxRetries-1 {
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
-
 	return nil, err
 }
 
 func (r *receipttxnkvdb) SetReceipt(txHash Hash, receipt *Receipt) error {
-	r.Lock()
-	defer r.Unlock()
 	byt, err := receipt.Encode()
 	if err != nil {
 		return err
 	}
-	return r.receiptKV.Set(txHash.Bytes(), byt)
+	key := txHash.Bytes()
+	r.Lock()
+	defer r.Unlock()
+	return r.receiptKV.Set(key, byt)
 }
 
 func (r *receipttxnkvdb) SetReceipts(receipts map[Hash]*Receipt) error {
+	keys := make([][]byte, 0)
+	values := make([][]byte, 0)
+	for txHash, receipt := range receipts {
+		byt, err := receipt.Encode()
+		if err != nil {
+			return err
+		}
+		keys = append(keys, txHash.Bytes())
+		values = append(values, byt)
+	}
 	r.Lock()
 	defer r.Unlock()
 	kvtx, err := r.receiptKV.NewKvTxn()
 	if err != nil {
 		return err
 	}
-	for txHash, receipt := range receipts {
-		byt, err := receipt.Encode()
-		if err != nil {
-			return err
-		}
-		err = kvtx.Set(txHash.Bytes(), byt)
+	for i := 0; i < len(keys); i++ {
+		err = kvtx.Set(keys[i], values[i])
 		if err != nil {
 			return err
 		}
