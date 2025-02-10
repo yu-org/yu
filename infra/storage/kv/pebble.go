@@ -35,10 +35,13 @@ func (p *Pebble) Get(prefix string, key []byte) ([]byte, error) {
 	// pebble only returns ErrNotFound, if no value, we should return nil []byte.
 	value, closer, err := p.db.Get(key)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	if err := closer.Close(); err != nil {
 		return nil, err
+	}
+	if value == nil || len(value) < 1 {
+		return nil, nil
 	}
 	dst := make([]byte, len(value))
 	copy(dst, value)
