@@ -13,7 +13,7 @@ import (
 const (
 	Txns       = "txns"
 	Results    = "results"
-	maxRetries = 10
+	maxRetries = 20
 )
 
 type TxDB struct {
@@ -38,6 +38,7 @@ const (
 	receiptType   = "receipt"
 	successStatus = "success"
 	errStatus     = "err"
+	pbErrStatus   = "pbErr"
 )
 
 func getStatusValue(err error) string {
@@ -144,6 +145,10 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	r, err := bb.receiptKV.GetReceipt(txHash)
 	if err != nil {
+		if pbErr, ok := err.(PebbleGetErr); ok {
+			metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", pbErrStatus).Inc()
+			return nil, pbErr.err
+		}
 		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", errStatus).Inc()
 		return nil, err
 	}
