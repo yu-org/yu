@@ -7,6 +7,14 @@ import (
 	. "github.com/yu-org/yu/core/types"
 )
 
+type PebbleGetErr struct {
+	err error
+}
+
+func (p PebbleGetErr) Error() string {
+	return p.err.Error()
+}
+
 func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 	var byt []byte
 	for i := 0; i < maxRetries; i++ {
@@ -14,7 +22,7 @@ func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 		byt, err = t.txnKV.Get(txnHash.Bytes())
 		t.Unlock()
 		if err != nil {
-			return nil, err
+			return nil, PebbleGetErr{err: err}
 		}
 		if byt == nil {
 			return nil, nil
@@ -24,7 +32,7 @@ func (t *txnkvdb) GetTxn(txnHash Hash) (txn *SignedTxn, err error) {
 			return txn, nil
 		}
 		if i < maxRetries-1 {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(2 * time.Millisecond)
 		}
 	}
 	return nil, err
@@ -71,9 +79,9 @@ func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 		byt, err = r.receiptKV.Get(txHash.Bytes())
 		r.Unlock()
 		if err != nil {
-			return nil, err
+			return nil, PebbleGetErr{err: err}
 		}
-		if byt == nil {
+		if byt == nil || len(byt) < 1 {
 			return nil, nil
 		}
 		receipt := new(Receipt)

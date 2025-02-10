@@ -2,6 +2,7 @@ package kv
 
 import (
 	"github.com/cockroachdb/pebble"
+
 	"github.com/yu-org/yu/infra/storage"
 )
 
@@ -34,9 +35,14 @@ func (p *Pebble) Get(prefix string, key []byte) ([]byte, error) {
 	// pebble only returns ErrNotFound, if no value, we should return nil []byte.
 	value, closer, err := p.db.Get(key)
 	if err != nil {
-		return value, nil
+		return nil, err
 	}
-	return value, closer.Close()
+	if err := closer.Close(); err != nil {
+		return nil, err
+	}
+	dst := make([]byte, len(value))
+	copy(dst, value)
+	return dst, nil
 }
 
 func (p *Pebble) Set(prefix string, key []byte, value []byte) error {
