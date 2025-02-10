@@ -13,7 +13,7 @@ import (
 const (
 	Txns       = "txns"
 	Results    = "results"
-	maxRetries = 5
+	maxRetries = 10
 )
 
 type TxDB struct {
