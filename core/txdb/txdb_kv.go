@@ -82,7 +82,7 @@ func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 			return receipt, nil
 		}
 		if i < maxRetries-1 {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(2 * time.Millisecond)
 		}
 	}
 	return nil, err
@@ -112,15 +112,11 @@ func (r *receipttxnkvdb) SetReceipts(receipts map[Hash]*Receipt) error {
 	}
 	r.Lock()
 	defer r.Unlock()
-	kvtx, err := r.receiptKV.NewKvTxn()
-	if err != nil {
-		return err
-	}
 	for i := 0; i < len(keys); i++ {
-		err = kvtx.Set(keys[i], values[i])
+		err := r.receiptKV.Set(keys[i], values[i])
 		if err != nil {
 			return err
 		}
 	}
-	return kvtx.Commit()
+	return nil
 }
