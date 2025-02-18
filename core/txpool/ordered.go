@@ -175,7 +175,6 @@ func (ot *orderedTxns) GetAll() []*SignedTxn {
 	defer func() {
 		TxnPoolDuration.WithLabelValues("getAll").Observe(float64(time.Since(start).Microseconds()))
 	}()
-	txns := make([]*SignedTxn, 0)
 	ot.RLock()
 	defer ot.RUnlock()
 	txns := make([]*SignedTxn, 0, len(ot.txns))
