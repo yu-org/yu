@@ -178,6 +178,7 @@ func (ot *orderedTxns) GetAll() []*SignedTxn {
 	txns := make([]*SignedTxn, 0)
 	ot.RLock()
 	defer ot.RUnlock()
+	txns := make([]*SignedTxn, 0, len(ot.txns))
 	for _, txn := range ot.txns {
 		txns = append(txns, txn)
 	}
