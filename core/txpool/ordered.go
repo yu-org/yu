@@ -3,6 +3,7 @@ package txpool
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -29,6 +30,11 @@ func newOrderedTxns() *orderedTxns {
 func (ot *orderedTxns) Insert(input *SignedTxn) error {
 	//logrus.WithField("txpool", "ordered-txns").
 	//	Tracef("Insert txn(%s) to Txpool, txn content: %v", input.TxnHash, input.Raw.WrCall)
+	TxnPoolCounter.WithLabelValues("insert").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("insert").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.Lock()
 	defer ot.Unlock()
 	if _, ok := ot.idx[input.TxnHash]; ok {
@@ -54,6 +60,11 @@ func (ot *orderedTxns) SetOrder(order map[int]Hash) {
 //}
 
 func (ot *orderedTxns) Deletes(txnHashes []Hash) {
+	TxnPoolCounter.WithLabelValues("deletes").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("deletes").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	txnMap := make(map[Hash]struct{})
 	for _, txnHash := range txnHashes {
 		txnMap[txnHash] = struct{}{}
@@ -76,6 +87,11 @@ func (ot *orderedTxns) Deletes(txnHashes []Hash) {
 }
 
 func (ot *orderedTxns) Exist(txnHash Hash) bool {
+	TxnPoolCounter.WithLabelValues("exist").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("exist").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.RLock()
 	defer ot.RUnlock()
 	_, ok := ot.idx[txnHash]
@@ -83,12 +99,22 @@ func (ot *orderedTxns) Exist(txnHash Hash) bool {
 }
 
 func (ot *orderedTxns) Get(txnHash Hash) *SignedTxn {
+	TxnPoolCounter.WithLabelValues("get").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("get").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.RLock()
 	defer ot.RUnlock()
 	return ot.idx[txnHash]
 }
 
 func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+	TxnPoolCounter.WithLabelValues("gets").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("gets").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.RLock()
 	defer ot.RUnlock()
 	if numLimit > uint64(ot.Size()) {
@@ -132,6 +158,11 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 //}
 
 func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
+	TxnPoolCounter.WithLabelValues("sorttxns").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("sorttxns").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.Lock()
 	orderedTxs := fn(ot.txns)
 	ot.txns = orderedTxs
@@ -139,6 +170,11 @@ func (ot *orderedTxns) SortTxns(fn func(txns []*SignedTxn) []*SignedTxn) {
 }
 
 func (ot *orderedTxns) GetAll() []*SignedTxn {
+	TxnPoolCounter.WithLabelValues("getAll").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("getAll").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	txns := make([]*SignedTxn, 0)
 	ot.RLock()
 	defer ot.RUnlock()
@@ -149,6 +185,11 @@ func (ot *orderedTxns) GetAll() []*SignedTxn {
 }
 
 func (ot *orderedTxns) Size() int {
+	TxnPoolCounter.WithLabelValues("size").Inc()
+	start := time.Now()
+	defer func() {
+		TxnPoolDuration.WithLabelValues("size").Observe(float64(time.Since(start).Microseconds()))
+	}()
 	ot.RLock()
 	defer ot.RUnlock()
 	return len(ot.txns)
