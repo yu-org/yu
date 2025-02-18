@@ -83,7 +83,7 @@ func (bb *TxDB) GetTxn(txnHash Hash) (stxn *SignedTxn, err error) {
 	}
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(txnType, kvSourceType, "getTxn", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(txnType, "getTxn").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	txn, err := bb.getTxn(txnHash)
 	if err != nil {
@@ -100,7 +100,7 @@ func (bb *TxDB) GetTxns(txnHashes []Hash) (stxns []*SignedTxn, err error) {
 	}
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(txnType, kvSourceType, "getTxns", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(txnType, "getTxns").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	txns := make([]*SignedTxn, 0)
 	for _, txnHash := range txnHashes {
@@ -124,7 +124,7 @@ func (bb *TxDB) ExistTxn(txnHash Hash) bool {
 	}
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(txnType, kvSourceType, "exist", successStatus).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(txnType, "exist").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	find := bb.txnKV.ExistTxn(txnHash)
 	metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "exist", successStatus).Inc()
@@ -137,7 +137,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 	}
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(txnType, kvSourceType, "setTxns", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(txnType, "setTxns").Observe(float64(time.Since(start).Microseconds()))
 		metrics.TxnDBCounter.WithLabelValues(txnType, kvSourceType, "setTxns", getStatusValue(err)).Inc()
 	}()
 	return bb.txnKV.SetTxns(txns)
@@ -146,7 +146,7 @@ func (bb *TxDB) SetTxns(txns []*SignedTxn) (err error) {
 func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(receiptType, kvSourceType, "setReceipts", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(receiptType, "setReceipts").Observe(float64(time.Since(start).Microseconds()))
 		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "setReceipts", getStatusValue(err)).Inc()
 	}()
 	return bb.receiptKV.SetReceipts(receipts)
@@ -155,7 +155,7 @@ func (bb *TxDB) SetReceipts(receipts map[Hash]*Receipt) (err error) {
 func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(receiptType, kvSourceType, "setReceipt", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(receiptType, "setReceipt").Observe(float64(time.Since(start).Microseconds()))
 		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "setReceipt", getStatusValue(err)).Inc()
 	}()
 	return bb.receiptKV.SetReceipt(txHash, receipt)
@@ -164,7 +164,7 @@ func (bb *TxDB) SetReceipt(txHash Hash, receipt *Receipt) (err error) {
 func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 	start := time.Now()
 	defer func() {
-		metrics.TxnDBDurationHistogram.WithLabelValues(receiptType, kvSourceType, "getReceipt", getStatusValue(err)).Observe(float64(time.Since(start).Microseconds()))
+		metrics.TxnDBDuration.WithLabelValues(receiptType, "getReceipt").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	r, err := bb.receiptKV.GetReceipt(txHash)
 	if err != nil {

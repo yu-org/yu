@@ -17,16 +17,19 @@ var (
 		Help:      "Counter of txnDB",
 	}, []string{TypeLbl, SourceTypeLbl, OpLabel, StatusLbl})
 
-	TxnDBDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "yu",
-		Subsystem: "txndb",
-		Name:      "duration",
-		Help:      "Hist Duration of txnDB",
-		Buckets:   prometheus.ExponentialBuckets(10, 2, 20), // 10us ~ 5s
-	}, []string{TypeLbl, SourceTypeLbl, OpLabel, StatusLbl})
+	TxnDBDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "reddio",
+			Subsystem: "txndb",
+			Name:      "op_duration",
+			Help:      "txn execute duration distribution.",
+			Buckets:   prometheus.ExponentialBuckets(10, 2, 20), // 10us ~ 5s
+		},
+		[]string{TypeLbl, OpLabel},
+	)
 )
 
 func initTxnDBMetrics() {
 	prometheus.MustRegister(TxnDBCounter)
-	prometheus.MustRegister(TxnDBDurationHistogram)
+	prometheus.MustRegister(TxnDBDuration)
 }
