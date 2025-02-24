@@ -106,5 +106,6 @@ type ItxDB interface {
 
 	SetReceipts(receipts map[Hash]*Receipt) error
 	GetReceipt(txHash Hash) (*Receipt, error)
+	GetReceipts(txHashList []Hash) (rec []*Receipt, err error)
 	SetReceipt(txHash Hash, receipt *Receipt) error
 }
