@@ -34,12 +34,13 @@ type txnkvdb struct {
 }
 
 const (
-	kvSourceType  = "kv"
-	txnType       = "txn"
-	receiptType   = "receipt"
-	successStatus = "success"
-	errStatus     = "err"
-	pbErrStatus   = "pbErr"
+	kvSourceType   = "kv"
+	txnType        = "txn"
+	receiptType    = "receipt"
+	successStatus  = "success"
+	errStatus      = "err"
+	pbErrStatus    = "pbErr"
+	notFoundStatus = "notFound"
 )
 
 func getStatusValue(err error) string {
@@ -175,7 +176,36 @@ func (bb *TxDB) GetReceipt(txHash Hash) (rec *Receipt, err error) {
 		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", errStatus).Inc()
 		return nil, err
 	}
-	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", successStatus).Inc()
+	if r != nil {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", successStatus).Inc()
+	} else {
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", notFoundStatus).Inc()
+	}
+	return r, nil
+}
+
+func (bb *TxDB) GetReceipts(txHashList []Hash) (rec []*Receipt, err error) {
+	start := time.Now()
+	defer func() {
+		metrics.TxnDBDuration.WithLabelValues(receiptType, "getReceipts").Observe(float64(time.Since(start).Microseconds()))
+	}()
+	r, err := bb.receiptKV.GetReceipts(txHashList)
+	if err != nil {
+		if pbErr, ok := err.(PebbleGetErr); ok {
+			metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipts", pbErrStatus).Inc()
+			return nil, pbErr.err
+		}
+		metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipts", errStatus).Inc()
+		return nil, err
+	}
+	metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipts", successStatus).Inc()
+	for _, rr := range r {
+		if rr == nil {
+			metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", notFoundStatus).Inc()
+		} else {
+			metrics.TxnDBCounter.WithLabelValues(receiptType, kvSourceType, "getReceipt", successStatus).Inc()
+		}
+	}
 	return r, nil
 }
 

@@ -72,6 +72,10 @@ func (t *txnkvdb) SetTxns(txns []*SignedTxn) (err error) {
 }
 
 func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
+	return r.getReceipt(txHash)
+}
+
+func (r *receipttxnkvdb) getReceipt(txHash Hash) (*Receipt, error) {
 	var byt []byte
 	var err error
 	for i := 0; i < maxRetries; i++ {
@@ -94,6 +98,44 @@ func (r *receipttxnkvdb) GetReceipt(txHash Hash) (*Receipt, error) {
 		}
 	}
 	return nil, err
+}
+
+func (r *receipttxnkvdb) GetReceipts(txHashList []Hash) ([]*Receipt, error) {
+	got, err := r.getReceipts(txHashList)
+	if err != nil {
+		return nil, err
+	}
+	results := make([]*Receipt, 0, len(txHashList))
+	for i, byt := range got {
+		if byt == nil || len(byt) < 1 {
+			return nil, nil
+		}
+		receipt := new(Receipt)
+		err = receipt.Decode(byt)
+		if err != nil {
+			ar, err := r.getReceipt(txHashList[i])
+			if err != nil {
+				return nil, err
+			}
+			receipt = ar
+		}
+		results = append(results, receipt)
+	}
+	return results, nil
+}
+
+func (r *receipttxnkvdb) getReceipts(txHashList []Hash) ([][]byte, error) {
+	results := make([][]byte, 0, len(txHashList))
+	r.Lock()
+	defer r.Unlock()
+	for i := 0; i < len(txHashList); i++ {
+		byt, err := r.receiptKV.Get(txHashList[i].Bytes())
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, byt)
+	}
+	return results, nil
 }
 
 func (r *receipttxnkvdb) SetReceipt(txHash Hash, receipt *Receipt) error {
