@@ -70,9 +70,7 @@ func (ot *orderedTxns) Deletes(txnHashes []Hash) {
 		txnMap[txnHash] = struct{}{}
 	}
 	ot.Lock()
-	defer func() {
-		ot.Unlock()
-	}()
+	defer ot.Unlock()
 	for txnHash := range txnMap {
 		delete(ot.idx, txnHash)
 	}
@@ -117,8 +115,9 @@ func (ot *orderedTxns) Gets(numLimit uint64, filter func(txn *SignedTxn) bool) [
 	}()
 	ot.RLock()
 	defer ot.RUnlock()
-	if numLimit > uint64(ot.Size()) {
-		numLimit = uint64(ot.Size())
+	size := ot.size()
+	if numLimit > uint64(size) {
+		numLimit = uint64(size)
 	}
 
 	txns := make([]*SignedTxn, 0)
@@ -192,5 +191,9 @@ func (ot *orderedTxns) Size() int {
 	}()
 	ot.RLock()
 	defer ot.RUnlock()
+	return ot.size()
+}
+
+func (ot *orderedTxns) size() int {
 	return len(ot.txns)
 }
