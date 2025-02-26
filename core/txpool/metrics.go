@@ -16,10 +16,10 @@ var (
 
 	TxnPoolDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "reddio",
+			Namespace: "yu",
 			Subsystem: "txn_pool",
 			Name:      "op_duration",
-			Help:      "txn execute duration distribution.",
+			Help:      "txn pool execute duration distribution.",
 			Buckets:   prometheus.ExponentialBuckets(10, 2, 20), // 10us ~ 5s
 		},
 		[]string{TypeLbl},
