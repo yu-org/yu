@@ -106,18 +106,14 @@ func (r *receipttxnkvdb) GetReceipts(txHashList []Hash) ([]*Receipt, error) {
 		return nil, err
 	}
 	results := make([]*Receipt, 0, len(txHashList))
-	for i, byt := range got {
+	for _, byt := range got {
 		if byt == nil || len(byt) < 1 {
 			return nil, nil
 		}
 		receipt := new(Receipt)
 		err = receipt.Decode(byt)
 		if err != nil {
-			ar, err := r.getReceipt(txHashList[i])
-			if err != nil {
-				return nil, err
-			}
-			receipt = ar
+			receipt = nil
 		}
 		results = append(results, receipt)
 	}
