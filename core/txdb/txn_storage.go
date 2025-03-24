@@ -29,7 +29,7 @@ type TxDB struct {
 }
 
 type txnkvdb struct {
-	sync.Mutex
+	*sync.Mutex
 	txnKV kv.KV
 }
 
@@ -51,11 +51,12 @@ func getStatusValue(err error) string {
 }
 
 func NewTxDB(nodeTyp int, kvdb kv.Kvdb, txnConf config.TxnConf) (ItxDB, error) {
+	mutex := &sync.Mutex{}
 	txdb := &TxDB{
 		enableSqlite: txnConf.EnableSqliteStorage,
 		nodeType:     nodeTyp,
-		txnKV:        &txnkvdb{txnKV: kvdb.New(Txns)},
-		receiptKV:    &receipttxnkvdb{receiptKV: kvdb.New(Results)},
+		txnKV:        &txnkvdb{txnKV: kvdb.New(Txns), Mutex: mutex},
+		receiptKV:    &receipttxnkvdb{receiptKV: kvdb.New(Results), Mutex: mutex},
 	}
 	if txdb.enableSqlite {
 		txdb.txnSqlite = &txnSqliteStorage{}
@@ -210,6 +211,6 @@ func (bb *TxDB) GetReceipts(txHashList []Hash) (rec []*Receipt, err error) {
 }
 
 type receipttxnkvdb struct {
-	sync.Mutex
+	*sync.Mutex
 	receiptKV kv.KV
 }
