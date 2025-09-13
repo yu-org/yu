@@ -3,7 +3,7 @@
 
 ---
 
-[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://github.com/yu-org/yu/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/yu-org/yu/blob/main/LICENSE)
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
 ![Build Status](https://github.com/yu-org/yu/workflows/ci/badge.svg)
 </div>
