@@ -148,7 +148,7 @@ func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 }
 
 func NewSolidity(gethConfig *config.GethConfig) *Solidity {
-	ethStateConfig := setDefaultEthStateConfig()
+	ethStateConfig := config.SetDefaultEthStateConfig()
 
 	solidity := &Solidity{
 		Tripod:      tripod.NewTripod(),

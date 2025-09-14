@@ -163,7 +163,7 @@ func LoadEvmConfig(fpath string) *GethConfig {
 	return cfg
 }
 
-func setDefaultEthStateConfig() *Config {
+func SetDefaultEthStateConfig() *Config {
 	return &Config{
 		VMTrace:                 "",
 		VMTraceConfig:           "",
@@ -180,7 +180,7 @@ func setDefaultEthStateConfig() *Config {
 		NoPrefetch:              false,
 		StateHistory:            0,                   // By default, there is no state history
 		StateScheme:             "hash",              // Default state scheme
-		DbPath:                  "reddio_db",         // Default database path
+		DbPath:                  "yu_eth_db",         // Default database path
 		DbType:                  "pebble",            // Default database type
 		NameSpace:               "eth/db/chaindata/", // Default namespace
 		Ancient:                 "ancient",           // Default ancient data path
