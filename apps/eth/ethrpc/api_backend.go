@@ -13,7 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/bloombits"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
@@ -30,7 +29,7 @@ import (
 	"github.com/yu-org/yu/core/protocol"
 	yutypes "github.com/yu-org/yu/core/types"
 
-	"github.com/reddio-com/reddio/evm"
+	"github.com/yu-org/yu/apps/eth"
 )
 
 type EthAPIBackend struct {
@@ -266,7 +265,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.B
 		return nil, nil, errors.New("header not found")
 	}
 	tri := e.chain.GetTripodInstance(SolidityTripod)
-	solidityTri := tri.(*evm.Solidity)
+	solidityTri := tri.(*eth.Solidity)
 	stateDB, err := solidityTri.StateAt(header.Root)
 	if err != nil {
 		return nil, nil, err
@@ -289,7 +288,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 			return nil, nil, err
 		}
 		tri := e.chain.GetTripodInstance(SolidityTripod)
-		solidityTri := tri.(*evm.Solidity)
+		solidityTri := tri.(*eth.Solidity)
 		stateDB, err := solidityTri.StateAt(common.Hash(yuBlock.StateRoot))
 		if err != nil {
 			return nil, nil, err
@@ -302,7 +301,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 func (e *EthAPIBackend) ChainDb() ethdb.Database {
 	EthApiBackendCounter.WithLabelValues("chainDb").Inc()
 	tri := e.chain.GetTripodInstance(SolidityTripod)
-	solidityTri := tri.(*evm.Solidity)
+	solidityTri := tri.(*eth.Solidity)
 	ethDB := solidityTri.GetEthDB()
 	return ethDB
 }
@@ -330,15 +329,14 @@ func (e *EthAPIBackend) GetEVM(ctx context.Context, msg *core.Message, state *st
 			EnablePreimageRecording: false, // TODO: replace with ctx.Bool()
 		}
 	}
-	txContext := core.NewEVMTxContext(msg)
-	var context vm.BlockContext
+	var blockContext vm.BlockContext
 	if blockCtx != nil {
-		context = *blockCtx
+		blockContext = *blockCtx
 	} else {
 		var b Backend
-		context = core.NewEVMBlockContext(header, NewChainContext(ctx, b), nil)
+		blockContext = core.NewEVMBlockContext(header, NewChainContext(ctx, b), nil)
 	}
-	return vm.NewEVM(context, txContext, state, e.ChainConfig(), *vmConfig)
+	return vm.NewEVM(blockContext, state, e.ChainConfig(), *vmConfig)
 }
 
 func (e *EthAPIBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Subscription {
@@ -347,11 +345,6 @@ func (e *EthAPIBackend) SubscribeChainEvent(ch chan<- core.ChainEvent) event.Sub
 }
 
 func (e *EthAPIBackend) SubscribeChainHeadEvent(ch chan<- core.ChainHeadEvent) event.Subscription {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (e *EthAPIBackend) SubscribeChainSideEvent(ch chan<- core.ChainSideEvent) event.Subscription {
 	// TODO implement me
 	panic("implement me")
 }
@@ -380,7 +373,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, errors.New("missing 'to' in params")
 	}
 
-	callRequest := evm.CallRequest{
+	callRequest := eth.CallRequest{
 		Address:  *args.To,
 		Input:    args.data(),
 		Value:    args.Value.ToInt(),
@@ -400,7 +393,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, err
 	}
 
-	resp := response.DataInterface.(*evm.CallResponse)
+	resp := response.DataInterface.(*eth.CallResponse)
 	return resp.Ret, nil
 }
 
@@ -430,30 +423,8 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 	}
 
 	// Create Tx
-	head := e.CurrentBlock()
-	signer := types.MakeSigner(e.ChainConfig(), head.Number, head.Time)
-	sender, err := types.Sender(signer, signedTx)
-	if err != nil {
-		logrus.Errorf("[SendTx] Failed to get sender, txHash(%s), yuHash(%s), error: %v", signedTxHash.Hex(), yucommon.Hash(signedTxHash).Hex(), err)
-		return err
-	}
-	v, r, s := signedTx.RawSignatureValues()
-	txArg := NewTxArgsFromTx(signedTx)
-	txArgByte, _ := json.Marshal(txArg)
-	txReq := &evm.TxRequest{
-		Input:    signedTx.Data(),
-		Origin:   sender,
-		Address:  signedTx.To(),
-		GasLimit: signedTx.Gas(),
-		GasPrice: signedTx.GasPrice(),
-		Value:    signedTx.Value(),
-		Hash:     signedTx.Hash(),
-		Nonce:    signedTx.Nonce(),
-		V:        v,
-		R:        r,
-		S:        s,
-
-		OriginArgs: txArgByte,
+	txReq := &eth.TxRequest{
+		Transaction: signedTx,
 	}
 	byt, err := json.Marshal(txReq)
 	if err != nil {
@@ -473,7 +444,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*types.Transaction, error) {
 	// Un-serialize wrCall.params to retrieve data:
 	wrCallParams := yuSignedTxn.Raw.WrCall.Params
-	txReq := &evm.TxRequest{}
+	txReq := &eth.TxRequest{}
 	err := json.Unmarshal([]byte(wrCallParams), txReq)
 	if err != nil {
 		return nil, err
@@ -511,7 +482,7 @@ func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) 
 		return false, nil, common.Hash{}, 0, 0, err
 	}
 
-	// rcptReq := &evm.ReceiptRequest{Hash: txHash}
+	// rcptReq := &eth.ReceiptRequest{Hash: txHash}
 	receipt, err := e.chain.TxDB.GetReceipt(yucommon.Hash(txHash))
 	if err != nil {
 		logrus.Errorf("[GetTransaction] Failed to get receipt from txdb, txHash(%s), yuHash(%s), error: %v", txHash.Hex(), yucommon.Hash(txHash).Hex(), err)
@@ -526,7 +497,7 @@ func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) 
 	//if err != nil {
 	//	return false, nil, common.Hash{}, 0, 0, err
 	//}
-	//receiptResponse := resp.DataInterface.(*evm.ReceiptResponse)
+	//receiptResponse := resp.DataInterface.(*eth.ReceiptResponse)
 	//if receiptResponse.Err != nil {
 	//	return false, nil, common.Hash{}, 0, 0, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptResponse.Err)
 	//}
@@ -560,12 +531,12 @@ func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.
 	}
 	var receipts []*types.Receipt
 	for _, txHash := range compactBlock.TxnsHashes {
-		rcptReq := &evm.ReceiptRequest{Hash: common.Hash(txHash)}
+		rcptReq := &eth.ReceiptRequest{Hash: common.Hash(txHash)}
 		resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 		if err != nil {
 			continue
 		}
-		receiptResponse := resp.DataInterface.(*evm.ReceiptResponse)
+		receiptResponse := resp.DataInterface.(*eth.ReceiptResponse)
 		if receiptResponse.Err != nil {
 			continue
 		}
@@ -583,12 +554,12 @@ func (e *EthAPIBackend) GetReceipt(ctx context.Context, txnHash common.Hash) (*t
 		EthApiBackendDuration.WithLabelValues("GetReceipt").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	EthApiBackendCounter.WithLabelValues("GetReceipt").Inc()
-	rcptReq := &evm.ReceiptRequest{Hash: txnHash}
+	rcptReq := &eth.ReceiptRequest{Hash: txnHash}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*evm.ReceiptResponse)
+	receiptsResponse := resp.DataInterface.(*eth.ReceiptResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
@@ -616,12 +587,12 @@ func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) 
 		return nil, nil
 	}
 
-	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
+	rcptReq := &eth.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*evm.ReceiptsResponse)
+	receiptsResponse := resp.DataInterface.(*eth.ReceiptsResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
@@ -710,7 +681,7 @@ func (e *EthAPIBackend) ChainConfig() *params.ChainConfig {
 }
 
 func (e *EthAPIBackend) Engine() consensus.Engine {
-	return FakeEngine{}
+	return nil
 }
 
 func (e *EthAPIBackend) GetBody(ctx context.Context, hash common.Hash, number rpc.BlockNumber) (*types.Body, error) {
@@ -759,11 +730,6 @@ func (e *EthAPIBackend) BloomStatus() (uint64, uint64) {
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) ServiceFilter(ctx context.Context, session *bloombits.MatcherSession) {
-	// TODO implement me
-	panic("implement me")
-}
-
 func yuHeader2EthHeader(yuHeader *yutypes.Header) *types.Header {
 	return &types.Header{
 		ParentHash:  common.Hash(yuHeader.PrevHash),
@@ -798,12 +764,12 @@ func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*types.Bl
 	}
 
 	var receipts []*types.Receipt
-	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
+	rcptReq := &eth.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		logrus.Errorf("Failed to get receipts when adaptChainRead: %v", err)
 	} else {
-		receiptResponse := resp.DataInterface.(*evm.ReceiptsResponse)
+		receiptResponse := resp.DataInterface.(*eth.ReceiptsResponse)
 		if receiptResponse.Err != nil {
 			logrus.Errorf("Failed to get receipts when compact block: error-code: %d, error: %v", resp.StatusCode, receiptResponse.Err)
 		} else {

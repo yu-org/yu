@@ -21,7 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/holiman/uint256"
 
-	"github.com/reddio-com/reddio/evm"
+	"github.com/yu-org/yu/apps/eth"
 )
 
 var maxBlobsPerTransaction = params.MaxBlobGasPerBlock / params.BlobTxBlobGasPerBlob
@@ -473,7 +473,7 @@ func (args *TransactionArgs) CallDefaults(globalGasCap uint64, baseFee *big.Int,
 }
 
 // ToMessage converts the transaction arguments to the Message type used by the
-// core evm. This method is used in calls and traces that do not require a real
+// core eth. This method is used in calls and traces that do not require a real
 // live transaction.
 // Assumes that fields are not nil, i.e. setDefaults or CallDefaults has been called.
 func (args *TransactionArgs) ToMessage(baseFee *big.Int) *core.Message {
@@ -544,9 +544,9 @@ func (args *TransactionArgs) ToTransaction(v, r, s *big.Int) *types.Transaction 
 			AccessList: al,
 			BlobHashes: args.BlobHashes,
 			BlobFeeCap: uint256.MustFromBig((*big.Int)(args.BlobFeeCap)),
-			V:          evm.ConvertBigIntToUint256(v),
-			R:          evm.ConvertBigIntToUint256(r),
-			S:          evm.ConvertBigIntToUint256(s),
+			V:          eth.ConvertBigIntToUint256(v),
+			R:          eth.ConvertBigIntToUint256(r),
+			S:          eth.ConvertBigIntToUint256(s),
 		}
 		if args.Blobs != nil {
 			data.(*types.BlobTx).Sidecar = &types.BlobTxSidecar{

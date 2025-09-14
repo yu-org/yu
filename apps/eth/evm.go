@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -58,19 +57,7 @@ type Solidity struct {
 	coinbaseReward atomic.Uint64
 }
 
-//func (s *Solidity) StateDB() *state.StateDB {
-//	s.Lock()
-//	defer s.Unlock()
-//	return s.ethState.StateDB()
-//}
-
 func copyEvmFromRequest(cfg *config.GethConfig, req *TxRequest) *vm.EVM {
-	//txContext := vm.TxContext{
-	//	Origin:     req.Origin,
-	//	GasPrice:   req.GasPrice,
-	//	BlobHashes: cfg.BlobHashes,
-	//	BlobFeeCap: cfg.BlobFeeCap,
-	//}
 	blockContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
@@ -482,8 +469,6 @@ func (s *Solidity) GetReceipts(ctx *context.ReadContext) {
 	metrics.SolidityCounter.WithLabelValues(getReceiptsLbl, statusSuccess).Inc()
 	ctx.JsonOk(&ReceiptsResponse{Receipts: want})
 }
-
-var ErrNotFoundReceipt = errors.New("receipt not found")
 
 func (s *Solidity) applyEVM(evm *vm.EVM, gp *core.GasPool, db *state.StateDB, block *yu_types.Block, tx *types.Transaction, usedGas *uint64) (*types.Receipt, error) {
 	msg, err := core.TransactionToMessage(tx, types.MakeSigner(evm.ChainConfig(), block.Height.ToBigInt(), block.Timestamp), big.NewInt(0))

@@ -16,19 +16,19 @@ import (
 	"github.com/sourcegraph/conc"
 	"github.com/yu-org/yu/core/kernel"
 
-	"github.com/reddio-com/reddio/evm"
+	"github.com/yu-org/yu/apps/eth/config"
 )
 
 const SolidityTripod = "solidity"
 
 type EthRPC struct {
 	chain     *kernel.Kernel
-	cfg       *evm.GethConfig
+	cfg       *config.GethConfig
 	srv       *http.Server
 	rpcServer *rpc.Server
 }
 
-func StartupEthRPC(chain *kernel.Kernel, cfg *evm.GethConfig) {
+func StartupEthRPC(chain *kernel.Kernel, cfg *config.GethConfig) {
 	if cfg.EnableEthRPC {
 		rpcSrv, err := NewEthRPC(chain, cfg)
 		if err != nil {
@@ -45,7 +45,7 @@ func StartupEthRPC(chain *kernel.Kernel, cfg *evm.GethConfig) {
 	}
 }
 
-func NewEthRPC(chain *kernel.Kernel, cfg *evm.GethConfig) (*EthRPC, error) {
+func NewEthRPC(chain *kernel.Kernel, cfg *config.GethConfig) (*EthRPC, error) {
 	s := &EthRPC{
 		chain:     chain,
 		cfg:       cfg,
