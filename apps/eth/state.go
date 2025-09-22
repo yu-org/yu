@@ -61,13 +61,13 @@ func NewEthState(cfg *config.Config, currentStateRoot common.Hash) (*EthState, e
 		return nil, err
 	}
 
-	cacheCfg, err := cacheConfig(cfg, db)
-	if err != nil {
-		return nil, err
-	}
+	//cacheCfg, err := cacheConfig(cfg, db)
+	//if err != nil {
+	//	return nil, err
+	//}
 	snapCfg := snapsConfig(cfg)
 
-	trieDB := triedb.NewDatabase(db, trieConfig(cacheCfg, false))
+	trieDB := triedb.NewDatabase(db, trieConfig(false))
 
 	snaps, err := snapshot.New(snapCfg, db, trieDB, currentStateRoot)
 	if err != nil {
@@ -151,42 +151,33 @@ func (s *EthState) newStateForNextBlock(currentStateRoot common.Hash) error {
 	return nil
 }
 
-func trieConfig(c *core.CacheConfig, isVerkle bool) *triedb.Config {
+func trieConfig(isVerkle bool) *triedb.Config {
+	cfg := core.DefaultConfig()
 	config := &triedb.Config{
-		Preimages: c.Preimages,
+		Preimages: cfg.Preimages,
 		IsVerkle:  isVerkle,
 	}
-	if c.StateScheme == rawdb.HashScheme {
+	if cfg.StateScheme == rawdb.HashScheme {
 		config.HashDB = &hashdb.Config{
-			CleanCacheSize: c.TrieCleanLimit * 1024 * 1024,
+			CleanCacheSize: cfg.TrieCleanLimit * 1024 * 1024,
 		}
 	}
-	if c.StateScheme == rawdb.PathScheme {
+	if cfg.StateScheme == rawdb.PathScheme {
 		config.PathDB = &pathdb.Config{
-			StateHistory:   c.StateHistory,
-			CleanCacheSize: c.TrieCleanLimit * 1024 * 1024,
-			DirtyCacheSize: c.TrieDirtyLimit * 1024 * 1024,
+			StateHistory:        cfg.StateHistory,
+			EnableStateIndexing: cfg.ArchiveMode,
+			TrieCleanSize:       cfg.TrieCleanLimit * 1024 * 1024,
+			StateCleanSize:      cfg.SnapshotLimit * 1024 * 1024,
+			JournalDirectory:    cfg.TrieJournalDirectory,
+
+			// TODO(rjl493456442): The write buffer represents the memory limit used
+			// for flushing both trie data and state data to disk. The config name
+			// should be updated to eliminate the confusion.
+			WriteBufferSize: cfg.TrieDirtyLimit * 1024 * 1024,
+			NoAsyncFlush:    cfg.TrieNoAsyncFlush,
 		}
 	}
 	return config
-}
-
-func cacheConfig(cfg *config.Config, db ethdb.Database) (*core.CacheConfig, error) {
-	scheme, err := rawdb.ParseStateScheme(cfg.StateScheme, db)
-	if err != nil {
-		return nil, err
-	}
-	return &core.CacheConfig{
-		TrieCleanLimit:      cfg.TrieCleanCache,
-		TrieCleanNoPrefetch: cfg.NoPrefetch,
-		TrieDirtyLimit:      cfg.TrieDirtyCache,
-		TrieDirtyDisabled:   cfg.NoPruning,
-		TrieTimeLimit:       cfg.TrieTimeout,
-		SnapshotLimit:       cfg.SnapshotCache,
-		Preimages:           cfg.Preimages,
-		StateHistory:        cfg.StateHistory,
-		StateScheme:         scheme,
-	}, nil
 }
 
 func snapsConfig(cfg *config.Config) snapshot.Config {
@@ -203,10 +194,10 @@ func (s *EthState) Prepare(rules params.Rules, sender, coinbase common.Address, 
 	s.stateDB.Prepare(rules, sender, coinbase, dst, precompiles, list)
 }
 
-func (s *EthState) SetNonce(addr common.Address, nonce uint64) {
-	s.stateDB.StopPrefetcher()
-	s.stateDB.SetNonce(addr, nonce)
-}
+//func (s *EthState) SetNonce(addr common.Address, nonce uint64) {
+//	s.stateDB.StopPrefetcher()
+//	s.stateDB.SetNonce(addr, nonce)
+//}
 
 func (s *EthState) GetNonce(addr common.Address) uint64 {
 	s.stateDB.StopPrefetcher()
