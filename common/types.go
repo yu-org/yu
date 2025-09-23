@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"math/big"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -57,6 +58,10 @@ type (
 	// CallType is Writing or Reading
 	CallType int
 )
+
+func (bn BlockNum) ToBigInt() *big.Int {
+	return big.NewInt(int64(bn))
+}
 
 func (e *WrCall) BindJsonParams(v interface{}) error {
 	return BindJsonParams(e.Params, v)
