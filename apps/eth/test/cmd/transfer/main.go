@@ -45,7 +45,7 @@ func main() {
 			eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
 		}()
 		time.Sleep(5 * time.Second)
-		logrus.Info("finish start reddio")
+		logrus.Info("finish start eth")
 		chainID = evmConfig.ChainConfig.ChainID.Int64()
 	}
 	if err := assertEthTransfer(context.Background(), chainID); err != nil {

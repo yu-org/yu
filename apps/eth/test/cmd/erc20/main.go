@@ -40,7 +40,7 @@ func main() {
 		eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
 	}()
 	time.Sleep(5 * time.Second)
-	log.Println("finish start reddio")
+	log.Println("finish start eth")
 	if err := assertErc20Transfer(context.Background(), evmConfig); err != nil {
 		log.Println(err)
 		os.Exit(1)

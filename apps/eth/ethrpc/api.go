@@ -1696,6 +1696,6 @@ type Web3API struct {
 }
 
 func (s *Web3API) ClientVersion() string {
-	clientVersion := "Reddio/devnet-v2.2.2-45f4681/linux-amd64/go1.23.3"
+	clientVersion := "ETH/geth-v1.16.3/linux-amd64/go1.24.0"
 	return clientVersion
 }

@@ -11,7 +11,7 @@ const (
 var (
 	EthApiBackendCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace: "reddio",
+			Namespace: "eth",
 			Subsystem: "eth_api_backend",
 			Name:      "op_counter",
 			Help:      "Total Operator number of counter",
@@ -21,7 +21,7 @@ var (
 
 	EthApiBackendDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "reddio",
+			Namespace: "eth",
 			Subsystem: "eth_api_backend",
 			Name:      "op_duration_microseconds",
 			Help:      "Operation Duration",
@@ -32,7 +32,7 @@ var (
 
 	TransactionAPICounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Namespace: "reddio",
+			Namespace: "eth",
 			Subsystem: "transaction_api",
 			Name:      "counter",
 			Help:      "Total Operator number of counter",
