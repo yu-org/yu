@@ -1,4 +1,4 @@
-name: ETH Module CI
+name: ETH CI
 
 on:
   push:
