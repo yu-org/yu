@@ -38,7 +38,6 @@ import (
 	"github.com/ethereum/go-ethereum/trie"
 
 	"github.com/yu-org/yu/apps/eth"
-	"github.com/yu-org/yu/apps/eth/config"
 	"github.com/yu-org/yu/apps/eth/metrics"
 )
 
@@ -596,7 +595,7 @@ func (diff *StateOverride) Apply(statedb *state.StateDB) error {
 	for addr, account := range *diff {
 		// Override account nonce.
 		if account.Nonce != nil {
-			statedb.SetNonce(addr, uint64(*account.Nonce))
+			statedb.SetNonce(addr, uint64(*account.Nonce), tracing.NonceChangeUnspecified)
 		}
 		// Override account(contract) code.
 		if account.Code != nil {
@@ -675,6 +674,7 @@ func (diff *BlockOverrides) Apply(blockCtx *vm.BlockContext) {
 type ChainContextBackend interface {
 	Engine() consensus.Engine
 	HeaderByNumber(context.Context, rpc.BlockNumber) (*types.Header, *yutypes.Header, error)
+	ChainConfig() *params.ChainConfig
 }
 
 // ChainContext is an implementation of core.ChainContext. It's main use-case
@@ -701,6 +701,10 @@ func (context *ChainContext) GetHeader(hash common.Hash, number uint64) *types.H
 		return nil
 	}
 	return header
+}
+
+func (context *ChainContext) Config() *params.ChainConfig {
+	return context.b.ChainConfig()
 }
 
 // Call executes the given transaction on the state for the given block number.
@@ -1063,11 +1067,16 @@ func AccessList(ctx context.Context, b Backend, blockNrOrHash rpc.BlockNumberOrH
 	isPostMerge := header.Difficulty.Sign() == 0
 	// Retrieve the precompiles since they don't need to be added to the access list
 	precompiles := vm.ActivePrecompiles(b.ChainConfig().Rules(header.Number, isPostMerge, header.Time))
+	// addressesToExclude contains sender, receiver, precompiles and valid authorizations
+	addressesToExclude := map[common.Address]struct{}{args.from(): {}, to: {}}
+	for _, addr := range precompiles {
+		addressesToExclude[addr] = struct{}{}
+	}
 
 	// Create an initial tracer
-	prevTracer := logger.NewAccessListTracer(nil, args.from(), to, precompiles)
+	prevTracer := logger.NewAccessListTracer(nil, addressesToExclude)
 	if args.AccessList != nil {
-		prevTracer = logger.NewAccessListTracer(*args.AccessList, args.from(), to, precompiles)
+		prevTracer = logger.NewAccessListTracer(*args.AccessList, addressesToExclude)
 	}
 	for {
 		if err := ctx.Err(); err != nil {
@@ -1084,7 +1093,7 @@ func AccessList(ctx context.Context, b Backend, blockNrOrHash rpc.BlockNumberOrH
 		msg := args.ToMessage(header.BaseFee)
 
 		// Apply the transaction with the access list tracer
-		tracer := logger.NewAccessListTracer(accessList, args.from(), to, precompiles)
+		tracer := logger.NewAccessListTracer(accessList, addressesToExclude)
 		config := vm.Config{Tracer: tracer.Hooks(), NoBaseFee: true}
 		vmenv := b.GetEVM(ctx, msg, statedb, header, &config, nil)
 		res, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(msg.GasLimit))
@@ -1387,13 +1396,13 @@ func (s *TransactionAPI) FillTransaction(ctx context.Context, args TransactionAr
 // The sender is responsible for signing the transaction and using the correct nonce.
 func (s *TransactionAPI) SendRawTransaction(ctx context.Context, input hexutil.Bytes) (txHash common.Hash, err error) {
 	TransactionAPICounter.WithLabelValues("SendRawTransaction").Inc()
-	defer func() {
-		if err != nil {
-			if !config.GetGlobalConfig().IsBenchmarkMode {
-				logrus.Errorf("SendRawTransaction failed: %v, txHash(%s)", err, txHash.String())
-			}
-		}
-	}()
+	//defer func() {
+	//	if err != nil {
+	//		if !config.GetGlobalConfig().IsBenchmarkMode {
+	//			logrus.Errorf("SendRawTransaction failed: %v, txHash(%s)", err, txHash.String())
+	//		}
+	//	}
+	//}()
 	tx := new(types.Transaction)
 	if err = tx.UnmarshalBinary(input); err != nil {
 		return
@@ -1607,8 +1616,8 @@ func (api *DebugAPI) PrintBlock(ctx context.Context, number uint64) (string, err
 }
 
 // ChaindbProperty returns leveldb properties of the key-value database.
-func (api *DebugAPI) ChaindbProperty(property string) (string, error) {
-	return api.b.ChainDb().Stat(property)
+func (api *DebugAPI) ChaindbProperty() (string, error) {
+	return api.b.ChainDb().Stat()
 }
 
 // ChaindbCompact flattens the entire key-value database into a single level,
