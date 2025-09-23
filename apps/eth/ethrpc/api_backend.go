@@ -450,12 +450,9 @@ func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*types.Transaction, error) {
 	}
 
 	// if nonce is assigned to signedTx.Raw.Nonce, then this is ok; otherwise it's nil:
-	txArgs := &TransactionArgs{}
-	err = json.Unmarshal(txReq.OriginArgs, txArgs)
-	if err != nil {
-		return nil, err
-	}
-	tx := txArgs.ToTransaction(txReq.V, txReq.R, txReq.S)
+	txArgs := NewTxArgsFromTx(txReq.Transaction)
+	v, r, s := txReq.RawSignatureValues()
+	tx := txArgs.ToTransaction(v, r, s)
 	return tx, nil
 }
 
@@ -775,8 +772,8 @@ func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*types.Bl
 			receipts = receiptResponse.Receipts
 		}
 	}
-
-	return types.NewBlock(header, ethTxs, nil, receipts, trie.NewStackTrie(nil)), nil
+	body := &types.Body{Transactions: ethTxs, Uncles: nil}
+	return types.NewBlock(header, body, receipts, trie.NewStackTrie(nil)), nil
 }
 
 func (e *EthAPIBackend) adaptChainRead(req any, funcName string) (*yucontext.ResponseData, error) {

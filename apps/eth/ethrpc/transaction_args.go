@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/yu-org/yu/apps/eth/utils"
 	"math/big"
 
@@ -18,12 +19,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/holiman/uint256"
 )
-
-var maxBlobsPerTransaction = params.MaxBlobGasPerBlock / params.BlobTxBlobGasPerBlob
 
 // TransactionArgs represents the arguments to construct a new transaction
 // or a message call.
@@ -176,8 +174,8 @@ func (args *TransactionArgs) setDefaults(ctx context.Context, b Backend, skipGas
 	if args.BlobHashes != nil && len(args.BlobHashes) == 0 {
 		return errors.New(`need at least 1 blob for a blob transaction`)
 	}
-	if args.BlobHashes != nil && len(args.BlobHashes) > maxBlobsPerTransaction {
-		return fmt.Errorf(`too many blobs in transaction (have=%d, max=%d)`, len(args.BlobHashes), maxBlobsPerTransaction)
+	if args.BlobHashes != nil && len(args.BlobHashes) > params.BlobTxMaxBlobs {
+		return fmt.Errorf("too many blobs in transaction (have=%d, max=%d)", len(args.BlobHashes), params.BlobTxMaxBlobs)
 	}
 
 	// create check
@@ -300,12 +298,8 @@ func (args *TransactionArgs) setFeeDefaults(ctx context.Context, b Backend) erro
 func (args *TransactionArgs) setCancunFeeDefaults(ctx context.Context, head *types.Header, b Backend) error {
 	// Set maxFeePerBlobGas if it is missing.
 	if args.BlobHashes != nil && args.BlobFeeCap == nil {
-		var excessBlobGas uint64
-		if head.ExcessBlobGas != nil {
-			excessBlobGas = *head.ExcessBlobGas
-		}
 		// ExcessBlobGas must be set for a Cancun block.
-		blobBaseFee := eip4844.CalcBlobFee(excessBlobGas)
+		blobBaseFee := eip4844.CalcBlobFee(b.ChainConfig(), head)
 		// Set the max fee to be 2 times larger than the previous block's blob base fee.
 		// The additional slack allows the tx to not become invalidated if the base
 		// fee is rising.
@@ -506,18 +500,18 @@ func (args *TransactionArgs) ToMessage(baseFee *big.Int) *core.Message {
 		accessList = *args.AccessList
 	}
 	return &core.Message{
-		From:              args.from(),
-		To:                args.To,
-		Value:             (*big.Int)(args.Value),
-		GasLimit:          uint64(*args.Gas),
-		GasPrice:          gasPrice,
-		GasFeeCap:         gasFeeCap,
-		GasTipCap:         gasTipCap,
-		Data:              args.data(),
-		AccessList:        accessList,
-		BlobGasFeeCap:     (*big.Int)(args.BlobFeeCap),
-		BlobHashes:        args.BlobHashes,
-		SkipAccountChecks: true,
+		From:          args.from(),
+		To:            args.To,
+		Value:         (*big.Int)(args.Value),
+		GasLimit:      uint64(*args.Gas),
+		GasPrice:      gasPrice,
+		GasFeeCap:     gasFeeCap,
+		GasTipCap:     gasTipCap,
+		Data:          args.data(),
+		AccessList:    accessList,
+		BlobGasFeeCap: (*big.Int)(args.BlobFeeCap),
+		BlobHashes:    args.BlobHashes,
+		// SkipAccountChecks: true,
 	}
 }
 
