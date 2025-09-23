@@ -3,23 +3,13 @@ name: ETH Module CI
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - 'apps/eth/**'
-      - 'go.mod'
-      - 'go.sum'
     paths-ignore:
       - '**/docs/**'
-      - '**/README.md'
       - '**/*.md'
   pull_request:
     branches: [ "main" ]
-    paths:
-      - 'apps/eth/**'
-      - 'go.mod'
-      - 'go.sum'
     paths-ignore:
       - '**/docs/**'
-      - '**/README.md'
       - '**/*.md'
 
 jobs:
