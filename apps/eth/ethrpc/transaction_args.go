@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/yu-org/yu/apps/eth/utils"
 	"math/big"
 
 	"github.com/sirupsen/logrus"
@@ -20,8 +21,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/holiman/uint256"
-
-	"github.com/yu-org/yu/apps/eth"
 )
 
 var maxBlobsPerTransaction = params.MaxBlobGasPerBlock / params.BlobTxBlobGasPerBlob
@@ -544,9 +543,9 @@ func (args *TransactionArgs) ToTransaction(v, r, s *big.Int) *types.Transaction 
 			AccessList: al,
 			BlobHashes: args.BlobHashes,
 			BlobFeeCap: uint256.MustFromBig((*big.Int)(args.BlobFeeCap)),
-			V:          eth.ConvertBigIntToUint256(v),
-			R:          eth.ConvertBigIntToUint256(r),
-			S:          eth.ConvertBigIntToUint256(s),
+			V:          utils.ConvertBigIntToUint256(v),
+			R:          utils.ConvertBigIntToUint256(r),
+			S:          utils.ConvertBigIntToUint256(s),
 		}
 		if args.Blobs != nil {
 			data.(*types.BlobTx).Sidecar = &types.BlobTxSidecar{
