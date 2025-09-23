@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sirupsen/logrus"
 
-	"github.com/yu-org/yu/apps/eth/evm/ethrpc"
+	"github.com/yu-org/yu/apps/eth/ethrpc"
 )
 
 type EthWallet struct {
