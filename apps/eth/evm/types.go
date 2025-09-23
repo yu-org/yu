@@ -1,6 +1,7 @@
-package eth
+package evm
 
 import (
+	"github.com/yu-org/yu/apps/eth"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -112,9 +113,9 @@ func (args *TempTransactionArgs) ToTransaction(v, r, s *big.Int) *types.Transact
 			AccessList: al,
 			BlobHashes: args.BlobHashes,
 			BlobFeeCap: uint256.MustFromBig((*big.Int)(args.BlobFeeCap)),
-			V:          ConvertBigIntToUint256(v),
-			R:          ConvertBigIntToUint256(r),
-			S:          ConvertBigIntToUint256(s),
+			V:          eth.ConvertBigIntToUint256(v),
+			R:          eth.ConvertBigIntToUint256(r),
+			S:          eth.ConvertBigIntToUint256(s),
 		}
 		if args.Blobs != nil {
 			data.(*types.BlobTx).Sidecar = &types.BlobTxSidecar{

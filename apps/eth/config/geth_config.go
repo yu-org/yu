@@ -158,7 +158,7 @@ func SetDefaultGethConfig(fpath string) *GethConfig {
 	return cfg
 }
 
-func LoadEvmConfig(fpath string) *GethConfig {
+func LoadGethConfig(fpath string) *GethConfig {
 	cfg := SetDefaultGethConfig(fpath)
 	return cfg
 }

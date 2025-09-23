@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/yu-org/yu/apps/eth/evm"
 	"math/big"
 	"time"
 
@@ -28,8 +29,6 @@ import (
 	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/protocol"
 	yutypes "github.com/yu-org/yu/core/types"
-
-	"github.com/yu-org/yu/apps/eth"
 )
 
 type EthAPIBackend struct {
@@ -265,7 +264,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.B
 		return nil, nil, errors.New("header not found")
 	}
 	tri := e.chain.GetTripodInstance(SolidityTripod)
-	solidityTri := tri.(*eth.Solidity)
+	solidityTri := tri.(*evm.Solidity)
 	stateDB, err := solidityTri.StateAt(header.Root)
 	if err != nil {
 		return nil, nil, err
@@ -288,7 +287,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 			return nil, nil, err
 		}
 		tri := e.chain.GetTripodInstance(SolidityTripod)
-		solidityTri := tri.(*eth.Solidity)
+		solidityTri := tri.(*evm.Solidity)
 		stateDB, err := solidityTri.StateAt(common.Hash(yuBlock.StateRoot))
 		if err != nil {
 			return nil, nil, err
@@ -301,7 +300,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockN
 func (e *EthAPIBackend) ChainDb() ethdb.Database {
 	EthApiBackendCounter.WithLabelValues("chainDb").Inc()
 	tri := e.chain.GetTripodInstance(SolidityTripod)
-	solidityTri := tri.(*eth.Solidity)
+	solidityTri := tri.(*evm.Solidity)
 	ethDB := solidityTri.GetEthDB()
 	return ethDB
 }
@@ -373,7 +372,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, errors.New("missing 'to' in params")
 	}
 
-	callRequest := eth.CallRequest{
+	callRequest := evm.CallRequest{
 		Address:  *args.To,
 		Input:    args.data(),
 		Value:    args.Value.ToInt(),
@@ -393,7 +392,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, err
 	}
 
-	resp := response.DataInterface.(*eth.CallResponse)
+	resp := response.DataInterface.(*evm.CallResponse)
 	return resp.Ret, nil
 }
 
@@ -423,7 +422,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 	}
 
 	// Create Tx
-	txReq := &eth.TxRequest{
+	txReq := &evm.TxRequest{
 		Transaction: signedTx,
 	}
 	byt, err := json.Marshal(txReq)
@@ -444,7 +443,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*types.Transaction, error) {
 	// Un-serialize wrCall.params to retrieve data:
 	wrCallParams := yuSignedTxn.Raw.WrCall.Params
-	txReq := &eth.TxRequest{}
+	txReq := &evm.TxRequest{}
 	err := json.Unmarshal([]byte(wrCallParams), txReq)
 	if err != nil {
 		return nil, err
@@ -531,12 +530,12 @@ func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.
 	}
 	var receipts []*types.Receipt
 	for _, txHash := range compactBlock.TxnsHashes {
-		rcptReq := &eth.ReceiptRequest{Hash: common.Hash(txHash)}
+		rcptReq := &evm.ReceiptRequest{Hash: common.Hash(txHash)}
 		resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 		if err != nil {
 			continue
 		}
-		receiptResponse := resp.DataInterface.(*eth.ReceiptResponse)
+		receiptResponse := resp.DataInterface.(*evm.ReceiptResponse)
 		if receiptResponse.Err != nil {
 			continue
 		}
@@ -554,12 +553,12 @@ func (e *EthAPIBackend) GetReceipt(ctx context.Context, txnHash common.Hash) (*t
 		EthApiBackendDuration.WithLabelValues("GetReceipt").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	EthApiBackendCounter.WithLabelValues("GetReceipt").Inc()
-	rcptReq := &eth.ReceiptRequest{Hash: txnHash}
+	rcptReq := &evm.ReceiptRequest{Hash: txnHash}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*eth.ReceiptResponse)
+	receiptsResponse := resp.DataInterface.(*evm.ReceiptResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
@@ -587,12 +586,12 @@ func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) 
 		return nil, nil
 	}
 
-	rcptReq := &eth.ReceiptsRequest{Hashes: txHashes}
+	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*eth.ReceiptsResponse)
+	receiptsResponse := resp.DataInterface.(*evm.ReceiptsResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
@@ -764,12 +763,12 @@ func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*types.Bl
 	}
 
 	var receipts []*types.Receipt
-	rcptReq := &eth.ReceiptsRequest{Hashes: txHashes}
+	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		logrus.Errorf("Failed to get receipts when adaptChainRead: %v", err)
 	} else {
-		receiptResponse := resp.DataInterface.(*eth.ReceiptsResponse)
+		receiptResponse := resp.DataInterface.(*evm.ReceiptsResponse)
 		if receiptResponse.Err != nil {
 			logrus.Errorf("Failed to get receipts when compact block: error-code: %d, error: %v", resp.StatusCode, receiptResponse.Err)
 		} else {

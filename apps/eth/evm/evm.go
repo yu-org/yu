@@ -1,10 +1,11 @@
-package eth
+package evm
 
 import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/yu-org/yu/apps/eth"
 	"math/big"
 	"net/http"
 	"sync"
@@ -188,7 +189,7 @@ func (s *Solidity) PreHandleTxn(txn *yu_types.SignedTxn) error {
 	if err != nil {
 		return err
 	}
-	yuHash, err := ConvertHashToYuHash(txReq.Hash())
+	yuHash, err := eth.ConvertHashToYuHash(txReq.Hash())
 	if err != nil {
 		return err
 	}
@@ -369,7 +370,7 @@ type ReceiptsResponse struct {
 }
 
 func (s *Solidity) GetEthReceipt(hash common.Hash) (*types.Receipt, error) {
-	yuHash, err := ConvertHashToYuHash(hash)
+	yuHash, err := eth.ConvertHashToYuHash(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +384,7 @@ func (s *Solidity) GetEthReceipt(hash common.Hash) (*types.Receipt, error) {
 
 	if yuReceipt == nil {
 		logrus.Warnf("getReceipt() TxDB.GetReceipt, txHash(%s) not found，hash(%s)", yuHash.String(), hash.String())
-		return nil, ErrNotFoundReceipt
+		return nil, eth.ErrNotFoundReceipt
 	}
 
 	// logrus.Printf("yuReceipt.Extra(%s): %s", yuHash.String(), string(yuReceipt.Extra))
@@ -411,7 +412,7 @@ func (s *Solidity) GetReceipt(ctx *context.ReadContext) {
 		ctx.Json(http.StatusBadRequest, &ReceiptResponse{Err: fmt.Errorf("Solidity.GetReceipt parse json error:%v", err)})
 		return
 	}
-	if !ValidateTxHash(rq.Hash.Hex()) {
+	if !eth.ValidateTxHash(rq.Hash.Hex()) {
 		metrics.SolidityCounter.WithLabelValues(getReceiptLbl, statusErr).Inc()
 		ctx.Json(http.StatusBadRequest, &ReceiptResponse{Err: fmt.Errorf("Solidity.GetReceipt ValidateTxHash json error:%v", err)})
 		return
@@ -440,11 +441,11 @@ func (s *Solidity) GetReceipts(ctx *context.ReadContext) {
 	}
 	yuHashList := make([]yu_common.Hash, 0)
 	for _, hash := range rq.Hashes {
-		if !ValidateTxHash(hash.Hex()) {
+		if !eth.ValidateTxHash(hash.Hex()) {
 			metrics.SolidityCounter.WithLabelValues(getReceiptsLbl, statusErr).Inc()
 			continue
 		}
-		yuHash, err := ConvertHashToYuHash(hash)
+		yuHash, err := eth.ConvertHashToYuHash(hash)
 		if err != nil {
 			metrics.SolidityCounter.WithLabelValues(getReceiptsLbl, statusErr).Inc()
 			ctx.Json(http.StatusBadRequest, &ReceiptsResponse{Err: fmt.Errorf("Solidity.GetReceipts parse json error:%v", err)})
