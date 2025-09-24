@@ -1,0 +1,40 @@
+node_type = 0
+data_dir = "yu"
+sync_mode = 0
+run_mode = 0
+grpc_port = ""
+http_port = "7999"
+ws_port = "8999"
+log_level = "info"
+#log_output = "yu/yu.log"
+lei_limit = 50000
+statedb_type = "no"
+
+is_admin = false
+max_block_num = 0
+enable_pprof = true
+pprof_port = "10199"
+
+[kvdb]
+kv_type = "pebble"
+path = "yu.db"
+
+[block_chain]
+chain_id = 0
+cache_size = 10
+[block_chain.chain_db]
+sql_db_type = "sqlite"
+dsn = "chain.db"
+
+[txpool]
+pool_size = 20480
+txn_max_size = 1024000
+
+[p2p]
+p2p_listen_addrs = ["/ip4/127.0.0.1/tcp/8887"]
+protocol_id = "yu"
+node_key_type = 1
+node_key_rand_seed = 1
+node_key = ""
+node_key_bits = 0
+node_key_file = ""

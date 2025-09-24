@@ -1,0 +1,68 @@
+chain_id = 50341
+is_reddio_mainnet = false
+enable_eth_rpc = true
+eth_host = "0.0.0.0"
+eth_port = "9092"
+
+
+# [Module:Watcher]
+enable_bridge = false
+# note: need websocket rpc to listen to the L1 event
+## use your own node address
+l1_client_address = ""
+l2_client_address = "" 
+parentlayer_contract_address = ""
+childlayer_contract_address = ""
+
+# seconds l1 block time
+# Used to collect L2->L1 cross-chain messages from L2 blocks. 'n' indicates collecting once every 'n' L2 blocks, collecting cross-chain messages from 'n' L2 blocks at a time.
+l2_block_collection_depth = 5
+
+#[bridge_api]
+bridge_port = "8888"
+bridge_host = "0.0.0.0"
+
+#[relayer_config]
+relayer_batch_size = 500
+multisig_env_file = ""
+multisig_env_var = ""
+relayer_env_file = ""
+relayer_env_var = ""
+l1_raw_bridge_events_table_name = ""
+l2_raw_bridge_events_table_name = ""
+
+
+#checker
+enable_bridge_checker = false
+
+[l1_watcher_config]
+confirmation = 5
+fetch_limit = 16
+start_height = 7678638
+block_time = 12
+chain_id = 11155111
+
+[l2_watcher_config]
+confirmation = 5
+fetch_limit = 16
+start_height = 180
+block_time = 12
+chain_id = 50341
+
+[bridge_checker_config]
+check_l1_contract_address = ""
+check_l2_contract_address = ""
+enable_l1_check_step1 = false
+enable_l1_check_step2 = false
+enable_l2_check_step1 = false
+enable_l2_check_step2 = false
+checker_batch_size = 500
+sepolia_ticker_interval = 10                                             #seconds
+reddio_ticker_interval = 15
+
+
+[bridge_db_config]
+dsn = "testuser:123456@tcp(localhost:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local"
+driverName = "mysql"
+maxOpenNum = 10
+maxIdleNum = 5
