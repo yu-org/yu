@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/yu-org/yu/apps/eth/utils"
+	"math"
 	"math/big"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
