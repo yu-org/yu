@@ -28,10 +28,15 @@ jobs:
     - name: Install dependencies
       run: go mod download
       
+    - name: Build ERC20 test binary
+      run: |
+        cd apps/eth/test/cmd
+        go build -o erc20-test ./erc20
+      
     - name: Run ERC20 test
       run: |
-        cd apps/eth/test/cmd/erc20
-        go run main.go
+        cd apps/eth/test/cmd
+        ./erc20-test
 
   transfer-test:
     runs-on: ubuntu-latest
@@ -48,10 +53,15 @@ jobs:
     - name: Install dependencies
       run: go mod download
       
+    - name: Build Transfer test binary
+      run: |
+        cd apps/eth/test/cmd
+        go build -o transfer-test ./transfer
+      
     - name: Run Transfer test
       run: |
-        cd apps/eth/test/cmd/transfer
-        go run main.go
+        cd apps/eth/test/cmd
+        ./transfer-test
 
   uniswap-test:
     runs-on: ubuntu-latest
@@ -68,10 +78,15 @@ jobs:
     - name: Install dependencies
       run: go mod download
       
+    - name: Build Uniswap test binary
+      run: |
+        cd apps/eth/test/cmd
+        go build -o uniswap-test ./uniswap
+      
     - name: Run Uniswap test
       run: |
-        cd apps/eth/test/cmd/uniswap
-        go run main.go
+        cd apps/eth/test/cmd
+        ./uniswap-test
 
   build:
     runs-on: ubuntu-latest
