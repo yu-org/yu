@@ -1,3 +1,0 @@
-enable_eth_rpc = true
-eth_host = "localhost"
-eth_port = "9092"

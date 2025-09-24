@@ -30,7 +30,7 @@ const benchmarkDataPath = "./bin/eth_benchmark_data.json"
 
 func init() {
 	flag.StringVar(&configPath, "configPath", "", "")
-	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/evm.toml", "")
+	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/eth.toml", "")
 	flag.IntVar(&qps, "qps", 10000, "")
 	flag.DurationVar(&duration, "duration", 5*time.Minute, "")
 	flag.StringVar(&action, "action", "run", "")

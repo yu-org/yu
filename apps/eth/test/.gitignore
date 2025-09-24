@@ -1,0 +1,18 @@
+# 忽略生成的测试二进制文件（递归匹配所有子目录）
+**/*-test
+**/erc20-test
+**/transfer-test
+**/uniswap-test
+**/benchmark-test
+**/uniswap_benchmark-test
+
+# 忽略其他可能的测试二进制文件（递归匹配）
+**/test-*
+**/*_test
+
+# 忽略测试数据文件
+**/*.json
+**/bin/
+
+# 忽略所有可执行文件（在 test 目录下）
+**/*.out

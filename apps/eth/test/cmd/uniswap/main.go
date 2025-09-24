@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/evm.toml", "")
+	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/eth.toml", "")
 	flag.StringVar(&yuConfigPath, "yuConfigPath", "./conf/yu.toml", "")
 	flag.StringVar(&poaConfigPath, "poaConfigPath", "./conf/poa.toml", "")
 	flag.StringVar(&nodeUrl, "nodeUrl", "http://localhost:9092", "")

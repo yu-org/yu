@@ -31,7 +31,7 @@ var (
 
 func init() {
 	flag.StringVar(&configPath, "configPath", "", "")
-	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/evm.toml", "")
+	flag.StringVar(&evmConfigPath, "evmConfigPath", "./conf/eth.toml", "")
 	flag.IntVar(&maxBlock, "maxBlock", 500, "")
 	flag.IntVar(&qps, "qps", 1500, "")
 	flag.StringVar(&action, "action", "run", "")
