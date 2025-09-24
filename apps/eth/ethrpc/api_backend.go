@@ -409,7 +409,9 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 		logrus.Errorf("[SendTx] Failed to get transaction, txHash(%s), yuHash(%s), error: %v", signedTxHash.Hex(), yucommon.Hash(signedTxHash).Hex(), err)
 		return err
 	}
+
 	if exist {
+		logrus.Errorf("[SendTx] Tx(%s) already known onchain", signedTxHash.String())
 		return errors.Errorf("tx(%s) already known onchain", signedTxHash.String())
 	}
 	existedTx, err := e.GetPoolTransaction(signedTxHash)
@@ -418,6 +420,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 		return err
 	}
 	if existedTx != nil {
+		logrus.Errorf("[SendTx] Tx(%s) already known in txpool", signedTxHash.String())
 		return errors.Errorf("tx(%s) already known in txpool", signedTxHash.String())
 	}
 
@@ -437,6 +440,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 			Params:     string(byt),
 		},
 	}
+
 	return e.chain.HandleTxn(signedWrCall)
 }
 
