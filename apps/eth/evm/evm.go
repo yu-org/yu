@@ -5,18 +5,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/yu-org/yu/apps/eth/utils"
 	"math/big"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/yu-org/yu/apps/eth/utils"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/tracing"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/holiman/uint256"
@@ -29,6 +30,7 @@ import (
 
 	"github.com/yu-org/yu/apps/eth/config"
 	"github.com/yu-org/yu/apps/eth/metrics"
+	"github.com/yu-org/yu/apps/eth/types"
 )
 
 var (
@@ -67,7 +69,7 @@ func copyEvmFromRequest(cfg *config.GethConfig, req *TxRequest) *vm.EVM {
 		BlockNumber: cfg.BlockNumber,
 		Time:        cfg.Time,
 		Difficulty:  cfg.Difficulty,
-		GasLimit:    req.Gas(),
+		GasLimit:    req.ToEthTx().Gas(),
 		BaseFee:     cfg.BaseFee,
 		BlobBaseFee: cfg.BlobBaseFee,
 		Random:      cfg.Random,
@@ -183,13 +185,17 @@ func (s *Solidity) FinalizeBlock(block *yu_types.Block) {
 }
 
 func (s *Solidity) PreHandleTxn(txn *yu_types.SignedTxn) error {
-	var txReq TxRequest
+	defer func() {
+		if err := recover(); err != nil {
+			logrus.Errorf("Recover, txn hash: %s, err: %v", txn.TxnHash.String(), err)
+		}
+	}()
 	param := txn.GetParams()
-	err := json.Unmarshal([]byte(param), &txReq)
+	txReq, err := DecodeTxReq([]byte(param))
 	if err != nil {
 		return err
 	}
-	yuHash, err := utils.ConvertHashToYuHash(txReq.Hash())
+	yuHash, err := utils.ConvertHashToYuHash(txReq.ToEthTx().Hash())
 	if err != nil {
 		return err
 	}
@@ -227,15 +233,19 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 			metrics.SolidityCounter.WithLabelValues(executeTxnLbl, statusErr).Inc()
 		}
 	}()
-	txReq := new(TxRequest)
 	// coinbase := common.BytesToAddress(s.cfg.Coinbase.Bytes())
-
-	_ = ctx.BindJson(txReq)
+	txReq, err := DecodeTxReq(ctx.GetRequestBytes())
+	if err != nil {
+		return err
+	}
 	evm := copyEvmFromRequest(s.cfg, txReq)
+	// FIXME
 	gasPool := new(core.GasPool).AddGas(ctx.Block.LeiLimit)
 
-	s.ethState.stateDB.SetTxContext(txReq.Hash(), ctx.TxnIndex)
-	rcpt, err := s.applyEVM(evm, gasPool, s.ethState.stateDB, ctx.Block, txReq.Transaction, nil)
+	//logrus.Infof("execute EVM, txn hash: %s, gas limit: %d", txReq.Hash(), ctx.Block.LeiLimit)
+	ethTx := txReq.ToEthTx()
+	s.ethState.stateDB.SetTxContext(ethTx.Hash(), ctx.TxnIndex)
+	rcpt, err := s.applyEVM(evm, gasPool, s.ethState.stateDB, ctx.Block, ethTx, nil)
 	if err != nil {
 		return err
 	}
@@ -243,7 +253,7 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 	var buf bytes.Buffer
 	encodeErr := json.NewEncoder(&buf).Encode(rcpt)
 	if encodeErr != nil {
-		logrus.Errorf("Receipt marshal err: %v. Tx: %s", encodeErr, txReq.Hash())
+		logrus.Errorf("Receipt marshal err: %v. Tx: %s", encodeErr, ethTx.Hash())
 		return encodeErr
 	}
 	ctx.EmitExtra(buf.Bytes())
@@ -261,10 +271,10 @@ func (s *Solidity) Call(ctx *context.ReadContext) {
 		metrics.SolidityHist.WithLabelValues(callTxnLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
 
-	callReq := new(CallRequest)
+	callReq := new(types.CallRequest)
 	err := ctx.BindJson(callReq)
 	if err != nil {
-		ctx.Json(http.StatusBadRequest, &CallResponse{Err: err})
+		ctx.Json(http.StatusBadRequest, &types.CallResponse{Err: err})
 		return
 	}
 	address := callReq.Address
@@ -287,7 +297,7 @@ func (s *Solidity) Call(ctx *context.ReadContext) {
 	)
 	vmenv.StateDB = s.ethState.StateDB().Copy()
 	if cfg.EVMConfig.Tracer != nil && cfg.EVMConfig.Tracer.OnTxStart != nil {
-		cfg.EVMConfig.Tracer.OnTxStart(vmenv.GetVMContext(), types.NewTx(&types.LegacyTx{To: &address, Data: input, Value: value, Gas: gasLimit}), origin)
+		cfg.EVMConfig.Tracer.OnTxStart(vmenv.GetVMContext(), ethtypes.NewTx(&ethtypes.LegacyTx{To: &address, Data: input, Value: value, Gas: gasLimit}), origin)
 	}
 	// Execute the preparatory steps for state transition which includes:
 	// - prepare accessList(post-berlin)
@@ -307,10 +317,10 @@ func (s *Solidity) Call(ctx *context.ReadContext) {
 	logrus.Debugf("[Call] Response: Origin Code = %v, Hex Code = %v, String Code = %v, LeftOverGas = %v", ret, hex.EncodeToString(ret), new(big.Int).SetBytes(ret).String(), leftOverGas)
 
 	if err != nil {
-		ctx.Json(http.StatusInternalServerError, &CallResponse{Err: err})
+		ctx.Json(http.StatusInternalServerError, &types.CallResponse{Err: err})
 		return
 	}
-	result := CallResponse{Ret: ret, LeftOverGas: leftOverGas}
+	result := types.CallResponse{Ret: ret, LeftOverGas: leftOverGas}
 	ctx.JsonOk(&result)
 }
 
@@ -356,8 +366,8 @@ type ReceiptRequest struct {
 }
 
 type ReceiptResponse struct {
-	Receipt *types.Receipt `json:"receipt"`
-	Err     error          `json:"err"`
+	Receipt *ethtypes.Receipt `json:"receipt"`
+	Err     error             `json:"err"`
 }
 
 type ReceiptsRequest struct {
@@ -365,11 +375,11 @@ type ReceiptsRequest struct {
 }
 
 type ReceiptsResponse struct {
-	Receipts []*types.Receipt `json:"receipts"`
-	Err      error            `json:"err"`
+	Receipts []*ethtypes.Receipt `json:"receipts"`
+	Err      error               `json:"err"`
 }
 
-func (s *Solidity) GetEthReceipt(hash common.Hash) (*types.Receipt, error) {
+func (s *Solidity) GetEthReceipt(hash common.Hash) (*ethtypes.Receipt, error) {
 	yuHash, err := utils.ConvertHashToYuHash(hash)
 	if err != nil {
 		return nil, err
@@ -389,7 +399,7 @@ func (s *Solidity) GetEthReceipt(hash common.Hash) (*types.Receipt, error) {
 
 	// logrus.Printf("yuReceipt.Extra(%s): %s", yuHash.String(), string(yuReceipt.Extra))
 
-	receipt := new(types.Receipt)
+	receipt := new(ethtypes.Receipt)
 	if yuReceipt.Extra == nil {
 		return receipt, nil
 	}
@@ -459,9 +469,9 @@ func (s *Solidity) GetReceipts(ctx *context.ReadContext) {
 		ctx.Json(http.StatusBadRequest, &ReceiptsResponse{Err: fmt.Errorf("Solidity.GetReceipts parse json error:%v", err)})
 		return
 	}
-	want := make([]*types.Receipt, 0)
+	want := make([]*ethtypes.Receipt, 0)
 	for _, yuRecipt := range yuReceipts {
-		receipt := new(types.Receipt)
+		receipt := new(ethtypes.Receipt)
 		if yuRecipt.Extra != nil {
 			json.NewDecoder(bytes.NewBuffer(yuRecipt.Extra)).Decode(receipt)
 		}
@@ -471,8 +481,8 @@ func (s *Solidity) GetReceipts(ctx *context.ReadContext) {
 	ctx.JsonOk(&ReceiptsResponse{Receipts: want})
 }
 
-func (s *Solidity) applyEVM(evm *vm.EVM, gp *core.GasPool, db *state.StateDB, block *yu_types.Block, tx *types.Transaction, usedGas *uint64) (*types.Receipt, error) {
-	msg, err := core.TransactionToMessage(tx, types.MakeSigner(evm.ChainConfig(), block.Height.ToBigInt(), block.Timestamp), big.NewInt(0))
+func (s *Solidity) applyEVM(evm *vm.EVM, gp *core.GasPool, db *state.StateDB, block *yu_types.Block, tx *ethtypes.Transaction, usedGas *uint64) (*ethtypes.Receipt, error) {
+	msg, err := core.TransactionToMessage(tx, ethtypes.MakeSigner(evm.ChainConfig(), block.Height.ToBigInt(), block.Timestamp), big.NewInt(0))
 	if err != nil {
 		return nil, err
 	}

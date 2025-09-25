@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/yu-org/yu/apps/eth"
-	"github.com/yu-org/yu/apps/eth/test/testx"
 	"log"
 	"os"
 	"time"
+
+	"github.com/yu-org/yu/apps/eth"
+	"github.com/yu-org/yu/apps/eth/test/testx"
 
 	"github.com/yu-org/yu/apps/eth/config"
 	"github.com/yu-org/yu/apps/eth/test/conf"

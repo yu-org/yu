@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/yu-org/yu/apps/eth"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/yu-org/yu/apps/eth"
 
 	"github.com/sirupsen/logrus"
 

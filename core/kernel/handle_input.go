@@ -23,12 +23,10 @@ func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-
 	err = k.handleTxnLocally(stxn)
 	if err != nil {
 		return err
 	}
-
 	go func() {
 		err = k.pubUnpackedTxns(FromArray(stxn))
 		if err != nil {

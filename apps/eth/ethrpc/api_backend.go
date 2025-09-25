@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/yu-org/yu/apps/eth/evm"
 	"math/big"
 	"time"
+
+	"github.com/yu-org/yu/apps/eth/evm"
+	"github.com/yu-org/yu/apps/eth/types"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts"
@@ -15,7 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
@@ -85,7 +87,7 @@ func (e *EthAPIBackend) SetHead(number uint64) {
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Header, *yutypes.Header, error) {
+func (e *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*ethtypes.Header, *yutypes.Header, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("headerByNumber").Observe(float64(time.Since(start).Microseconds()))
@@ -111,7 +113,7 @@ func (e *EthAPIBackend) HeaderByNumber(ctx context.Context, number rpc.BlockNumb
 	return yuHeader2EthHeader(yuBlock.Header), yuBlock.Header, err
 }
 
-func (e *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, *yutypes.Header, error) {
+func (e *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*ethtypes.Header, *yutypes.Header, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("headerByHash").Observe(float64(time.Since(start).Microseconds()))
@@ -126,7 +128,7 @@ func (e *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*ty
 	return yuHeader2EthHeader(yuBlock.Header), yuBlock.Header, err
 }
 
-func (e *EthAPIBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Header, *yutypes.Header, error) {
+func (e *EthAPIBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*ethtypes.Header, *yutypes.Header, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("headerByNumberOrHash").Observe(float64(time.Since(start).Microseconds()))
@@ -143,7 +145,7 @@ func (e *EthAPIBackend) HeaderByNumberOrHash(ctx context.Context, blockNrOrHash 
 	return nil, nil, errors.New("invalid arguments; neither block number nor hash specified")
 }
 
-func (e *EthAPIBackend) CurrentHeader() *types.Header {
+func (e *EthAPIBackend) CurrentHeader() *ethtypes.Header {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("currentHeader").Observe(float64(time.Since(start).Microseconds()))
@@ -158,7 +160,7 @@ func (e *EthAPIBackend) CurrentHeader() *types.Header {
 	return yuHeader2EthHeader(yuBlock.Header)
 }
 
-func (e *EthAPIBackend) CurrentBlock() *types.Header {
+func (e *EthAPIBackend) CurrentBlock() *ethtypes.Header {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("currentBlock").Observe(float64(time.Since(start).Microseconds()))
@@ -173,7 +175,7 @@ func (e *EthAPIBackend) CurrentBlock() *types.Header {
 	return yuHeader2EthHeader(yuBlock.Header)
 }
 
-func (e *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*types.Block, *yutypes.Block, error) {
+func (e *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumber) (*ethtypes.Block, *yutypes.Block, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("blockByNumber").Observe(float64(time.Since(start).Microseconds()))
@@ -216,7 +218,7 @@ func (e *EthAPIBackend) BlockByNumber(ctx context.Context, number rpc.BlockNumbe
 	return block, yuBlock, err
 }
 
-func (e *EthAPIBackend) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, *yutypes.Block, error) {
+func (e *EthAPIBackend) BlockByHash(ctx context.Context, hash common.Hash) (*ethtypes.Block, *yutypes.Block, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("blockByHash").Observe(float64(time.Since(start).Microseconds()))
@@ -233,7 +235,7 @@ func (e *EthAPIBackend) BlockByHash(ctx context.Context, hash common.Hash) (*typ
 	return block, yuBlock, err
 }
 
-func (e *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*types.Block, *yutypes.Block, error) {
+func (e *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*ethtypes.Block, *yutypes.Block, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("blockByNumberOrHash").Observe(float64(time.Since(start).Microseconds()))
@@ -250,7 +252,7 @@ func (e *EthAPIBackend) BlockByNumberOrHash(ctx context.Context, blockNrOrHash r
 	return nil, nil, errors.New("invalid arguments; neither block number nor hash specified")
 }
 
-func (e *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
+func (e *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.BlockNumber) (*state.StateDB, *ethtypes.Header, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("stateAndHeaderByNumber").Observe(float64(time.Since(start).Microseconds()))
@@ -272,7 +274,7 @@ func (e *EthAPIBackend) StateAndHeaderByNumber(ctx context.Context, number rpc.B
 	return stateDB, header, nil
 }
 
-func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *types.Header, error) {
+func (e *EthAPIBackend) StateAndHeaderByNumberOrHash(ctx context.Context, blockNrOrHash rpc.BlockNumberOrHash) (*state.StateDB, *ethtypes.Header, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("stateAndHeaderByNumberOrHash").Observe(float64(time.Since(start).Microseconds()))
@@ -310,7 +312,7 @@ func (e *EthAPIBackend) AccountManager() *accounts.Manager {
 	return nil
 }
 
-func (e *EthAPIBackend) Pending() (*types.Block, types.Receipts, *state.StateDB) {
+func (e *EthAPIBackend) Pending() (*ethtypes.Block, ethtypes.Receipts, *state.StateDB) {
 	// TODO implement me
 	panic("implement me")
 }
@@ -320,7 +322,7 @@ func (e *EthAPIBackend) GetTd(ctx context.Context, hash common.Hash) *big.Int {
 	return nil
 }
 
-func (e *EthAPIBackend) GetEVM(ctx context.Context, msg *core.Message, state *state.StateDB, header *types.Header, vmConfig *vm.Config, blockCtx *vm.BlockContext) *vm.EVM {
+func (e *EthAPIBackend) GetEVM(ctx context.Context, msg *core.Message, state *state.StateDB, header *ethtypes.Header, vmConfig *vm.Config, blockCtx *vm.BlockContext) *vm.EVM {
 	EthApiBackendCounter.WithLabelValues("getEVM").Inc()
 	if vmConfig == nil {
 		// vmConfig = e.chain.Chain.GetVMConfig()
@@ -372,7 +374,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, errors.New("missing 'to' in params")
 	}
 
-	callRequest := evm.CallRequest{
+	callRequest := types.CallRequest{
 		Address:  *args.To,
 		Input:    args.data(),
 		Value:    args.Value.ToInt(),
@@ -392,11 +394,11 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 		return nil, err
 	}
 
-	resp := response.DataInterface.(*evm.CallResponse)
+	resp := response.DataInterface.(*types.CallResponse)
 	return resp.Ret, nil
 }
 
-func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction) error {
+func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *ethtypes.Transaction) error {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("sendTx").Observe(float64(time.Since(start).Microseconds()))
@@ -425,10 +427,14 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 	}
 
 	// Create Tx
-	txReq := &evm.TxRequest{
-		Transaction: signedTx,
+	v, r, s := signedTx.RawSignatureValues()
+	txReq := &types.TxRequest{
+		V:      v,
+		R:      r,
+		S:      s,
+		TxArgs: convertToTypesTransactionArgs(NewTxArgsFromTx(signedTx)),
 	}
-	byt, err := json.Marshal(txReq)
+	byt, err := txReq.Encode()
 	if err != nil {
 		logrus.Errorf("[SendTx] Failed to marshal txReq, txHash(%s), yuHash(%s), error: %v", signedTxHash.Hex(), yucommon.Hash(signedTxHash).Hex(), err)
 		return err
@@ -444,23 +450,19 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *types.Transaction)
 	return e.chain.HandleTxn(signedWrCall)
 }
 
-func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*types.Transaction, error) {
+func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*ethtypes.Transaction, error) {
 	// Un-serialize wrCall.params to retrieve data:
 	wrCallParams := yuSignedTxn.Raw.WrCall.Params
-	txReq := &evm.TxRequest{}
+	txReq := &types.TxRequest{}
 	err := json.Unmarshal([]byte(wrCallParams), txReq)
 	if err != nil {
 		return nil, err
 	}
-
-	// if nonce is assigned to signedTx.Raw.Nonce, then this is ok; otherwise it's nil:
-	txArgs := NewTxArgsFromTx(txReq.Transaction)
-	v, r, s := txReq.RawSignatureValues()
-	tx := txArgs.ToTransaction(v, r, s)
+	tx := txReq.ToEthTx()
 	return tx, nil
 }
 
-func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) (bool, *types.Transaction, common.Hash, uint64, uint64, error) {
+func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) (bool, *ethtypes.Transaction, common.Hash, uint64, uint64, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("getTransaction").Observe(float64(time.Since(start).Microseconds()))
@@ -507,7 +509,7 @@ func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) 
 	blockNumber := receipt.Height
 	var index uint64
 	if receipt.Extra != nil {
-		ethRcpt := new(types.Receipt)
+		ethRcpt := new(ethtypes.Receipt)
 		err = json.Unmarshal(receipt.Extra, ethRcpt)
 		if err != nil {
 			logrus.Error("GetTransaction() json.Unmarshal eth receipt failed: ", err)
@@ -519,7 +521,7 @@ func (e *EthAPIBackend) GetTransaction(ctx context.Context, txHash common.Hash) 
 	return true, ethTxn, common.Hash(blockHash), uint64(blockNumber), index, nil
 }
 
-func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.Hash) (types.Receipts, error) {
+func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.Hash) (ethtypes.Receipts, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("getReceiptsForLog").Observe(float64(time.Since(start).Microseconds()))
@@ -529,14 +531,14 @@ func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.
 	if err != nil {
 		return nil, err
 	}
-	var receipts []*types.Receipt
+	var receipts []*ethtypes.Receipt
 	for _, txHash := range compactBlock.TxnsHashes {
-		rcptReq := &evm.ReceiptRequest{Hash: common.Hash(txHash)}
+		rcptReq := &types.ReceiptRequest{Hash: common.Hash(txHash)}
 		resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 		if err != nil {
 			continue
 		}
-		receiptResponse := resp.DataInterface.(*evm.ReceiptResponse)
+		receiptResponse := resp.DataInterface.(*types.ReceiptResponse)
 		if receiptResponse.Err != nil {
 			continue
 		}
@@ -548,25 +550,25 @@ func (e *EthAPIBackend) GetReceiptsForLog(ctx context.Context, blockHash common.
 	return receipts, nil
 }
 
-func (e *EthAPIBackend) GetReceipt(ctx context.Context, txnHash common.Hash) (*types.Receipt, error) {
+func (e *EthAPIBackend) GetReceipt(ctx context.Context, txnHash common.Hash) (*ethtypes.Receipt, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("GetReceipt").Observe(float64(time.Since(start).Microseconds()))
 	}()
 	EthApiBackendCounter.WithLabelValues("GetReceipt").Inc()
-	rcptReq := &evm.ReceiptRequest{Hash: txnHash}
+	rcptReq := &types.ReceiptRequest{Hash: txnHash}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipt")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*evm.ReceiptResponse)
+	receiptsResponse := resp.DataInterface.(*types.ReceiptResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
 	return receiptsResponse.Receipt, nil
 }
 
-func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error) {
+func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) (ethtypes.Receipts, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("getReceipts").Observe(float64(time.Since(start).Microseconds()))
@@ -587,12 +589,12 @@ func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) 
 		return nil, nil
 	}
 
-	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
+	rcptReq := &types.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		return nil, err
 	}
-	receiptsResponse := resp.DataInterface.(*evm.ReceiptsResponse)
+	receiptsResponse := resp.DataInterface.(*types.ReceiptsResponse)
 	if receiptsResponse.Err != nil {
 		return nil, errors.Errorf("StatusCode: %d, Error: %v", resp.StatusCode, receiptsResponse.Err)
 	}
@@ -600,7 +602,7 @@ func (e *EthAPIBackend) GetReceipts(ctx context.Context, blockHash common.Hash) 
 	return receiptsResponse.Receipts, nil
 }
 
-func (e *EthAPIBackend) GetPoolTransactions() (types.Transactions, error) {
+func (e *EthAPIBackend) GetPoolTransactions() (ethtypes.Transactions, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("getPoolTransactions").Observe(float64(time.Since(start).Microseconds()))
@@ -609,7 +611,7 @@ func (e *EthAPIBackend) GetPoolTransactions() (types.Transactions, error) {
 	// Similar to: e.chain.ChainEnv.Pool.GetTxn - ChainEnv can be ignored b/c txpool has index based on hxHash, therefore it's unique
 	stxn, _ := e.chain.Pool.GetAllTxns() // will not return error here
 
-	var ethTxns []*types.Transaction
+	var ethTxns []*ethtypes.Transaction
 
 	for _, yuSignedTxn := range stxn {
 		ethTxn, err := YuTxn2EthTxn(yuSignedTxn)
@@ -623,7 +625,7 @@ func (e *EthAPIBackend) GetPoolTransactions() (types.Transactions, error) {
 }
 
 // Similar to GetTransaction():
-func (e *EthAPIBackend) GetPoolTransaction(txHash common.Hash) (*types.Transaction, error) {
+func (e *EthAPIBackend) GetPoolTransaction(txHash common.Hash) (*ethtypes.Transaction, error) {
 	stxn, err := e.chain.Pool.GetTxn(yucommon.Hash(txHash)) // will not return error here
 	if err != nil || stxn == nil {
 		return nil, err
@@ -642,11 +644,11 @@ func (e *EthAPIBackend) GetPoolNonce(ctx context.Context, addr common.Address) (
 	allEthTxns, _ := e.GetPoolTransactions()
 
 	head := e.CurrentBlock()
-	signer := types.MakeSigner(e.ChainConfig(), head.Number, head.Time)
+	signer := ethtypes.MakeSigner(e.ChainConfig(), head.Number, head.Time)
 
 	nonce := uint64(0)
 	for _, ethTxn := range allEthTxns {
-		sender, _ := types.Sender(signer, ethTxn)
+		sender, _ := ethtypes.Sender(signer, ethTxn)
 		if sender == addr {
 			nonce++
 			// return ethTxn.Nonce(), nil
@@ -661,12 +663,12 @@ func (e *EthAPIBackend) Stats() (pending int, queued int) {
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) TxPoolContent() (map[common.Address][]*types.Transaction, map[common.Address][]*types.Transaction) {
+func (e *EthAPIBackend) TxPoolContent() (map[common.Address][]*ethtypes.Transaction, map[common.Address][]*ethtypes.Transaction) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) TxPoolContentFrom(addr common.Address) ([]*types.Transaction, []*types.Transaction) {
+func (e *EthAPIBackend) TxPoolContentFrom(addr common.Address) ([]*ethtypes.Transaction, []*ethtypes.Transaction) {
 	// TODO implement me
 	panic("implement me")
 }
@@ -684,12 +686,12 @@ func (e *EthAPIBackend) Engine() consensus.Engine {
 	return nil
 }
 
-func (e *EthAPIBackend) GetBody(ctx context.Context, hash common.Hash, number rpc.BlockNumber) (*types.Body, error) {
+func (e *EthAPIBackend) GetBody(ctx context.Context, hash common.Hash, number rpc.BlockNumber) (*ethtypes.Body, error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) GetLogs(ctx context.Context, blockHash common.Hash, number uint64) ([][]*types.Log, error) {
+func (e *EthAPIBackend) GetLogs(ctx context.Context, blockHash common.Hash, number uint64) ([][]*ethtypes.Log, error) {
 	start := time.Now()
 	defer func() {
 		EthApiBackendDuration.WithLabelValues("getLogs").Observe(float64(time.Since(start).Microseconds()))
@@ -703,9 +705,9 @@ func (e *EthAPIBackend) GetLogs(ctx context.Context, blockHash common.Hash, numb
 	if err != nil {
 		return nil, err
 	}
-	result := [][]*types.Log{}
+	result := [][]*ethtypes.Log{}
 	for _, receipt := range receipts {
-		logs := []*types.Log{}
+		logs := []*ethtypes.Log{}
 		for _, vLog := range receipt.Logs {
 			logs = append(logs, vLog)
 		}
@@ -720,7 +722,7 @@ func (e *EthAPIBackend) SubscribeRemovedLogsEvent(ch chan<- core.RemovedLogsEven
 	panic("implement me")
 }
 
-func (e *EthAPIBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscription {
+func (e *EthAPIBackend) SubscribeLogsEvent(ch chan<- []*ethtypes.Log) event.Subscription {
 	// TODO implement me
 	panic("implement me")
 }
@@ -730,8 +732,8 @@ func (e *EthAPIBackend) BloomStatus() (uint64, uint64) {
 	panic("implement me")
 }
 
-func yuHeader2EthHeader(yuHeader *yutypes.Header) *types.Header {
-	return &types.Header{
+func yuHeader2EthHeader(yuHeader *yutypes.Header) *ethtypes.Header {
+	return &ethtypes.Header{
 		ParentHash:  common.Hash(yuHeader.PrevHash),
 		Coinbase:    common.Address{}, // FIXME
 		Root:        common.Hash(yuHeader.StateRoot),
@@ -743,16 +745,16 @@ func yuHeader2EthHeader(yuHeader *yutypes.Header) *types.Header {
 		GasUsed:     yuHeader.LeiUsed,
 		Time:        yuHeader.Timestamp,
 		Extra:       yuHeader.Extra,
-		Nonce:       types.BlockNonce{},
+		Nonce:       ethtypes.BlockNonce{},
 		BaseFee:     big.NewInt(params.InitialBaseFee),
 	}
 }
 
-func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*types.Block, error) {
+func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*ethtypes.Block, error) {
 	header := yuHeader2EthHeader(yuBlock.Header)
 
 	// Generate transactions and receipts
-	var ethTxs []*types.Transaction
+	var ethTxs []*ethtypes.Transaction
 	var txHashes []common.Hash
 	for _, yuSignedTxn := range yuBlock.Txns {
 		tx, err := YuTxn2EthTxn(yuSignedTxn)
@@ -763,21 +765,21 @@ func (e *EthAPIBackend) compactBlock2EthBlock(yuBlock *yutypes.Block) (*types.Bl
 		txHashes = append(txHashes, tx.Hash())
 	}
 
-	var receipts []*types.Receipt
-	rcptReq := &evm.ReceiptsRequest{Hashes: txHashes}
+	var receipts []*ethtypes.Receipt
+	rcptReq := &types.ReceiptsRequest{Hashes: txHashes}
 	resp, err := e.adaptChainRead(rcptReq, "GetReceipts")
 	if err != nil {
 		logrus.Errorf("Failed to get receipts when adaptChainRead: %v", err)
 	} else {
-		receiptResponse := resp.DataInterface.(*evm.ReceiptsResponse)
+		receiptResponse := resp.DataInterface.(*types.ReceiptsResponse)
 		if receiptResponse.Err != nil {
 			logrus.Errorf("Failed to get receipts when compact block: error-code: %d, error: %v", resp.StatusCode, receiptResponse.Err)
 		} else {
 			receipts = receiptResponse.Receipts
 		}
 	}
-	body := &types.Body{Transactions: ethTxs, Uncles: nil}
-	return types.NewBlock(header, body, receipts, trie.NewStackTrie(nil)), nil
+	body := &ethtypes.Body{Transactions: ethTxs, Uncles: nil}
+	return ethtypes.NewBlock(header, body, receipts, trie.NewStackTrie(nil)), nil
 }
 
 func (e *EthAPIBackend) adaptChainRead(req any, funcName string) (*yucontext.ResponseData, error) {
@@ -807,52 +809,52 @@ func (e *EthAPIBackend) adaptChainRead(req any, funcName string) (*yucontext.Res
 type FakeEngine struct{}
 
 // Author retrieves the Ethereum address of the account that minted the given block.
-func (f FakeEngine) Author(header *types.Header) (common.Address, error) {
+func (f FakeEngine) Author(header *ethtypes.Header) (common.Address, error) {
 	return header.Coinbase, nil
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules.
-func (f FakeEngine) VerifyHeader(chain consensus.ChainHeaderReader, header *types.Header) error {
+func (f FakeEngine) VerifyHeader(chain consensus.ChainHeaderReader, header *ethtypes.Header) error {
 	panic("Unimplemented fake engine method VerifyHeader")
 }
 
 // VerifyHeaders checks whether a batch of headers conforms to the consensus rules.
-func (f FakeEngine) VerifyHeaders(chain consensus.ChainHeaderReader, headers []*types.Header) (chan<- struct{}, <-chan error) {
+func (f FakeEngine) VerifyHeaders(chain consensus.ChainHeaderReader, headers []*ethtypes.Header) (chan<- struct{}, <-chan error) {
 	panic("Unimplemented fake engine method VerifyHeaders")
 }
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus rules.
-func (f FakeEngine) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
+func (f FakeEngine) VerifyUncles(chain consensus.ChainReader, block *ethtypes.Block) error {
 	panic("Unimplemented fake engine method VerifyUncles")
 }
 
 // Prepare initializes the consensus fields of a block header.
-func (f FakeEngine) Prepare(chain consensus.ChainHeaderReader, header *types.Header) error {
+func (f FakeEngine) Prepare(chain consensus.ChainHeaderReader, header *ethtypes.Header) error {
 	panic("Unimplemented fake engine method Prepare")
 }
 
 // Finalize runs any post-transaction state modifications.
-func (f FakeEngine) Finalize(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body) {
+func (f FakeEngine) Finalize(chain consensus.ChainHeaderReader, header *ethtypes.Header, state *state.StateDB, body *ethtypes.Body) {
 	panic("Unimplemented fake engine method Finalize")
 }
 
 // FinalizeAndAssemble runs any post-transaction state modifications and assembles the final block.
-func (f FakeEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, body *types.Body, receipts []*types.Receipt) (*types.Block, error) {
+func (f FakeEngine) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *ethtypes.Header, state *state.StateDB, body *ethtypes.Body, receipts []*ethtypes.Receipt) (*ethtypes.Block, error) {
 	panic("Unimplemented fake engine method FinalizeAndAssemble")
 }
 
 // Seal generates a new sealing request for the given input block.
-func (f FakeEngine) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
+func (f FakeEngine) Seal(chain consensus.ChainHeaderReader, block *ethtypes.Block, results chan<- *ethtypes.Block, stop <-chan struct{}) error {
 	panic("Unimplemented fake engine method Seal")
 }
 
 // SealHash returns the hash of a block prior to it being sealed.
-func (f FakeEngine) SealHash(header *types.Header) common.Hash {
+func (f FakeEngine) SealHash(header *ethtypes.Header) common.Hash {
 	panic("Unimplemented fake engine method SealHash")
 }
 
 // CalcDifficulty is the difficulty adjustment algorithm.
-func (f FakeEngine) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
+func (f FakeEngine) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *ethtypes.Header) *big.Int {
 	panic("Unimplemented fake engine method CalcDifficulty")
 }
 
@@ -864,6 +866,29 @@ func (f FakeEngine) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 // Close terminates any background threads maintained by the consensus engine.
 func (f FakeEngine) Close() error {
 	panic("Unimplemented fake engine method Close")
+}
+
+// convertToTypesTransactionArgs converts ethrpc.TransactionArgs to types.TransactionArgs
+func convertToTypesTransactionArgs(args *TransactionArgs) *types.TransactionArgs {
+	return &types.TransactionArgs{
+		From:                 args.From,
+		To:                   args.To,
+		Gas:                  args.Gas,
+		GasPrice:             args.GasPrice,
+		MaxFeePerGas:         args.MaxFeePerGas,
+		MaxPriorityFeePerGas: args.MaxPriorityFeePerGas,
+		Value:                args.Value,
+		Nonce:                args.Nonce,
+		Data:                 args.Data,
+		Input:                args.Input,
+		AccessList:           args.AccessList,
+		ChainID:              args.ChainID,
+		BlobFeeCap:           args.BlobFeeCap,
+		BlobHashes:           args.BlobHashes,
+		Blobs:                args.Blobs,
+		Commitments:          args.Commitments,
+		Proofs:               args.Proofs,
+	}
 }
 
 // endregion  ---- Fake Consensus Engine ----
