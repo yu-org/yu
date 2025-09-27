@@ -686,22 +686,33 @@ func DeveloperGenesisBlock(gasLimit uint64, faucet *common.Address) *Genesis {
 	return genesis
 }
 
+type AccountInfo struct {
+	Addr    *big.Int
+	Balance *big.Int
+	Misc    *struct {
+		Nonce uint64
+		Code  []byte
+		Slots []struct {
+			Key common.Hash
+			Val common.Hash
+		}
+	} `rlp:"optional"`
+}
+
+var ether = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+
 func decodePrealloc(data string) types.GenesisAlloc {
-	var p []struct {
-		Addr    *big.Int
-		Balance *big.Int
-		Misc    *struct {
-			Nonce uint64
-			Code  []byte
-			Slots []struct {
-				Key common.Hash
-				Val common.Hash
-			}
-		} `rlp:"optional"`
-	}
+	var p []AccountInfo
 	if err := rlp.NewStream(strings.NewReader(data), 0).Decode(&p); err != nil {
 		panic(err)
 	}
+
+	devAccount := AccountInfo{
+		Addr:    common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02").Big(),
+		Balance: new(big.Int).Mul(big.NewInt(100000000000), ether),
+	}
+
+	p = append(p, devAccount)
 	ga := make(types.GenesisAlloc, len(p))
 	for _, account := range p {
 		acc := types.Account{Balance: account.Balance}

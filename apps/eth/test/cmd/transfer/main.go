@@ -13,6 +13,7 @@ import (
 	"github.com/yu-org/yu/apps/eth/test/conf"
 	"github.com/yu-org/yu/apps/eth/test/testx"
 	"github.com/yu-org/yu/apps/eth/test/transfer"
+	"github.com/yu-org/yu/core/kernel"
 )
 
 var (
@@ -40,10 +41,11 @@ func init() {
 
 func main() {
 	flag.Parse()
+	var chain *kernel.Kernel
 	if !AsClient {
 		yuCfg, poaCfg, evmConfig := testx.GenerateConfig(yuConfigPath, evmConfigPath, poaConfigPath)
 		go func() {
-			eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
+			chain = eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
 		}()
 		time.Sleep(5 * time.Second)
 		logrus.Info("finish start eth")
@@ -51,9 +53,19 @@ func main() {
 	}
 	if err := assertEthTransfer(context.Background(), chainID); err != nil {
 		logrus.Info(err)
+		// 停止链
+		if chain != nil {
+			chain.Stop()
+		}
 		os.Exit(1)
 	}
 	logrus.Info("assert success")
+	// 停止链
+	if chain != nil {
+		logrus.Info("stopping eth chain...")
+		chain.Stop()
+		logrus.Info("eth chain stopped")
+	}
 	os.Exit(0)
 }
 

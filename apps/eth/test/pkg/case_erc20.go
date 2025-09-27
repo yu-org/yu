@@ -142,7 +142,13 @@ func (tc *Erc20TransferCase) Run(m *WalletManager) error {
 
 		amount := new(big.Int).SetUint64(step.Count)
 
-		ownerAuth.GasPrice = big.NewInt(0)
+		// Get suggested gas price to ensure it's >= base fee
+		gasPrice, err := client.SuggestGasPrice(context.Background())
+		if err != nil {
+			// Fallback to a reasonable gas price if suggestion fails
+			gasPrice = big.NewInt(2e9) // 2 gwei
+		}
+		ownerAuth.GasPrice = gasPrice
 		ownerAuth.GasLimit = uint64(6e7)
 
 		if err := tc.TransferERC20(client, step.ContractAddr, *ownerAuth, fromAddress, toAddress, amount); err != nil {

@@ -244,6 +244,13 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 
 	//logrus.Infof("execute EVM, txn hash: %s, gas limit: %d", txReq.Hash(), ctx.Block.LeiLimit)
 	ethTx := txReq.ToEthTx()
+
+	// Debug: Get account info for 0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02
+	debugAddr := common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02")
+	debugBalance := s.ethState.stateDB.GetBalance(debugAddr)
+	debugNonce := s.ethState.stateDB.GetNonce(debugAddr)
+	logrus.Infof("DEBUG - Account %s: Balance=%s, Nonce=%d", debugAddr.Hex(), debugBalance.String(), debugNonce)
+
 	s.ethState.stateDB.SetTxContext(ethTx.Hash(), ctx.TxnIndex)
 	rcpt, err := s.applyEVM(evm, gasPool, s.ethState.stateDB, ctx.Block, ethTx, nil)
 	if err != nil {

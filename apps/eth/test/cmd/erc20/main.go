@@ -13,6 +13,7 @@ import (
 	"github.com/yu-org/yu/apps/eth/config"
 	"github.com/yu-org/yu/apps/eth/test/conf"
 	"github.com/yu-org/yu/apps/eth/test/erc20"
+	"github.com/yu-org/yu/core/kernel"
 )
 
 var (
@@ -37,16 +38,27 @@ func init() {
 func main() {
 	flag.Parse()
 	yuCfg, poaCfg, evmConfig := testx.GenerateConfig(yuConfigPath, evmConfigPath, poaConfigPath)
+	var chain *kernel.Kernel
 	go func() {
-		eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
+		chain = eth.StartupEthChain(yuCfg, poaCfg, evmConfig)
 	}()
 	time.Sleep(5 * time.Second)
 	log.Println("finish start eth")
 	if err := assertErc20Transfer(context.Background(), evmConfig); err != nil {
 		log.Println(err)
+		// 停止链
+		if chain != nil {
+			chain.Stop()
+		}
 		os.Exit(1)
 	}
 	log.Println("assert success")
+	// 停止链
+	if chain != nil {
+		log.Println("stopping eth chain...")
+		chain.Stop()
+		log.Println("eth chain stopped")
+	}
 	os.Exit(0)
 }
 

@@ -166,9 +166,16 @@ func (m *WalletManager) sendRawTx(privateKeyHex string, toAddress string, amount
 		return err
 	}
 
+	// Get suggested gas price to ensure it's >= base fee
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		// Fallback to a reasonable gas price if suggestion fails
+		gasPrice = big.NewInt(2e9) // 2 gwei
+	}
+
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    nonce,
-		GasPrice: big.NewInt(int64(0)),
+		GasPrice: gasPrice,
 		Gas:      gasLimit,
 		To:       &to,
 		Value:    big.NewInt(int64(amount)),
@@ -203,6 +210,13 @@ func (m *WalletManager) sendBatchRawTxs(rawTxs []*RawTxReq) error {
 
 	batchTx := new(ethrpc.BatchTx)
 
+	// Get suggested gas price once for all transactions
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		// Fallback to a reasonable gas price if suggestion fails
+		gasPrice = big.NewInt(2e9) // 2 gwei
+	}
+
 	for _, rawTx := range rawTxs {
 		to := common.HexToAddress(rawTx.toAddress)
 		gasLimit := uint64(21000)
@@ -220,7 +234,7 @@ func (m *WalletManager) sendBatchRawTxs(rawTxs []*RawTxReq) error {
 
 		tx := types.NewTx(&types.LegacyTx{
 			Nonce:    nonce,
-			GasPrice: big.NewInt(int64(0)),
+			GasPrice: gasPrice,
 			Gas:      gasLimit,
 			To:       &to,
 			Value:    big.NewInt(int64(rawTx.amount)),
