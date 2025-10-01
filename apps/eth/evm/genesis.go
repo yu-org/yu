@@ -30,7 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/triedb"
 	"github.com/ethereum/go-ethereum/triedb/pathdb"
 	"github.com/holiman/uint256"
-	"github.com/sirupsen/logrus"
 	"math/big"
 )
 
@@ -131,7 +130,6 @@ func flushAlloc(ga *types.GenesisAlloc, triedb *triedb.Database) (common.Hash, e
 		if account.Balance != nil {
 			// This is not actually logged via tracer because OnGenesisBlock
 			// already captures the allocations.
-			logrus.Infof("flushAlloc set (%s) amount (%d)", addr.Hex(), account.Balance)
 			statedb.AddBalance(addr, uint256.MustFromBig(account.Balance), tracing.BalanceIncreaseGenesisBalance)
 		}
 		statedb.SetCode(addr, account.Code)
@@ -150,7 +148,6 @@ func flushAlloc(ga *types.GenesisAlloc, triedb *triedb.Database) (common.Hash, e
 			return common.Hash{}, err
 		}
 	}
-	logrus.Infof("CHECK flushAlloc account (%s) balance (%d)", debugAddr.Hex(), statedb.GetBalance(debugAddr))
 	return root, nil
 }
 
@@ -350,8 +347,6 @@ var ether = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 func decodePrealloc() types.GenesisAlloc {
 
 	addr := common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02").Big()
-
-	logrus.Infof("BEFORE - Genesis set Account %s", addr.String())
 
 	var p = []AccountInfo{{
 		Addr:    addr,
