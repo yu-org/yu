@@ -25,7 +25,7 @@ type EthState struct {
 	db        ethdb.Database   // Pebble-backed ethdb
 	trieDB    *triedb.Database // triedb database
 	stateDB   *state.StateDB   // state DB used by EVM
-	cachingdb *state.CachingDB
+	cachingDB *state.CachingDB
 
 	chainCfg *params.ChainConfig // chain config for EVM
 	gethCfg  *config.GethConfig  // geth config for EVM
@@ -65,7 +65,7 @@ func NewEthState(root common.Hash, gethCfg *config.GethConfig) (*EthState, error
 		db:        db,
 		trieDB:    trieDB,
 		stateDB:   sdb,
-		cachingdb: cachingDB,
+		cachingDB: cachingDB,
 		chainCfg:  gethCfg.ChainConfig,
 		gethCfg:   gethCfg,
 		root:      root,
@@ -85,7 +85,7 @@ func (s *EthState) setTxContext(txHash common.Hash, txIdx int) {
 }
 
 func (s *EthState) StateAt(root common.Hash) (*state.StateDB, error) {
-	return state.New(root, s.cachingdb)
+	return state.New(root, s.cachingDB)
 }
 
 func (s *EthState) GenesisCommit(genesis *Genesis) (common.Hash, error) {

@@ -216,7 +216,7 @@ func (s *Solidity) Call(ctx *context.ReadContext) {
 		return
 	}
 
-	msg := callReq.TxArgs.ToMessage(s.cfg.BaseFee)
+	msg := callReq.TxArgs.ToMessage(s.cfg.BaseFee, false, false)
 	res, err := s.ethState.ApplyTxForReader(msg)
 	if err != nil {
 		ctx.Json(http.StatusInternalServerError, &types.CallResponse{Err: err})

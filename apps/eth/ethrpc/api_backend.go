@@ -375,7 +375,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 	}
 
 	callRequest := types.CallRequest{
-		TxArgs: &args,
+		TxArgs: convertToTypesTransactionArgs(&args),
 	}
 	requestByt, _ := json.Marshal(callRequest)
 	rdCall := new(yucommon.RdCall)
