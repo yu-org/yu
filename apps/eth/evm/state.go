@@ -15,11 +15,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/state/snapshot"
-	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/triedb"
-	"github.com/holiman/uint256"
 	"github.com/yu-org/yu/apps/eth/config"
 )
 
@@ -144,12 +142,4 @@ func (s *EthState) Commit(blockNum uint64) (common.Hash, error) {
 	s.root = root
 	// s.blockNum = blockNum
 	return root, nil
-}
-
-func (s *EthState) AddBalance(addr common.Address, amount *uint256.Int, reason tracing.BalanceChangeReason) {
-	s.stateDB.AddBalance(addr, amount, reason)
-}
-
-func (s *EthState) SubBalance(addr common.Address, amount *uint256.Int, reason tracing.BalanceChangeReason) {
-	s.stateDB.SubBalance(addr, amount, reason)
 }

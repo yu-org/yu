@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"sync/atomic"
 	"time"
 
 	"github.com/yu-org/yu/apps/eth/utils"
@@ -14,11 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/tracing"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/holiman/uint256"
 	"github.com/sirupsen/logrus"
 	yu_common "github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
@@ -53,8 +50,7 @@ type Solidity struct {
 	cfg         *config.GethConfig
 	stateConfig *config.Config
 
-	gasPool        *core.GasPool
-	coinbaseReward atomic.Uint64
+	gasPool *core.GasPool
 }
 
 func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
@@ -237,10 +233,6 @@ func (s *Solidity) Commit(block *yu_types.Block) {
 	defer func() {
 		metrics.SolidityHist.WithLabelValues(commitLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
-
-	// reward coinbase
-	s.ethState.AddBalance(s.cfg.Coinbase, uint256.NewInt(s.coinbaseReward.Load()), tracing.BalanceIncreaseRewardTransactionFee)
-	s.coinbaseReward.Store(0)
 
 	blockNumber := uint64(block.Height)
 	stateRoot, err := s.ethState.Commit(blockNumber)
