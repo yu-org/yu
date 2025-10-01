@@ -98,7 +98,7 @@ func (s *EthState) StartState() error {
 	return nil
 }
 
-func (s *EthState) ApplyTx(block *yu_types.Block, tx *ethtypes.Transaction, gp *core.GasPool, usedGas *uint64) (*ethtypes.Receipt, error) {
+func (s *EthState) ApplyTx(block *yu_types.Block, tx *ethtypes.Transaction, txIdx int, gp *core.GasPool, usedGas *uint64) (*ethtypes.Receipt, error) {
 	blockContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
@@ -119,7 +119,15 @@ func (s *EthState) ApplyTx(block *yu_types.Block, tx *ethtypes.Transaction, gp *
 	if err != nil {
 		return nil, err
 	}
-	return core.ApplyTransactionWithEVM(msg, gp, s.stateDB, block.Height.ToBigInt(), common.Hash(block.Hash), block.Timestamp, tx, usedGas, evm)
+	s.stateDB.SetTxContext(common.Hash(block.Hash), txIdx)
+	rcpt, err := core.ApplyTransactionWithEVM(msg, gp, s.stateDB, block.Height.ToBigInt(), common.Hash(block.Hash), block.Timestamp, tx, usedGas, evm)
+	if err != nil {
+		return nil, err
+	}
+	if rcpt.Logs == nil {
+		rcpt.Logs = []*ethtypes.Log{}
+	}
+	return rcpt, nil
 }
 
 func (s *EthState) ApplyTxForReader(msg *core.Message) (*core.ExecutionResult, error) {

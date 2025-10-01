@@ -121,7 +121,7 @@ func (e *EthAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*et
 	EthApiBackendCounter.WithLabelValues("headerByHash").Inc()
 	yuBlock, err := e.chain.Chain.GetCompactBlock(yucommon.Hash(hash))
 	if err != nil {
-		logrus.Error("ethrpc.api_backend.HeaderByHash() failed: ", err)
+		logrus.Errorf("ethrpc.api_backend.HeaderByHash() blockHash(%s) failed: %v", hash.Hex(), err)
 		return nil, nil, err
 	}
 

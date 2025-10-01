@@ -118,7 +118,6 @@ func (s *Solidity) StartBlock(block *yu_types.Block) {
 	s.cfg.BlockNumber = big.NewInt(int64(block.Height))
 	s.cfg.GasLimit = block.LeiLimit
 	s.cfg.Time = block.Timestamp
-	fmt.Println("lei limit = ", block.LeiLimit)
 	s.gasPool = new(core.GasPool).AddGas(block.LeiLimit)
 	s.cfg.Difficulty = big.NewInt(int64(block.Difficulty))
 	err := s.ethState.StartState()
@@ -189,7 +188,7 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 	if err != nil {
 		return err
 	}
-	rcpt, err := s.ethState.ApplyTx(ctx.Block, txReq.ToEthTx(), s.gasPool, new(uint64))
+	rcpt, err := s.ethState.ApplyTx(ctx.Block, txReq.ToEthTx(), ctx.TxnIndex, s.gasPool, new(uint64))
 	if err != nil {
 		return err
 	}
@@ -376,6 +375,7 @@ func (s *Solidity) GetReceipts(ctx *context.ReadContext) {
 		}
 		want = append(want, receipt)
 	}
+
 	metrics.SolidityCounter.WithLabelValues(getReceiptsLbl, statusSuccess).Inc()
 	ctx.JsonOk(&ReceiptsResponse{Receipts: want})
 }
