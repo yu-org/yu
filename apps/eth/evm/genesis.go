@@ -21,9 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
-	"strings"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -35,11 +32,12 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
 	"github.com/ethereum/go-ethereum/triedb"
 	"github.com/ethereum/go-ethereum/triedb/pathdb"
 	"github.com/holiman/uint256"
+	"github.com/sirupsen/logrus"
+	"math/big"
 )
 
 //go:generate go run github.com/fjl/gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -391,37 +389,37 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, triedb *triedb.Database, g
 
 // LoadChainConfig loads the stored chain config if it is already present in
 // database, otherwise, return the config in the provided genesis specification.
-func LoadChainConfig(db ethdb.Database, genesis *Genesis) (cfg *params.ChainConfig, ghash common.Hash, err error) {
-	// Load the stored chain config from the database. It can be nil
-	// in case the database is empty. Notably, we only care about the
-	// chain config corresponds to the canonical chain.
-	stored := rawdb.ReadCanonicalHash(db, 0)
-	if stored != (common.Hash{}) {
-		storedcfg := rawdb.ReadChainConfig(db, stored)
-		if storedcfg != nil {
-			return storedcfg, stored, nil
-		}
-	}
-	// Load the config from the provided genesis specification
-	if genesis != nil {
-		// Reject invalid genesis spec without valid chain config
-		if genesis.Config == nil {
-			return nil, common.Hash{}, errGenesisNoConfig
-		}
-		// If the canonical genesis header is present, but the chain
-		// config is missing(initialize the empty leveldb with an
-		// external ancient chain segment), ensure the provided genesis
-		// is matched.
-		ghash := genesis.ToBlock().Hash()
-		if stored != (common.Hash{}) && ghash != stored {
-			return nil, ghash, &GenesisMismatchError{stored, ghash}
-		}
-		return genesis.Config, ghash, nil
-	}
-	// There is no stored chain config and no new config provided,
-	// In this case the default chain config(mainnet) will be used
-	return params.MainnetChainConfig, params.MainnetGenesisHash, nil
-}
+//func LoadChainConfig(db ethdb.Database, genesis *Genesis) (cfg *params.ChainConfig, ghash common.Hash, err error) {
+//	// Load the stored chain config from the database. It can be nil
+//	// in case the database is empty. Notably, we only care about the
+//	// chain config corresponds to the canonical chain.
+//	stored := rawdb.ReadCanonicalHash(db, 0)
+//	if stored != (common.Hash{}) {
+//		storedcfg := rawdb.ReadChainConfig(db, stored)
+//		if storedcfg != nil {
+//			return storedcfg, stored, nil
+//		}
+//	}
+//	// Load the config from the provided genesis specification
+//	if genesis != nil {
+//		// Reject invalid genesis spec without valid chain config
+//		if genesis.Config == nil {
+//			return nil, common.Hash{}, errGenesisNoConfig
+//		}
+//		// If the canonical genesis header is present, but the chain
+//		// config is missing(initialize the empty leveldb with an
+//		// external ancient chain segment), ensure the provided genesis
+//		// is matched.
+//		ghash := genesis.ToBlock().Hash()
+//		if stored != (common.Hash{}) && ghash != stored {
+//			return nil, ghash, &GenesisMismatchError{stored, ghash}
+//		}
+//		return genesis.Config, ghash, nil
+//	}
+//	// There is no stored chain config and no new config provided,
+//	// In this case the default chain config(mainnet) will be used
+//	return params.MainnetChainConfig, params.MainnetGenesisHash, nil
+//}
 
 // chainConfigOrDefault retrieves the attached chain configuration. If the genesis
 // object is null, it returns the default chain configuration based on the given
@@ -702,19 +700,24 @@ type AccountInfo struct {
 var ether = new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
 
 func decodePrealloc(data string) types.GenesisAlloc {
-	var p []AccountInfo
-	if err := rlp.NewStream(strings.NewReader(data), 0).Decode(&p); err != nil {
-		panic(err)
-	}
+	// var p []AccountInfo
+	//if err := rlp.NewStream(strings.NewReader(data), 0).Decode(&p); err != nil {
+	//	panic(err)
+	//}
 
-	devAccount := AccountInfo{
-		Addr:    common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02").Big(),
+	addr := common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02").Big()
+
+	logrus.Infof("BEFORE - Genesis set Account %s", addr.String())
+
+	var p = []AccountInfo{{
+		Addr:    addr,
 		Balance: new(big.Int).Mul(big.NewInt(100000000000), ether),
-	}
+	}}
 
-	p = append(p, devAccount)
+	// p = append(p, devAccount)
 	ga := make(types.GenesisAlloc, len(p))
 	for _, account := range p {
+		logrus.Infof("DEBUG - Genesis set Account %s, Balance %s", account.Addr.String(), account.Balance.String())
 		acc := types.Account{Balance: account.Balance}
 		if account.Misc != nil {
 			acc.Nonce = account.Misc.Nonce

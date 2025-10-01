@@ -1,22 +1,14 @@
 package types
 
 import (
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/yu-org/yu/apps/eth/ethrpc"
 )
 
 type CallRequest struct {
-	Input    []byte         `json:"input"`
-	Address  common.Address `json:"address"`
-	Origin   common.Address `json:"origin"`
-	GasLimit uint64         `json:"gasLimit"`
-	GasPrice *big.Int       `json:"gasPrice"`
-	Value    *big.Int       `json:"value"`
+	TxArgs *ethrpc.TransactionArgs `json:"tx_args"`
 }
 
 type CallResponse struct {
-	Ret         []byte `json:"ret"`
-	LeftOverGas uint64 `json:"leftOverGas"`
-	Err         error  `json:"err"`
+	Ret []byte `json:"ret"`
+	Err error  `json:"err"`
 }

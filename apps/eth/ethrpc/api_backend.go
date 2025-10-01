@@ -375,14 +375,8 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 	}
 
 	callRequest := types.CallRequest{
-		Address:  *args.To,
-		Input:    args.data(),
-		Value:    args.Value.ToInt(),
-		GasLimit: uint64(*args.Gas),
-		GasPrice: args.GasPrice.ToInt(),
+		TxArgs: &args,
 	}
-	callRequest.Origin = args.from()
-
 	requestByt, _ := json.Marshal(callRequest)
 	rdCall := new(yucommon.RdCall)
 	rdCall.TripodName = SolidityTripod

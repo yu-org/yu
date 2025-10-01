@@ -2,12 +2,10 @@ package evm
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"net/http"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -46,58 +44,20 @@ var (
 	statusSuccess = "success"
 	statusErr     = "err"
 	statusExceed  = "exceed"
+	debugAddr     = common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02")
 )
 
 type Solidity struct {
-	sync.Mutex
-
 	*tripod.Tripod
 	ethState    *EthState
 	cfg         *config.GethConfig
 	stateConfig *config.Config
 
-	// gasPool        *core.GasPool
+	gasPool        *core.GasPool
 	coinbaseReward atomic.Uint64
 }
 
-func copyEvmFromRequest(cfg *config.GethConfig, req *TxRequest) *vm.EVM {
-	blockContext := vm.BlockContext{
-		CanTransfer: core.CanTransfer,
-		Transfer:    core.Transfer,
-		GetHash:     cfg.GetHashFn,
-		Coinbase:    cfg.Coinbase,
-		BlockNumber: cfg.BlockNumber,
-		Time:        cfg.Time,
-		Difficulty:  cfg.Difficulty,
-		GasLimit:    req.ToEthTx().Gas(),
-		BaseFee:     cfg.BaseFee,
-		BlobBaseFee: cfg.BlobBaseFee,
-		Random:      cfg.Random,
-	}
-
-	return vm.NewEVM(blockContext, cfg.State, cfg.ChainConfig, cfg.EVMConfig)
-}
-
-func newEVM(cfg *config.GethConfig) *vm.EVM {
-	blockContext := vm.BlockContext{
-		CanTransfer: core.CanTransfer,
-		Transfer:    core.Transfer,
-		GetHash:     cfg.GetHashFn,
-		Coinbase:    cfg.Coinbase,
-		BlockNumber: cfg.BlockNumber,
-		Time:        cfg.Time,
-		Difficulty:  cfg.Difficulty,
-		GasLimit:    cfg.GasLimit,
-		BaseFee:     cfg.BaseFee,
-		BlobBaseFee: cfg.BlobBaseFee,
-		Random:      cfg.Random,
-	}
-
-	return vm.NewEVM(blockContext, cfg.State, cfg.ChainConfig, cfg.EVMConfig)
-}
-
 func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
-	cfg := s.stateConfig
 	var genesis *Genesis
 	if s.cfg.IsReddioMainnet {
 		genesis = DefaultGenesisBlock()
@@ -114,25 +74,20 @@ func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 		lastStateRoot = common.Hash(block.StateRoot)
 	}
 
-	ethState, err := NewEthState(cfg, lastStateRoot)
+	ethState, err := NewEthState(lastStateRoot, s.cfg)
 	if err != nil {
 		logrus.Fatal("init NewEthState failed: ", err)
 	}
 	s.ethState = ethState
 	s.cfg.State = ethState.stateDB
 
-	_, _, _, err = SetupGenesisBlock(ethState.ethDB, ethState.trieDB, genesis)
-	if err != nil {
-		logrus.Fatal("SetupGenesisBlock failed: ", err)
-	}
-
-	// s.cfg.ChainConfig = chainConfig
-
 	// commit genesis state
-	genesisStateRoot, err := s.ethState.GenesisCommit()
+	genesisStateRoot, err := s.ethState.GenesisCommit(genesis)
 	if err != nil {
 		logrus.Fatal("genesis state commit failed: ", err)
 	}
+
+	logrus.Infof("GENESIS DEBUG - Account hex %s Balance %d", debugAddr.Hex(), ethState.stateDB.GetBalance(debugAddr))
 
 	genesisBlock.StateRoot = yu_common.Hash(genesisStateRoot)
 }
@@ -163,16 +118,15 @@ func NewSolidity(gethConfig *config.GethConfig) *Solidity {
 
 func (s *Solidity) StartBlock(block *yu_types.Block) {
 	metrics.SolidityCounter.WithLabelValues(startBlockLbl, statusSuccess).Inc()
-	s.Lock()
 	start := time.Now()
 	defer func() {
-		s.Unlock()
 		metrics.SolidityHist.WithLabelValues(startBlockLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
 	s.cfg.BlockNumber = big.NewInt(int64(block.Height))
 	// s.gasPool = new(core.GasPool).AddGas(block.LeiLimit)
 	s.cfg.GasLimit = block.LeiLimit
 	s.cfg.Time = block.Timestamp
+	s.gasPool = new(core.GasPool).AddGas(block.LeiLimit)
 	s.cfg.Difficulty = big.NewInt(int64(block.Difficulty))
 }
 
@@ -222,10 +176,8 @@ func (s *Solidity) CheckTxn(txn *yu_types.SignedTxn) error {
 // Execute sets up an in-memory, temporary, environment for the execution of
 // the given code. It makes sure that it's restored to its original state afterwards.
 func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
-	s.Lock()
 	start := time.Now()
 	defer func() {
-		s.Unlock()
 		metrics.SolidityHist.WithLabelValues(executeTxnLbl).Observe(float64(time.Since(start).Microseconds()))
 		if err == nil {
 			metrics.SolidityCounter.WithLabelValues(executeTxnLbl, statusSuccess).Inc()
@@ -233,26 +185,11 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 			metrics.SolidityCounter.WithLabelValues(executeTxnLbl, statusErr).Inc()
 		}
 	}()
-	// coinbase := common.BytesToAddress(s.cfg.Coinbase.Bytes())
 	txReq, err := DecodeTxReq(ctx.GetRequestBytes())
 	if err != nil {
 		return err
 	}
-	evm := copyEvmFromRequest(s.cfg, txReq)
-	// FIXME
-	gasPool := new(core.GasPool).AddGas(ctx.Block.LeiLimit)
-
-	//logrus.Infof("execute EVM, txn hash: %s, gas limit: %d", txReq.Hash(), ctx.Block.LeiLimit)
-	ethTx := txReq.ToEthTx()
-
-	// Debug: Get account info for 0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02
-	debugAddr := common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02")
-	debugBalance := s.ethState.stateDB.GetBalance(debugAddr)
-	debugNonce := s.ethState.stateDB.GetNonce(debugAddr)
-	logrus.Infof("DEBUG - Account %s: Balance=%s, Nonce=%d", debugAddr.Hex(), debugBalance.String(), debugNonce)
-
-	s.ethState.stateDB.SetTxContext(ethTx.Hash(), ctx.TxnIndex)
-	rcpt, err := s.applyEVM(evm, gasPool, s.ethState.stateDB, ctx.Block, ethTx, nil)
+	rcpt, err := s.ethState.ApplyTx(ctx.Block, txReq.ToEthTx(), s.gasPool, nil)
 	if err != nil {
 		return err
 	}
@@ -260,7 +197,7 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 	var buf bytes.Buffer
 	encodeErr := json.NewEncoder(&buf).Encode(rcpt)
 	if encodeErr != nil {
-		logrus.Errorf("Receipt marshal err: %v. Tx: %s", encodeErr, ethTx.Hash())
+		logrus.Errorf("Receipt marshal err: %v. Tx: %s", encodeErr, txReq.ToEthTx().Hash())
 		return encodeErr
 	}
 	ctx.EmitExtra(buf.Bytes())
@@ -271,10 +208,8 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 // EVM's return value or an error if it failed.
 func (s *Solidity) Call(ctx *context.ReadContext) {
 	metrics.SolidityCounter.WithLabelValues(callTxnLbl, statusSuccess).Inc()
-	s.Lock()
 	start := time.Now()
 	defer func() {
-		s.Unlock()
 		metrics.SolidityHist.WithLabelValues(callTxnLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
 
@@ -284,59 +219,22 @@ func (s *Solidity) Call(ctx *context.ReadContext) {
 		ctx.Json(http.StatusBadRequest, &types.CallResponse{Err: err})
 		return
 	}
-	address := callReq.Address
-	input := callReq.Input
-	origin := callReq.Origin
-	gasLimit := callReq.GasLimit
-	gasPrice := callReq.GasPrice
-	value := callReq.Value
 
-	cfg := s.cfg
-	cfg.Origin = origin
-	cfg.GasLimit = gasLimit
-	cfg.GasPrice = gasPrice
-	cfg.Value = value
-	ethState := s.ethState
-
-	var (
-		vmenv = newEVM(cfg)
-		rules = cfg.ChainConfig.Rules(vmenv.Context.BlockNumber, vmenv.Context.Random != nil, vmenv.Context.Time)
-	)
-	vmenv.StateDB = s.ethState.StateDB().Copy()
-	if cfg.EVMConfig.Tracer != nil && cfg.EVMConfig.Tracer.OnTxStart != nil {
-		cfg.EVMConfig.Tracer.OnTxStart(vmenv.GetVMContext(), ethtypes.NewTx(&ethtypes.LegacyTx{To: &address, Data: input, Value: value, Gas: gasLimit}), origin)
-	}
-	// Execute the preparatory steps for state transition which includes:
-	// - prepare accessList(post-berlin)
-	// - reset transient storage(eip 1153)
-	ethState.Prepare(rules, origin, cfg.Coinbase, &address, vm.ActivePrecompiles(rules), nil)
-
-	// Call the code with the given configuration.
-	ret, leftOverGas, err := vmenv.Call(
-		origin,
-		address,
-		input,
-		gasLimit,
-		uint256.MustFromBig(value),
-	)
-
-	logrus.Debugf("[Call] Request from = %v, to = %v, gasLimit = %v, value = %v, input = %v", origin.Hex(), address.Hex(), gasLimit, value.Uint64(), hex.EncodeToString(input))
-	logrus.Debugf("[Call] Response: Origin Code = %v, Hex Code = %v, String Code = %v, LeftOverGas = %v", ret, hex.EncodeToString(ret), new(big.Int).SetBytes(ret).String(), leftOverGas)
-
+	msg := callReq.TxArgs.ToMessage(s.cfg.BaseFee)
+	res, err := s.ethState.ApplyTxForReader(msg)
 	if err != nil {
 		ctx.Json(http.StatusInternalServerError, &types.CallResponse{Err: err})
 		return
 	}
-	result := types.CallResponse{Ret: ret, LeftOverGas: leftOverGas}
+
+	result := types.CallResponse{Ret: res.ReturnData}
 	ctx.JsonOk(&result)
 }
 
 func (s *Solidity) Commit(block *yu_types.Block) {
 	metrics.SolidityCounter.WithLabelValues(commitLbl, statusSuccess).Inc()
-	s.Lock()
 	start := time.Now()
 	defer func() {
-		s.Unlock()
 		metrics.SolidityHist.WithLabelValues(commitLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
 
@@ -355,8 +253,6 @@ func (s *Solidity) Commit(block *yu_types.Block) {
 }
 
 func (s *Solidity) StateAt(root common.Hash) (*state.StateDB, error) {
-	s.Lock()
-	defer s.Unlock()
 	sdb, err := s.ethState.StateAt(root)
 	if err != nil {
 		return nil, err
@@ -365,7 +261,7 @@ func (s *Solidity) StateAt(root common.Hash) (*state.StateDB, error) {
 }
 
 func (s *Solidity) GetEthDB() ethdb.Database {
-	return s.ethState.ethDB
+	return s.ethState.db
 }
 
 type ReceiptRequest struct {
