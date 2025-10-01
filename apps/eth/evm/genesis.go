@@ -131,6 +131,7 @@ func flushAlloc(ga *types.GenesisAlloc, triedb *triedb.Database) (common.Hash, e
 		if account.Balance != nil {
 			// This is not actually logged via tracer because OnGenesisBlock
 			// already captures the allocations.
+			logrus.Infof("flushAlloc set (%s) amount (%d)", addr.Hex(), account.Balance)
 			statedb.AddBalance(addr, uint256.MustFromBig(account.Balance), tracing.BalanceIncreaseGenesisBalance)
 		}
 		statedb.SetCode(addr, account.Code)
@@ -149,6 +150,7 @@ func flushAlloc(ga *types.GenesisAlloc, triedb *triedb.Database) (common.Hash, e
 			return common.Hash{}, err
 		}
 	}
+	logrus.Infof("CHECK flushAlloc account (%s) balance (%d)", debugAddr.Hex(), statedb.GetBalance(debugAddr))
 	return root, nil
 }
 
@@ -330,48 +332,6 @@ func DefaultHoodiGenesisBlock() *Genesis {
 	}
 }
 
-// DeveloperGenesisBlock returns the 'geth --dev' genesis block.
-func DeveloperGenesisBlock(gasLimit uint64, faucet *common.Address) *Genesis {
-	// Override the default period to the user requested one
-	config := *params.AllDevChainProtocolChanges
-
-	// Assemble and return the genesis with the precompiles and faucet pre-funded
-	genesis := &Genesis{
-		Config:     &config,
-		GasLimit:   gasLimit,
-		BaseFee:    big.NewInt(params.InitialBaseFee),
-		Difficulty: big.NewInt(0),
-		Alloc: map[common.Address]types.Account{
-			common.BytesToAddress([]byte{0x01}): {Balance: big.NewInt(1)}, // ECRecover
-			common.BytesToAddress([]byte{0x02}): {Balance: big.NewInt(1)}, // SHA256
-			common.BytesToAddress([]byte{0x03}): {Balance: big.NewInt(1)}, // RIPEMD
-			common.BytesToAddress([]byte{0x04}): {Balance: big.NewInt(1)}, // Identity
-			common.BytesToAddress([]byte{0x05}): {Balance: big.NewInt(1)}, // ModExp
-			common.BytesToAddress([]byte{0x06}): {Balance: big.NewInt(1)}, // ECAdd
-			common.BytesToAddress([]byte{0x07}): {Balance: big.NewInt(1)}, // ECScalarMul
-			common.BytesToAddress([]byte{0x08}): {Balance: big.NewInt(1)}, // ECPairing
-			common.BytesToAddress([]byte{0x09}): {Balance: big.NewInt(1)}, // BLAKE2b
-			common.BytesToAddress([]byte{0x0a}): {Balance: big.NewInt(1)}, // KZGPointEval
-			common.BytesToAddress([]byte{0x0b}): {Balance: big.NewInt(1)}, // BLSG1Add
-			common.BytesToAddress([]byte{0x0c}): {Balance: big.NewInt(1)}, // BLSG1MultiExp
-			common.BytesToAddress([]byte{0x0d}): {Balance: big.NewInt(1)}, // BLSG2Add
-			common.BytesToAddress([]byte{0x0e}): {Balance: big.NewInt(1)}, // BLSG2MultiExp
-			common.BytesToAddress([]byte{0x0f}): {Balance: big.NewInt(1)}, // BLSG1Pairing
-			common.BytesToAddress([]byte{0x10}): {Balance: big.NewInt(1)}, // BLSG1MapG1
-			common.BytesToAddress([]byte{0x11}): {Balance: big.NewInt(1)}, // BLSG2MapG2
-			// Pre-deploy system contracts
-			params.BeaconRootsAddress:        {Nonce: 1, Code: params.BeaconRootsCode, Balance: common.Big0},
-			params.HistoryStorageAddress:     {Nonce: 1, Code: params.HistoryStorageCode, Balance: common.Big0},
-			params.WithdrawalQueueAddress:    {Nonce: 1, Code: params.WithdrawalQueueCode, Balance: common.Big0},
-			params.ConsolidationQueueAddress: {Nonce: 1, Code: params.ConsolidationQueueCode, Balance: common.Big0},
-		},
-	}
-	if faucet != nil {
-		genesis.Alloc[*faucet] = types.Account{Balance: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9))}
-	}
-	return genesis
-}
-
 type AccountInfo struct {
 	Addr    *big.Int
 	Balance *big.Int
@@ -398,10 +358,8 @@ func decodePrealloc() types.GenesisAlloc {
 		Balance: new(big.Int).Mul(big.NewInt(100000000000), ether),
 	}}
 
-	// p = append(p, devAccount)
 	ga := make(types.GenesisAlloc, len(p))
 	for _, account := range p {
-		logrus.Infof("DEBUG - Genesis set Account %s, Balance %s", account.Addr.String(), account.Balance.String())
 		acc := types.Account{Balance: account.Balance}
 		if account.Misc != nil {
 			acc.Nonce = account.Misc.Nonce

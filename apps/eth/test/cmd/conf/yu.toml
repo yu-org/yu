@@ -7,7 +7,7 @@ http_port = "7999"
 ws_port = "8999"
 log_level = "info"
 #log_output = "yu/yu.log"
-lei_limit = 50000
+lei_limit = 50000000000000
 statedb_type = "no"
 
 is_admin = false

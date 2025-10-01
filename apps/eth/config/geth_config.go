@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
@@ -36,9 +35,6 @@ type GethConfig struct {
 	GasPrice   *big.Int
 	BlobHashes []common.Hash
 	BlobFeeCap *big.Int
-
-	// StateDB gives access to the underlying state
-	State *state.StateDB
 
 	// Unknown
 	Value     *big.Int
@@ -114,7 +110,6 @@ func (gc *GethConfig) Copy() *GethConfig {
 		GasPrice:     gc.GasPrice,
 		BlobHashes:   gc.BlobHashes,
 		BlobFeeCap:   gc.BlobFeeCap,
-		State:        gc.State,
 		Value:        gc.Value,
 		Debug:        gc.Debug,
 		EVMConfig:    gc.EVMConfig,
@@ -143,7 +138,6 @@ func SetDefaultGethConfig(fpath string) *GethConfig {
 		BlobHashes:  []common.Hash{},
 		BlobFeeCap:  big.NewInt(0),
 		Random:      &common.Hash{},
-		State:       nil,
 		GetHashFn: func(n uint64) common.Hash {
 			return common.BytesToHash(crypto.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
 		},

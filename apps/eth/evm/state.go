@@ -1,24 +1,25 @@
 package evm
 
 import (
-	"github.com/ethereum/go-ethereum/core"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/ethdb/pebble"
-	yu_types "github.com/yu-org/yu/core/types"
 	"math"
 
 	"math/big"
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/state/snapshot"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/ethdb/pebble"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/triedb"
+
 	"github.com/yu-org/yu/apps/eth/config"
+	yu_types "github.com/yu-org/yu/core/types"
 )
 
 type EthState struct {
@@ -72,24 +73,29 @@ func NewEthState(root common.Hash, gethCfg *config.GethConfig) (*EthState, error
 	}, nil
 }
 
-func (s *EthState) StateDB() *state.StateDB {
-	return s.stateDB
-}
-
-func (s *EthState) SetStateDB(d *state.StateDB) {
-	s.stateDB = d
-}
-
-func (s *EthState) setTxContext(txHash common.Hash, txIdx int) {
-	s.stateDB.SetTxContext(txHash, txIdx)
-}
-
 func (s *EthState) StateAt(root common.Hash) (*state.StateDB, error) {
 	return state.New(root, s.cachingDB)
 }
 
 func (s *EthState) GenesisCommit(genesis *Genesis) (common.Hash, error) {
-	return flushAlloc(&genesis.Alloc, s.trieDB)
+	// return flushAlloc(&genesis.Alloc, s.trieDB)
+
+	root, err := flushAlloc(&genesis.Alloc, s.trieDB)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	s.root = root
+	return root, nil
+}
+
+func (s *EthState) StartState() error {
+	statedb, err := state.New(s.root, s.cachingDB)
+	if err != nil {
+		return err
+	}
+	s.stateDB = statedb
+
+	return nil
 }
 
 func (s *EthState) ApplyTx(block *yu_types.Block, tx *ethtypes.Transaction, gp *core.GasPool, usedGas *uint64) (*ethtypes.Receipt, error) {

@@ -75,15 +75,12 @@ func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 		logrus.Fatal("init NewEthState failed: ", err)
 	}
 	s.ethState = ethState
-	s.cfg.State = ethState.stateDB
 
 	// commit genesis state
 	genesisStateRoot, err := s.ethState.GenesisCommit(genesis)
 	if err != nil {
 		logrus.Fatal("genesis state commit failed: ", err)
 	}
-
-	logrus.Infof("GENESIS DEBUG - Account hex %s Balance %d", debugAddr.Hex(), ethState.stateDB.GetBalance(debugAddr))
 
 	genesisBlock.StateRoot = yu_common.Hash(genesisStateRoot)
 }
@@ -119,11 +116,15 @@ func (s *Solidity) StartBlock(block *yu_types.Block) {
 		metrics.SolidityHist.WithLabelValues(startBlockLbl).Observe(float64(time.Since(start).Microseconds()))
 	}()
 	s.cfg.BlockNumber = big.NewInt(int64(block.Height))
-	// s.gasPool = new(core.GasPool).AddGas(block.LeiLimit)
 	s.cfg.GasLimit = block.LeiLimit
 	s.cfg.Time = block.Timestamp
+	fmt.Println("lei limit = ", block.LeiLimit)
 	s.gasPool = new(core.GasPool).AddGas(block.LeiLimit)
 	s.cfg.Difficulty = big.NewInt(int64(block.Difficulty))
+	err := s.ethState.StartState()
+	if err != nil {
+		logrus.Errorf("start state at Block(%d) failed: %v", block.Height, err)
+	}
 }
 
 func (s *Solidity) EndBlock(block *yu_types.Block) {
@@ -181,11 +182,14 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 			metrics.SolidityCounter.WithLabelValues(executeTxnLbl, statusErr).Inc()
 		}
 	}()
+
+	logrus.Infof("ExecuteTxn, debugAddr: %s amount: %d", debugAddr.Hex(), s.ethState.stateDB.GetBalance(debugAddr))
+
 	txReq, err := DecodeTxReq(ctx.GetRequestBytes())
 	if err != nil {
 		return err
 	}
-	rcpt, err := s.ethState.ApplyTx(ctx.Block, txReq.ToEthTx(), s.gasPool, nil)
+	rcpt, err := s.ethState.ApplyTx(ctx.Block, txReq.ToEthTx(), s.gasPool, new(uint64))
 	if err != nil {
 		return err
 	}
