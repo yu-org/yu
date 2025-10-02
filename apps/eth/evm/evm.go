@@ -41,7 +41,6 @@ var (
 	statusSuccess = "success"
 	statusErr     = "err"
 	statusExceed  = "exceed"
-	debugAddr     = common.HexToAddress("0x7Bd36074b61Cfe75a53e1B9DF7678C96E6463b02")
 )
 
 type Solidity struct {
@@ -178,7 +177,7 @@ func (s *Solidity) ExecuteTxn(ctx *context.WriteContext) (err error) {
 		}
 	}()
 
-	logrus.Infof("ExecuteTxn, debugAddr: %s amount: %d", debugAddr.Hex(), s.ethState.stateDB.GetBalance(debugAddr))
+	// logrus.Infof("ExecuteTxn, debugAddr: %s amount: %d", debugAddr.Hex(), s.ethState.stateDB.GetBalance(debugAddr))
 
 	txReq, err := DecodeTxReq(ctx.GetRequestBytes())
 	if err != nil {
