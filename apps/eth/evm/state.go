@@ -65,16 +65,9 @@ func NewEthState(root common.Hash, gethCfg *config.GethConfig) (*EthState, error
 
 	cachingDB := state.NewDatabase(trieDB, snapObj)
 
-	sdb, err := state.New(root, cachingDB)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-
 	return &EthState{
 		db:        db,
 		trieDB:    trieDB,
-		stateDB:   sdb,
 		cachingDB: cachingDB,
 		chainCfg:  gethCfg.ChainConfig,
 		gethCfg:   gethCfg,
