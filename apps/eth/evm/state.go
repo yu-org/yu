@@ -1,6 +1,10 @@
 package evm
 
 import (
+	"github.com/ethereum/go-ethereum/core/state/snapshot"
+	"github.com/ethereum/go-ethereum/ethdb/pebble"
+	"github.com/ethereum/go-ethereum/triedb/hashdb"
+	"github.com/ethereum/go-ethereum/triedb/pathdb"
 	"math"
 
 	"math/big"
@@ -10,11 +14,9 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/state/snapshot"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/ethdb/pebble"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/triedb"
 
@@ -31,7 +33,7 @@ type EthState struct {
 	chainCfg *params.ChainConfig // chain config for EVM
 	gethCfg  *config.GethConfig  // geth config for EVM
 
-	root common.Hash // current state root
+	root common.Hash // current state-root
 }
 
 func NewEthState(root common.Hash, gethCfg *config.GethConfig) (*EthState, error) {
@@ -41,21 +43,28 @@ func NewEthState(root common.Hash, gethCfg *config.GethConfig) (*EthState, error
 		return nil, err
 	}
 
-	db, err := rawdb.Open(pdb, rawdb.OpenOptions{Ancient: filepath.Join(dbPath, "ancient")})
+	cfg := config.SetDefaultEthStateConfig()
+
+	db, err := rawdb.Open(pdb, rawdb.OpenOptions{
+		Ancient:          filepath.Join(dbPath, "ancient"),
+		MetricsNamespace: cfg.NameSpace,
+		Era:              cfg.DbPath,
+		ReadOnly:         false,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	trieDB := triedb.NewDatabase(db, &triedb.Config{Preimages: true})
+	trieDB := triedb.NewDatabase(db, trieConfig(core.DefaultConfig(), false))
 
-	snapCfg := snapshot.Config{CacheSize: 512}
-	snapObj, err := snapshot.New(snapCfg, db, trieDB, root)
+	snapObj, err := snapshot.New(snapsConfig(cfg), db, trieDB, root)
 	if err != nil {
 		db.Close()
 		return nil, err
 	}
 
 	cachingDB := state.NewDatabase(trieDB, snapObj)
+
 	sdb, err := state.New(root, cachingDB)
 	if err != nil {
 		db.Close()
@@ -150,10 +159,46 @@ func (s *EthState) Commit(blockNum uint64) (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
-	if err := s.trieDB.Commit(root, true); err != nil {
+	if err = s.trieDB.Commit(root, true); err != nil {
 		return common.Hash{}, err
 	}
 	s.root = root
-	// s.blockNum = blockNum
 	return root, nil
+}
+
+func snapsConfig(cfg *config.Config) snapshot.Config {
+	return snapshot.Config{
+		CacheSize:  cfg.SnapshotCache,
+		Recovery:   cfg.Recovery,
+		NoBuild:    cfg.NoBuild,
+		AsyncBuild: !cfg.SnapshotWait,
+	}
+}
+
+func trieConfig(cfg *core.BlockChainConfig, isVerkle bool) *triedb.Config {
+	trieCfg := &triedb.Config{
+		Preimages: cfg.Preimages,
+		IsVerkle:  isVerkle,
+	}
+	if cfg.StateScheme == rawdb.HashScheme {
+		trieCfg.HashDB = &hashdb.Config{
+			CleanCacheSize: cfg.TrieCleanLimit * 1024 * 1024,
+		}
+	}
+	if cfg.StateScheme == rawdb.PathScheme {
+		trieCfg.PathDB = &pathdb.Config{
+			StateHistory:        cfg.StateHistory,
+			EnableStateIndexing: cfg.ArchiveMode,
+			TrieCleanSize:       cfg.TrieCleanLimit * 1024 * 1024,
+			StateCleanSize:      cfg.SnapshotLimit * 1024 * 1024,
+			JournalDirectory:    cfg.TrieJournalDirectory,
+
+			// TODO(rjl493456442): The write buffer represents the memory limit used
+			// for flushing both trie data and state data to disk. The config name
+			// should be updated to eliminate the confusion.
+			WriteBufferSize: cfg.TrieDirtyLimit * 1024 * 1024,
+			NoAsyncFlush:    cfg.TrieNoAsyncFlush,
+		}
+	}
+	return trieCfg
 }
