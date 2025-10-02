@@ -32,8 +32,8 @@ VersechainLabs uses Yu to develop versechain, forked by Itachi:  https://github.
 First commit: https://github.com/reddio-com/itachi/pull/65/commits/6067105b98a71c8e25fb19166583932cfec73f00  
 
 Jul 5, 2024  
-Reddio uses Yu to develop reddio: https://github.com/yu-org/yu/apps/eth    
-First Commit: https://github.com/yu-org/yu/apps/eth/commit/0f4fa8db15f3c5596febd4d5ca557f2562660fe2   
+Reddio uses Yu to develop reddio: https://github.com/reddio-com/reddio   
+First Commit: https://github.com/reddio-com/reddio/commit/0f4fa8db15f3c5596febd4d5ca557f2562660fe2   
 
 Jul 13, 2024  
 Start a project nine-tripods for Yu: https://github.com/yu-org/nine-tripods   
