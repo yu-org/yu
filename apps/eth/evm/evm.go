@@ -46,9 +46,8 @@ var (
 
 type Solidity struct {
 	*tripod.Tripod
-	ethState    *EthState
-	cfg         *config.GethConfig
-	stateConfig *config.Config
+	ethState *EthState
+	cfg      *config.GethConfig
 
 	gasPool *core.GasPool
 }
@@ -86,13 +85,10 @@ func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 }
 
 func NewSolidity(gethConfig *config.GethConfig) *Solidity {
-	ethStateConfig := config.SetDefaultEthStateConfig()
 
 	solidity := &Solidity{
-		Tripod:      tripod.NewTripod(),
-		cfg:         gethConfig,
-		stateConfig: ethStateConfig,
-		// network:       utils.Network(cfg.Network),
+		Tripod: tripod.NewTripod(),
+		cfg:    gethConfig,
 	}
 	solidity.SetWritings(solidity.ExecuteTxn)
 	solidity.SetReadings(
