@@ -6,25 +6,22 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/yu-org/yu/apps/eth/utils"
+	"math"
 	"math/big"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/holiman/uint256"
-
-	"github.com/yu-org/yu/apps/eth"
 )
-
-var maxBlobsPerTransaction = params.MaxBlobGasPerBlock / params.BlobTxBlobGasPerBlob
 
 // TransactionArgs represents the arguments to construct a new transaction
 // or a message call.
@@ -177,8 +174,8 @@ func (args *TransactionArgs) setDefaults(ctx context.Context, b Backend, skipGas
 	if args.BlobHashes != nil && len(args.BlobHashes) == 0 {
 		return errors.New(`need at least 1 blob for a blob transaction`)
 	}
-	if args.BlobHashes != nil && len(args.BlobHashes) > maxBlobsPerTransaction {
-		return fmt.Errorf(`too many blobs in transaction (have=%d, max=%d)`, len(args.BlobHashes), maxBlobsPerTransaction)
+	if args.BlobHashes != nil && len(args.BlobHashes) > params.BlobTxMaxBlobs {
+		return fmt.Errorf("too many blobs in transaction (have=%d, max=%d)", len(args.BlobHashes), params.BlobTxMaxBlobs)
 	}
 
 	// create check
@@ -301,12 +298,8 @@ func (args *TransactionArgs) setFeeDefaults(ctx context.Context, b Backend) erro
 func (args *TransactionArgs) setCancunFeeDefaults(ctx context.Context, head *types.Header, b Backend) error {
 	// Set maxFeePerBlobGas if it is missing.
 	if args.BlobHashes != nil && args.BlobFeeCap == nil {
-		var excessBlobGas uint64
-		if head.ExcessBlobGas != nil {
-			excessBlobGas = *head.ExcessBlobGas
-		}
 		// ExcessBlobGas must be set for a Cancun block.
-		blobBaseFee := eip4844.CalcBlobFee(excessBlobGas)
+		blobBaseFee := eip4844.CalcBlobFee(b.ChainConfig(), head)
 		// Set the max fee to be 2 times larger than the previous block's blob base fee.
 		// The additional slack allows the tx to not become invalidated if the base
 		// fee is rising.
@@ -498,7 +491,10 @@ func (args *TransactionArgs) ToMessage(baseFee *big.Int) *core.Message {
 			// Backfill the legacy gasPrice for EVM execution, unless we're all zeroes
 			gasPrice = new(big.Int)
 			if gasFeeCap.BitLen() > 0 || gasTipCap.BitLen() > 0 {
-				gasPrice = math.BigMin(new(big.Int).Add(gasTipCap, baseFee), gasFeeCap)
+				gasPrice = gasPrice.Add(gasTipCap, baseFee)
+				if gasPrice.Cmp(gasFeeCap) > 0 {
+					gasPrice = gasFeeCap
+				}
 			}
 		}
 	}
@@ -507,18 +503,18 @@ func (args *TransactionArgs) ToMessage(baseFee *big.Int) *core.Message {
 		accessList = *args.AccessList
 	}
 	return &core.Message{
-		From:              args.from(),
-		To:                args.To,
-		Value:             (*big.Int)(args.Value),
-		GasLimit:          uint64(*args.Gas),
-		GasPrice:          gasPrice,
-		GasFeeCap:         gasFeeCap,
-		GasTipCap:         gasTipCap,
-		Data:              args.data(),
-		AccessList:        accessList,
-		BlobGasFeeCap:     (*big.Int)(args.BlobFeeCap),
-		BlobHashes:        args.BlobHashes,
-		SkipAccountChecks: true,
+		From:          args.from(),
+		To:            args.To,
+		Value:         (*big.Int)(args.Value),
+		GasLimit:      uint64(*args.Gas),
+		GasPrice:      gasPrice,
+		GasFeeCap:     gasFeeCap,
+		GasTipCap:     gasTipCap,
+		Data:          args.data(),
+		AccessList:    accessList,
+		BlobGasFeeCap: (*big.Int)(args.BlobFeeCap),
+		BlobHashes:    args.BlobHashes,
+		// SkipAccountChecks: true,
 	}
 }
 
@@ -544,9 +540,9 @@ func (args *TransactionArgs) ToTransaction(v, r, s *big.Int) *types.Transaction 
 			AccessList: al,
 			BlobHashes: args.BlobHashes,
 			BlobFeeCap: uint256.MustFromBig((*big.Int)(args.BlobFeeCap)),
-			V:          eth.ConvertBigIntToUint256(v),
-			R:          eth.ConvertBigIntToUint256(r),
-			S:          eth.ConvertBigIntToUint256(s),
+			V:          utils.ConvertBigIntToUint256(v),
+			R:          utils.ConvertBigIntToUint256(r),
+			S:          utils.ConvertBigIntToUint256(s),
 		}
 		if args.Blobs != nil {
 			data.(*types.BlobTx).Sidecar = &types.BlobTxSidecar{

@@ -1,0 +1,17 @@
+key_type = "sr25519"
+my_secret = "node1"
+block_interval = 3000
+pack_num = 30000
+pretty_log = false
+
+[[validators]]
+pubkey = "0x31f40d8bd828cdd35a172571639ac309a673935a5298a28096b842eccc84aeab17"
+p2p_ip = "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"
+
+[[validators]]
+pubkey = "0x31123ce471d94b1b9eaf3aaf95d287d70544ec3326c0b98459efebd8b7b9e48223"
+p2p_ip = "12D3KooWSKPs95miv8wzj3fa5HkJ1tH7oEGumsEiD92n2MYwRtQG"
+
+[[validators]]
+pubkey = "0x31fc4636448ab2470bb8d9f2ebbba1e9f702d8d26121067f022089cbd8b38bf322"
+p2p_ip = "12D3KooWRuwP7nXaRhZrmoFJvPPGat2xPafVmGpQpZs5zKMtwqPH"

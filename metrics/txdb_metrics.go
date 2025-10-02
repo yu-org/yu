@@ -19,7 +19,7 @@ var (
 
 	TxnDBDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace: "reddio",
+			Namespace: "eth",
 			Subsystem: "txndb",
 			Name:      "op_duration",
 			Help:      "txn execute duration distribution.",

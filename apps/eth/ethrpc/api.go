@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/yu-org/yu/apps/eth/utils"
 	"math/big"
 	"strings"
 	"time"
@@ -37,7 +38,6 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
 
-	"github.com/yu-org/yu/apps/eth"
 	"github.com/yu-org/yu/apps/eth/metrics"
 )
 
@@ -749,7 +749,7 @@ func DoEstimateGas(ctx context.Context, b Backend, args TransactionArgs, blockNr
 	estimate, revert, err := gasestimator.Estimate(ctx, call, opts, gasCap)
 	if err != nil {
 		if len(revert) > 0 {
-			return 0, eth.NewRevertError(revert)
+			return 0, utils.NewRevertError(revert)
 		}
 		return 0, err
 	}
@@ -1206,7 +1206,7 @@ func (s *TransactionAPI) GetTransactionByHash(ctx context.Context, hash common.H
 	found, tx, blockHash, blockNumber, index, err := s.b.GetTransaction(ctx, hash)
 	if !found {
 		// In this case, it indicates that GetReceipt returned a specific error, not just that it wasn't found.
-		if err != nil && !errors.Is(err, eth.ErrNotFoundReceipt) {
+		if err != nil && !errors.Is(err, utils.ErrNotFoundReceipt) {
 			return nil, err
 		}
 
@@ -1242,7 +1242,7 @@ func (s *TransactionAPI) GetRawTransactionByHash(ctx context.Context, hash commo
 	found, tx, _, _, _, err := s.b.GetTransaction(ctx, hash)
 	if !found {
 		// In this case, it indicates that GetReceipt returned a specific error, not just that it wasn't found.
-		if err != nil && !errors.Is(err, eth.ErrNotFoundReceipt) {
+		if err != nil && !errors.Is(err, utils.ErrNotFoundReceipt) {
 			return nil, err
 		}
 
@@ -1584,7 +1584,7 @@ func (api *DebugAPI) GetRawTransaction(ctx context.Context, hash common.Hash) (h
 	found, tx, _, _, _, err := api.b.GetTransaction(ctx, hash)
 	if !found {
 		// In this case, it indicates that GetReceipt returned a specific error, not just that it wasn't found.
-		if err != nil && !errors.Is(err, eth.ErrNotFoundReceipt) {
+		if err != nil && !errors.Is(err, utils.ErrNotFoundReceipt) {
 			return nil, err
 		}
 		tx, err = api.b.GetPoolTransaction(hash)
@@ -1696,6 +1696,6 @@ type Web3API struct {
 }
 
 func (s *Web3API) ClientVersion() string {
-	clientVersion := "Reddio/devnet-v2.2.2-45f4681/linux-amd64/go1.23.3"
+	clientVersion := "ETH/geth-v1.16.3/linux-amd64/go1.24.0"
 	return clientVersion
 }

@@ -38,6 +38,10 @@ func NewWriteContext(stxn *types.SignedTxn, block *types.Block, idx int) (*Write
 	}, nil
 }
 
+func (c *WriteContext) GetRequestBytes() []byte {
+	return []byte(c.Txn.GetParams())
+}
+
 func (c *WriteContext) BindJson(v any) error {
 	return common.BindJsonParams(c.ParamsStr, v)
 }
