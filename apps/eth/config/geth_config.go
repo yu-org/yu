@@ -13,7 +13,7 @@ import (
 )
 
 type GethConfig struct {
-	IsReddioMainnet bool `toml:"is_reddio_mainnet"`
+	IsMainnet bool `toml:"is_mainnet"`
 
 	ChainConfig *params.ChainConfig
 
@@ -48,50 +48,6 @@ type GethConfig struct {
 
 	// chainID
 	ChainID int64 `toml:"chain_id"`
-
-	// EventsWatcher configs
-	EnableBridge               bool     `toml:"enable_bridge"`
-	L1ClientAddress            string   `toml:"l1_client_address"`
-	L2ClientAddress            string   `toml:"l2_client_address"`
-	ParentLayerContractAddress string   `toml:"parentlayer_contract_address"`
-	ChildLayerContractAddress  string   `toml:"childlayer_contract_address"`
-	L2BlockCollectionDepth     *big.Int `toml:"l2_block_collection_depth"`
-	BridgeHost                 string   `toml:"bridge_host"`
-	BridgePort                 string   `toml:"bridge_port"`
-	// BridgeDBConfig             *database.Config `toml:"bridge_db_config"`
-	// watcher config
-	L1WatcherConfig BridgeWatcherConfig `toml:"l1_watcher_config"`
-	L2WatcherConfig BridgeWatcherConfig `toml:"l2_watcher_config"`
-	// relayer config
-	RelayerBatchSize            int    `toml:"relayer_batch_size"`
-	MultisigEnvFile             string `toml:"multisig_env_file"`
-	MultisigEnvVar              string `toml:"multisig_env_var"`
-	RelayerEnvFile              string `toml:"relayer_env_file"`
-	RelayerEnvVar               string `toml:"relayer_env_var"`
-	L1_RawBridgeEventsTableName string `toml:"l1_raw_bridge_events_table_name"`
-	L2_RawBridgeEventsTableName string `toml:"l2_raw_bridge_events_table_name"`
-
-	// checker config
-	EnableBridgeChecker bool                `toml:"enable_bridge_checker"`
-	BridgeCheckerConfig BridgeCheckerConfig `toml:"bridge_checker_config"`
-}
-type BridgeWatcherConfig struct {
-	Confirmation uint64 `toml:"confirmation"`
-	FetchLimit   uint64 `toml:"fetch_limit"`
-	StartHeight  uint64 `toml:"start_height"`
-	BlockTime    uint64 `toml:"block_time"`
-	ChainID      int64  `toml:"chain_id"`
-}
-type BridgeCheckerConfig struct {
-	CheckerBatchSize       int    `toml:"checker_batch_size"`
-	SepoliaTickerInterval  int    `toml:"sepolia_ticker_interval"`
-	ReddioTickerInterval   int    `toml:"reddio_ticker_interval"`
-	EnableL1CheckStep1     bool   `toml:"enable_l1_check_step1"`
-	EnableL1CheckStep2     bool   `toml:"enable_l1_check_step2"`
-	EnableL2CheckStep1     bool   `toml:"enable_l2_check_step1"`
-	EnableL2CheckStep2     bool   `toml:"enable_l2_check_step2"`
-	CheckL1ContractAddress string `toml:"check_l1_contract_address"`
-	CheckL2ContractAddress string `toml:"check_l2_contract_address"`
 }
 
 func (gc *GethConfig) Copy() *GethConfig {

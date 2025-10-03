@@ -53,7 +53,7 @@ type Solidity struct {
 
 func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 	var genesis *Genesis
-	if s.cfg.IsReddioMainnet {
+	if s.cfg.IsMainnet {
 		genesis = DefaultGenesisBlock()
 	} else {
 		genesis = DefaultSepoliaGenesisBlock()
