@@ -1,5 +1,5 @@
 chain_id = 50341
-is_reddio_mainnet = false
+is_mainnet = false
 enable_eth_rpc = true
 eth_host = "0.0.0.0"
 eth_port = "9092"

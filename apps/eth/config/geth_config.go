@@ -13,7 +13,7 @@ import (
 )
 
 type GethConfig struct {
-	IsReddioMainnet bool `toml:"is_reddio_mainnet"`
+	IsMainnet bool `toml:"is_mainnet"`
 
 	ChainConfig *params.ChainConfig
 
