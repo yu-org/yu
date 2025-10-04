@@ -86,6 +86,8 @@ go build -o yu-example
  
 ```
 
+---
+
 ## Introduction
 By using Yu, you can customize three levels to develop your own blockchain. The `Tripod` is for developers to 
 customize their own business.     
@@ -168,7 +170,7 @@ func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
 }
 ```  
 
-We need use `SetExec` and `SetQueries` to set `Writing` and `Reading` into `Asset Tripod`.  
+We need use `SetWritings` and `SetReadings` to set `Writing` and `Reading` into `Asset Tripod`.  
 When we set a `Writing`, we need declare how much `Lei`(耜) it consumes. (`Lei` is the same as `gas` in `ethereum` )
 ```go
 func NewAsset(tokenName string) *Asset {
@@ -180,105 +182,13 @@ func NewAsset(tokenName string) *Asset {
 
     return a
 }
-```  
-Finally set `Asset Tripod` into `land` in `main func`. 
-```go
-func main() {
-    startup.DefaultStartup(asset.NewAsset("YuCoin"))
-}
 ```
 
-[Poa Tripod](https://github.com/yu-org/yu/blob/master/apps/poa/poa.go)  
-`Poa Tripod` imitates a Consensus algorithm for proof of authority. It customizes the lower-level code.
-- Start a new block  
-If there are no verified blocks from P2P network, we pack some txns, mine a new block and broadcast it to P2P network.
-```go
-func (h *Poa) StartBlock(block *Block) {
-    ......
-	
-    // Get a leader who produce the block of this round. 
-    miner := h.CompeteLeader(block.Height)
-    logrus.Debugf("compete a leader(%s) in round(%d)", miner.String(), block.Height)
-	
-    // If it is not local node for this round, use other node's block and skip follows.
-    if miner != h.LocalAddress() {
-        if h.useP2pOrSkip(block) {
-            logrus.Infof("--------USE P2P Height(%d) block(%s) miner(%s)",
-            block.Height, block.Hash.String(), ToHex(block.MinerPubkey))
-            return
-        }
-    }
-	
-    // Pack transactions(Writings) from Txpool. 
-    txns, err := h.env.Pool.Pack(3000)
-    if err != nil {
-		logrus.Error(err)
-        return 
-    }
-    // Make blockHash from trasactions. 
-    hashes := FromArray(txns...).Hashes()
-    block.TxnsHashes = hashes
-    txnRoot, err := MakeTxnRoot(txns)
-    if err != nil {
-        logrus.Error(err)
-        return 
-    }
-    block.TxnRoot = txnRoot
-	
-    ......
+[Poa Tripod](https://github.com/yu-org/yu/blob/master/apps/poa/poa.go)    
+**Consensus Tripod is necessary for a blockchain, so you have to choose or implement one consensus algorithm.**  
+`Poa Tripod` implements a Proof of Authority consensus algorithm. For detailed implementation and usage information, see the [PoA README](apps/poa/README.md).  
 
-    // signs block
-    block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
-    if err != nil {
-        logrus.Error(err)
-        return 
-    }
-    block.MinerPubkey = h.myPubkey.BytesWithType()
-	
-    // Reset Txpool for the next block.
-    err = h.env.Pool.Reset(block)
-    if err != nil {
-        logrus.Error(err)
-        return
-    }
-    
-    ......
-	
-    // Publish the block to P2P so that other nodes get it.
-    return h.env.P2pNetwork.PubP2P(StartBlockTopic, rawBlockByt)
-}
-```
-- End the block  
-We execute the txns of the block and append the block into the chain.
-```go
-func (h *Poa) EndBlock(block *Block) {
-    ......
-    // Execute all transactions(Writings) of this block.
-    err := h.env.Execute(block)
-    if err != nil {
-        logrus.Error(err)
-        return 
-    }
-
-    // Append the block into the chain.
-    err = chain.AppendBlock(block)
-    if err != nil {
-        logrus.Error(err)
-        return 
-    }  
-    ......
-}
-```
-
-- Finalize the block   
-```go
-func (h *Poa) FinalizeBlock(block *Block) {
-    h.env.Chain.Finalize(block.Hash)
-}
-```
-
-
-Same as `Asset Tripod` , finally set `Poa Tripod` into `land` in `main function`.    
+Finally set `Asset Tripod`, `Poa Tripod` into `land` in `main function`.    
 ```go
 func main() {
     startup.InitConfigFromPath("yu_conf/kernel.toml")
