@@ -184,8 +184,9 @@ func NewAsset(tokenName string) *Asset {
 }
 ```
 
-[Poa Tripod](https://github.com/yu-org/yu/blob/master/apps/poa/poa.go)  
-`Poa Tripod` implements a Proof of Authority consensus algorithm. For detailed implementation and usage information, see the [PoA README](apps/poa/README.md).
+[Poa Tripod](https://github.com/yu-org/yu/blob/master/apps/poa/poa.go)    
+**Consensus Tripod is necessary for a blockchain, so you have to choose one consensus algorithm at least.**  
+`Poa Tripod` implements a Proof of Authority consensus algorithm. For detailed implementation and usage information, see the [PoA README](apps/poa/README.md).  
 
 Finally set `Asset Tripod`, `Poa Tripod` into `land` in `main function`.    
 ```go
