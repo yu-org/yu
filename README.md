@@ -170,7 +170,7 @@ func (a *Asset) CreateAccount(ctx *context.WriteContext) error {
 }
 ```  
 
-We need use `SetExec` and `SetQueries` to set `Writing` and `Reading` into `Asset Tripod`.  
+We need use `SetWritings` and `SetReadings` to set `Writing` and `Reading` into `Asset Tripod`.  
 When we set a `Writing`, we need declare how much `Lei`(耜) it consumes. (`Lei` is the same as `gas` in `ethereum` )
 ```go
 func NewAsset(tokenName string) *Asset {
