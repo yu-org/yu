@@ -14,6 +14,18 @@ Yu is a highly customizable blockchain framework.
 [Book](https://yu-org.github.io/yu-docs/en/)  
 [中文文档](https://yu-org.github.io/yu-docs/zh/)
 
+## 🏢 Enterprise Users
+
+### 🌟 **Reddio**
+*Blockchain Infrastructure Provider*
+- [Official Website](https://reddio.com/) | [Twitter](https://twitter.com/reddio_com)
+- Building high-performance, scalable L2 blockchain solutions with Yu framework
+
+### 🔬 **AWresearch** 
+*Web3 Game & Development*
+- [Official Website](https://awresearch.io/) | [Twitter](https://twitter.com/awresearch)
+- Built a gaming platform blockchain using Yu framework
+
 ### Overall Structure
 ![image](docs/images/yu_flow_chart.png)
 
