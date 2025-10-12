@@ -26,6 +26,11 @@ Yu is a highly customizable blockchain framework.
 - [Official Website](https://awresearch.io/) | [Twitter](https://twitter.com/awresearch)
 - Built a gaming platform blockchain using Yu framework
 
+## 🤝 Partners
+### **Axiom**
+*Zeroknowledge Proving infrastructure*  
+- [Official Website](https://www.axiom.xyz/) | [Twitter](https://x.com/axiom_xyz)
+
 ### Overall Structure
 ![image](docs/images/yu_flow_chart.png)
 
