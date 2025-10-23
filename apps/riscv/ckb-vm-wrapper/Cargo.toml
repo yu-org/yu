@@ -1,0 +1,11 @@
+[package]
+name = "ckb-vm-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+ckb-vm = { git = "https://github.com/nervosnetwork/ckb-vm.git", tag = "v0.24.0" }
+libc = "0.2"
