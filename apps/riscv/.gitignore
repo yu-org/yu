@@ -1,0 +1,56 @@
+# Rust build artifacts
+target/
+ckb-vm-wrapper/target/
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+riscv
+
+# CGO artifacts
+*.o
+*.a
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Coverage reports
+*.cover
+coverage.out
+*.cov
+
+# Benchmark results
+*.bench
+
+# Local configuration files
+.env
+.env.local
