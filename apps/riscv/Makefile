@@ -30,7 +30,7 @@ build: build-wrapper
 compile-test-programs:
 	@echo "Compiling RISC-V test programs..."
 	@mkdir -p test_programs/compiled
-	@cd test_programs && ./build_simple_programs.sh
+	@cd test_programs && ./build_test_programs.sh
 
 # Run tests
 test: build-wrapper compile-test-programs
