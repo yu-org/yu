@@ -54,3 +54,6 @@ coverage.out
 # Local configuration files
 .env
 .env.local
+
+# Test compiled files
+test_programs/compiled/

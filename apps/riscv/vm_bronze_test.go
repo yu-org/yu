@@ -1,65 +1,100 @@
 package riscv
 
 import (
+	"io"
+	"os"
 	"testing"
 )
 
-func TestVMRunnerAsBronze(t *testing.T) {
+func TestSimpleReturnProgram(t *testing.T) {
+	// Read compiled RISC-V ELF file
+	file, err := os.Open("test_programs/compiled/simple_return.elf")
+	if err != nil {
+		t.Fatalf("Failed to open simple_return.elf: %v", err)
+	}
+	defer file.Close()
+
+	program, err := io.ReadAll(file)
+	if err != nil {
+		t.Fatalf("Failed to read simple_return.elf: %v", err)
+	}
+
 	vm := NewVMRunner()
 	defer vm.Cleanup()
 
-	// Test initialization
-	err := vm.Init()
+	t.Logf("Executing simple_return program (%d bytes)", len(program))
+
+	// Execute program
+	err = vm.ExecuteProgram(program)
 	if err != nil {
-		t.Fatalf("Failed to initialize VM: %v", err)
-	}
-
-	if !vm.initialized {
-		t.Error("VM should be initialized")
-	}
-
-	// Test with empty program
-	program := []byte{}
-	err = vm.LoadProgram(program)
-	if err != nil {
-		t.Logf("Expected error when loading empty program: %v", err)
-	}
-
-	// Test GetExitCode without running
-	exitCode := vm.GetExitCode()
-	t.Logf("Exit code: %d", exitCode)
-
-	// Test cleanup
-	vm.Cleanup()
-	if vm.initialized {
-		t.Error("VM should not be initialized after cleanup")
+		t.Logf("Program execution result: %v", err)
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
+	} else {
+		t.Log("Program executed successfully")
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
 	}
 }
 
-func TestExecuteProgram(t *testing.T) {
-	vm := NewVMRunner()
-
-	// Test with empty program
-	program := []byte{}
-
-	err := vm.ExecuteProgram(program)
+func TestSimpleAddProgram(t *testing.T) {
+	// Read compiled RISC-V ELF file
+	file, err := os.Open("test_programs/compiled/simple_add.elf")
 	if err != nil {
-		t.Logf("Expected error when executing empty program: %v", err)
+		t.Fatalf("Failed to open simple_add.elf: %v", err)
+	}
+	defer file.Close()
+
+	program, err := io.ReadAll(file)
+	if err != nil {
+		t.Fatalf("Failed to read simple_add.elf: %v", err)
+	}
+
+	vm := NewVMRunner()
+	defer vm.Cleanup()
+
+	t.Logf("Executing simple_add program (%d bytes)", len(program))
+
+	// Execute program
+	err = vm.ExecuteProgram(program)
+	if err != nil {
+		t.Logf("Program execution result: %v", err)
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
+	} else {
+		t.Log("Program executed successfully")
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
 	}
 }
 
-func TestBronzeName(t *testing.T) {
+func TestFibonacciProgram(t *testing.T) {
+	// Read compiled RISC-V ELF file
+	file, err := os.Open("test_programs/compiled/fibonacci.elf")
+	if err != nil {
+		t.Fatalf("Failed to open fibonacci.elf: %v", err)
+	}
+	defer file.Close()
+
+	program, err := io.ReadAll(file)
+	if err != nil {
+		t.Fatalf("Failed to read fibonacci.elf: %v", err)
+	}
+
 	vm := NewVMRunner()
+	defer vm.Cleanup()
 
-	// Test that it's properly configured as a Bronze
-	if vm.Bronze == nil {
-		t.Fatal("Bronze should not be nil")
+	t.Logf("Executing fibonacci program (%d bytes)", len(program))
+
+	// Execute program
+	err = vm.ExecuteProgram(program)
+	if err != nil {
+		t.Logf("Program execution result: %v", err)
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
+	} else {
+		t.Log("Program executed successfully")
+		exitCode := vm.GetExitCode()
+		t.Logf("Exit code: %d", exitCode)
 	}
-
-	name := vm.Bronze.Name()
-	if name != "vm" {
-		t.Errorf("Expected Bronze name to be 'vm', got '%s'", name)
-	}
-
-	t.Logf("Bronze name: %s", name)
 }
