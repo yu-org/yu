@@ -26,8 +26,14 @@ build: build-wrapper
 	@echo "Building RISC-V module..."
 	CGO_ENABLED=1 go build -tags $(BUILD_TAGS) .
 
+# Compile test programs
+compile-test-programs:
+	@echo "Compiling RISC-V test programs..."
+	@mkdir -p test_programs/compiled
+	@cd test_programs && ./build_test_programs.sh
+
 # Run tests
-test: build-wrapper
+test: build-wrapper compile-test-programs
 	@echo "Running tests..."
 	CGO_ENABLED=1 go test -tags $(BUILD_TAGS) -v .
 
