@@ -6,6 +6,7 @@ import (
 	. "github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/metrics"
+	"sync"
 )
 
 type TxPool struct {
@@ -18,6 +19,9 @@ type TxPool struct {
 
 	unpackedTxns IunpackedTxns
 
+	topicLock         sync.RWMutex
+	topicUnpackedTxns map[string]IunpackedTxns
+
 	baseChecks   []TxnCheckFn
 	tripodChecks map[string]TxnCheckFn
 
@@ -28,13 +32,14 @@ func NewTxPool(nodeType int, cfg *TxpoolConf) *TxPool {
 	ordered := newOrderedTxns()
 
 	tp := &TxPool{
-		nodeType:     nodeType,
-		capacity:     cfg.PoolSize,
-		TxnMaxSize:   cfg.TxnMaxSize,
-		unpackedTxns: ordered,
-		baseChecks:   make([]TxnCheckFn, 0),
-		tripodChecks: make(map[string]TxnCheckFn),
-		filter:       func(*SignedTxn) bool { return true },
+		nodeType:          nodeType,
+		capacity:          cfg.PoolSize,
+		TxnMaxSize:        cfg.TxnMaxSize,
+		unpackedTxns:      ordered,
+		topicUnpackedTxns: make(map[string]IunpackedTxns),
+		baseChecks:        make([]TxnCheckFn, 0),
+		tripodChecks:      make(map[string]TxnCheckFn),
+		filter:            func(*SignedTxn) bool { return true },
 	}
 	return tp
 }
@@ -96,6 +101,31 @@ func (tp *TxPool) Insert(stxn *SignedTxn) error {
 	return tp.unpackedTxns.Insert(stxn)
 }
 
+func (tp *TxPool) InsertWithTopic(topic string, stxn *SignedTxn) error {
+	tp.topicLock.Lock()
+	defer tp.topicLock.Unlock()
+	if _, ok := tp.topicUnpackedTxns[topic]; !ok {
+		tp.topicUnpackedTxns[topic] = newOrderedTxns()
+	}
+	return tp.topicUnpackedTxns[topic].Insert(stxn)
+}
+
+func (tp *TxPool) GetWithTopic(topic string, numLimit uint64) []*SignedTxn {
+	if unpack, ok := tp.topicUnpackedTxns[topic]; ok {
+		return unpack.Gets(numLimit, tp.filter)
+	}
+	return nil
+}
+
+func (tp *TxPool) GetWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+	tp.topicLock.RLock()
+	defer tp.topicLock.RUnlock()
+	if unpack, ok := tp.topicUnpackedTxns[topic]; ok {
+		return unpack.Gets(numLimit, filter)
+	}
+	return nil
+}
+
 func (tp *TxPool) SetOrder(order map[int]Hash) {
 	//tp.Lock()
 	//defer tp.Unlock()
@@ -145,6 +175,15 @@ func (tp *TxPool) ResetByHashes(hashes []Hash) error {
 	//tp.Lock()
 	//defer tp.Unlock()
 	tp.unpackedTxns.Deletes(hashes)
+	return nil
+}
+
+func (tp *TxPool) ResetByHashesAndTopic(hashes []Hash, topic string) error {
+	tp.topicLock.Lock()
+	defer tp.topicLock.Unlock()
+	if unpack, ok := tp.topicUnpackedTxns[topic]; ok {
+		unpack.Deletes(hashes)
+	}
 	return nil
 }
 
