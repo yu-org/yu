@@ -29,6 +29,10 @@ type ItxPool interface {
 	SetOrder(order map[int]Hash)
 	SortTxns(fn func(txns []*SignedTxn) []*SignedTxn)
 
+	InsertWithTopic(topic string, stxn *SignedTxn) error
+	GetWithTopic(topic string, numLimit uint64) []*SignedTxn
+	GetWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn
+
 	// Pack packs some txns to send to tripods
 	Pack(numLimit uint64) ([]*SignedTxn, error)
 
@@ -40,6 +44,7 @@ type ItxPool interface {
 	// Reset Deletes packed txns
 	Reset(txns SignedTxns) error
 	ResetByHashes(hashes []Hash) error
+	ResetByHashesAndTopic(hashes []Hash, topic string) error
 }
 
 type IunpackedTxns interface {
