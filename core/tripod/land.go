@@ -59,6 +59,18 @@ func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	return fn, nil
 }
 
+func (l *Land) GetExtraWriting(tripodName, ewName string) (ExtraWriting, error) {
+	tripod, ok := l.tripodsMap[tripodName]
+	if !ok {
+		return nil, TripodNotFound(tripodName)
+	}
+	ew := tripod.GetExtraWriting(ewName)
+	if ew == nil {
+		return nil, ExtraWritingNotFound(ewName)
+	}
+	return ew, nil
+}
+
 func (l *Land) GetReading(tripodName, rdName string) (Reading, error) {
 	tri, ok := l.tripodsMap[tripodName]
 	if !ok {

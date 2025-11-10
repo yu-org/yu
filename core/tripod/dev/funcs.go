@@ -12,6 +12,8 @@ type (
 	// This operation has no consensus reached in the blockchain network.
 	// respObj is a json object
 	Reading func(ctx *ReadContext)
+	// ExtraWriting will not be executed in the Executor. It should be invoked explicitly.
+	ExtraWriting func(ctx *WriteContext) error
 	// P2pHandler is a p2p server handler. You can define the services in P2P server.
 	// Just like TCP handler.
 	P2pHandler func([]byte) ([]byte, error)
