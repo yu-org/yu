@@ -123,7 +123,7 @@ func (k *Kernel) makeNewBasicBlock() (*types.Block, error) {
 	return newBlock, nil
 }
 
-func (k *Kernel) SeqExecuteWriting(block *types.Block) error {
+func (k *Kernel) SeqExecuteWritings(block *types.Block) error {
 	stxns := block.Txns
 
 	receipts := make(map[common.Hash]*types.Receipt)

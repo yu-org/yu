@@ -48,7 +48,7 @@ func NewKernel(
 		wg:       &sync.WaitGroup{},
 	}
 
-	env.Execute = k.SeqExecuteWriting
+	env.Execute = k.SeqExecuteWritings
 
 	// Configure the handlers in P2P network
 
