@@ -34,6 +34,8 @@ type Tripod struct {
 	writings map[string]dev.Writing
 	// Key: Reading Name
 	readings map[string]dev.Reading
+	// Key: ExtraWriting Name
+	extraWritings map[string]dev.ExtraWriting
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -44,10 +46,11 @@ func NewTripod() *Tripod {
 
 func NewTripodWithName(name string) *Tripod {
 	return &Tripod{
-		name:        name,
-		writings:    make(map[string]dev.Writing),
-		readings:    make(map[string]dev.Reading),
-		P2pHandlers: make(map[int]dev.P2pHandler),
+		name:          name,
+		writings:      make(map[string]dev.Writing),
+		readings:      make(map[string]dev.Reading),
+		extraWritings: make(map[string]dev.ExtraWriting),
+		P2pHandlers:   make(map[int]dev.P2pHandler),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -91,6 +94,10 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 
 	for name, _ := range t.readings {
 		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
+	}
+
+	for name, _ := range t.extraWritings {
+		logrus.Infof("register ExtraWriting (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	t.Instance = tripodInstance
@@ -152,6 +159,13 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	}
 }
 
+func (t *Tripod) SetExtraWritings(extraWritings ...dev.ExtraWriting) {
+	for _, ew := range extraWritings {
+		name := getFuncName(ew)
+		t.extraWritings[name] = ew
+	}
+}
+
 func (t *Tripod) SetReadings(readings ...dev.Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
@@ -178,12 +192,25 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
+func (t *Tripod) ExistExtraWriting(name string) bool {
+	_, ok := t.extraWritings[name]
+	return ok
+}
+
 func (t *Tripod) GetWriting(name string) dev.Writing {
 	return t.writings[name]
 }
 
 func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (dev.Writing, error) {
 	return t.Land.GetWriting(tripodName, funcName)
+}
+
+func (t *Tripod) GetExtraWriting(name string) dev.ExtraWriting {
+	return t.extraWritings[name]
+}
+
+func (t *Tripod) GetExtraWritingFromLand(tripodName, funcName string) (dev.ExtraWriting, error) {
+	return t.Land.GetExtraWriting(tripodName, funcName)
 }
 
 func (t *Tripod) GetReading(name string) dev.Reading {
@@ -205,6 +232,14 @@ func (t *Tripod) AllReadingNames() []string {
 func (t *Tripod) AllWritingNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.writings {
+		allNames = append(allNames, name)
+	}
+	return allNames
+}
+
+func (t *Tripod) AllExtraWritingNames() []string {
+	allNames := make([]string, 0)
+	for name, _ := range t.extraWritings {
 		allNames = append(allNames, name)
 	}
 	return allNames

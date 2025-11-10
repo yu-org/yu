@@ -118,12 +118,24 @@ type ErrWritingNotFound struct {
 	WritingName string
 }
 
+func (w ErrWritingNotFound) Error() string {
+	return errors.Errorf("Writing(%s) NOT Found", w.WritingName).Error()
+}
+
 func WritingNotFound(name string) ErrWritingNotFound {
 	return ErrWritingNotFound{WritingName: name}
 }
 
-func (e ErrWritingNotFound) Error() string {
-	return errors.Errorf("Writing(%s) NOT Found", e.WritingName).Error()
+type ErrExtraWritingNotFound struct {
+	ExtraWritingName string
+}
+
+func ExtraWritingNotFound(name string) ErrExtraWritingNotFound {
+	return ErrExtraWritingNotFound{ExtraWritingName: name}
+}
+
+func (e ErrExtraWritingNotFound) Error() string {
+	return errors.Errorf("ExtraWriting(%s) NOT Found", e.ExtraWritingName).Error()
 }
 
 type ErrReadingNotFound struct {
