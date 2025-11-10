@@ -18,6 +18,10 @@ func (k *Kernel) HandleWS() {
 	r.GET(RdApiPath, func(ctx *gin.Context) {
 		k.handleWS(ctx, reading)
 	})
+	// POST extra-writing call
+	r.POST(ExWrApiPath, func(ctx *gin.Context) {
+		k.handleWS(ctx, extraWriting)
+	})
 
 	r.GET(SubResultsPath, func(ctx *gin.Context) {
 		k.handleWS(ctx, subscription)
@@ -31,6 +35,7 @@ func (k *Kernel) HandleWS() {
 const (
 	reading = iota
 	writing
+	extraWriting
 	subscription
 )
 
@@ -57,6 +62,8 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 		k.handleWsWr(ctx, string(params))
 		//case reading:
 		//	k.handleWsRd(c, req, string(params))
+	case extraWriting:
+		k.handleWsExWr(ctx, string(params))
 	}
 
 }
@@ -68,7 +75,20 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 		return
 	}
 
-	err = k.HandleTxn(signedWrCall)
+	err = k.HandleWriting(signedWrCall)
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+	}
+}
+
+func (k *Kernel) handleWsExWr(ctx *gin.Context, params string) {
+	signedExWrCall, err := GetSignedWrCall(ctx)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err = k.HandleExtraWriting(signedExWrCall)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}

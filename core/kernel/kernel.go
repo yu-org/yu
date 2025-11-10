@@ -104,7 +104,7 @@ func (k *Kernel) InitBlockChain() {
 }
 
 func (k *Kernel) AcceptUnpkgTxns() error {
-	txns, err := k.subUnpackedTxns()
+	txns, err := k.subUnpackedWritings()
 	if err != nil {
 		return err
 	}
@@ -132,20 +132,36 @@ func (k *Kernel) AcceptUnpkgTxns() error {
 	return nil
 }
 
-func (k *Kernel) subUnpackedTxns() (types.SignedTxns, error) {
-	byt, err := k.P2pNetwork.SubP2P(common.UnpackedTxnsTopic)
+func (k *Kernel) subUnpackedWritings() (types.SignedTxns, error) {
+	byt, err := k.P2pNetwork.SubP2P(common.UnpackedWritingTopic)
 	if err != nil {
 		return nil, err
 	}
 	return types.DecodeSignedTxns(byt)
 }
 
-func (k *Kernel) pubUnpackedTxns(txns types.SignedTxns) error {
+func (k *Kernel) pubUnpackedWritings(txns types.SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return k.P2pNetwork.PubP2P(common.UnpackedTxnsTopic, byt)
+	return k.P2pNetwork.PubP2P(common.UnpackedWritingTopic, byt)
+}
+
+func (k *Kernel) pubExtraWritings(txns types.SignedTxns) error {
+	byt, err := txns.Encode()
+	if err != nil {
+		return err
+	}
+	return k.P2pNetwork.PubP2P(common.UnpackedExtraWritingTopic, byt)
+}
+
+func (k *Kernel) subExtraWritings() (types.SignedTxns, error) {
+	byt, err := k.P2pNetwork.SubP2P(common.UnpackedExtraWritingTopic)
+	if err != nil {
+		return nil, err
+	}
+	return types.DecodeSignedTxns(byt)
 }
 
 func (k *Kernel) GetTripodInstance(name string) any {

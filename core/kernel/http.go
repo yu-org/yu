@@ -21,6 +21,10 @@ func (k *Kernel) HandleHttp() {
 	api.POST(RdCallType, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
+	// POST extra-writing call
+	api.POST(ExWrCallType, func(c *gin.Context) {
+		k.handleHttpExWr(c)
+	})
 
 	api.GET("block", k.GetBlock)
 
@@ -48,7 +52,20 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	err = k.HandleTxn(signedWrCall)
+	err = k.HandleWriting(signedWrCall)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+	}
+}
+
+func (k *Kernel) handleHttpExWr(c *gin.Context) {
+	signedExWrCall, err := GetSignedWrCall(c)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err = k.HandleExtraWriting(signedExWrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 	}
@@ -61,7 +78,7 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 		return
 	}
 
-	respData, err := k.HandleRead(rdCall)
+	respData, err := k.HandleReading(rdCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

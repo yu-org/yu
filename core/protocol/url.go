@@ -13,10 +13,11 @@ import (
 const (
 	// RootApiPath For developers, every customized Writing and Read of tripods
 	// will base on '/api'.
-	RootApiPath = "/api"
-	WrCallType  = "writing"
-	RdCallType  = "reading"
-	AdminType   = "admin"
+	RootApiPath  = "/api"
+	WrCallType   = "writing"
+	RdCallType   = "reading"
+	ExWrCallType = "extra-writing"
+	AdminType    = "admin"
 
 	TripodNameKey = "tripod_name"
 	FuncNameKey   = "func_name"
@@ -25,6 +26,7 @@ const (
 
 var (
 	WrApiPath      = filepath.Join(RootApiPath, WrCallType)
+	ExWrApiPath    = filepath.Join(RootApiPath, ExWrCallType)
 	RdApiPath      = filepath.Join(RootApiPath, RdCallType)
 	AdminApiPath   = filepath.Join(RootApiPath, AdminType)
 	SubResultsPath = "/subscribe/results"

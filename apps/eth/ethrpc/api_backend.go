@@ -383,7 +383,7 @@ func (e *EthAPIBackend) Call(ctx context.Context, args TransactionArgs, blockNrO
 	rdCall.FuncName = "Call"
 	rdCall.Params = string(requestByt)
 
-	response, err := e.chain.HandleRead(rdCall)
+	response, err := e.chain.HandleReading(rdCall)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +441,7 @@ func (e *EthAPIBackend) SendTx(ctx context.Context, signedTx *ethtypes.Transacti
 		},
 	}
 
-	return e.chain.HandleTxn(signedWrCall)
+	return e.chain.HandleWriting(signedWrCall)
 }
 
 func YuTxn2EthTxn(yuSignedTxn *yutypes.SignedTxn) (*ethtypes.Transaction, error) {
@@ -790,7 +790,7 @@ func (e *EthAPIBackend) adaptChainRead(req any, funcName string) (*yucontext.Res
 		Params:     params,
 	}
 
-	resp, err := e.chain.HandleRead(rdCall)
+	resp, err := e.chain.HandleReading(rdCall)
 	if err != nil {
 		logrus.Error(fmt.Errorf("EthAPIBackend %v meet err: %v, param:%v", funcName, err, params))
 		return nil, fmt.Errorf("EthAPIBackend %v meet err: %v", funcName, err)
