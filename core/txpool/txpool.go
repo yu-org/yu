@@ -110,20 +110,20 @@ func (tp *TxPool) InsertWithTopic(topic string, stxn *SignedTxn) error {
 	return tp.topicUnpackedTxns[topic].Insert(stxn)
 }
 
-func (tp *TxPool) GetWithTopic(topic string, numLimit uint64) []*SignedTxn {
+func (tp *TxPool) PackWithTopic(topic string, numLimit uint64) ([]*SignedTxn, error) {
 	if unpack, ok := tp.topicUnpackedTxns[topic]; ok {
-		return unpack.Gets(numLimit, tp.filter)
+		return unpack.Gets(numLimit, tp.filter), nil
 	}
-	return nil
+	return nil, nil
 }
 
-func (tp *TxPool) GetWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn {
+func (tp *TxPool) PackWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error) {
 	tp.topicLock.RLock()
 	defer tp.topicLock.RUnlock()
 	if unpack, ok := tp.topicUnpackedTxns[topic]; ok {
-		return unpack.Gets(numLimit, filter)
+		return unpack.Gets(numLimit, filter), nil
 	}
-	return nil
+	return nil, nil
 }
 
 func (tp *TxPool) SetOrder(order map[int]Hash) {

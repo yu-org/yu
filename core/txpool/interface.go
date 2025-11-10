@@ -26,17 +26,16 @@ type ItxPool interface {
 	CheckTxn(stxn *SignedTxn) error
 
 	Insert(txn *SignedTxn) error
+	InsertWithTopic(topic string, stxn *SignedTxn) error
+
 	SetOrder(order map[int]Hash)
 	SortTxns(fn func(txns []*SignedTxn) []*SignedTxn)
 
-	InsertWithTopic(topic string, stxn *SignedTxn) error
-	GetWithTopic(topic string, numLimit uint64) []*SignedTxn
-	GetWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) []*SignedTxn
-
 	// Pack packs some txns to send to tripods
 	Pack(numLimit uint64) ([]*SignedTxn, error)
-
 	PackFor(numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error)
+	PackWithTopic(topic string, numLimit uint64) ([]*SignedTxn, error)
+	PackWithTopicFor(topic string, numLimit uint64, filter func(txn *SignedTxn) bool) ([]*SignedTxn, error)
 
 	// GetTxn returns unpacked txn
 	GetTxn(hash Hash) (*SignedTxn, error)
