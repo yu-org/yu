@@ -47,7 +47,6 @@ func (k *Kernel) HandleExtraWriting(call *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-	//TODO: insert into extra-writing txpool
 	err = k.handleTxnLocally(stxn, common.UnpackedExtraWritingTopic)
 	if err != nil {
 		return err
