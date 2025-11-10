@@ -3,17 +3,17 @@ package kernel
 import (
 	"github.com/sirupsen/logrus"
 
-	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/common/yerror"
+	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
-	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/types"
+	"github.com/yu-org/yu/core/tripod"
+	"github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
 )
 
 func (k *Kernel) AcceptUnpkgTxnsJob() {
 	for {
-		err := k.AcceptUnpkgTxns()
+		err := k.AcceptUnpackedTxns()
 		if err != nil {
 			logrus.Errorf("accept unpacked txns error: %s", err.Error())
 		}
@@ -26,7 +26,7 @@ func (k *Kernel) Run() {
 		k.wg.Done()
 	}()
 	switch k.RunMode {
-	case LocalNode:
+	case common.LocalNode:
 		for {
 			select {
 			case <-k.stopChan:
@@ -44,7 +44,7 @@ func (k *Kernel) Run() {
 			}
 
 		}
-	case MasterWorker:
+	case common.MasterWorker:
 		for {
 			select {
 			case <-k.stopChan:
@@ -56,18 +56,18 @@ func (k *Kernel) Run() {
 			}
 		}
 	default:
-		logrus.Panic(NoRunMode)
+		logrus.Panic(yerror.NoRunMode)
 	}
 }
 
-func (k *Kernel) LocalRun() (newBlock *Block, err error) {
+func (k *Kernel) LocalRun() (newBlock *types.Block, err error) {
 	newBlock, err = k.makeNewBasicBlock()
 	if err != nil {
 		return
 	}
 
 	// start a new block
-	err = k.Land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *tripod.Tripod) error {
 		// start := time.Now()
 		tri.BlockCycle.StartBlock(newBlock)
 		// metrics.StartBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
@@ -78,7 +78,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	}
 
 	// end block
-	err = k.Land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *tripod.Tripod) error {
 		// start := time.Now()
 		tri.BlockCycle.EndBlock(newBlock)
 		// metrics.EndBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
@@ -89,7 +89,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	}
 
 	// finalize this block
-	err = k.Land.RangeList(func(tri *Tripod) error {
+	err = k.Land.RangeList(func(tri *tripod.Tripod) error {
 		// start := time.Now()
 		tri.BlockCycle.FinalizeBlock(newBlock)
 		// metrics.FinalizeBlockDuration.WithLabelValues(strconv.FormatInt(int64(newBlock.Height), 10), tri.Name()).Observe(time.Now().Sub(start).Seconds())
@@ -98,7 +98,7 @@ func (k *Kernel) LocalRun() (newBlock *Block, err error) {
 	return
 }
 
-func (k *Kernel) makeGenesisBlock() *Block {
+func (k *Kernel) makeGenesisBlock() *types.Block {
 	genesisBlock := k.Chain.NewEmptyBlock()
 
 	genesisBlock.Timestamp = ytime.NowTsU64()
@@ -108,7 +108,7 @@ func (k *Kernel) makeGenesisBlock() *Block {
 	return genesisBlock
 }
 
-func (k *Kernel) makeNewBasicBlock() (*Block, error) {
+func (k *Kernel) makeNewBasicBlock() (*types.Block, error) {
 	newBlock := k.Chain.NewEmptyBlock()
 
 	newBlock.Timestamp = ytime.NowTsU64()
@@ -123,10 +123,10 @@ func (k *Kernel) makeNewBasicBlock() (*Block, error) {
 	return newBlock, nil
 }
 
-func (k *Kernel) OrderedExecute(block *Block) error {
+func (k *Kernel) SeqExecuteWritings(block *types.Block) error {
 	stxns := block.Txns
 
-	receipts := make(map[Hash]*Receipt)
+	receipts := make(map[common.Hash]*types.Receipt)
 
 	for i, stxn := range stxns {
 		wrCall := stxn.Raw.WrCall
@@ -137,12 +137,12 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 			continue
 		}
 
-		writing, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+		write, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 
-		err = writing(ctx)
-		if IfLeiOut(ctx.LeiCost, block) {
+		err = write(ctx)
+		if types.IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
-			receipt := k.HandleError(OutOfLei, ctx, block, stxn)
+			receipt := k.HandleError(yerror.OutOfLei, ctx, block, stxn)
 			receipts[stxn.TxnHash] = receipt
 			break
 		}
@@ -166,8 +166,8 @@ func (k *Kernel) OrderedExecute(block *Block) error {
 	return k.PostExecute(block, receipts)
 }
 
-func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
-	k.Land.RangeList(func(t *Tripod) error {
+func (k *Kernel) PostExecute(block *types.Block, receipts map[common.Hash]*types.Receipt) error {
+	k.Land.RangeList(func(t *tripod.Tripod) error {
 		t.Committer.Commit(block)
 		return nil
 	})
@@ -185,13 +185,13 @@ func (k *Kernel) PostExecute(block *Block, receipts map[Hash]*Receipt) error {
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.StateRoot == NullHash && stateRoot != nil {
-		block.StateRoot = BytesToHash(stateRoot)
+	if block.StateRoot == common.NullHash && stateRoot != nil {
+		block.StateRoot = common.BytesToHash(stateRoot)
 	}
 
 	// Because tripod.Committer could update this field.
-	if block.ReceiptRoot == NullHash {
-		block.ReceiptRoot, err = CaculateReceiptRoot(receipts)
+	if block.ReceiptRoot == common.NullHash {
+		block.ReceiptRoot, err = types.CaculateReceiptRoot(receipts)
 	}
 	return err
 }
@@ -233,22 +233,22 @@ func (k *Kernel) MasterWorkerRun() error {
 	return nil
 }
 
-func (k *Kernel) HandleError(err error, ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
+func (k *Kernel) HandleError(err error, ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
 	logrus.Error("push error: ", err.Error())
-	receipt := NewReceipt(ctx.Events, err, ctx.Extra)
+	receipt := types.NewReceipt(ctx.Events, err, ctx.Extra)
 	k.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (k *Kernel) HandleEvent(ctx *context.WriteContext, block *Block, stxn *SignedTxn) *Receipt {
-	receipt := NewReceipt(ctx.Events, nil, ctx.Extra)
+func (k *Kernel) HandleEvent(ctx *context.WriteContext, block *types.Block, stxn *types.SignedTxn) *types.Receipt {
+	receipt := types.NewReceipt(ctx.Events, nil, ctx.Extra)
 	k.HandleReceipt(ctx, receipt, block, stxn)
 	return receipt
 }
 
-func (k *Kernel) HandleReceipt(ctx *context.WriteContext, receipt *Receipt, block *Block, stxn *SignedTxn) {
+func (k *Kernel) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt, block *types.Block, stxn *types.SignedTxn) {
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
-	receipt.BlockStage = ExecuteTxnsStage
+	receipt.BlockStage = common.ExecuteTxnsStage
 
 	if k.Sub != nil {
 		k.Sub.Emit(receipt)

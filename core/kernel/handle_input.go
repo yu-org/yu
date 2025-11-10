@@ -11,9 +11,9 @@ import (
 	"github.com/yu-org/yu/metrics"
 )
 
-// HandleTxn handles txn from outside.
-// You can also self-define your input by calling HandleTxn (not only by default http and ws)
-func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
+// HandleWriting handles txn from outside.
+// You can also self-define your input by calling HandleWriting (not only by default http and ws)
+func (k *Kernel) HandleWriting(signedWrCall *protocol.SignedWrCall) error {
 	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
 	if err != nil {
 		return err
@@ -23,21 +23,44 @@ func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-	err = k.handleTxnLocally(stxn)
+	err = k.handleTxnLocally(stxn, "")
 	if err != nil {
 		return err
 	}
 	go func() {
-		err = k.pubUnpackedTxns(FromArray(stxn))
+		err = k.pubUnpackedWritings(FromArray(stxn))
 		if err != nil {
-			logrus.Error("publish unpacked txns error: ", err)
+			logrus.Error("publish unpacked writing error: ", err)
 		}
 	}()
 
 	return nil
 }
 
-func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
+func (k *Kernel) HandleExtraWriting(call *protocol.SignedWrCall) error {
+	stxn, err := NewSignedTxn(call.Call, call.Pubkey, call.Address, call.Signature)
+	if err != nil {
+		return err
+	}
+	exWrCall := call.Call
+	_, err = k.Land.GetExtraWriting(exWrCall.TripodName, exWrCall.FuncName)
+	if err != nil {
+		return err
+	}
+	err = k.handleTxnLocally(stxn, common.UnpackedExtraWritingTopic)
+	if err != nil {
+		return err
+	}
+	go func() {
+		err = k.pubExtraWritings(FromArray(stxn))
+		if err != nil {
+			logrus.Error("publish extra writings error: ", err)
+		}
+	}()
+	return nil
+}
+
+func (k *Kernel) handleTxnLocally(stxn *SignedTxn, topic string) error {
 	metrics.KernelHandleTxnCounter.WithLabelValues().Inc()
 	tri := k.Land.GetTripod(stxn.TripodName())
 	if tri != nil {
@@ -53,10 +76,13 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	if err != nil {
 		return err
 	}
-	return k.Pool.Insert(stxn)
+	if topic == "" {
+		return k.Pool.Insert(stxn)
+	}
+	return k.Pool.InsertWithTopic(topic, stxn)
 }
 
-func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error) {
+func (k *Kernel) HandleReading(rdCall *common.RdCall) (*context.ResponseData, error) {
 	ctx, err := context.NewReadContext(rdCall)
 	if err != nil {
 		return nil, err

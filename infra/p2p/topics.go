@@ -14,7 +14,7 @@ func (p *LibP2P) AddDefaultTopics() {
 	p.AddTopic(StartBlockTopic)
 	p.AddTopic(EndBlockTopic)
 	p.AddTopic(FinalizeBlockTopic)
-	p.AddTopic(UnpackedTxnsTopic)
+	p.AddTopic(UnpackedWritingTopic)
 }
 
 func (p *LibP2P) AddTopic(topicName string) {
