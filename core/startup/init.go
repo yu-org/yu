@@ -3,7 +3,9 @@ package startup
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/config"
+	"github.com/yu-org/yu/utils/log"
 	"os"
+	"path/filepath"
 )
 
 func InitKernelConfigFromPath(cfgPath string) *config.KernelConf {
@@ -55,6 +57,7 @@ func initLog(cfg *config.KernelConf) {
 		}
 	}
 
+	log.InitPrettyLog(filepath.Dir(cfg.LogOutput))
 	logrus.SetOutput(logfile)
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
