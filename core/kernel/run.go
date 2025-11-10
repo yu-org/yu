@@ -137,9 +137,9 @@ func (k *Kernel) OrderedExecute(block *types.Block) error {
 			continue
 		}
 
-		writing, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+		write, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
 
-		err = writing(ctx)
+		err = write(ctx)
 		if types.IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
 			receipt := k.HandleError(yerror.OutOfLei, ctx, block, stxn)
