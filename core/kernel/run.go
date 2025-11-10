@@ -13,7 +13,7 @@ import (
 
 func (k *Kernel) AcceptUnpkgTxnsJob() {
 	for {
-		err := k.AcceptUnpkgTxns()
+		err := k.AcceptUnpackedTxns()
 		if err != nil {
 			logrus.Errorf("accept unpacked txns error: %s", err.Error())
 		}

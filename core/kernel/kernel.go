@@ -103,29 +103,54 @@ func (k *Kernel) InitBlockChain() {
 	})
 }
 
-func (k *Kernel) AcceptUnpkgTxns() error {
-	txns, err := k.subUnpackedWritings()
+func (k *Kernel) AcceptUnpackedTxns() error {
+	writings, err := k.subUnpackedWritings()
 	if err != nil {
 		return err
 	}
 
-	for _, txn := range txns {
+	for _, txn := range writings {
 		if k.CheckReplayAttack(txn) {
 			continue
 		}
 		txn.FromP2P = true
 
-		logrus.WithField("p2p", "accept-txn").
+		logrus.WithField("p2p", "accept-writing").
 			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 
 		err = k.Pool.CheckTxn(txn)
 		if err != nil {
-			logrus.Error("check txn from P2P into txpool error: ", err)
+			logrus.Error("check writing from P2P into txpool error: ", err)
 			continue
 		}
 		err = k.Pool.Insert(txn)
 		if err != nil {
-			logrus.Error("insert txn from P2P into txpool error: ", err)
+			logrus.Error("insert writing from P2P into txpool error: ", err)
+		}
+	}
+
+	extraWritings, err := k.subExtraWritings()
+	if err != nil {
+		return err
+	}
+
+	for _, txn := range extraWritings {
+		if k.CheckReplayAttack(txn) {
+			continue
+		}
+		txn.FromP2P = true
+
+		logrus.WithField("p2p", "accept-extra-writing").
+			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
+
+		err = k.Pool.CheckTxn(txn)
+		if err != nil {
+			logrus.Error("check extra writing from P2P into txpool error: ", err)
+			continue
+		}
+		err = k.Pool.Insert(txn)
+		if err != nil {
+			logrus.Error("insert extra writing from P2P into txpool error: ", err)
 		}
 	}
 
@@ -148,20 +173,20 @@ func (k *Kernel) pubUnpackedWritings(txns types.SignedTxns) error {
 	return k.P2pNetwork.PubP2P(common.UnpackedWritingTopic, byt)
 }
 
-func (k *Kernel) pubExtraWritings(txns types.SignedTxns) error {
-	byt, err := txns.Encode()
-	if err != nil {
-		return err
-	}
-	return k.P2pNetwork.PubP2P(common.UnpackedExtraWritingTopic, byt)
-}
-
 func (k *Kernel) subExtraWritings() (types.SignedTxns, error) {
 	byt, err := k.P2pNetwork.SubP2P(common.UnpackedExtraWritingTopic)
 	if err != nil {
 		return nil, err
 	}
 	return types.DecodeSignedTxns(byt)
+}
+
+func (k *Kernel) pubExtraWritings(txns types.SignedTxns) error {
+	byt, err := txns.Encode()
+	if err != nil {
+		return err
+	}
+	return k.P2pNetwork.PubP2P(common.UnpackedExtraWritingTopic, byt)
 }
 
 func (k *Kernel) GetTripodInstance(name string) any {

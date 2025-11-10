@@ -23,7 +23,7 @@ func (k *Kernel) HandleWriting(signedWrCall *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-	err = k.handleTxnLocally(stxn)
+	err = k.handleTxnLocally(stxn, "")
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (k *Kernel) HandleExtraWriting(call *protocol.SignedWrCall) error {
 		return err
 	}
 	//TODO: insert into extra-writing txpool
-	err = k.handleTxnLocally(stxn)
+	err = k.handleTxnLocally(stxn, common.UnpackedExtraWritingTopic)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (k *Kernel) HandleExtraWriting(call *protocol.SignedWrCall) error {
 	return nil
 }
 
-func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
+func (k *Kernel) handleTxnLocally(stxn *SignedTxn, topic string) error {
 	metrics.KernelHandleTxnCounter.WithLabelValues().Inc()
 	tri := k.Land.GetTripod(stxn.TripodName())
 	if tri != nil {
@@ -77,7 +77,10 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 	if err != nil {
 		return err
 	}
-	return k.Pool.Insert(stxn)
+	if topic == "" {
+		return k.Pool.Insert(stxn)
+	}
+	return k.Pool.InsertWithTopic(topic, stxn)
 }
 
 func (k *Kernel) HandleReading(rdCall *common.RdCall) (*context.ResponseData, error) {
