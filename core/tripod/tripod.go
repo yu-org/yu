@@ -35,8 +35,9 @@ type Tripod struct {
 	writings map[string]dev.Writing
 	// Key: Reading Name
 	readings map[string]dev.Reading
-	// Key: TopicWriting Name
-	topicWritings map[string]dev.TopicWriting
+	// Key: TopicWriting Topic
+	topicWritings      map[string]dev.TopicWriting
+	topicP2PRegistered map[string]bool
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -52,6 +53,8 @@ func NewTripodWithName(name string) *Tripod {
 		readings:      make(map[string]dev.Reading),
 		topicWritings: make(map[string]dev.TopicWriting),
 		P2pHandlers:   make(map[int]dev.P2pHandler),
+
+		topicP2PRegistered: make(map[string]bool),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -97,8 +100,8 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
 	}
 
-	for name, _ := range t.topicWritings {
-		logrus.Infof("register TopicWriting (%s) into Tripod(%s) \n", name, t.name)
+	for topic := range t.topicWritings {
+		logrus.Infof("register TopicWriting (%s) into Tripod(%s) \n", topic, t.name)
 	}
 
 	t.Instance = tripodInstance
@@ -123,10 +126,12 @@ func (t *Tripod) GetCurrentBlock() (*types.Block, error) {
 
 func (t *Tripod) SetChainEnv(env *env.ChainEnv) {
 	t.ChainEnv = env
+	t.registerAllTopicP2P()
 }
 
 func (t *Tripod) SetLand(land *Land) {
 	t.Land = land
+	t.registerAllTopicTripods()
 }
 
 func (t *Tripod) SetInit(init Init) {
@@ -160,11 +165,13 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	}
 }
 
-func (t *Tripod) SetTopicWritings(topicWritings ...dev.TopicWriting) {
-	for _, ew := range topicWritings {
-		name := getFuncName(ew)
-		t.topicWritings[name] = ew
+func (t *Tripod) SetTopicWriting(topic string, topicWriting dev.TopicWriting) *Tripod {
+	t.topicWritings[topic] = topicWriting
+	t.registerTopicP2P(topic)
+	if t.Land != nil {
+		t.Land.registerTopicTripod(topic, t)
 	}
+	return t
 }
 
 func (t *Tripod) SetReadings(readings ...dev.Reading) {
@@ -193,8 +200,8 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) ExistTopicWriting(name string) bool {
-	_, ok := t.topicWritings[name]
+func (t *Tripod) ExistTopicWriting(topic string) bool {
+	_, ok := t.topicWritings[topic]
 	return ok
 }
 
@@ -206,8 +213,8 @@ func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (dev.Writing, e
 	return t.Land.GetWriting(tripodName, funcName)
 }
 
-func (t *Tripod) GetTopicWriting(name string) dev.TopicWriting {
-	return t.topicWritings[name]
+func (t *Tripod) GetTopicWriting(topic string) dev.TopicWriting {
+	return t.topicWritings[topic]
 }
 
 func (t *Tripod) GetTopicWritingFromLand(tripodName, funcName, topic string) (dev.TopicWriting, error) {
@@ -295,5 +302,34 @@ func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt
 
 	if t.Sub != nil {
 		t.Sub.Emit(receipt)
+	}
+}
+
+func (t *Tripod) registerTopicP2P(topic string) {
+	if t.topicP2PRegistered == nil {
+		t.topicP2PRegistered = make(map[string]bool)
+	}
+	if t.topicP2PRegistered[topic] {
+		return
+	}
+	if t.ChainEnv == nil || t.P2pNetwork == nil {
+		return
+	}
+	t.P2pNetwork.AddTopic(common.TopicWritingTopic(topic))
+	t.topicP2PRegistered[topic] = true
+}
+
+func (t *Tripod) registerAllTopicP2P() {
+	for topic := range t.topicWritings {
+		t.registerTopicP2P(topic)
+	}
+}
+
+func (t *Tripod) registerAllTopicTripods() {
+	if t.Land == nil {
+		return
+	}
+	for topic := range t.topicWritings {
+		t.Land.registerTopicTripod(topic, t)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod"
@@ -129,28 +130,34 @@ func (k *Kernel) AcceptUnpackedTxns() error {
 		}
 	}
 
-	topicWritings, err := k.subTopicWritings()
+	topicTxnMap, err := k.subTopicWritings()
 	if err != nil {
 		return err
 	}
 
-	for _, txn := range topicWritings {
-		if k.CheckReplayAttack(txn) {
-			continue
-		}
-		txn.FromP2P = true
+	for topic, txns := range topicTxnMap {
+		for _, txn := range txns {
+			if txn == nil {
+				continue
+			}
+			if k.CheckReplayAttack(txn) {
+				continue
+			}
+			txn.FromP2P = true
 
-		logrus.WithField("p2p", "accept-topic-writing").
-			Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
+			logrus.WithField("p2p", "accept-topic-writing").
+				WithField("topic", topic).
+				Tracef("txn(%s) from network, content: %v", txn.TxnHash.String(), txn.Raw.WrCall)
 
-		err = k.Pool.CheckTxn(txn)
-		if err != nil {
-			logrus.Error("check topic writing from P2P into txpool error: ", err)
-			continue
-		}
-		err = k.Pool.Insert(txn)
-		if err != nil {
-			logrus.Error("insert topic writing from P2P into txpool error: ", err)
+			err = k.Pool.CheckTxn(txn)
+			if err != nil {
+				logrus.WithError(err).WithField("topic", topic).Error("check topic writing from P2P into txpool error")
+				continue
+			}
+			err = k.Pool.InsertWithTopic(topic, txn)
+			if err != nil {
+				logrus.WithError(err).WithField("topic", topic).Error("insert topic writing from P2P into txpool error")
+			}
 		}
 	}
 
@@ -173,20 +180,41 @@ func (k *Kernel) pubUnpackedWritings(txns types.SignedTxns) error {
 	return k.P2pNetwork.PubP2P(common.UnpackedWritingTopic, byt)
 }
 
-func (k *Kernel) subTopicWritings() (types.SignedTxns, error) {
-	byt, err := k.P2pNetwork.SubP2P(common.UnpackedTopicWritingTopic)
-	if err != nil {
-		return nil, err
+func (k *Kernel) subTopicWritings() (map[string]types.SignedTxns, error) {
+	if k.Land == nil {
+		return nil, nil
 	}
-	return types.DecodeSignedTxns(byt)
+	topicTxns := make(map[string]types.SignedTxns)
+	for _, topicTripod := range k.Land.OrderedTopicTripods() {
+		if topicTripod.Topic == "" {
+			continue
+		}
+		p2pTopic := common.TopicWritingTopic(topicTripod.Topic)
+		byt, err := k.P2pNetwork.SubP2P(p2pTopic)
+		if err != nil {
+			if err == yerror.NoP2PTopic {
+				continue
+			}
+			return nil, err
+		}
+		txns, err := types.DecodeSignedTxns(byt)
+		if err != nil {
+			return nil, err
+		}
+		if len(txns) == 0 {
+			continue
+		}
+		topicTxns[p2pTopic] = txns
+	}
+	return topicTxns, nil
 }
 
-func (k *Kernel) pubTopicWritings(txns types.SignedTxns) error {
+func (k *Kernel) pubTopicWritings(topic string, txns types.SignedTxns) error {
 	byt, err := txns.Encode()
 	if err != nil {
 		return err
 	}
-	return k.P2pNetwork.PubP2P(common.UnpackedTopicWritingTopic, byt)
+	return k.P2pNetwork.PubP2P(topic, byt)
 }
 
 func (k *Kernel) GetTripodInstance(name string) any {

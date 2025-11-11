@@ -47,12 +47,13 @@ func (k *Kernel) HandleTopicWriting(call *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-	err = k.handleTxnLocally(stxn, common.UnpackedTopicWritingTopic)
+	p2pTopic := common.TopicWritingTopic(tpWrCall.Topic)
+	err = k.handleTxnLocally(stxn, p2pTopic)
 	if err != nil {
 		return err
 	}
 	go func() {
-		err = k.pubTopicWritings(FromArray(stxn))
+		err = k.pubTopicWritings(p2pTopic, FromArray(stxn))
 		if err != nil {
 			logrus.Error("publish topic writings error: ", err)
 		}
