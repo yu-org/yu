@@ -123,7 +123,6 @@ func (t *Tripod) GetCurrentBlock() (*types.Block, error) {
 
 func (t *Tripod) SetChainEnv(env *env.ChainEnv) {
 	t.ChainEnv = env
-	t.registerAllTopicP2P()
 }
 
 func (t *Tripod) SetLand(land *Land) {
@@ -307,16 +306,7 @@ func (t *Tripod) registerTopicP2P(topic string) {
 		return
 	}
 	p2pTopic := common.TopicWritingTopic(topic)
-	if t.P2pNetwork.HasTopic(p2pTopic) {
-		return
-	}
 	t.P2pNetwork.AddTopic(p2pTopic)
-}
-
-func (t *Tripod) registerAllTopicP2P() {
-	for topic := range t.topicWritings {
-		t.registerTopicP2P(topic)
-	}
 }
 
 func (t *Tripod) registerAllTopicTripods() {
