@@ -1,16 +1,17 @@
 package tripod
 
 import (
+	"path/filepath"
+	"reflect"
+	"runtime"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
-	"path/filepath"
-	"reflect"
-	"runtime"
-	"strings"
 )
 
 type Tripod struct {
@@ -34,8 +35,8 @@ type Tripod struct {
 	writings map[string]dev.Writing
 	// Key: Reading Name
 	readings map[string]dev.Reading
-	// Key: ExtraWriting Name
-	extraWritings map[string]dev.ExtraWriting
+	// Key: TopicWriting Name
+	topicWritings map[string]dev.TopicWriting
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -49,7 +50,7 @@ func NewTripodWithName(name string) *Tripod {
 		name:          name,
 		writings:      make(map[string]dev.Writing),
 		readings:      make(map[string]dev.Reading),
-		extraWritings: make(map[string]dev.ExtraWriting),
+		topicWritings: make(map[string]dev.TopicWriting),
 		P2pHandlers:   make(map[int]dev.P2pHandler),
 
 		BlockVerifier: new(DefaultBlockVerifier),
@@ -96,8 +97,8 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
 	}
 
-	for name, _ := range t.extraWritings {
-		logrus.Infof("register ExtraWriting (%s) into Tripod(%s) \n", name, t.name)
+	for name, _ := range t.topicWritings {
+		logrus.Infof("register TopicWriting (%s) into Tripod(%s) \n", name, t.name)
 	}
 
 	t.Instance = tripodInstance
@@ -159,10 +160,10 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	}
 }
 
-func (t *Tripod) SetExtraWritings(extraWritings ...dev.ExtraWriting) {
-	for _, ew := range extraWritings {
+func (t *Tripod) SetTopicWritings(topicWritings ...dev.TopicWriting) {
+	for _, ew := range topicWritings {
 		name := getFuncName(ew)
-		t.extraWritings[name] = ew
+		t.topicWritings[name] = ew
 	}
 }
 
@@ -192,8 +193,8 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
-func (t *Tripod) ExistExtraWriting(name string) bool {
-	_, ok := t.extraWritings[name]
+func (t *Tripod) ExistTopicWriting(name string) bool {
+	_, ok := t.topicWritings[name]
 	return ok
 }
 
@@ -205,12 +206,12 @@ func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (dev.Writing, e
 	return t.Land.GetWriting(tripodName, funcName)
 }
 
-func (t *Tripod) GetExtraWriting(name string) dev.ExtraWriting {
-	return t.extraWritings[name]
+func (t *Tripod) GetTopicWriting(name string) dev.TopicWriting {
+	return t.topicWritings[name]
 }
 
-func (t *Tripod) GetExtraWritingFromLand(tripodName, funcName string) (dev.ExtraWriting, error) {
-	return t.Land.GetExtraWriting(tripodName, funcName)
+func (t *Tripod) GetTopicWritingFromLand(tripodName, funcName string) (dev.TopicWriting, error) {
+	return t.Land.GetTopicWriting(tripodName, funcName)
 }
 
 func (t *Tripod) GetReading(name string) dev.Reading {
@@ -237,9 +238,9 @@ func (t *Tripod) AllWritingNames() []string {
 	return allNames
 }
 
-func (t *Tripod) AllExtraWritingNames() []string {
+func (t *Tripod) AllTopicWritingNames() []string {
 	allNames := make([]string, 0)
-	for name, _ := range t.extraWritings {
+	for name, _ := range t.topicWritings {
 		allNames = append(allNames, name)
 	}
 	return allNames

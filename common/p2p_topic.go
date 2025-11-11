@@ -5,5 +5,5 @@ const (
 	EndBlockTopic             = "end-block"
 	FinalizeBlockTopic        = "finalize-block"
 	UnpackedWritingTopic      = "unpacked-writing"
-	UnpackedExtraWritingTopic = "unpacked-extra-writing"
+	UnpackedTopicWritingTopic = "unpacked-topic-writing"
 )

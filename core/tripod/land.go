@@ -59,14 +59,14 @@ func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	return fn, nil
 }
 
-func (l *Land) GetExtraWriting(tripodName, ewName string) (ExtraWriting, error) {
+func (l *Land) GetTopicWriting(tripodName, ewName string) (TopicWriting, error) {
 	tripod, ok := l.tripodsMap[tripodName]
 	if !ok {
 		return nil, TripodNotFound(tripodName)
 	}
-	ew := tripod.GetExtraWriting(ewName)
+	ew := tripod.GetTopicWriting(ewName)
 	if ew == nil {
-		return nil, ExtraWritingNotFound(ewName)
+		return nil, TopicWritingNotFound(ewName)
 	}
 	return ew, nil
 }
