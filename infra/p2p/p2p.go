@@ -38,7 +38,8 @@ type LibP2P struct {
 	ps        *pubsub.PubSub
 
 	topicMu          sync.RWMutex
-	registeredTopics map[string]struct{}
+	registeredTopics map[string]*pubsub.Topic
+	subscriptions    map[string]*pubsub.Subscription
 }
 
 func NewP2P(cfg *config.P2pConf) P2pNetwork {
@@ -68,7 +69,8 @@ func NewP2P(cfg *config.P2pConf) P2pNetwork {
 		bootNodes:        bootNodes,
 		pid:              protocol.ID(cfg.ProtocolID),
 		ps:               ps,
-		registeredTopics: make(map[string]struct{}),
+		registeredTopics: make(map[string]*pubsub.Topic),
+		subscriptions:    make(map[string]*pubsub.Subscription),
 	}
 	p.AddDefaultTopics()
 	return p
@@ -129,7 +131,9 @@ func (p *LibP2P) RequestPeer(peerID peerstore.ID, code int, request []byte) ([]b
 }
 
 func (p *LibP2P) PubP2P(topic string, msg []byte) error {
-	t, ok := TopicsMap[topic]
+	p.topicMu.RLock()
+	t, ok := p.registeredTopics[topic]
+	p.topicMu.RUnlock()
 	if !ok {
 		return yerror.NoP2PTopic
 	}
@@ -137,7 +141,9 @@ func (p *LibP2P) PubP2P(topic string, msg []byte) error {
 }
 
 func (p *LibP2P) SubP2P(topic string) ([]byte, error) {
-	sub, ok := SubsMap[topic]
+	p.topicMu.RLock()
+	sub, ok := p.subscriptions[topic]
+	p.topicMu.RUnlock()
 	if !ok {
 		return nil, yerror.NoP2PTopic
 	}
