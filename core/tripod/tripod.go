@@ -210,8 +210,8 @@ func (t *Tripod) GetTopicWriting(name string) dev.TopicWriting {
 	return t.topicWritings[name]
 }
 
-func (t *Tripod) GetTopicWritingFromLand(tripodName, funcName string) (dev.TopicWriting, error) {
-	return t.Land.GetTopicWriting(tripodName, funcName)
+func (t *Tripod) GetTopicWritingFromLand(tripodName, funcName, topic string) (dev.TopicWriting, error) {
+	return t.Land.GetTopicWriting(tripodName, funcName, topic)
 }
 
 func (t *Tripod) GetReading(name string) dev.Reading {

@@ -43,7 +43,7 @@ func (k *Kernel) HandleTopicWriting(call *protocol.SignedWrCall) error {
 		return err
 	}
 	tpWrCall := call.Call
-	_, err = k.Land.GetTopicWriting(tpWrCall.TripodName, tpWrCall.FuncName)
+	_, err = k.Land.GetTopicWriting(tpWrCall.TripodName, tpWrCall.FuncName, tpWrCall.Topic)
 	if err != nil {
 		return err
 	}
