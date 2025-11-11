@@ -36,8 +36,7 @@ type Tripod struct {
 	// Key: Reading Name
 	readings map[string]dev.Reading
 	// Key: TopicWriting Topic
-	topicWritings      map[string]dev.TopicWriting
-	topicP2PRegistered map[string]bool
+	topicWritings map[string]dev.TopicWriting
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -53,8 +52,6 @@ func NewTripodWithName(name string) *Tripod {
 		readings:      make(map[string]dev.Reading),
 		topicWritings: make(map[string]dev.TopicWriting),
 		P2pHandlers:   make(map[int]dev.P2pHandler),
-
-		topicP2PRegistered: make(map[string]bool),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -306,17 +303,14 @@ func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt
 }
 
 func (t *Tripod) registerTopicP2P(topic string) {
-	if t.topicP2PRegistered == nil {
-		t.topicP2PRegistered = make(map[string]bool)
-	}
-	if t.topicP2PRegistered[topic] {
-		return
-	}
 	if t.ChainEnv == nil || t.P2pNetwork == nil {
 		return
 	}
-	t.P2pNetwork.AddTopic(common.TopicWritingTopic(topic))
-	t.topicP2PRegistered[topic] = true
+	p2pTopic := common.TopicWritingTopic(topic)
+	if t.P2pNetwork.HasTopic(p2pTopic) {
+		return
+	}
+	t.P2pNetwork.AddTopic(p2pTopic)
 }
 
 func (t *Tripod) registerAllTopicP2P() {

@@ -5,6 +5,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"math/rand"
+	"os"
+	"strconv"
+	"sync"
+
 	"github.com/libp2p/go-libp2p"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/crypto"
@@ -18,10 +24,6 @@ import (
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/tripod/dev"
-	"io"
-	"math/rand"
-	"os"
-	"strconv"
 )
 
 const (
@@ -34,6 +36,9 @@ type LibP2P struct {
 	bootNodes []*peerstore.AddrInfo
 	pid       protocol.ID
 	ps        *pubsub.PubSub
+
+	topicMu          sync.RWMutex
+	registeredTopics map[string]struct{}
 }
 
 func NewP2P(cfg *config.P2pConf) P2pNetwork {
@@ -59,10 +64,11 @@ func NewP2P(cfg *config.P2pConf) P2pNetwork {
 	}
 
 	p := &LibP2P{
-		host:      p2pHost,
-		bootNodes: bootNodes,
-		pid:       protocol.ID(cfg.ProtocolID),
-		ps:        ps,
+		host:             p2pHost,
+		bootNodes:        bootNodes,
+		pid:              protocol.ID(cfg.ProtocolID),
+		ps:               ps,
+		registeredTopics: make(map[string]struct{}),
 	}
 	p.AddDefaultTopics()
 	return p

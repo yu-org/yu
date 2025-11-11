@@ -18,6 +18,13 @@ func (p *LibP2P) AddDefaultTopics() {
 }
 
 func (p *LibP2P) AddTopic(topicName string) {
+	p.topicMu.RLock()
+	if _, exists := p.registeredTopics[topicName]; exists {
+		p.topicMu.RUnlock()
+		return
+	}
+	p.topicMu.RUnlock()
+
 	topic, err := p.ps.Join(topicName)
 	if err != nil {
 		return
@@ -28,4 +35,15 @@ func (p *LibP2P) AddTopic(topicName string) {
 		return
 	}
 	SubsMap[topicName] = sub
+
+	p.topicMu.Lock()
+	p.registeredTopics[topicName] = struct{}{}
+	p.topicMu.Unlock()
+}
+
+func (p *LibP2P) HasTopic(topicName string) bool {
+	p.topicMu.RLock()
+	defer p.topicMu.RUnlock()
+	_, ok := p.registeredTopics[topicName]
+	return ok
 }
