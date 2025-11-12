@@ -8,7 +8,7 @@ func NewGrpcLand(land *Land) *GrpcLand {
 	return &GrpcLand{land}
 }
 
-//func (g *GrpcLand) SetTripods(_ context.Context, info *goproto.TripodsInfo) (*emptypb.Empty, error) {
+//func (g *GrpcLand) RegisterTripods(_ context.Context, info *goproto.TripodsInfo) (*emptypb.Empty, error) {
 //	tripods := make([]*Tripod, 0)
 //	for _, triInfo := range info.Tripods {
 //		tripod := NewTripodWithName(triInfo.Name)
@@ -24,6 +24,6 @@ func NewGrpcLand(land *Land) *GrpcLand {
 //
 //		tripods = append(tripods)
 //	}
-//	g.land.SetTripods(tripods...)
+//	g.land.RegisterTripods(tripods...)
 //	return nil, nil
 //}

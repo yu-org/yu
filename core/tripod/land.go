@@ -30,13 +30,13 @@ func NewLand() *Land {
 	}
 }
 
-func (l *Land) SetBronzes(bronzes ...*Bronze) {
+func (l *Land) RegisterBronzes(bronzes ...*Bronze) {
 	for _, bronze := range bronzes {
 		l.bronzes[bronze.Name()] = bronze
 	}
 }
 
-func (l *Land) SetTripods(tripods ...*Tripod) {
+func (l *Land) RegisterTripods(tripods ...*Tripod) {
 	for _, tri := range tripods {
 		triName := tri.Name()
 
@@ -56,12 +56,6 @@ func makeTopicTripodKey(topic, tripodName string) string {
 }
 
 func (l *Land) registerTopicTripod(topic string, tri *Tripod) {
-	if l.topicTripods == nil {
-		l.topicTripods = make(map[string]*Tripod)
-	}
-	if tri == nil {
-		return
-	}
 	key := makeTopicTripodKey(topic, tri.Name())
 	if _, exists := l.topicTripods[key]; !exists {
 		l.orderedTopicTripods = append(l.orderedTopicTripods, key)

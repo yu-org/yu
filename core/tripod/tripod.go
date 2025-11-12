@@ -310,9 +310,6 @@ func (t *Tripod) registerTopicP2P(topic string) {
 }
 
 func (t *Tripod) registerAllTopicTripods() {
-	if t.Land == nil {
-		return
-	}
 	for topic := range t.topicWritings {
 		t.Land.registerTopicTripod(topic, t)
 	}

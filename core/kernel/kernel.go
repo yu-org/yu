@@ -242,7 +242,7 @@ func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
 		t.SetInstance(bronzeInstances[i])
 	}
 
-	k.Land.SetBronzes(bronzes...)
+	k.Land.RegisterBronzes(bronzes...)
 
 	for _, bronzeInstance := range bronzeInstances {
 		err := tripod.InjectToBronze(k.Land, bronzeInstance)
@@ -265,7 +265,7 @@ func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 		t.SetInstance(tripodInstances[i])
 	}
 
-	k.Land.SetTripods(tripods...)
+	k.Land.RegisterTripods(tripods...)
 
 	for _, tri := range tripods {
 		k.Pool.WithTripodCheck(tri.Name(), tri.TxnChecker)
