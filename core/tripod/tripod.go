@@ -127,7 +127,6 @@ func (t *Tripod) SetChainEnv(env *env.ChainEnv) {
 
 func (t *Tripod) SetLand(land *Land) {
 	t.Land = land
-	t.registerAllTopicTripods()
 }
 
 func (t *Tripod) SetInit(init Init) {
@@ -164,9 +163,6 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 func (t *Tripod) SetTopicWriting(topic string, topicWriting dev.TopicWriting) *Tripod {
 	t.topicWritings[topic] = topicWriting
 	t.registerTopicP2P(topic)
-	if t.Land != nil {
-		t.Land.registerTopicTripod(topic, t)
-	}
 	return t
 }
 
@@ -307,10 +303,4 @@ func (t *Tripod) registerTopicP2P(topic string) {
 	}
 	p2pTopic := common.TopicWritingTopic(topic)
 	t.P2pNetwork.AddTopic(p2pTopic)
-}
-
-func (t *Tripod) registerAllTopicTripods() {
-	for topic := range t.topicWritings {
-		t.Land.registerTopicTripod(topic, t)
-	}
 }
