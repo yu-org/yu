@@ -126,16 +126,16 @@ func WritingNotFound(name string) ErrWritingNotFound {
 	return ErrWritingNotFound{WritingName: name}
 }
 
-type ErrExtraWritingNotFound struct {
-	ExtraWritingName string
+type ErrTopicWritingNotFound struct {
+	TopicWritingName string
 }
 
-func ExtraWritingNotFound(name string) ErrExtraWritingNotFound {
-	return ErrExtraWritingNotFound{ExtraWritingName: name}
+func TopicWritingNotFound(name string) ErrTopicWritingNotFound {
+	return ErrTopicWritingNotFound{TopicWritingName: name}
 }
 
-func (e ErrExtraWritingNotFound) Error() string {
-	return errors.Errorf("ExtraWriting(%s) NOT Found", e.ExtraWritingName).Error()
+func (e ErrTopicWritingNotFound) Error() string {
+	return errors.Errorf("TopicWriting(%s) NOT Found", e.TopicWritingName).Error()
 }
 
 type ErrReadingNotFound struct {

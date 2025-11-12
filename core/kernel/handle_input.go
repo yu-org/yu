@@ -37,24 +37,25 @@ func (k *Kernel) HandleWriting(signedWrCall *protocol.SignedWrCall) error {
 	return nil
 }
 
-func (k *Kernel) HandleExtraWriting(call *protocol.SignedWrCall) error {
+func (k *Kernel) HandleTopicWriting(call *protocol.SignedWrCall) error {
 	stxn, err := NewSignedTxn(call.Call, call.Pubkey, call.Address, call.Signature)
 	if err != nil {
 		return err
 	}
-	exWrCall := call.Call
-	_, err = k.Land.GetExtraWriting(exWrCall.TripodName, exWrCall.FuncName)
+	tpWrCall := call.Call
+	_, err = k.Land.GetTopicWriting(tpWrCall.TripodName, tpWrCall.FuncName, tpWrCall.Topic)
 	if err != nil {
 		return err
 	}
-	err = k.handleTxnLocally(stxn, common.UnpackedExtraWritingTopic)
+	p2pTopic := common.TopicWritingTopic(tpWrCall.Topic)
+	err = k.handleTxnLocally(stxn, p2pTopic)
 	if err != nil {
 		return err
 	}
 	go func() {
-		err = k.pubExtraWritings(FromArray(stxn))
+		err = k.pubTopicWritings(p2pTopic, FromArray(stxn))
 		if err != nil {
-			logrus.Error("publish extra writings error: ", err)
+			logrus.Error("publish topic writings error: ", err)
 		}
 	}()
 	return nil

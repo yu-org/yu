@@ -62,7 +62,7 @@ func TestInject(t *testing.T) {
 	boyi.SetLand(land)
 	boyi.SetInstance(boyi)
 
-	land.SetTripods(testTri.Tripod, dayu.Tripod, boyi.Tripod)
+	land.RegisterTripods(testTri.Tripod, dayu.Tripod, boyi.Tripod)
 
 	err := InjectToTripod(testTri)
 	assert.NoError(t, err)

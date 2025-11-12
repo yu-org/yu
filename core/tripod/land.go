@@ -1,6 +1,9 @@
 package tripod
 
 import (
+	"fmt"
+	"strings"
+
 	. "github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/tripod/dev"
 )
@@ -10,30 +13,67 @@ type Land struct {
 	// Key: the Name of Tripod
 	tripodsMap map[string]*Tripod
 
+	// Key: topic::tripodName
+	topicTripods        map[string]*Tripod
+	orderedTopicTripods []string
+
 	bronzes map[string]*Bronze
 }
 
 func NewLand() *Land {
 	return &Land{
-		tripodsMap:     make(map[string]*Tripod),
-		orderedTripods: make([]*Tripod, 0),
-		bronzes:        make(map[string]*Bronze),
+		tripodsMap:          make(map[string]*Tripod),
+		orderedTripods:      make([]*Tripod, 0),
+		topicTripods:        make(map[string]*Tripod),
+		orderedTopicTripods: make([]string, 0),
+		bronzes:             make(map[string]*Bronze),
 	}
 }
 
-func (l *Land) SetBronzes(bronzes ...*Bronze) {
+func (l *Land) RegisterBronzes(bronzes ...*Bronze) {
 	for _, bronze := range bronzes {
 		l.bronzes[bronze.Name()] = bronze
 	}
 }
 
-func (l *Land) SetTripods(tripods ...*Tripod) {
+func (l *Land) RegisterTripods(tripods ...*Tripod) {
 	for _, tri := range tripods {
 		triName := tri.Name()
 
 		l.tripodsMap[triName] = tri
 		l.orderedTripods = append(l.orderedTripods, tri)
+
+		for topic := range tri.topicWritings {
+			l.registerTopicTripod(topic, tri)
+		}
 	}
+}
+
+const topicTripodKeySep = "::"
+
+func makeTopicTripodKey(topic, tripodName string) string {
+	return fmt.Sprintf("%s%s%s", topic, topicTripodKeySep, tripodName)
+}
+
+func (l *Land) registerTopicTripod(topic string, tri *Tripod) {
+	key := makeTopicTripodKey(topic, tri.Name())
+	if _, exists := l.topicTripods[key]; !exists {
+		l.orderedTopicTripods = append(l.orderedTopicTripods, key)
+	}
+	l.topicTripods[key] = tri
+}
+
+func splitTopicTripodKey(key string) (topic, tripodName string) {
+	parts := strings.SplitN(key, topicTripodKeySep, 2)
+	if len(parts) != 2 {
+		return key, ""
+	}
+	return parts[0], parts[1]
+}
+
+type TopicTripod struct {
+	Topic      string
+	TripodName string
 }
 
 func (l *Land) GetTripodInstance(name string) interface{} {
@@ -59,15 +99,20 @@ func (l *Land) GetWriting(tripodName, wrName string) (Writing, error) {
 	return fn, nil
 }
 
-func (l *Land) GetExtraWriting(tripodName, ewName string) (ExtraWriting, error) {
-	tripod, ok := l.tripodsMap[tripodName]
+func (l *Land) GetTopicWriting(tripodName, ewName, topic string) (TopicWriting, error) {
+	key := makeTopicTripodKey(topic, tripodName)
+	tripod, ok := l.topicTripods[key]
 	if !ok {
-		return nil, TripodNotFound(tripodName)
+		if _, exist := l.tripodsMap[tripodName]; !exist {
+			return nil, TripodNotFound(tripodName)
+		}
+		return nil, TopicWritingNotFound(topic)
 	}
-	ew := tripod.GetExtraWriting(ewName)
+	ew := tripod.GetTopicWriting(topic)
 	if ew == nil {
-		return nil, ExtraWritingNotFound(ewName)
+		return nil, TopicWritingNotFound(topic)
 	}
+	_ = ewName
 	return ew, nil
 }
 
@@ -101,4 +146,38 @@ func (l *Land) RangeList(fn func(*Tripod) error) error {
 		}
 	}
 	return nil
+}
+
+func (l *Land) TopicTripods() map[string]*Tripod {
+	result := make(map[string]*Tripod, len(l.topicTripods))
+	for key, tri := range l.topicTripods {
+		result[key] = tri
+	}
+	return result
+}
+
+func (l *Land) OrderedTopicTripods() []TopicTripod {
+	result := make([]TopicTripod, 0, len(l.orderedTopicTripods))
+	for _, key := range l.orderedTopicTripods {
+		topic, tripodName := splitTopicTripodKey(key)
+		result = append(result, TopicTripod{
+			Topic:      topic,
+			TripodName: tripodName,
+		})
+	}
+	return result
+}
+
+func (l *Land) TopicNames() []string {
+	names := make([]string, 0, len(l.orderedTopicTripods))
+	seen := make(map[string]struct{})
+	for _, key := range l.orderedTopicTripods {
+		topic, _ := splitTopicTripodKey(key)
+		if _, exists := seen[topic]; exists {
+			continue
+		}
+		seen[topic] = struct{}{}
+		names = append(names, topic)
+	}
+	return names
 }

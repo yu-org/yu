@@ -2,11 +2,12 @@ package kernel
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/core/protocol"
-	"net/http"
 )
 
 func (k *Kernel) HandleWS() {
@@ -18,9 +19,9 @@ func (k *Kernel) HandleWS() {
 	r.GET(RdApiPath, func(ctx *gin.Context) {
 		k.handleWS(ctx, reading)
 	})
-	// POST extra-writing call
-	r.POST(ExWrApiPath, func(ctx *gin.Context) {
-		k.handleWS(ctx, extraWriting)
+	// POST topic-writing call
+	r.POST(TopicWrApiPath, func(ctx *gin.Context) {
+		k.handleWS(ctx, topicWriting)
 	})
 
 	r.GET(SubResultsPath, func(ctx *gin.Context) {
@@ -35,7 +36,7 @@ func (k *Kernel) HandleWS() {
 const (
 	reading = iota
 	writing
-	extraWriting
+	topicWriting
 	subscription
 )
 
@@ -62,8 +63,8 @@ func (k *Kernel) handleWS(ctx *gin.Context, typ int) {
 		k.handleWsWr(ctx, string(params))
 		//case reading:
 		//	k.handleWsRd(c, req, string(params))
-	case extraWriting:
-		k.handleWsExWr(ctx, string(params))
+	case topicWriting:
+		k.handleWsTopicWr(ctx, string(params))
 	}
 
 }
@@ -81,14 +82,14 @@ func (k *Kernel) handleWsWr(ctx *gin.Context, params string) {
 	}
 }
 
-func (k *Kernel) handleWsExWr(ctx *gin.Context, params string) {
-	signedExWrCall, err := GetSignedWrCall(ctx)
+func (k *Kernel) handleWsTopicWr(ctx *gin.Context, params string) {
+	signedTopicWrCall, err := GetSignedWrCall(ctx)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	err = k.HandleExtraWriting(signedExWrCall)
+	err = k.HandleTopicWriting(signedTopicWrCall)
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 	}
