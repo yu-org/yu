@@ -13,7 +13,7 @@ type (
 	// respObj is a json object
 	Reading func(ctx *ReadContext)
 	// TopicWriting will not be executed in the Executor. It should be invoked explicitly, for example, in the BlockCycle.
-	// topic is the topic name, it means this writing will be inserted in the topic txpool.
+	// topic is the topic name, it means this writing will be inserted in the topic txpool and broadcast by a spec p2p topic named 'topic_writing_{topic_name}'.
 	TopicWriting func(topic string, ctx *WriteContext) error
 	// P2pHandler is a p2p server handler. You can define the services in P2P server.
 	// Just like TCP handler.
