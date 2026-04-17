@@ -27,7 +27,7 @@ func TestPoa(t *testing.T) {
 }
 
 func runChain(wg *sync.WaitGroup) {
-	poaCfg := poa.DefaultCfg(0)
+	poaCfg := poa.SingleNodeCfg()
 	//poaCfg.BlockInterval = 2
 	yuCfg := startup.InitDefaultKernelConfig()
 	yuCfg.MaxBlockNum = 10
