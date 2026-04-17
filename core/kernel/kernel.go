@@ -83,7 +83,7 @@ func (k *Kernel) Startup() {
 }
 
 func (k *Kernel) Stop() {
-	close(k.stopChan)
+	k.stopChan <- struct{}{}
 }
 
 func (k *Kernel) InitBlockChain() {
