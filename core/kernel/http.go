@@ -35,7 +35,7 @@ func (k *Kernel) HandleHttp() {
 	if k.cfg.IsAdmin {
 		admin := api.Group(AdminType)
 		admin.GET("stop", func(c *gin.Context) {
-			close(k.stopChan)
+			k.Stop()
 		})
 	}
 

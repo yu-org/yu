@@ -1,8 +1,6 @@
 package kernel
 
 import (
-	"sync"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/yu-org/yu/common"
@@ -29,7 +27,6 @@ type Kernel struct {
 	*env.ChainEnv
 
 	Land *tripod.Land
-	wg   *sync.WaitGroup
 }
 
 func NewKernel(
@@ -46,7 +43,6 @@ func NewKernel(
 		wsPort:   ip.MakePort(cfg.WsPort),
 		ChainEnv: env,
 		Land:     land,
-		wg:       &sync.WaitGroup{},
 	}
 
 	env.Execute = k.SeqExecuteWritings
@@ -76,24 +72,18 @@ func (k *Kernel) WithExecuteFn(fn env.ExecuteFn) {
 	k.Execute = fn
 }
 
-func (k *Kernel) WaitExit() {
-	k.wg.Wait()
-}
-
 func (k *Kernel) Startup() {
 	k.InitBlockChain()
 
 	go k.HandleHttp()
 	go k.HandleWS()
 
-	k.wg.Add(1)
 	go k.AcceptUnpkgTxnsJob()
-	go k.Run()
+	k.Run()
 }
 
 func (k *Kernel) Stop() {
-	close(k.stopChan)
-	k.wg.Wait()
+	k.stopChan <- struct{}{}
 }
 
 func (k *Kernel) InitBlockChain() {
