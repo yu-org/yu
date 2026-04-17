@@ -21,10 +21,7 @@ func (k *Kernel) AcceptUnpkgTxnsJob() {
 }
 
 func (k *Kernel) Run() {
-	defer func() {
-		logrus.Info("Run exit")
-		k.wg.Done()
-	}()
+	defer logrus.Info("Run exit")
 	switch k.RunMode {
 	case common.LocalNode:
 		for {
