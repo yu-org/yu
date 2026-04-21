@@ -101,7 +101,7 @@ func (k *Kernel) AcceptUnpackedTxns() error {
 	}
 
 	for _, txn := range writings {
-		if k.CheckReplayAttack(txn) {
+		if err := k.CheckReplayAttack(txn); err != nil {
 			continue
 		}
 		txn.FromP2P = true
@@ -130,7 +130,7 @@ func (k *Kernel) AcceptUnpackedTxns() error {
 			if txn == nil {
 				continue
 			}
-			if k.CheckReplayAttack(txn) {
+			if err := k.CheckReplayAttack(txn); err != nil {
 				continue
 			}
 			txn.FromP2P = true
