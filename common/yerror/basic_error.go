@@ -20,10 +20,11 @@ var NoKvdbType = errors.New("no kvdb type")
 var NoSqlDbType = errors.New("no sqlDB type")
 
 var (
-	PoolOverflow  error = errors.New("pool size is full")
-	TxnTimeoutErr error = errors.New("Txn time out")
-	TxnTooLarge   error = errors.New("the size of txn is too large")
-	TxnDuplicated error = errors.New("Transaction duplicated")
+	PoolOverflow   error = errors.New("pool size is full")
+	TxnTimeoutErr  error = errors.New("Txn time out")
+	TxnTooLarge    error = errors.New("the size of txn is too large")
+	TxnDuplicated  error = errors.New("Transaction duplicated")
+	ChainIDIllegal error = errors.New("chain id illegal")
 )
 
 var ErrBlockNotFound error = errors.New("block not found")

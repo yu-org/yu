@@ -70,10 +70,11 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn, topic string) error {
 			return err
 		}
 	}
-	if k.CheckReplayAttack(stxn) {
-		return yerror.TxnDuplicated
+	err := k.CheckReplayAttack(stxn)
+	if err != nil {
+		return err
 	}
-	err := k.Pool.CheckTxn(stxn)
+	err = k.Pool.CheckTxn(stxn)
 	if err != nil {
 		return err
 	}
@@ -97,14 +98,18 @@ func (k *Kernel) HandleReading(rdCall *common.RdCall) (*context.ResponseData, er
 	return ctx.Response(), nil
 }
 
-func (k *Kernel) CheckReplayAttack(txn *SignedTxn) bool {
-	if k.Pool.Exist(txn.TxnHash) {
-		return true
-	}
+func (k *Kernel) CheckReplayAttack(txn *SignedTxn) error {
 	if k.Chain.ChainID() != txn.ChainID() {
-		return true
+		return yerror.ChainIDIllegal
 	}
-	return k.TxDB.ExistTxn(txn.TxnHash)
+	if k.Pool.Exist(txn.TxnHash) {
+		return yerror.TxnDuplicated
+	}
+
+	if k.TxDB.ExistTxn(txn.TxnHash) {
+		return yerror.TxnDuplicated
+	}
+	return nil
 }
 
 //func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {
