@@ -17,9 +17,9 @@ func NewQuickStart() *QuickStart {
 	tri := &QuickStart{
 		tripod.NewTripod(),
 	}
-	// 此处需要手动将自定义的 Writing 注册到 tripod 中，
+	// Register custom Writing to the tripod manually
 	tri.SetWritings(tri.WriteA)
-	// 此处需要手动将自定义的 Reading 注册到 tripod 中
+	// Register custom Reading to the tripod manually
 	tri.SetReadings(tri.ReadA)
 	return tri
 }
@@ -29,20 +29,20 @@ type WriteRequest struct {
 	Value string `json:"value"`
 }
 
-// 此处定制开发一个 Writing
-// Writing会被全网节点共识并执行
+// WriteA is a custom Writing handler.
+// Writings are executed by consensus across all network nodes.
 func (q *QuickStart) WriteA(ctx *context.WriteContext) error {
-	// 设置该 writing 所需消耗的lei (lei和gas同义)
+	// Set the lei (equivalent to gas) cost for this writing
 	ctx.SetLei(100)
-	// 解析请求体
+	// Parse the request body
 	req := new(WriteRequest)
 	err := ctx.BindJson(req)
 	if err != nil {
 		return err
 	}
-	// 将数据存入链上状态中。
+	// Store data into on-chain state
 	q.Set([]byte(req.Key), []byte(req.Value))
-	// 向链外发射一个event
+	// Emit an event to off-chain listeners
 	ctx.EmitStringEvent("execute success")
 	return nil
 }
@@ -55,7 +55,7 @@ type ReadResponse struct {
 	Value string `json:"value"`
 }
 
-// 此处定制开发一个 Reading
+// ReadA is a custom Reading handler.
 func (q *QuickStart) ReadA(ctx *context.ReadContext) {
 	req := new(ReadRequest)
 	err := ctx.BindJson(req)
@@ -72,9 +72,9 @@ func (q *QuickStart) ReadA(ctx *context.ReadContext) {
 }
 
 func main() {
-	// 启用poa tripod的默认配置
+	// Use the default PoA tripod configuration
 	poaCfg := poa.DefaultCfg(0)
-	// 启用yu的默认配置
+	// Use the default yu kernel configuration
 	yuCfg := startup.InitDefaultKernelConfig()
 
 	poaTri := poa.NewPoa(poaCfg)
