@@ -46,14 +46,14 @@ func main() {
 	log.Println("finish start eth")
 	if err := assertErc20Transfer(context.Background(), evmConfig); err != nil {
 		log.Println(err)
-		// 停止链
+		// Stop the chain
 		if chain != nil {
 			chain.Stop()
 		}
 		os.Exit(1)
 	}
 	log.Println("assert success")
-	// 停止链
+	// Stop the chain
 	if chain != nil {
 		log.Println("stopping eth chain...")
 		chain.Stop()

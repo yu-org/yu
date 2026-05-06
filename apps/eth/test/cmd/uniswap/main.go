@@ -47,14 +47,14 @@ func main() {
 	logrus.Info("finish start eth")
 	if err := assertUniswapV2(context.Background(), evmConfig.ChainConfig.ChainID.Int64()); err != nil {
 		logrus.Info(err)
-		// 停止链
+		// Stop the chain
 		if chain != nil {
 			chain.Stop()
 		}
 		os.Exit(1)
 	}
 	logrus.Info("assert success")
-	// 停止链
+	// Stop the chain
 	if chain != nil {
 		logrus.Info("stopping eth chain...")
 		chain.Stop()

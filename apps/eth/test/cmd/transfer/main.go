@@ -53,14 +53,14 @@ func main() {
 	}
 	if err := assertEthTransfer(context.Background(), chainID); err != nil {
 		logrus.Info(err)
-		// 停止链
+		// Stop the chain
 		if chain != nil {
 			chain.Stop()
 		}
 		os.Exit(1)
 	}
 	logrus.Info("assert success")
-	// 停止链
+	// Stop the chain
 	if chain != nil {
 		logrus.Info("stopping eth chain...")
 		chain.Stop()

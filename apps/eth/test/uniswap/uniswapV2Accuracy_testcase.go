@@ -126,7 +126,7 @@ func (ca *UniswapV2AccuracyTestCase) Run(ctx context.Context, m *pkg.WalletManag
 			retryErrors = append(retryErrors, struct {
 				Nonce int
 				Err   error
-			}{Nonce: int(nonce), Err: err}) // record和 nonce
+			}{Nonce: int(nonce), Err: err}) // record nonce
 			time.Sleep(retryDelay)
 		}
 
