@@ -34,6 +34,11 @@ func (m *MockP2p) AddTopic(topicName string) {
 	m.topicChan[topicName] = make(chan []byte, m.nodesNum)
 }
 
+func (m *MockP2p) HasTopic(topicName string) bool {
+	_, ok := m.topicChan[topicName]
+	return ok
+}
+
 func (m *MockP2p) SetHandlers(handlers map[int]dev.P2pHandler) {}
 
 func (m *MockP2p) RequestPeer(peerID peer.ID, code int, request []byte) (response []byte, err error) {

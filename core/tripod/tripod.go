@@ -1,16 +1,17 @@
 package tripod
 
 import (
+	"path/filepath"
+	"reflect"
+	"runtime"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/core/context"
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
-	"path/filepath"
-	"reflect"
-	"runtime"
-	"strings"
 )
 
 type Tripod struct {
@@ -34,6 +35,8 @@ type Tripod struct {
 	writings map[string]dev.Writing
 	// Key: Reading Name
 	readings map[string]dev.Reading
+	// Key: TopicWriting Topic
+	topicWritings map[string]dev.TopicWriting
 	// key: p2p-handler type code
 	P2pHandlers map[int]dev.P2pHandler
 }
@@ -44,10 +47,11 @@ func NewTripod() *Tripod {
 
 func NewTripodWithName(name string) *Tripod {
 	return &Tripod{
-		name:        name,
-		writings:    make(map[string]dev.Writing),
-		readings:    make(map[string]dev.Reading),
-		P2pHandlers: make(map[int]dev.P2pHandler),
+		name:          name,
+		writings:      make(map[string]dev.Writing),
+		readings:      make(map[string]dev.Reading),
+		topicWritings: make(map[string]dev.TopicWriting),
+		P2pHandlers:   make(map[int]dev.P2pHandler),
 
 		BlockVerifier: new(DefaultBlockVerifier),
 		TxnChecker:    new(DefaultTxnChecker),
@@ -91,6 +95,10 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 
 	for name, _ := range t.readings {
 		logrus.Infof("register Reading (%s) into Tripod(%s) \n", name, t.name)
+	}
+
+	for topic := range t.topicWritings {
+		logrus.Infof("register TopicWriting (%s) into Tripod(%s) \n", topic, t.name)
 	}
 
 	t.Instance = tripodInstance
@@ -152,6 +160,12 @@ func (t *Tripod) SetWritings(wrs ...dev.Writing) {
 	}
 }
 
+func (t *Tripod) SetTopicWriting(topic string, topicWriting dev.TopicWriting) *Tripod {
+	t.topicWritings[topic] = topicWriting
+	t.registerTopicP2P(topic)
+	return t
+}
+
 func (t *Tripod) SetReadings(readings ...dev.Reading) {
 	for _, r := range readings {
 		name := getFuncName(r)
@@ -178,12 +192,25 @@ func (t *Tripod) ExistWriting(name string) bool {
 	return ok
 }
 
+func (t *Tripod) ExistTopicWriting(topic string) bool {
+	_, ok := t.topicWritings[topic]
+	return ok
+}
+
 func (t *Tripod) GetWriting(name string) dev.Writing {
 	return t.writings[name]
 }
 
 func (t *Tripod) GetWritingFromLand(tripodName, funcName string) (dev.Writing, error) {
 	return t.Land.GetWriting(tripodName, funcName)
+}
+
+func (t *Tripod) GetTopicWriting(topic string) dev.TopicWriting {
+	return t.topicWritings[topic]
+}
+
+func (t *Tripod) GetTopicWritingFromLand(tripodName, funcName, topic string) (dev.TopicWriting, error) {
+	return t.Land.GetTopicWriting(tripodName, funcName, topic)
 }
 
 func (t *Tripod) GetReading(name string) dev.Reading {
@@ -205,6 +232,14 @@ func (t *Tripod) AllReadingNames() []string {
 func (t *Tripod) AllWritingNames() []string {
 	allNames := make([]string, 0)
 	for name, _ := range t.writings {
+		allNames = append(allNames, name)
+	}
+	return allNames
+}
+
+func (t *Tripod) AllTopicWritingNames() []string {
+	allNames := make([]string, 0)
+	for name, _ := range t.topicWritings {
 		allNames = append(allNames, name)
 	}
 	return allNames
@@ -260,4 +295,12 @@ func (t *Tripod) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt
 	if t.Sub != nil {
 		t.Sub.Emit(receipt)
 	}
+}
+
+func (t *Tripod) registerTopicP2P(topic string) {
+	if t.ChainEnv == nil || t.P2pNetwork == nil {
+		return
+	}
+	p2pTopic := common.TopicWritingTopic(topic)
+	t.P2pNetwork.AddTopic(p2pTopic)
 }

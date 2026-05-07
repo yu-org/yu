@@ -21,6 +21,10 @@ func (k *Kernel) HandleHttp() {
 	api.POST(RdCallType, func(c *gin.Context) {
 		k.handleHttpRd(c)
 	})
+	// POST topic-writing call
+	api.POST(TopicWrCallType, func(c *gin.Context) {
+		k.handleHttpTopicWr(c)
+	})
 
 	api.GET("block", k.GetBlock)
 
@@ -31,7 +35,7 @@ func (k *Kernel) HandleHttp() {
 	if k.cfg.IsAdmin {
 		admin := api.Group(AdminType)
 		admin.GET("stop", func(c *gin.Context) {
-			close(k.stopChan)
+			k.Stop()
 		})
 	}
 
@@ -48,7 +52,20 @@ func (k *Kernel) handleHttpWr(c *gin.Context) {
 		return
 	}
 
-	err = k.HandleTxn(signedWrCall)
+	err = k.HandleWriting(signedWrCall)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+	}
+}
+
+func (k *Kernel) handleHttpTopicWr(c *gin.Context) {
+	signedTopicWrCall, err := GetSignedWrCall(c)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err = k.HandleTopicWriting(signedTopicWrCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 	}
@@ -61,7 +78,7 @@ func (k *Kernel) handleHttpRd(c *gin.Context) {
 		return
 	}
 
-	respData, err := k.HandleRead(rdCall)
+	respData, err := k.HandleReading(rdCall)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

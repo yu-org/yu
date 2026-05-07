@@ -11,9 +11,9 @@ import (
 	"github.com/yu-org/yu/metrics"
 )
 
-// HandleTxn handles txn from outside.
-// You can also self-define your input by calling HandleTxn (not only by default http and ws)
-func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
+// HandleWriting handles txn from outside.
+// You can also self-define your input by calling HandleWriting (not only by default http and ws)
+func (k *Kernel) HandleWriting(signedWrCall *protocol.SignedWrCall) error {
 	stxn, err := NewSignedTxn(signedWrCall.Call, signedWrCall.Pubkey, signedWrCall.Address, signedWrCall.Signature)
 	if err != nil {
 		return err
@@ -23,21 +23,45 @@ func (k *Kernel) HandleTxn(signedWrCall *protocol.SignedWrCall) error {
 	if err != nil {
 		return err
 	}
-	err = k.handleTxnLocally(stxn)
+	err = k.handleTxnLocally(stxn, "")
 	if err != nil {
 		return err
 	}
 	go func() {
-		err = k.pubUnpackedTxns(FromArray(stxn))
+		err = k.pubUnpackedWritings(FromArray(stxn))
 		if err != nil {
-			logrus.Error("publish unpacked txns error: ", err)
+			logrus.Error("publish unpacked writing error: ", err)
 		}
 	}()
 
 	return nil
 }
 
-func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
+func (k *Kernel) HandleTopicWriting(call *protocol.SignedWrCall) error {
+	stxn, err := NewSignedTxn(call.Call, call.Pubkey, call.Address, call.Signature)
+	if err != nil {
+		return err
+	}
+	tpWrCall := call.Call
+	_, err = k.Land.GetTopicWriting(tpWrCall.TripodName, tpWrCall.FuncName, tpWrCall.Topic)
+	if err != nil {
+		return err
+	}
+	p2pTopic := common.TopicWritingTopic(tpWrCall.Topic)
+	err = k.handleTxnLocally(stxn, p2pTopic)
+	if err != nil {
+		return err
+	}
+	go func() {
+		err = k.pubTopicWritings(p2pTopic, FromArray(stxn))
+		if err != nil {
+			logrus.Error("publish topic writings error: ", err)
+		}
+	}()
+	return nil
+}
+
+func (k *Kernel) handleTxnLocally(stxn *SignedTxn, topic string) error {
 	metrics.KernelHandleTxnCounter.WithLabelValues().Inc()
 	tri := k.Land.GetTripod(stxn.TripodName())
 	if tri != nil {
@@ -46,17 +70,21 @@ func (k *Kernel) handleTxnLocally(stxn *SignedTxn) error {
 			return err
 		}
 	}
-	if k.CheckReplayAttack(stxn) {
-		return yerror.TxnDuplicated
-	}
-	err := k.Pool.CheckTxn(stxn)
+	err := k.CheckReplayAttack(stxn)
 	if err != nil {
 		return err
 	}
-	return k.Pool.Insert(stxn)
+	err = k.Pool.CheckTxn(stxn)
+	if err != nil {
+		return err
+	}
+	if topic == "" {
+		return k.Pool.Insert(stxn)
+	}
+	return k.Pool.InsertWithTopic(topic, stxn)
 }
 
-func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error) {
+func (k *Kernel) HandleReading(rdCall *common.RdCall) (*context.ResponseData, error) {
 	ctx, err := context.NewReadContext(rdCall)
 	if err != nil {
 		return nil, err
@@ -70,14 +98,18 @@ func (k *Kernel) HandleRead(rdCall *common.RdCall) (*context.ResponseData, error
 	return ctx.Response(), nil
 }
 
-func (k *Kernel) CheckReplayAttack(txn *SignedTxn) bool {
-	if k.Pool.Exist(txn.TxnHash) {
-		return true
-	}
+func (k *Kernel) CheckReplayAttack(txn *SignedTxn) error {
 	if k.Chain.ChainID() != txn.ChainID() {
-		return true
+		return yerror.ChainIDIllegal
 	}
-	return k.TxDB.ExistTxn(txn.TxnHash)
+	if k.Pool.Exist(txn.TxnHash) {
+		return yerror.TxnDuplicated
+	}
+
+	if k.TxDB.ExistTxn(txn.TxnHash) {
+		return yerror.TxnDuplicated
+	}
+	return nil
 }
 
 //func getRdFromHttp(req *http.Request, params string) (rdCall *RdCall, err error) {

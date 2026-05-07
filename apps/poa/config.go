@@ -61,6 +61,23 @@ func DefaultCfg(idx int) *PoaConfig {
 	return cfg
 }
 
+func SingleNodeCfg() *PoaConfig {
+	secret := DefaultSecrets[0]
+	pub, _ := GenSrKeyWithSecret([]byte(secret))
+	logrus.Infof("pub0 is %s", pub.String())
+	logrus.Info("My Address is ", pub.Address().String())
+	return &PoaConfig{
+		KeyType:  Sr25519,
+		MySecret: secret,
+		Validators: []*ValidatorConf{
+			{Pubkey: pub.StringWithType(), P2pIp: "12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"},
+		},
+		BlockInterval: 3000,
+		PackNum:       30000,
+		PrettyLog:     true,
+	}
+}
+
 type ValidatorConf struct {
 	Pubkey string `toml:"pubkey"`
 	P2pIp  string `toml:"p2p_ip"`

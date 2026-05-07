@@ -20,10 +20,11 @@ var NoKvdbType = errors.New("no kvdb type")
 var NoSqlDbType = errors.New("no sqlDB type")
 
 var (
-	PoolOverflow  error = errors.New("pool size is full")
-	TxnTimeoutErr error = errors.New("Txn time out")
-	TxnTooLarge   error = errors.New("the size of txn is too large")
-	TxnDuplicated error = errors.New("Transaction duplicated")
+	PoolOverflow   error = errors.New("pool size is full")
+	TxnTimeoutErr  error = errors.New("Txn time out")
+	TxnTooLarge    error = errors.New("the size of txn is too large")
+	TxnDuplicated  error = errors.New("Transaction duplicated")
+	ChainIDIllegal error = errors.New("chain id illegal")
 )
 
 var ErrBlockNotFound error = errors.New("block not found")
@@ -118,12 +119,24 @@ type ErrWritingNotFound struct {
 	WritingName string
 }
 
+func (w ErrWritingNotFound) Error() string {
+	return errors.Errorf("Writing(%s) NOT Found", w.WritingName).Error()
+}
+
 func WritingNotFound(name string) ErrWritingNotFound {
 	return ErrWritingNotFound{WritingName: name}
 }
 
-func (e ErrWritingNotFound) Error() string {
-	return errors.Errorf("Writing(%s) NOT Found", e.WritingName).Error()
+type ErrTopicWritingNotFound struct {
+	TopicWritingName string
+}
+
+func TopicWritingNotFound(name string) ErrTopicWritingNotFound {
+	return ErrTopicWritingNotFound{TopicWritingName: name}
+}
+
+func (e ErrTopicWritingNotFound) Error() string {
+	return errors.Errorf("TopicWriting(%s) NOT Found", e.TopicWritingName).Error()
 }
 
 type ErrReadingNotFound struct {

@@ -126,7 +126,7 @@ func runNode(poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
 	cfg := config.InitDefaultCfg()
 
 	land := tripod.NewLand()
-	land.SetTripods(poaNode.Tripod)
+	land.RegisterTripods(poaNode.Tripod)
 
 	kvdb, err := kv.NewKvdb(&config.KVconf{
 		KvType: "bolt",

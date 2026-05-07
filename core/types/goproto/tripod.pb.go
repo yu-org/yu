@@ -343,13 +343,13 @@ var file_tripod_proto_depIdxs = []int32{
 	3, // 5: Tripod.StartBlock:input_type -> TripodBlockRequest
 	3, // 6: Tripod.EndBlock:input_type -> TripodBlockRequest
 	3, // 7: Tripod.FinalizeBlock:input_type -> TripodBlockRequest
-	0, // 8: Land.SetTripods:input_type -> TripodsInfo
+	0, // 8: Land.RegisterTripods:input_type -> TripodsInfo
 	6, // 9: Tripod.CheckTxn:output_type -> Err
 	7, // 10: Tripod.VerifyBlock:output_type -> Bool
 	6, // 11: Tripod.StartBlock:output_type -> Err
 	6, // 12: Tripod.EndBlock:output_type -> Err
 	6, // 13: Tripod.FinalizeBlock:output_type -> Err
-	8, // 14: Land.SetTripods:output_type -> google.protobuf.Empty
+	8, // 14: Land.RegisterTripods:output_type -> google.protobuf.Empty
 	9, // [9:15] is the sub-list for method output_type
 	3, // [3:9] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name

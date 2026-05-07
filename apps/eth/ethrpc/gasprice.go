@@ -263,7 +263,7 @@ func (e *EthAPIBackend) FeeHistory(ctx context.Context, blockCount uint64, lastB
 			reward[rewardIndex], baseFee[rewardIndex], baseFee[rewardIndex+1], gasUsedRatio[rewardIndex] = fees.results.reward, fees.results.baseFee, fees.results.nextBaseFee, fees.results.gasUsedRatio
 			blobGasUsedRatio[rewardIndex], blobBaseFee[rewardIndex], blobBaseFee[rewardIndex+1] = fees.results.blobGasUsedRatio, fees.results.blobBaseFee, fees.results.nextBlobBaseFee
 		} else {
-			// 如果没有block和error，意味着我们请求到了未来的区块（可能因为重组）
+			// If there is no block and no error, it means we requested a future block (possibly due to a reorg)
 			if uint64(i) < firstMissing {
 				firstMissing = uint64(i)
 			}

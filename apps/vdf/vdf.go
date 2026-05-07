@@ -8,10 +8,10 @@ import (
 )
 
 // ----------------------------
-// 基础工具函数
+// Basic utility functions
 // ----------------------------
 
-// hashToPrime 从 N, x, y, t 哈希生成一个确定性的素数 l
+// hashToPrime generates a deterministic prime l by hashing N, x, y, t
 func hashToPrime(N, x, y *big.Int, t uint64, bits int) (*big.Int, error) {
 	h := sha256.New()
 	h.Write(N.Bytes())
@@ -42,13 +42,13 @@ func hashToPrime(N, x, y *big.Int, t uint64, bits int) (*big.Int, error) {
 	}
 }
 
-// gcd 计算 a,b 的最大公约数
+// gcd computes the greatest common divisor of a and b
 func gcd(a, b *big.Int) *big.Int {
 	return new(big.Int).GCD(nil, nil, a, b)
 }
 
-// GenerateRSAmodulus 生成一个 RSA 模数 N = p*q
-// 注意：生产环境应使用多方安全生成，否则泄露因子会破坏安全性。
+// GenerateRSAmodulus generates an RSA modulus N = p*q
+// Note: production environments should use multi-party secure generation, otherwise leaking factors breaks security.
 func GenerateRSAmodulus(totalBits int) (*big.Int, error) {
 	if totalBits%2 != 0 {
 		return nil, errors.New("bit length must be even")
@@ -66,16 +66,16 @@ func GenerateRSAmodulus(totalBits int) (*big.Int, error) {
 }
 
 // ----------------------------
-// VDF Wesolowski 核心实现
+// VDF Wesolowski core implementation
 // ----------------------------
 
-// EvalResult 表示 VDF 的输出结果
+// EvalResult represents the output of a VDF evaluation
 type EvalResult struct {
 	Y  *big.Int // y = x^{2^t} mod N
-	Pi *big.Int // Wesolowski 证明 π
+	Pi *big.Int // Wesolowski proof π
 }
 
-// Eval 计算 VDF 输出与证明
+// Eval computes the VDF output and proof
 func Eval(x *big.Int, t uint64, N *big.Int, securityBits int) (*EvalResult, error) {
 	xMod := new(big.Int).Mod(x, N)
 	if xMod.Sign() == 0 {
@@ -85,14 +85,14 @@ func Eval(x *big.Int, t uint64, N *big.Int, securityBits int) (*EvalResult, erro
 		return nil, errors.New("x not coprime with N")
 	}
 
-	// Step 1: 计算 y = x^{2^t} mod N
+	// Step 1: compute y = x^{2^t} mod N
 	y := new(big.Int).Set(xMod)
 	for i := uint64(0); i < t; i++ {
 		y.Mul(y, y)
 		y.Mod(y, N)
 	}
 
-	// Step 2: 生成素数挑战 l
+	// Step 2: generate prime challenge l
 	l, err := hashToPrime(N, xMod, y, t, securityBits)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func Eval(x *big.Int, t uint64, N *big.Int, securityBits int) (*EvalResult, erro
 	return &EvalResult{Y: y, Pi: pi}, nil
 }
 
-// Verify 验证 Wesolowski 证明
+// Verify verifies the Wesolowski proof
 func Verify(x, y, pi *big.Int, t uint64, N *big.Int, securityBits int) (bool, error) {
 	xMod := new(big.Int).Mod(x, N)
 	yMod := new(big.Int).Mod(y, N)

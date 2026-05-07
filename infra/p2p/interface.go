@@ -13,6 +13,7 @@ type P2pNetwork interface {
 	ConnectBootNodes() error
 
 	AddTopic(topicName string)
+	HasTopic(topicName string) bool
 
 	SetHandlers(handlers map[int]dev.P2pHandler)
 	RequestPeer(peerID peer.ID, code int, request []byte) (response []byte, err error)
