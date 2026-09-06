@@ -29,5 +29,5 @@ txn_max_size = 1024000
 chain_name = "Yu"
 author = "yu-org"
 version = "v1.0.0"
-# mainnet / testnet / devnet / localnet
-network = "localnet"
+# mainnet / testnet / devnet
+network = "devnet"

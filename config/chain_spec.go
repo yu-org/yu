@@ -5,10 +5,9 @@ package config
 type Network = string
 
 const (
-	Mainnet  Network = "mainnet"
-	Testnet  Network = "testnet"
-	Devnet   Network = "devnet"
-	Localnet Network = "localnet"
+	Mainnet Network = "mainnet"
+	Testnet Network = "testnet"
+	Devnet  Network = "devnet"
 )
 
 // ChainSpec describes the identity of the chain.
@@ -22,7 +21,7 @@ type ChainSpec struct {
 	// Version of this chain, such as "v1.0.0".
 	Version string `toml:"version"`
 	// Which kind of network this chain is running on:
-	// mainnet, testnet, devnet, localnet.
+	// mainnet, testnet, devnet.
 	Network Network `toml:"network"`
 }
 
@@ -31,7 +30,7 @@ func DefaultChainSpec() ChainSpec {
 		ChainName: "Yu",
 		Author:    "yu-org",
 		Version:   "v1.0.0",
-		Network:   Localnet,
+		Network:   Devnet,
 	}
 }
 

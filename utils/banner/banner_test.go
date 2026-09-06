@@ -46,7 +46,7 @@ func TestFprintChainSpecFillsDefaults(t *testing.T) {
 
 // TestShowChainSpec is for eyeballing the banner: go test ./utils/banner -run ShowChainSpec -v
 func TestShowChainSpec(t *testing.T) {
-	for _, network := range []config.Network{config.Mainnet, config.Testnet, config.Devnet, config.Localnet} {
+	for _, network := range []config.Network{config.Mainnet, config.Testnet, config.Devnet} {
 		FprintChainSpec(os.Stdout, &config.ChainSpec{
 			ChainName: "Yu Chain",
 			Author:    "yu-org",

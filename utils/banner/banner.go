@@ -73,8 +73,6 @@ func networkBadge(network config.Network, c func(string, string) string) string 
 		style = bgYellow
 	case config.Devnet:
 		style = bgBlue
-	case config.Localnet:
-		style = bgMagenta
 	}
 	badge := c(bold+style, " "+strings.ToUpper(network)+" ")
 	if network == config.Mainnet {

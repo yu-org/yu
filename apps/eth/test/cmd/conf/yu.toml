@@ -43,5 +43,5 @@ node_key_file = ""
 chain_name = "Yu"
 author = "yu-org"
 version = "v1.0.0"
-# mainnet / testnet / devnet / localnet
-network = "localnet"
+# mainnet / testnet / devnet
+network = "devnet"
