@@ -11,10 +11,9 @@ import (
 
 // ANSI styles used by the chain-spec banner.
 const (
-	reset  = "\033[0m"
-	bold   = "\033[1m"
-	dim    = "\033[2m"
-	italic = "\033[3m"
+	reset = "\033[0m"
+	bold  = "\033[1m"
+	dim   = "\033[2m"
 
 	fgCyan  = "\033[96m"
 	fgWhite = "\033[97m"
@@ -28,7 +27,17 @@ const (
 	bgMagenta = "\033[45;97m"
 )
 
-const indent = "  "
+const (
+	indent = "  "
+	// the column where the value of every info line starts, wide enough to
+	// leave a gap between the label and the color block of the network badge
+	labelWidth = 10
+)
+
+// label pads the name of an info line up to width.
+func label(c func(style, text string) string, name string, width int) string {
+	return c(dim, name+strings.Repeat(" ", width-len(name)))
+}
 
 // PrintChainSpec prints the identity of the chain out to os.Stdout.
 // It is the very first thing shown when the chain runs.
@@ -57,9 +66,11 @@ func FprintChainSpec(w io.Writer, spec *config.ChainSpec, color bool) {
 		fmt.Fprintln(w, indent+c(bold+fgCyan, line))
 	}
 	fmt.Fprintln(w, indent+c(fgGray, rule))
-	fmt.Fprintln(w, indent+c(dim, "Author  ")+c(bold+fgWhite, s.Author))
-	fmt.Fprintln(w, indent+c(dim, "Version ")+c(fgGreen, s.Version))
-	fmt.Fprintln(w, indent+c(dim, "Network ")+networkBadge(s.Network, c))
+	fmt.Fprintln(w, indent+label(c, "Author", labelWidth)+c(bold+fgWhite, s.Author))
+	// the network badge carries a padding space of its own inside the color block,
+	// so its label is one shorter to keep the three values in the same column.
+	fmt.Fprintln(w, indent+label(c, "Network", labelWidth-1)+networkBadge(s.Network, c))
+	fmt.Fprintln(w, indent+label(c, "Version", labelWidth)+c(fgGreen, s.Version))
 	fmt.Fprintln(w, indent+c(fgGray, rule))
 	fmt.Fprintln(w)
 }
@@ -74,11 +85,7 @@ func networkBadge(network config.Network, c func(string, string) string) string 
 	case config.Devnet:
 		style = bgBlue
 	}
-	badge := c(bold+style, " "+strings.ToUpper(network)+" ")
-	if network == config.Mainnet {
-		return badge
-	}
-	return badge + " " + c(dim+italic, "(not the main network)")
+	return c(bold+style, " "+strings.ToUpper(network)+" ")
 }
 
 // painter returns the func styling a text, it does nothing when color is off.
