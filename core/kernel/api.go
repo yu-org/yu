@@ -11,6 +11,13 @@ import (
 	"github.com/yu-org/yu/core/types"
 )
 
+// GetChainSpec responds the identity of this chain: name, author, version and network.
+func (k *Kernel) GetChainSpec(ctx *gin.Context) {
+	spec := k.cfg.ChainSpec
+	spec.FillDefaults()
+	protocol.RenderSuccess(ctx, spec)
+}
+
 func (k *Kernel) GetBlock(ctx *gin.Context) {
 	blockNumStr := ctx.Query("number")
 	blockHashStr := ctx.Query("hash")

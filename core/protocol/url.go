@@ -19,6 +19,7 @@ const (
 	RdCallType      = "reading"
 	TopicWrCallType = "topic-writing"
 	AdminType       = "admin"
+	ChainSpecType   = "chain_spec"
 
 	TripodNameKey = "tripod_name"
 	FuncNameKey   = "func_name"
@@ -30,6 +31,7 @@ var (
 	TopicWrApiPath = filepath.Join(RootApiPath, TopicWrCallType)
 	RdApiPath      = filepath.Join(RootApiPath, RdCallType)
 	AdminApiPath   = filepath.Join(RootApiPath, AdminType)
+	ChainSpecPath  = filepath.Join(RootApiPath, ChainSpecType)
 	SubResultsPath = "/subscribe/results"
 )
 

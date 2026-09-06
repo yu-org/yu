@@ -26,6 +26,8 @@ func (k *Kernel) HandleHttp() {
 		k.handleHttpTopicWr(c)
 	})
 
+	api.GET(ChainSpecType, k.GetChainSpec)
+
 	api.GET("block", k.GetBlock)
 
 	api.GET("receipt", k.GetReceipt)

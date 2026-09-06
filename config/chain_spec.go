@@ -12,17 +12,17 @@ const (
 
 // ChainSpec describes the identity of the chain.
 // It does NOT affect the consensus, it is only the self-description of this chain,
-// printed out at the very beginning of running.
+// printed out at the very beginning of running and served by the chain-spec API.
 type ChainSpec struct {
 	// Name of the chain, such as "Yu".
-	ChainName string `toml:"chain_name"`
+	ChainName string `toml:"chain_name" json:"chain_name"`
 	// Who maintains this chain.
-	Author string `toml:"author"`
+	Author string `toml:"author" json:"author"`
 	// Version of this chain, such as "v1.0.0".
-	Version string `toml:"version"`
+	Version string `toml:"version" json:"version"`
 	// Which kind of network this chain is running on:
 	// mainnet, testnet, devnet.
-	Network Network `toml:"network"`
+	Network Network `toml:"network" json:"network"`
 }
 
 func DefaultChainSpec() ChainSpec {
