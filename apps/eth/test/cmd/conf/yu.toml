@@ -38,3 +38,10 @@ node_key_rand_seed = 1
 node_key = ""
 node_key_bits = 0
 node_key_file = ""
+
+[chain_spec]
+chain_name = "Yu"
+author = "yu-org"
+version = "v1.0.0"
+# mainnet / testnet / devnet / localnet
+network = "localnet"

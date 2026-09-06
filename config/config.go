@@ -8,6 +8,8 @@ import (
 )
 
 type KernelConf struct {
+	// The identity of this chain: name, author, version and network category.
+	ChainSpec ChainSpec `toml:"chain_spec"`
 	// 0: FullNode
 	// 1: LightNode
 	// 2: ArchiveNode
