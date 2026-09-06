@@ -5,6 +5,7 @@ import "path"
 func InitDefaultCfg() *KernelConf {
 	dataDir := "yu"
 	cfg := &KernelConf{
+		ChainSpec:   DefaultChainSpec(),
 		RunMode:     0,
 		DataDir:     dataDir,
 		HttpPort:    "7999",
