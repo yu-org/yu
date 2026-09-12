@@ -508,3 +508,70 @@ func (bc *BlockChain) getBlockByCompact(cBlock *CompactBlock) (*Block, error) {
 		Txns:   txns,
 	}, nil
 }
+
+// PruneAll deletes every block that has not been finalized yet.
+func (bc *BlockChain) PruneAll() error {
+	return bc.pruneFrom(0)
+}
+
+// PruneAfter deletes every un-finalized block from `height` (included) upwards.
+func (bc *BlockChain) PruneAfter(height BlockNum) error {
+	return bc.pruneFrom(height)
+}
+
+// Prune deletes every un-finalized block above the last finalized one.
+// It returns yerror.ErrBlockNotFound when no block has been finalized yet,
+// in that case use PruneAll to wipe the whole chain.
+func (bc *BlockChain) Prune() error {
+	height, err := bc.lastFinalizedHeight()
+	if err != nil {
+		return err
+	}
+	return bc.pruneFrom(height + 1)
+}
+
+func (bc *BlockChain) lastFinalizedHeight() (BlockNum, error) {
+	if block := bc.lastFinalizedBlock.Load(); block != nil {
+		return block.Height, nil
+	}
+	var bs BlocksScheme
+	result := bc.chain.Db().Raw("select * from blockchain where finalize = ? ORDER BY height DESC LIMIT 1", true).Find(&bs)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return 0, yerror.ErrBlockNotFound
+	}
+	return bs.Height, nil
+}
+
+// pruneFrom deletes the un-finalized blocks whose height is greater than or equal to
+// `fromHeight`. The transactions of the pruned blocks are kept in the ItxDB, they may
+// still belong to a block on another fork.
+func (bc *BlockChain) pruneFrom(fromHeight BlockNum) error {
+	var pruned []BlocksScheme
+	err := bc.chain.Db().Where("finalize = ? AND height >= ?", false, fromHeight).Find(&pruned).Error
+	if err != nil {
+		return err
+	}
+	if len(pruned) == 0 {
+		return nil
+	}
+
+	err = bc.chain.Db().Where("finalize = ? AND height >= ?", false, fromHeight).Delete(&BlocksScheme{}).Error
+	if err != nil {
+		return err
+	}
+
+	currentBlock := bc.currentBlock.Load()
+	for _, bs := range pruned {
+		bc.appendedBlocks.Remove(bs.Height)
+		if currentBlock != nil && bs.Hash == currentBlock.Hash.String() {
+			// The head has been pruned, let it be loaded again from the DB.
+			bc.currentBlock.Store(nil)
+		}
+	}
+
+	logrus.Infof("pruned %d un-finalized blocks from height %d", len(pruned), fromHeight)
+	return nil
+}
