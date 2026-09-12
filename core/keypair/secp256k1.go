@@ -45,7 +45,7 @@ func (spb *SecpPubkey) String() string {
 }
 
 func (spb *SecpPubkey) BytesWithType() []byte {
-	return append([]byte(Sr25519Idx), spb.pubkey.Bytes()...)
+	return append([]byte(Secp256k1Idx), spb.pubkey.Bytes()...)
 }
 
 func (spb *SecpPubkey) StringWithType() string {
@@ -87,7 +87,7 @@ func (spr *SecpPrivkey) String() string {
 }
 
 func (spr *SecpPrivkey) BytesWithType() []byte {
-	return append([]byte(Sr25519Idx), spr.privkey.Bytes()...)
+	return append([]byte(Secp256k1Idx), spr.privkey.Bytes()...)
 }
 
 func (spr *SecpPrivkey) StringWithType() string {
