@@ -96,6 +96,13 @@ type IBlockChain interface {
 	GetAllCompactBlocks() ([]*CompactBlock, error)
 
 	GetRangeBlocks(startHeight, endHeight BlockNum) ([]*Block, error)
+
+	// PruneAll deletes every block that has not been finalized yet.
+	PruneAll() error
+	// PruneAfter deletes every un-finalized block from `height` (included) upwards.
+	PruneAfter(height BlockNum) error
+	// Prune deletes every un-finalized block above the last finalized one.
+	Prune() error
 }
 
 type ItxDB interface {
