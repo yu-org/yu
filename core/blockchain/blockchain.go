@@ -374,13 +374,27 @@ func (bc *BlockChain) Finalize(block *Block) error {
 	return nil
 }
 
-// FinalizeFork finalizes every block of the fork, from lowest to highest height.
+// FinalizeFork finalizes every block of the fork in a single batch update.
 func (bc *BlockChain) FinalizeFork(fork *Fork) error {
-	for _, block := range fork.Blocks {
-		if err := bc.Finalize(block); err != nil {
-			return err
-		}
+	if len(fork.Blocks) == 0 {
+		return nil
 	}
+
+	hashes := make([]string, len(fork.Blocks))
+	for i, block := range fork.Blocks {
+		hashes[i] = block.Hash.String()
+	}
+
+	err := bc.chain.Db().Model(&BlocksScheme{}).Where("hash IN ?", hashes).
+		Updates(BlocksScheme{Finalize: true}).Error
+	if err != nil {
+		return err
+	}
+
+	for _, block := range fork.Blocks {
+		bc.finalizedBlocks.Add(block.Height, block)
+	}
+	bc.lastFinalizedBlock.Store(fork.Blocks[len(fork.Blocks)-1])
 	return nil
 }
 
