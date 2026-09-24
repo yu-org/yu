@@ -404,6 +404,63 @@ func (bc *BlockChain) LastFinalized() (*Block, error) {
 	return bc.getBlockByCompact(cBlock)
 }
 
+// CandidateForks returns every candidate fork branching off the last finalized block,
+// one per tip (a block with no children yet).
+func (bc *BlockChain) CandidateForks() ([]*Fork, error) {
+	compactForks, err := bc.CandidateForksCompact()
+	if err != nil {
+		return nil, err
+	}
+	forks := make([]*Fork, len(compactForks))
+	for i, cFork := range compactForks {
+		blocks := make([]*Block, len(cFork.Blocks))
+		for j, cBlock := range cFork.Blocks {
+			block, err := bc.getBlockByCompact(cBlock)
+			if err != nil {
+				return nil, err
+			}
+			blocks[j] = block
+		}
+		forks[i] = &Fork{Blocks: blocks}
+	}
+	return forks, nil
+}
+
+// CandidateForksCompact is the compact-block variant of CandidateForks.
+func (bc *BlockChain) CandidateForksCompact() ([]*CompactFork, error) {
+	lastFinalized, err := bc.LastFinalizedCompact()
+	if err != nil {
+		return nil, err
+	}
+
+	var forks []*CompactFork
+	var walk func(path []*CompactBlock, hash Hash) error
+	walk = func(path []*CompactBlock, hash Hash) error {
+		children, err := bc.ChildrenCompact(hash)
+		if err != nil {
+			return err
+		}
+		if len(children) == 0 {
+			if len(path) > 0 {
+				forks = append(forks, &CompactFork{Blocks: path})
+			}
+			return nil
+		}
+		for _, child := range children {
+			childPath := append(append([]*CompactBlock{}, path...), child)
+			if err := walk(childPath, child.Hash); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	if err := walk(nil, lastFinalized.Hash); err != nil {
+		return nil, err
+	}
+	return forks, nil
+}
+
 func (bc *BlockChain) GetEndCompactBlock() (*CompactBlock, error) {
 	block := bc.currentBlock.Load()
 	if block == nil {
