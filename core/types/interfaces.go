@@ -106,6 +106,9 @@ type IBlockChain interface {
 	CandidateForks() ([]*Fork, error)
 	CandidateForksCompact() ([]*CompactFork, error)
 
+	// FinalizeFork finalizes every block of the fork, from lowest to highest height.
+	FinalizeFork(fork *Fork) error
+
 	GetEndCompactBlock() (*CompactBlock, error)
 	GetEndBlock() (*Block, error)
 
