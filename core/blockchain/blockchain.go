@@ -432,31 +432,32 @@ func (bc *BlockChain) CandidateForksCompact() ([]*CompactFork, error) {
 	if err != nil {
 		return nil, err
 	}
+	return bc.candidateForksFrom(nil, lastFinalized.Hash)
+}
 
-	var forks []*CompactFork
-	var walk func(path []*CompactBlock, hash Hash) error
-	walk = func(path []*CompactBlock, hash Hash) error {
-		children, err := bc.ChildrenCompact(hash)
-		if err != nil {
-			return err
-		}
-		if len(children) == 0 {
-			if len(path) > 0 {
-				forks = append(forks, &CompactFork{Blocks: path})
-			}
-			return nil
-		}
-		for _, child := range children {
-			childPath := append(append([]*CompactBlock{}, path...), child)
-			if err := walk(childPath, child.Hash); err != nil {
-				return err
-			}
-		}
-		return nil
+// candidateForksFrom recursively collects the candidate forks reachable from hash, prefixing
+// each with path, the chain of un-finalized blocks already walked to reach hash.
+func (bc *BlockChain) candidateForksFrom(path []*CompactBlock, hash Hash) ([]*CompactFork, error) {
+	children, err := bc.ChildrenCompact(hash)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := walk(nil, lastFinalized.Hash); err != nil {
-		return nil, err
+	if len(children) == 0 {
+		if len(path) == 0 {
+			return nil, nil
+		}
+		return []*CompactFork{{Blocks: path}}, nil
+	}
+
+	var forks []*CompactFork
+	for _, child := range children {
+		childPath := append(append([]*CompactBlock{}, path...), child)
+		childForks, err := bc.candidateForksFrom(childPath, child.Hash)
+		if err != nil {
+			return nil, err
+		}
+		forks = append(forks, childForks...)
 	}
 	return forks, nil
 }
