@@ -374,6 +374,16 @@ func (bc *BlockChain) Finalize(block *Block) error {
 	return nil
 }
 
+// FinalizeFork finalizes every block of the fork, from lowest to highest height.
+func (bc *BlockChain) FinalizeFork(fork *Fork) error {
+	for _, block := range fork.Blocks {
+		if err := bc.Finalize(block); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (bc *BlockChain) LastFinalizedCompact() (*CompactBlock, error) {
 	block := bc.lastFinalizedBlock.Load()
 	if block != nil {
