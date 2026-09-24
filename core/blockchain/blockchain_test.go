@@ -274,6 +274,75 @@ func TestPruneUncleBlocks(t *testing.T) {
 	assert.Equal(t, block1.Hash, blocks[1].Hash)
 }
 
+func TestCandidateForks(t *testing.T) {
+	chain := initChain(t)
+
+	// block2Sibling is a second, competing child of the finalized block1, so the chain
+	// forks into two un-finalized branches: block2->block3, and block2Sibling.
+	block2Sibling := &Block{
+		Header: &Header{
+			PrevHash: block1hash,
+			Hash:     HexToHash("22"),
+			Height:   2,
+		},
+	}
+
+	appendBlocks(t, chain, block1, block2, block2Sibling, block3)
+	if err := chain.Finalize(block1); err != nil {
+		t.Fatal("finalize block1 failed: ", err)
+	}
+
+	forks, err := chain.CandidateForks()
+	if err != nil {
+		t.Fatal("get candidate forks failed: ", err)
+	}
+	assert.Equal(t, 2, len(forks))
+
+	got := make(map[Hash][]Hash)
+	for _, fork := range forks {
+		hashes := make([]Hash, len(fork.Blocks))
+		for i, block := range fork.Blocks {
+			hashes[i] = block.Hash
+		}
+		got[fork.Blocks[len(fork.Blocks)-1].Hash] = hashes
+	}
+
+	assert.Equal(t, []Hash{block2Sibling.Hash}, got[block2Sibling.Hash])
+	assert.Equal(t, []Hash{block2hash, block3hash}, got[block3hash])
+}
+
+// TestCandidateForksIgnoresDeadUncles checks that a block whose parent was already
+// finalized in favor of a sibling (a dead uncle branch, see TestPruneUncleBlocks) is not
+// reported as a candidate fork: it can never be finalized since its height already is.
+func TestCandidateForksIgnoresDeadUncles(t *testing.T) {
+	chain := initChain(t)
+	appendBlocks(t, chain, block1, uncleBlock1, block2)
+	if err := chain.Finalize(block1); err != nil {
+		t.Fatal("finalize block1 failed: ", err)
+	}
+
+	forks, err := chain.CandidateForks()
+	if err != nil {
+		t.Fatal("get candidate forks failed: ", err)
+	}
+	assert.Equal(t, 1, len(forks))
+	assert.Equal(t, block2hash, forks[0].Blocks[len(forks[0].Blocks)-1].Hash)
+}
+
+func TestCandidateForksNoneWhenTipIsFinalized(t *testing.T) {
+	chain := initChain(t)
+	appendBlocks(t, chain, block1)
+	if err := chain.Finalize(block1); err != nil {
+		t.Fatal("finalize block1 failed: ", err)
+	}
+
+	forks, err := chain.CandidateForks()
+	if err != nil {
+		t.Fatal("get candidate forks failed: ", err)
+	}
+	assert.Empty(t, forks)
+}
+
 func TestPruneWithoutFinalizedBlock(t *testing.T) {
 	cfg := config.InitDefaultCfg()
 	cfg.BlockChain.ChainDB.Dsn = filepath.Join(t.TempDir(), "chain.db")

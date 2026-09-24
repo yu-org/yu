@@ -55,6 +55,17 @@ const (
 	Finalize
 )
 
+// Fork is a candidate chain of un-finalized blocks, ordered from lowest to highest height,
+// running from immediately after the last finalized block up to a tip.
+type Fork struct {
+	Blocks []*Block
+}
+
+// CompactFork is the compact-block variant of Fork.
+type CompactFork struct {
+	Blocks []*CompactBlock
+}
+
 type IBlockChain interface {
 	ItxDB
 	ConvergeType() ConvergeType
@@ -89,6 +100,11 @@ type IBlockChain interface {
 	Finalize(block *Block) error
 	LastFinalized() (*Block, error)
 	LastFinalizedCompact() (*CompactBlock, error)
+
+	// CandidateForks returns every candidate fork branching off the last finalized block,
+	// one per tip (a block with no children yet).
+	CandidateForks() ([]*Fork, error)
+	CandidateForksCompact() ([]*CompactFork, error)
 
 	GetEndCompactBlock() (*CompactBlock, error)
 	GetEndBlock() (*Block, error)
