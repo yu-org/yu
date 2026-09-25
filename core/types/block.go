@@ -195,6 +195,8 @@ type Header struct {
 
 	Nonce      uint64
 	Difficulty uint64
+
+	Uncles []Hash
 }
 
 func (h *Header) ToPb() *goproto.Header {
