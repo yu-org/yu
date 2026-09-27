@@ -125,7 +125,7 @@ func (h *Poa) VerifyBlock(block *types.Block) error {
 	return nil
 }
 
-func (h *Poa) InitChain(block *types.Block) {
+func (h *Poa) InitChain() {
 
 	go func() {
 		for {
@@ -151,7 +151,7 @@ func (h *Poa) InitChain(block *types.Block) {
 			}
 
 			err = h.RangeList(func(tri *tripod.Tripod) error {
-				return tri.BlockVerifier.VerifyBlock(block)
+				return tri.BlockVerifier.VerifyBlock(p2pBlock)
 			})
 			if err != nil {
 				logrus.Warnf("p2pBlock(%s) verify failed: %s", p2pBlock.Hash, err)

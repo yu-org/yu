@@ -51,7 +51,7 @@ type Solidity struct {
 	gasPool *core.GasPool
 }
 
-func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
+func (s *Solidity) InitChain() {
 	var genesis *Genesis
 	if s.cfg.IsMainnet {
 		genesis = DefaultGenesisBlock()
@@ -75,12 +75,10 @@ func (s *Solidity) InitChain(genesisBlock *yu_types.Block) {
 	s.ethState = ethState
 
 	// commit genesis state
-	genesisStateRoot, err := s.ethState.GenesisCommit(genesis)
+	_, err = s.ethState.GenesisCommit(genesis)
 	if err != nil {
 		logrus.Fatal("genesis state commit failed: ", err)
 	}
-
-	genesisBlock.StateRoot = yu_common.Hash(genesisStateRoot)
 }
 
 func NewSolidity(gethConfig *config.GethConfig) *Solidity {

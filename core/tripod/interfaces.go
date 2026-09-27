@@ -13,7 +13,13 @@ type BlockVerifier interface {
 }
 
 type Init interface {
-	InitChain(block *Block)
+	InitChain()
+}
+
+// GenesisDefiner is implemented by the tripod defining the genesis block. The kernel calls
+// DefineGenesis once, before any InitChain, only when the chain has no genesis block yet.
+type GenesisDefiner interface {
+	DefineGenesis() *Block
 }
 
 type BlockCycle interface {

@@ -2,10 +2,7 @@ package synchronizer
 
 import (
 	"github.com/sirupsen/logrus"
-	. "github.com/yu-org/yu/common"
-	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/types"
 )
 
 const (
@@ -27,31 +24,8 @@ func NewSynchronizer(syncMode int) *Synchronizer {
 	return fh
 }
 
-func (b *Synchronizer) InitChain(block *Block) {
-	b.defineGenesis(block)
+func (b *Synchronizer) InitChain() {
 	b.syncHistory()
-}
-
-func (b *Synchronizer) defineGenesis(genesisBlock *Block) {
-	// FIXME: must NOT generate private key onchain.
-	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
-	genesisHash := HexToHash("genesis")
-	signer, err := rootPrivkey.SignData(genesisHash.Bytes())
-	if err != nil {
-		logrus.Panic("sign genesis block failed: ", err)
-	}
-	genesisBlock.Hash = genesisHash
-	genesisBlock.MinerSignature = signer
-	genesisBlock.MinerPubkey = rootPubkey.BytesWithType()
-
-	err = b.Chain.SetGenesis(genesisBlock)
-	if err != nil {
-		logrus.Panic("set genesis block failed: ", err)
-	}
-	err = b.Chain.Finalize(genesisBlock)
-	if err != nil {
-		logrus.Panic("finalize genesis block failed: ", err)
-	}
 }
 
 func (b *Synchronizer) syncHistory() {

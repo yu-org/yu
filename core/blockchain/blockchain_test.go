@@ -79,10 +79,6 @@ func initChain(t *testing.T) *BlockChain {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = chain.Finalize(genesisBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
 	return chain
 }
 
@@ -218,7 +214,7 @@ func TestPruneAfter(t *testing.T) {
 	}
 
 	// `height` is included, block1 stays untouched.
-	assert.Equal(t, []BlockNum{0, 1}, heights(t, chain))
+	assert.ElementsMatch(t, []BlockNum{0, 1}, heights(t, chain))
 }
 
 func TestPruneAfterKeepsFinalized(t *testing.T) {
@@ -246,7 +242,7 @@ func TestPrune(t *testing.T) {
 		t.Fatal("prune failed: ", err)
 	}
 
-	assert.Equal(t, []BlockNum{0, 1}, heights(t, chain))
+	assert.ElementsMatch(t, []BlockNum{0, 1}, heights(t, chain))
 }
 
 func TestPruneUncleBlocks(t *testing.T) {
@@ -425,16 +421,151 @@ func TestPruneWithoutFinalizedBlock(t *testing.T) {
 	cfg.BlockChain.ChainDB.Dsn = filepath.Join(t.TempDir(), "chain.db")
 	chain := NewBlockChain(FullNode, &cfg.BlockChain, memTxDB{})
 
-	if err := chain.SetGenesis(genesisBlock); err != nil {
-		t.Fatal(err)
-	}
-	appendBlocks(t, chain, block1)
+	// No genesis has been set, so nothing is finalized.
+	appendBlocks(t, chain, block1, block2)
 
 	assert.ErrorIs(t, chain.Prune(), yerror.ErrBlockNotFound)
 
-	// Nothing is finalized, so PruneAll wipes the whole chain, genesis included.
+	// Nothing is finalized, so PruneAll wipes the whole chain.
 	if err := chain.PruneAll(); err != nil {
 		t.Fatal("prune all failed: ", err)
 	}
 	assert.Empty(t, heights(t, chain))
+}
+
+func TestPruneAllKeepsGenesis(t *testing.T) {
+	chain := initChain(t)
+	appendBlocks(t, chain, block1)
+
+	// The genesis is finalized as soon as it is set.
+	if err := chain.PruneAll(); err != nil {
+		t.Fatal("prune all failed: ", err)
+	}
+	assert.Equal(t, []BlockNum{0}, heights(t, chain))
+}
+
+func genesisBlocks(t *testing.T, chain *BlockChain) []*CompactBlock {
+	t.Helper()
+	blocks, err := chain.GetAllCompactBlocksByHeight(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return blocks
+}
+
+func TestSetGenesisOverwrites(t *testing.T) {
+	chain := initChain(t)
+	appendBlocks(t, chain, block1)
+
+	newGenesis := &Block{
+		Header: &Header{
+			Hash:      HexToHash("abcdef"),
+			Height:    0,
+			Timestamp: 42,
+		},
+	}
+	if err := chain.SetGenesis(newGenesis); err != nil {
+		t.Fatal(err)
+	}
+
+	blocks := genesisBlocks(t, chain)
+	assert.Len(t, blocks, 1)
+	assert.Equal(t, newGenesis.Hash, blocks[0].Hash)
+	assert.Equal(t, uint64(42), blocks[0].Timestamp)
+
+	genesis, err := chain.GetGenesis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, newGenesis.Hash, genesis.Hash)
+
+	finalized, err := chain.LastFinalized()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, newGenesis.Hash, finalized.Hash)
+
+	// The blocks above height 0 are kept.
+	assert.ElementsMatch(t, []BlockNum{0, 1}, heights(t, chain))
+}
+
+func TestSetGenesisIsFinalized(t *testing.T) {
+	cfg := config.InitDefaultCfg()
+	cfg.BlockChain.ChainDB.Dsn = filepath.Join(t.TempDir(), "chain.db")
+	chain := NewBlockChain(FullNode, &cfg.BlockChain, memTxDB{})
+	if err := chain.SetGenesis(genesisBlock); err != nil {
+		t.Fatal(err)
+	}
+
+	height, err := chain.lastFinalizedHeight()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, BlockNum(0), height)
+
+	// Read it back from the DB, not from the caches.
+	chain.finalizedBlocks.Purge()
+	block, err := chain.GetFinalizedCompactBlockByHeight(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, genesisHash, block.Hash)
+}
+
+func TestSetGenesisKeepsHigherFinalized(t *testing.T) {
+	chain := initChain(t)
+	appendBlocks(t, chain, block1)
+	if err := chain.Finalize(block1); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := chain.SetGenesis(genesisBlock); err != nil {
+		t.Fatal(err)
+	}
+	finalized, err := chain.LastFinalized()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, block1.Hash, finalized.Hash)
+}
+
+func TestSetGenesisSameHashTwice(t *testing.T) {
+	chain := initChain(t)
+	if err := chain.SetGenesis(genesisBlock); err != nil {
+		t.Fatal(err)
+	}
+	assert.Len(t, genesisBlocks(t, chain), 1)
+}
+
+func TestSetGenesisRejectsNullHash(t *testing.T) {
+	chain := initChain(t)
+	err := chain.SetGenesis(&Block{Header: &Header{Hash: NullHash, Height: 0}})
+	assert.ErrorIs(t, err, yerror.GenesisBlockIllegal)
+
+	blocks := genesisBlocks(t, chain)
+	assert.Len(t, blocks, 1)
+	assert.Equal(t, genesisHash, blocks[0].Hash)
+}
+
+func TestSetGenesisRejectsNonZeroHeight(t *testing.T) {
+	chain := initChain(t)
+	err := chain.SetGenesis(block1)
+	assert.ErrorIs(t, err, yerror.GenesisBlockIllegal)
+	assert.Equal(t, []BlockNum{0}, heights(t, chain))
+}
+
+func TestAppendBlockRejectsGenesisHeight(t *testing.T) {
+	chain := initChain(t)
+	another := &Block{
+		Header: &Header{
+			Hash:   HexToHash("abcdef"),
+			Height: 0,
+		},
+	}
+	err := chain.AppendBlock(another)
+	assert.ErrorIs(t, err, yerror.AppendGenesisBlock)
+
+	blocks := genesisBlocks(t, chain)
+	assert.Len(t, blocks, 1)
+	assert.Equal(t, genesisHash, blocks[0].Hash)
 }

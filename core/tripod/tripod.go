@@ -21,8 +21,9 @@ type Tripod struct {
 	BlockVerifier BlockVerifier
 	TxnChecker    types.TxnChecker
 
-	Init       Init
-	BlockCycle BlockCycle
+	Init           Init
+	GenesisDefiner GenesisDefiner
+	BlockCycle     BlockCycle
 
 	PreTxnHandler PreTxnHandler
 
@@ -88,6 +89,9 @@ func (t *Tripod) SetInstance(tripodInstance any) {
 	if isImplementInterface(tripodInstance, (*Init)(nil)) {
 		t.SetInit(tripodInstance.(Init))
 	}
+	if isImplementInterface(tripodInstance, (*GenesisDefiner)(nil)) {
+		t.SetGenesisDefiner(tripodInstance.(GenesisDefiner))
+	}
 
 	for name, _ := range t.writings {
 		logrus.Infof("register Writing (%s) into Tripod(%s) \n", name, t.name)
@@ -131,6 +135,10 @@ func (t *Tripod) SetLand(land *Land) {
 
 func (t *Tripod) SetInit(init Init) {
 	t.Init = init
+}
+
+func (t *Tripod) SetGenesisDefiner(definer GenesisDefiner) {
+	t.GenesisDefiner = definer
 }
 
 func (t *Tripod) SetCommitter(c Committer) {

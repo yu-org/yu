@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/yu-org/yu/common"
@@ -87,11 +88,74 @@ func (k *Kernel) Stop() {
 }
 
 func (k *Kernel) InitBlockChain() {
-	genesisBlock := k.makeGenesisBlock()
+	err := k.initGenesis()
+	if err != nil {
+		logrus.Fatal("init genesis block failed: ", err)
+	}
 	k.Land.RangeList(func(tri *tripod.Tripod) error {
-		tri.Init.InitChain(genesisBlock)
+		tri.Init.InitChain()
 		return nil
 	})
+}
+
+// initGenesis writes the genesis block when the chain has none yet, an existing genesis is
+// never redefined.
+func (k *Kernel) initGenesis() error {
+	_, err := k.Chain.GetGenesis()
+	if err == nil {
+		return nil
+	}
+	if err != yerror.ErrBlockNotFound {
+		return err
+	}
+
+	genesis, err := k.defineGenesis()
+	if err != nil {
+		return err
+	}
+	return k.Chain.SetGenesis(genesis)
+}
+
+// defineGenesis asks the only tripod implementing GenesisDefiner for the genesis block,
+// it falls back to the default genesis when no tripod implements it.
+func (k *Kernel) defineGenesis() (*types.Block, error) {
+	var definers []*tripod.Tripod
+	k.Land.RangeList(func(tri *tripod.Tripod) error {
+		if tri.GenesisDefiner != nil {
+			definers = append(definers, tri)
+		}
+		return nil
+	})
+
+	switch len(definers) {
+	case 0:
+		return k.defaultGenesis()
+	case 1:
+		genesis := definers[0].GenesisDefiner.DefineGenesis()
+		if genesis == nil {
+			return nil, yerror.GenesisBlockIllegal
+		}
+		return genesis, nil
+	default:
+		names := make([]string, len(definers))
+		for i, tri := range definers {
+			names[i] = tri.Name()
+		}
+		return nil, errors.Errorf("only one tripod can define the genesis block, got %v", names)
+	}
+}
+
+// defaultGenesis is deterministic so every node of the same chain defines the same genesis
+// block. Its hash is computed like any other block's, from the encoded block.
+func (k *Kernel) defaultGenesis() (*types.Block, error) {
+	genesis := k.Chain.NewEmptyBlock()
+	genesis.Height = 0
+	byt, err := genesis.Encode()
+	if err != nil {
+		return nil, err
+	}
+	genesis.Hash = common.BytesToHash(common.Sha256(byt))
+	return genesis, nil
 }
 
 func (k *Kernel) AcceptUnpackedTxns() error {

@@ -116,7 +116,8 @@ type (
 - Define Your `blockchain lifecycle`, this function is in `Tripod` interface.  
 `CheckTxn` defines the rules for checking transactions(Writings) before inserting txpool.  
 `VerifyBlock` defines the rules for verifying blocks.   
-`InitChain` defines business when the blockchain starts up. You should use it to define `Genesis Block`.  
+`DefineGenesis` (optional) returns the `Genesis Block`. It is called once, before any `InitChain`, only when the chain has no genesis yet. At most one tripod can implement it, the kernel defines a default genesis when none does.  
+`InitChain` defines business when the blockchain starts up, it is called on every startup. The genesis block is already in the chain, get it with `Chain.GetGenesis()` if needed.  
 `StartBlock` defines business when a new block starts. In this func, you can set some attributes (including pack txns from txpool, mining) in the block.    
 `EndBlock` defines business when all nodes accept the new block, usually we execute the txns of new block and append  block into the chain.  
 `FinalizeBlock` defines business when the block is finalized in the chain by all nodes.
@@ -130,7 +131,9 @@ type Tripod interface {
 
     VerifyBlock(block *types.Block) bool
 
-    InitChain(genesisBlock *types.Block) 
+    DefineGenesis() *types.Block
+
+    InitChain() 
 
     StartBlock(block *types.Block) 
 

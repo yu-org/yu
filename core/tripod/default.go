@@ -18,7 +18,7 @@ func (*DefaultBlockVerifier) VerifyBlock(*Block) error {
 
 type DefaultInit struct{}
 
-func (*DefaultInit) InitChain(*Block) {}
+func (*DefaultInit) InitChain() {}
 
 type DefaultBlockCycle struct{}
 
