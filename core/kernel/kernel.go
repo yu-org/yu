@@ -129,7 +129,7 @@ func (k *Kernel) defineGenesis() (*types.Block, error) {
 
 	switch len(definers) {
 	case 0:
-		return k.defaultGenesis(), nil
+		return k.defaultGenesis()
 	case 1:
 		genesis := definers[0].GenesisDefiner.DefineGenesis()
 		if genesis == nil {
@@ -145,13 +145,17 @@ func (k *Kernel) defineGenesis() (*types.Block, error) {
 	}
 }
 
-// defaultGenesis is deterministic so every node defines the same genesis block. Its hash is
-// the NullHash, as the genesis was defined before.
-func (k *Kernel) defaultGenesis() *types.Block {
+// defaultGenesis is deterministic so every node of the same chain defines the same genesis
+// block. Its hash is computed like any other block's, from the encoded block.
+func (k *Kernel) defaultGenesis() (*types.Block, error) {
 	genesis := k.Chain.NewEmptyBlock()
 	genesis.Height = 0
-	genesis.Hash = common.NullHash
-	return genesis
+	byt, err := genesis.Encode()
+	if err != nil {
+		return nil, err
+	}
+	genesis.Hash = common.BytesToHash(common.Sha256(byt))
+	return genesis, nil
 }
 
 func (k *Kernel) AcceptUnpackedTxns() error {

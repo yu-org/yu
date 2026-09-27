@@ -108,10 +108,10 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 }
 
 // SetGenesis writes b as the finalized genesis block, replacing any block already stored at
-// height 0, so the chain always holds exactly one genesis block.
+// height 0, so the chain always holds exactly one genesis block. Its hash must not be the NullHash.
 // If the new genesis has a different hash, the blocks built on the old one are left orphaned.
 func (bc *BlockChain) SetGenesis(b *Block) error {
-	if b.Height != 0 {
+	if b.Height != 0 || b.Hash == NullHash {
 		return yerror.GenesisBlockIllegal
 	}
 

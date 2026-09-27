@@ -537,6 +537,16 @@ func TestSetGenesisSameHashTwice(t *testing.T) {
 	assert.Len(t, genesisBlocks(t, chain), 1)
 }
 
+func TestSetGenesisRejectsNullHash(t *testing.T) {
+	chain := initChain(t)
+	err := chain.SetGenesis(&Block{Header: &Header{Hash: NullHash, Height: 0}})
+	assert.ErrorIs(t, err, yerror.GenesisBlockIllegal)
+
+	blocks := genesisBlocks(t, chain)
+	assert.Len(t, blocks, 1)
+	assert.Equal(t, genesisHash, blocks[0].Hash)
+}
+
 func TestSetGenesisRejectsNonZeroHeight(t *testing.T) {
 	chain := initChain(t)
 	err := chain.SetGenesis(block1)

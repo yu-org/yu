@@ -76,7 +76,19 @@ func TestInitGenesisDefault(t *testing.T) {
 	if err := k.initGenesis(); err != nil {
 		t.Fatal(err)
 	}
-	assertFinalizedGenesis(t, k, NullHash)
+	genesis, err := k.Chain.GetGenesis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NotEqual(t, NullHash, genesis.Hash)
+	assertFinalizedGenesis(t, k, genesis.Hash)
+
+	// Every node of the same chain defines the same default genesis.
+	other := newGenesisKernel(t)
+	if err := other.initGenesis(); err != nil {
+		t.Fatal(err)
+	}
+	assertFinalizedGenesis(t, other, genesis.Hash)
 }
 
 func TestInitGenesisFromDefiner(t *testing.T) {
@@ -122,4 +134,12 @@ func TestInitGenesisRejectsSeveralDefiners(t *testing.T) {
 func TestInitGenesisRejectsNilGenesis(t *testing.T) {
 	k := newGenesisKernel(t, newGenesisTripod("definer", nil))
 	assert.ErrorIs(t, k.initGenesis(), yerror.GenesisBlockIllegal)
+}
+
+func TestInitGenesisRejectsNullHash(t *testing.T) {
+	k := newGenesisKernel(t, newGenesisTripod("definer", &Block{Header: &Header{}}))
+	assert.ErrorIs(t, k.initGenesis(), yerror.GenesisBlockIllegal)
+
+	_, err := k.Chain.GetGenesis()
+	assert.ErrorIs(t, err, yerror.ErrBlockNotFound)
 }
