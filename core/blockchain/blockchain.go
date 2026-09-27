@@ -107,8 +107,8 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 	return b, nil
 }
 
-// SetGenesis writes b as the genesis block, replacing any block already stored at height 0,
-// so the chain always holds exactly one genesis block. The written genesis is not finalized.
+// SetGenesis writes b as the finalized genesis block, replacing any block already stored at
+// height 0, so the chain always holds exactly one genesis block.
 // If the new genesis has a different hash, the blocks built on the old one are left orphaned.
 func (bc *BlockChain) SetGenesis(b *Block) error {
 	if b.Height != 0 {
@@ -123,6 +123,7 @@ func (bc *BlockChain) SetGenesis(b *Block) error {
 	if err != nil {
 		return err
 	}
+	bs.Finalize = true
 
 	err = bc.chain.Db().Transaction(func(tx *gorm.DB) error {
 		err := tx.Where("height = ?", 0).Delete(&BlocksScheme{}).Error
@@ -140,11 +141,12 @@ func (bc *BlockChain) SetGenesis(b *Block) error {
 		return err
 	}
 
-	bc.finalizedBlocks.Remove(0)
+	bc.finalizedBlocks.Add(0, b)
 	bc.appendedBlocks.Add(0, b)
+	// Only replace the old genesis in the cache, a higher finalized block must stay the last
+	// finalized one. When the cache is empty it is loaded from the DB.
 	if block := bc.lastFinalizedBlock.Load(); block != nil && block.Height == 0 {
-		// The old genesis was the last finalized block, let it be loaded again from the DB.
-		bc.lastFinalizedBlock.Store(nil)
+		bc.lastFinalizedBlock.Store(b)
 	}
 	if block := bc.currentBlock.Load(); block != nil && block.Height == 0 {
 		bc.currentBlock.Store(b)
