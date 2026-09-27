@@ -16,6 +16,8 @@ var NoConvergeType = errors.New("no converge type")
 
 var GenesisBlockIllegal = errors.New("genesis block is illegal")
 
+var AppendGenesisBlock = errors.New("height 0 is reserved for the genesis block, use SetGenesis instead")
+
 var NoKvdbType = errors.New("no kvdb type")
 var NoSqlDbType = errors.New("no sqlDB type")
 

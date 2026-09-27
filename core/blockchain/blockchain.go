@@ -10,6 +10,7 @@ import (
 	"github.com/yu-org/yu/config"
 	. "github.com/yu-org/yu/core/types"
 	ysql "github.com/yu-org/yu/infra/storage/sql"
+	"gorm.io/gorm"
 )
 
 type BlockChain struct {
@@ -106,20 +107,55 @@ func (bc *BlockChain) GetGenesis() (*Block, error) {
 	return b, nil
 }
 
+// SetGenesis writes b as the genesis block, replacing any block already stored at height 0,
+// so the chain always holds exactly one genesis block. The written genesis is not finalized.
+// If the new genesis has a different hash, the blocks built on the old one are left orphaned.
 func (bc *BlockChain) SetGenesis(b *Block) error {
-	var blocks []BlocksScheme
-	err := bc.chain.Db().Where("height = ?", 0).Find(&blocks).Error
+	if b.Height != 0 {
+		return yerror.GenesisBlockIllegal
+	}
+
+	cb := b.Compact()
+	if bc.nodeType == LightNode {
+		cb.TxnsHashes = nil
+	}
+	bs, err := toBlocksScheme(cb)
 	if err != nil {
 		return err
 	}
 
-	if len(blocks) == 0 {
-		return bc.appendBlock(b)
+	err = bc.chain.Db().Transaction(func(tx *gorm.DB) error {
+		err := tx.Where("height = ?", 0).Delete(&BlocksScheme{}).Error
+		if err != nil {
+			return err
+		}
+		return tx.Create(&bs).Error
+	})
+	if err != nil {
+		return err
+	}
+
+	err = bc.ItxDB.SetTxns(b.Txns)
+	if err != nil {
+		return err
+	}
+
+	bc.finalizedBlocks.Remove(0)
+	bc.appendedBlocks.Add(0, b)
+	if block := bc.lastFinalizedBlock.Load(); block != nil && block.Height == 0 {
+		// The old genesis was the last finalized block, let it be loaded again from the DB.
+		bc.lastFinalizedBlock.Store(nil)
+	}
+	if block := bc.currentBlock.Load(); block != nil && block.Height == 0 {
+		bc.currentBlock.Store(b)
 	}
 	return nil
 }
 
 func (bc *BlockChain) AppendBlock(b *Block) error {
+	if b.Height == 0 {
+		return yerror.AppendGenesisBlock
+	}
 	err := bc.appendBlock(b)
 	if err != nil {
 		return err
