@@ -3,9 +3,10 @@ package synchronizer
 import (
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/common/yerror"
 	. "github.com/yu-org/yu/core/keypair"
 	. "github.com/yu-org/yu/core/tripod"
-	. "github.com/yu-org/yu/core/types"
+	ytime "github.com/yu-org/yu/utils/time"
 )
 
 const (
@@ -27,12 +28,24 @@ func NewSynchronizer(syncMode int) *Synchronizer {
 	return fh
 }
 
-func (b *Synchronizer) InitChain(block *Block) {
-	b.defineGenesis(block)
+func (b *Synchronizer) InitChain() {
+	b.defineGenesis()
 	b.syncHistory()
 }
 
-func (b *Synchronizer) defineGenesis(genesisBlock *Block) {
+func (b *Synchronizer) defineGenesis() {
+	_, err := b.Chain.GetGenesis()
+	if err == nil {
+		return
+	}
+	if err != yerror.ErrBlockNotFound {
+		logrus.Panic("get genesis block failed: ", err)
+	}
+
+	genesisBlock := b.Chain.NewEmptyBlock()
+	genesisBlock.Timestamp = ytime.NowTsU64()
+	genesisBlock.PeerID = b.P2pNetwork.LocalID()
+
 	// FIXME: must NOT generate private key onchain.
 	rootPubkey, rootPrivkey := GenSrKeyWithSecret([]byte("root"))
 	genesisHash := HexToHash("genesis")

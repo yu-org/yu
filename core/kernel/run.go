@@ -95,16 +95,6 @@ func (k *Kernel) LocalRun() (newBlock *types.Block, err error) {
 	return
 }
 
-func (k *Kernel) makeGenesisBlock() *types.Block {
-	genesisBlock := k.Chain.NewEmptyBlock()
-
-	genesisBlock.Timestamp = ytime.NowTsU64()
-	genesisBlock.PeerID = k.P2pNetwork.LocalID()
-	genesisBlock.Height = 0
-	genesisBlock.LeiLimit = k.leiLimit
-	return genesisBlock
-}
-
 func (k *Kernel) makeNewBasicBlock() (*types.Block, error) {
 	newBlock := k.Chain.NewEmptyBlock()
 
