@@ -46,17 +46,15 @@ type encodedField struct {
 	Value  json.RawMessage
 }
 
-// RegisterTable registers a struct with explicit primary keys and SQL columns.
+// RegisterTable derives the business name using GORM, honoring a static TableName
+// method or the configured naming strategy, and prefixes it with the tripod name.
+// It creates missing SQL tables and reuses matching registrations idempotently.
 // Names must be lowercase SQL identifiers and produce a name of at most 63 bytes.
 // Auto-generated fields, associations and custom GORM serializers are rejected;
 // all consensus values must be supplied explicitly by the caller.
-func (s *Store) RegisterTable(tripod, business string, model any) (*Table, error) {
+func (s *Store) RegisterTable(tripod string, model any) (*Table, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	name := tripod + "_" + business
-	if !identifier.MatchString(tripod) || !identifier.MatchString(business) || len(name) > 63 {
-		return nil, errors.New("invalid state table name")
-	}
 	if s.active != nil {
 		return nil, errors.New("register tables before beginning execution")
 	}
@@ -73,6 +71,11 @@ func (s *Store) RegisterTable(tripod, business string, model any) (*Table, error
 	parsed, err := schema.Parse(reflect.New(typ).Interface(), &sync.Map{}, s.db.NamingStrategy)
 	if err != nil {
 		return nil, err
+	}
+	business := parsed.Table
+	name := tripod + "_" + business
+	if !identifier.MatchString(tripod) || !identifier.MatchString(business) || len(name) > 63 {
+		return nil, errors.New("invalid state table name")
 	}
 	if len(parsed.PrimaryFields) == 0 || len(parsed.Relationships.Relations) != 0 {
 		return nil, errors.New("state models require primary keys and cannot contain associations")
@@ -152,7 +155,7 @@ func (s *Store) RegisterTable(tripod, business string, model any) (*Table, error
 	return table, nil
 }
 
-// Name returns the physical SQL table name, independent of model TableName methods.
+// Name returns the physical SQL table name, including the tripod namespace.
 func (t *Table) Name() string { return t.name }
 
 // rowValue validates and dereferences a model instance.

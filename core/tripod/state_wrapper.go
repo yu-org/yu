@@ -52,14 +52,15 @@ func (t *Tripod) DiscardAll() {
 	t.State.DiscardAll()
 }
 
-// RegisterStateTable registers real SQL columns under tripodName_businessName.
+// RegisterStateTable derives the business table name from the model and prefixes
+// it with the tripod name. Matching registrations are idempotent.
 // Register during InitChain before starting any block or synchronization.
-func (t *Tripod) RegisterStateTable(name string, model any) (*sqlstate.Table, error) {
+func (t *Tripod) RegisterStateTable(model any) (*sqlstate.Table, error) {
 	provider, ok := t.State.(interface {
-		RegisterTable(string, string, any) (*sqlstate.Table, error)
+		RegisterTable(string, any) (*sqlstate.Table, error)
 	})
 	if !ok {
 		return nil, fmt.Errorf("state backend does not support SQL tables")
 	}
-	return provider.RegisterTable(t.Name(), name, model)
+	return provider.RegisterTable(t.Name(), model)
 }

@@ -21,6 +21,9 @@ type rawRow struct {
 	Value []byte
 }
 
+// TableName preserves the compatibility table suffix across model renames.
+func (rawRow) TableName() string { return "kv" }
+
 // State adapts table state to yu's legacy IState lifecycle. New applications
 // should register concrete tables; the kv table is only for existing Set/Get users.
 // Errors from legacy void methods are exposed through ExecutionError.
@@ -60,7 +63,7 @@ func (s *State) PrepareTripod(name string) error {
 	if s.raw[name] != nil {
 		return nil
 	}
-	table, err := s.RegisterTable(name, "kv", &rawRow{})
+	table, err := s.RegisterTable(name, &rawRow{})
 	if err == nil {
 		s.raw[name] = table
 	}

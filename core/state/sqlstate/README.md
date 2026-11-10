@@ -39,7 +39,7 @@ type Order struct {
 
 // InitChain registers this tripod's business table before executing blocks.
 func (o *OrderBook) InitChain() {
-    table, err := o.RegisterStateTable("orders", &Order{})
+    table, err := o.RegisterStateTable(&Order{})
     if err != nil {
         panic(err)
     }
@@ -47,9 +47,18 @@ func (o *OrderBook) InitChain() {
 }
 ```
 
-The physical table is `orderbook_orders`, regardless of a model's `TableName`
-method. Names must be lowercase identifiers, with a combined maximum of 63 bytes.
+With GORM's default naming strategy, `Order` derives the business name `orders`;
+tripod `orderbook` therefore owns `orderbook_orders`. A model may provide a static
+`TableName() string` method to override the business suffix, not the full prefixed
+name. The configured GORM naming strategy is used when no override exists.
+Names must be lowercase identifiers, with a combined maximum of 63 bytes.
 Conflicting registrations, including ambiguous concatenated names, are rejected.
+Registration has create-if-missing semantics through GORM `AutoMigrate`:
+missing tables and indexes are created, matching repeated registrations reuse the
+handle, and reopening the store preserves existing rows. Persisted model metadata
+is checked before migration; conflicting definitions require explicit migration.
+This is not a drop-and-recreate operation or a general schema-upgrade API.
+
 Composite primary keys are supported; pass a model holding its primary key
 fields to lookups. Numeric primary keys need `autoIncrement:false`.
 

@@ -29,7 +29,7 @@ type OrderBook struct {
 
 // InitChain registers the schema before block execution or synchronization.
 func (o *OrderBook) InitChain() {
-    table, err := o.RegisterStateTable("orders", &Order{})
+    table, err := o.RegisterStateTable(&Order{})
     if err != nil {
         panic(err)
     }
@@ -37,8 +37,14 @@ func (o *OrderBook) InitChain() {
 }
 ```
 
-当 tripod name 是 `orderbook` 时，SQL 表名就是 `orderbook_orders`。模型自己的
-`TableName()` 方法不会覆盖这个名字。同一 tripod 可以继续注册其他业务表。
+默认按 GORM 命名规则从类型名推导业务表名：`Order` 对应 `orders`；当 tripod name
+是 `orderbook` 时，最终 SQL 表名就是 `orderbook_orders`。也可以在模型上定义静态的
+`TableName() string`，返回业务表名（例如 `orders`），框架仍会统一加上 tripod 前缀。
+同一 tripod 可以继续注册其他模型对应的业务表。
+
+注册具有“表不存在就创建”的效果，底层使用 GORM `AutoMigrate`。相同模型重复注册会
+复用表句柄；重启后重新注册保留已有数据。登记过的模型定义会先进行一致性检查，
+不一致时在迁移前报错，需要显式迁移，不会通过重复注册删除或重建已有表。
 
 在 Writing 中新增或更新数据：
 

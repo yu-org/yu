@@ -22,6 +22,27 @@ type testCash struct {
 	Owner string `gorm:"index"`
 }
 
+// TableName pins the fixture name independently of the Go type name.
+func (testOrder) TableName() string { return "orders" }
+
+// TableName pins the fixture cash table name.
+func (testCash) TableName() string { return "cash" }
+
+type conflictingOrder testCash
+
+// TableName deliberately collides with the order fixture to test schema rejection.
+func (conflictingOrder) TableName() string { return "orders" }
+
+type suffixC testCash
+
+// TableName selects the first suffix in an ambiguous namespace pair.
+func (suffixC) TableName() string { return "c" }
+
+type suffixBC testCash
+
+// TableName selects the second suffix in an ambiguous namespace pair.
+func (suffixBC) TableName() string { return "b_c" }
+
 // openTestStore opens an isolated SQLite database through the generic GORM API.
 func openTestStore(t *testing.T, path string) (*Store, *gorm.DB) {
 	t.Helper()
@@ -46,7 +67,7 @@ func openTestStore(t *testing.T, path string) (*Store, *gorm.DB) {
 func testStore(t *testing.T) (*Store, *Table, *gorm.DB) {
 	t.Helper()
 	s, db := openTestStore(t, filepath.Join(t.TempDir(), "state.db"))
-	table, err := s.RegisterTable("orderbook", "orders", &testOrder{})
+	table, err := s.RegisterTable("orderbook", &testOrder{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +183,7 @@ func TestForkIsolationAndFinalization(t *testing.T) {
 func TestRestartKeepsPendingBranches(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "state.db")
 	s, db := openTestStore(t, path)
-	table, err := s.RegisterTable("orderbook", "orders", &testOrder{})
+	table, err := s.RegisterTable("orderbook", &testOrder{})
 	must(t, err)
 	seedGenesis(t, s, table)
 	must(t, s.Begin("pending", "genesis", 1))
@@ -172,7 +193,7 @@ func TestRestartKeepsPendingBranches(t *testing.T) {
 	must(t, err)
 	must(t, raw.Close())
 	s, _ = openTestStore(t, path)
-	table, err = s.RegisterTable("orderbook", "orders", &testOrder{})
+	table, err = s.RegisterTable("orderbook", &testOrder{})
 	must(t, err)
 	got, err := s.Root("pending")
 	must(t, err)
@@ -225,7 +246,7 @@ func TestRootMismatchRollsBackSQL(t *testing.T) {
 // TestCrossTableFinalizeIsAtomic checks a failed projection cannot partially finalize.
 func TestCrossTableFinalizeIsAtomic(t *testing.T) {
 	s, orders, db := testStore(t)
-	cash, err := s.RegisterTable("account", "cash", &testCash{})
+	cash, err := s.RegisterTable("account", &testCash{})
 	must(t, err)
 	must(t, s.Begin("genesis", "", 0))
 	must(t, orders.Put(testOrder{ID: "a"}))
@@ -283,15 +304,15 @@ func TestAbortAndDropKeepFinalizedState(t *testing.T) {
 // TestTableRegistrationRejectsNameAndSchemaConflicts enforces stable table identities.
 func TestTableRegistrationRejectsNameAndSchemaConflicts(t *testing.T) {
 	s, _, _ := testStore(t)
-	if _, err := s.RegisterTable("bad-name", "orders", &testOrder{}); err == nil {
+	if _, err := s.RegisterTable("bad-name", &testOrder{}); err == nil {
 		t.Fatal("unsafe identifier accepted")
 	}
-	if _, err := s.RegisterTable("orderbook", "orders", &testCash{}); err == nil {
+	if _, err := s.RegisterTable("orderbook", &conflictingOrder{}); err == nil {
 		t.Fatal("schema conflict accepted")
 	}
-	_, err := s.RegisterTable("a_b", "c", &testCash{})
+	_, err := s.RegisterTable("a_b", &suffixC{})
 	must(t, err)
-	if _, err := s.RegisterTable("a", "b_c", &testCash{}); err == nil {
+	if _, err := s.RegisterTable("a", &suffixBC{}); err == nil {
 		t.Fatal("ambiguous namespace accepted")
 	}
 }
