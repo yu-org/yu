@@ -12,8 +12,6 @@ SQL 数据库中，不需要为状态树额外部署 KV 数据库。接口接受
 
 ## 在 tripod 中存储订单
 
-完整、可编译的示例见 [example/sqlstate/main.go](../../../example/sqlstate/main.go)。
-
 首先定义一行数据的结构，并在 tripod 中保存表句柄：
 
 ```go
@@ -62,7 +60,7 @@ func (o *OrderBook) MarkOrderMatched(id string) error {
 ```
 
 `Put` 按主键保存**完整行**：主键不存在时新增，存在时替换。因此业务若要求“只新增，
-不覆盖”，需要像完整示例中的 `CreateOrder` 那样，先通过 `Get` 检查是否已经存在。
+不覆盖”，需要先通过 `Get` 检查是否已经存在。
 部分字段更新要先读取完整行，修改后再 `Put`，不能只传主键和一个待更新字段。
 
 删除使用 `o.orders.Delete(id)`。它暂存删除标记，不会立即删除已确认业务表中的行。
@@ -84,8 +82,8 @@ kernel 撤销本交易全部表的修改；成功交易的改动参与区块 Com
 | `ScanPending(version, &rows)` | 指定保留版本的完整表视图 |
 
 `Get` 适合交易执行时读取自己的修改；对外查询可明确选择最新 finalized 或指定的
-已提交 pending 区块。完整示例中的 `GetOrder` 默认读取 finalized，并支持通过
-Reading 请求的 `block_hash` 选择仍保留的版本。
+已提交 pending 区块。Reading 处理函数可以通过 `GetFinalized` 默认读取已确认状态；
+当请求提供 `block_hash` 时，再通过 `GetPending` 读取仍保留的版本。
 
 例如，查询某个所有者的已确认订单：
 
@@ -114,7 +112,7 @@ SQLite 的相对路径按 `data_dir` 解析。MySQL 使用 `mysql`；PostgreSQL 
 `config.InitDefaultCfg()` 为新链选择 SQL 状态后端。显式选择旧后端的配置仍可使用
 原有实现。新后端使用新的状态和封块承诺格式，**不会自动迁移已有 KV 状态数据库**。
 
-注册模型必须早于区块执行和同步。示例显式将 synchronizer 放在业务 tripod 后面：
+注册模型必须早于区块执行和同步。启动时将 synchronizer 放在业务 tripod 后面：
 
 ```go
 startup.InitKernel(cfg).WithTripods(
@@ -123,9 +121,6 @@ startup.InitKernel(cfg).WithTripods(
     synchronizer.NewSynchronizer(cfg.SyncMode),
 ).Startup()
 ```
-
-从仓库根目录运行 `go run ./example/sqlstate` 可启动单节点存储示例，数据目录为
-`yu-sqlstate-example`。示例用于演示接口；业务权限和实际撮合规则由应用补充。
 
 ## 模型和表名约束
 

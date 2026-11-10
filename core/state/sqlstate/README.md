@@ -26,10 +26,6 @@ commitment format: existing KV state databases are not automatically migrated.
 
 ## Tables
 
-A complete, compilable tripod example is available in
-[example/sqlstate/main.go](../../../example/sqlstate/main.go). It demonstrates
-creation, read-modify-write, deletion, finalized queries and startup ordering.
-
 Register models before executing or synchronizing blocks, for example in a
 business tripod's `InitChain` before the synchronizer initializes:
 
