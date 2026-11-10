@@ -1,11 +1,14 @@
 package kernel
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/context"
+	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/types"
 	ytime "github.com/yu-org/yu/utils/time"
@@ -110,7 +113,29 @@ func (k *Kernel) makeNewBasicBlock() (*types.Block, error) {
 	return newBlock, nil
 }
 
-func (k *Kernel) SeqExecuteWritings(block *types.Block) error {
+// SeqExecuteWritings executes a block against its parent state and rolls back failed transactions.
+func (k *Kernel) SeqExecuteWritings(block *types.Block) (resultErr error) {
+	k.executionMu.Lock()
+	defer k.executionMu.Unlock()
+	managed, transactional := k.State.(state.ExecutionState)
+	if transactional {
+		if err := managed.BeginExecution(block); err != nil {
+			return err
+		}
+		k.receiptMu.Lock()
+		k.pendingReceipts = nil
+		k.receiptMu.Unlock()
+		defer func() {
+			if resultErr != nil {
+				managed.AbortExecution()
+			}
+		}()
+	}
+	received := transactional && block.StateRoot != common.NullHash
+	expectedLei := block.LeiUsed
+	if transactional {
+		block.LeiUsed = 0
+	}
 	stxns := block.Txns
 
 	receipts := make(map[common.Hash]*types.Receipt)
@@ -119,25 +144,30 @@ func (k *Kernel) SeqExecuteWritings(block *types.Block) error {
 		wrCall := stxn.Raw.WrCall
 		ctx, err := context.NewWriteContext(stxn, block, i)
 		if err != nil {
-			receipt := k.HandleError(err, ctx, block, stxn)
-			receipts[stxn.TxnHash] = receipt
-			continue
+			return fmt.Errorf("invalid transaction context: %w", err)
+		}
+		write, err := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
+		if err != nil {
+			return err
 		}
 
-		write, _ := k.Land.GetWriting(wrCall.TripodName, wrCall.FuncName)
-
 		err = write(ctx)
+		if err == nil && transactional {
+			err = managed.ExecutionError()
+		}
 		if types.IfLeiOut(ctx.LeiCost, block) {
 			k.State.Discard()
 			receipt := k.HandleError(yerror.OutOfLei, ctx, block, stxn)
 			receipts[stxn.TxnHash] = receipt
 			break
 		}
+		var receipt *types.Receipt
 		if err != nil {
 			k.State.Discard()
-			k.HandleError(err, ctx, block, stxn)
+			receipt = k.HandleError(err, ctx, block, stxn)
 		} else {
 			k.State.NextTxn()
+			receipt = k.HandleEvent(ctx, block, stxn)
 		}
 
 		block.UseLei(ctx.LeiCost)
@@ -147,19 +177,33 @@ func (k *Kernel) SeqExecuteWritings(block *types.Block) error {
 		//	_ = ctx.EmitJsonEvent(DefaultJsonEvent)
 		//}
 
-		receipt := k.HandleEvent(ctx, block, stxn)
 		receipts[stxn.TxnHash] = receipt
+	}
+	if received && block.LeiUsed != expectedLei {
+		return yerror.OutOfLei
 	}
 	return k.PostExecute(block, receipts)
 }
 
+// PostExecute computes execution commitments before any SQL state version is published.
 func (k *Kernel) PostExecute(block *types.Block, receipts map[common.Hash]*types.Receipt) error {
 	k.Land.RangeList(func(t *tripod.Tripod) error {
 		t.Committer.Commit(block)
 		return nil
 	})
 
-	if len(receipts) > 0 {
+	if _, ok := k.State.(state.ExecutionState); ok {
+		calculated, err := types.CalculateExecutionReceiptRoot(receipts)
+		if err != nil {
+			return err
+		}
+		if block.ReceiptRoot != common.NullHash && block.ReceiptRoot != calculated {
+			return fmt.Errorf("receipt root mismatch")
+		}
+		block.ReceiptRoot = calculated
+	}
+	_, managed := k.State.(state.ExecutionState)
+	if len(receipts) > 0 && !managed {
 		err := k.TxDB.SetReceipts(receipts)
 		if err != nil {
 			return err
@@ -171,6 +215,14 @@ func (k *Kernel) PostExecute(block *types.Block, receipts map[common.Hash]*types
 		return err
 	}
 
+	if managed {
+		k.receiptMu.Lock()
+		if k.pendingReceipts == nil {
+			k.pendingReceipts = make(map[*types.Block]map[common.Hash]*types.Receipt)
+		}
+		k.pendingReceipts[block] = receipts
+		k.receiptMu.Unlock()
+	}
 	// Because tripod.Committer could update this field.
 	if block.StateRoot == common.NullHash && stateRoot != nil {
 		block.StateRoot = common.BytesToHash(stateRoot)
@@ -237,7 +289,42 @@ func (k *Kernel) HandleReceipt(ctx *context.WriteContext, receipt *types.Receipt
 	receipt.FillMetadata(block, stxn, ctx.LeiCost)
 	receipt.BlockStage = common.ExecuteTxnsStage
 
-	if k.Sub != nil {
+	if _, managed := k.State.(state.ExecutionState); k.Sub != nil && !managed {
 		k.Sub.Emit(receipt)
 	}
+}
+
+// BindState binds a sealed execution and writes receipts with its final block hash.
+// Consensus must call this before append; execution and binding must be serialized.
+func (k *Kernel) BindState(block *types.Block) error {
+	k.executionMu.Lock()
+	defer k.executionMu.Unlock()
+	managed, ok := k.State.(state.ExecutionState)
+	if !ok {
+		return nil
+	}
+	if err := managed.BindBlock(block); err != nil {
+		return err
+	}
+	k.receiptMu.Lock()
+	receipts, exists := k.pendingReceipts[block]
+	delete(k.pendingReceipts, block)
+	k.receiptMu.Unlock()
+	if !exists {
+		return fmt.Errorf("missing committed execution receipts")
+	}
+	for _, receipt := range receipts {
+		receipt.BlockHash = block.Hash
+	}
+	if len(receipts) != 0 {
+		if err := k.TxDB.SetReceipts(receipts); err != nil {
+			return err
+		}
+	}
+	if k.Sub != nil {
+		for _, receipt := range receipts {
+			k.Sub.Emit(receipt)
+		}
+	}
+	return nil
 }

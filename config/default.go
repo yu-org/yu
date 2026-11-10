@@ -2,10 +2,13 @@ package config
 
 import "path"
 
+// InitDefaultCfg returns defaults for a new chain using SQLite table state.
 func InitDefaultCfg() *KernelConf {
 	dataDir := "yu"
 	cfg := &KernelConf{
 		ChainSpec:   DefaultChainSpec(),
+		StatedbType: "sql",
+		StateSQL:    SqlDbConf{SqlDbType: "sqlite", Dsn: "state.db"},
 		RunMode:     0,
 		DataDir:     dataDir,
 		HttpPort:    "7999",

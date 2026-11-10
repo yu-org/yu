@@ -19,6 +19,8 @@ type ChainEnv struct {
 	Sub *Subscription
 
 	Execute ExecuteFn
+	// BindState binds a sealed SQL state version and persists final receipt metadata.
+	BindState ExecuteFn
 
 	P2pNetwork p2p.P2pNetwork
 }

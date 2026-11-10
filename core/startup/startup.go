@@ -3,6 +3,7 @@ package startup
 import (
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ import (
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/kernel"
 	"github.com/yu-org/yu/core/state"
+	"github.com/yu-org/yu/core/state/sqlstate"
 	"github.com/yu-org/yu/core/subscribe"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txdb"
@@ -87,7 +89,30 @@ func InitKernel(cfg *config.KernelConf) *kernel.Kernel {
 		Pool = txpool.WithDefaultChecks(cfg.NodeType, &cfg.Txpool)
 	}
 	if StateDB == nil {
-		StateDB = state.NewStateDB(cfg.StatedbType, kvdb)
+		if cfg.StatedbType == "sql" {
+			stateCfg := cfg.StateSQL
+			if stateCfg.SqlDbType == "" {
+				stateCfg.SqlDbType = "sqlite"
+			}
+			if stateCfg.SqlDbType == "sqlite" {
+				if stateCfg.Dsn == "" {
+					stateCfg.Dsn = "state.db"
+				}
+				if stateCfg.Dsn != ":memory:" && !strings.HasPrefix(stateCfg.Dsn, "file:") && !path.IsAbs(stateCfg.Dsn) {
+					stateCfg.Dsn = path.Join(cfg.DataDir, stateCfg.Dsn)
+				}
+			}
+			stateSQL, openErr := sql.NewSqlDB(&stateCfg)
+			if openErr != nil {
+				logrus.Fatal("open state SQL: ", openErr)
+			}
+			StateDB, err = sqlstate.NewState(stateSQL.Db())
+			if err != nil {
+				logrus.Fatal("initialize table state: ", err)
+			}
+		} else {
+			StateDB = state.NewStateDB(cfg.StatedbType, kvdb)
+		}
 	}
 
 	// StartGrpcServer(cfg)

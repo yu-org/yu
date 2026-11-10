@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TestSignedTxns_Remove checks removing each position from a signed transaction list.
 func TestSignedTxns_Remove(t *testing.T) {
 	codec.GlobalCodec = &codec.RlpCodec{}
 
@@ -37,7 +38,7 @@ func TestSignedTxns_Remove(t *testing.T) {
 		if err != nil {
 			t.Fatalf("sign data error: %s", err.Error())
 		}
-		stxn, err := NewSignedTxn(pubkey.Address(), ecall, pubkey, sig)
+		stxn, err := NewSignedTxn(ecall, pubkey.BytesWithType(), pubkey.Address().Bytes(), sig)
 		if err != nil {
 			t.Fatalf("new SignedTxn error: %s", err.Error())
 		}
@@ -53,19 +54,19 @@ func TestSignedTxns_Remove(t *testing.T) {
 	removeIdx, restTxns := txns.Remove(hashes[0])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns {
-		t.Logf("After removed 0, txn  %s", stxn.Raw.WrCall)
+		t.Logf("After removed 0, txn  %v", stxn.Raw.WrCall)
 	}
 
 	removeIdx, restTxns1 := txns1.Remove(hashes[1])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns1 {
-		t.Logf("After removed 1, txn  %s", stxn.Raw.WrCall)
+		t.Logf("After removed 1, txn  %v", stxn.Raw.WrCall)
 	}
 
 	removeIdx, restTxns2 := txns2.Remove(hashes[2])
 	t.Logf("remove index is %d", removeIdx)
 	for _, stxn := range restTxns2 {
-		t.Logf("After removed 2, txn  %s", stxn.Raw.WrCall)
+		t.Logf("After removed 2, txn  %v", stxn.Raw.WrCall)
 	}
 
 }

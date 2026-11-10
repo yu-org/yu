@@ -1,6 +1,8 @@
 package kernel
 
 import (
+	"sync"
+
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -8,6 +10,7 @@ import (
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/config"
 	"github.com/yu-org/yu/core/env"
+	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/tripod/dev"
 	"github.com/yu-org/yu/core/types"
@@ -15,6 +18,10 @@ import (
 )
 
 type Kernel struct {
+	executionMu     sync.Mutex
+	receiptMu       sync.Mutex
+	pendingReceipts map[*types.Block]map[common.Hash]*types.Receipt
+
 	cfg *config.KernelConf
 
 	RunMode common.RunMode
@@ -47,6 +54,7 @@ func NewKernel(
 	}
 
 	env.Execute = k.SeqExecuteWritings
+	env.BindState = k.BindState
 
 	// Configure the handlers in P2P network
 
@@ -87,10 +95,23 @@ func (k *Kernel) Stop() {
 	k.stopChan <- struct{}{}
 }
 
+// InitBlockChain initializes genesis state before any tripod begins syncing.
 func (k *Kernel) InitBlockChain() {
 	err := k.initGenesis()
 	if err != nil {
 		logrus.Fatal("init genesis block failed: ", err)
+	}
+	if initializable, ok := k.State.(state.InitializableState); ok {
+		genesis, err := k.Chain.GetGenesis()
+		if err != nil {
+			logrus.Fatal("read state genesis: ", err)
+		}
+		if err := initializable.InitializeState(genesis); err != nil {
+			logrus.Fatal("initialize SQL state: ", err)
+		}
+	}
+	if err := k.reconcileStateFinality(); err != nil {
+		logrus.Fatal("recover state finality: ", err)
 	}
 	k.Land.RangeList(func(tri *tripod.Tripod) error {
 		tri.Init.InitChain()
@@ -150,6 +171,9 @@ func (k *Kernel) defineGenesis() (*types.Block, error) {
 func (k *Kernel) defaultGenesis() (*types.Block, error) {
 	genesis := k.Chain.NewEmptyBlock()
 	genesis.Height = 0
+	if initializable, ok := k.State.(state.InitializableState); ok {
+		genesis.StateRoot = initializable.GenesisStateRoot()
+	}
 	byt, err := genesis.Encode()
 	if err != nil {
 		return nil, err
@@ -307,6 +331,7 @@ func (k *Kernel) WithBronzes(bronzeInstances ...any) *Kernel {
 	return k
 }
 
+// WithTripods registers components and prepares their state namespaces.
 func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 	tripods := make([]*tripod.Tripod, 0)
 	for _, v := range tripodInstances {
@@ -317,6 +342,11 @@ func (k *Kernel) WithTripods(tripodInstances ...any) *Kernel {
 		t.SetChainEnv(k.ChainEnv)
 		t.SetLand(k.Land)
 		t.SetInstance(tripodInstances[i])
+		if prepared, ok := k.State.(state.PreparedState); ok {
+			if err := prepared.PrepareTripod(t.Name()); err != nil {
+				logrus.Fatal("prepare tripod state: ", err)
+			}
+		}
 	}
 
 	k.Land.RegisterTripods(tripods...)

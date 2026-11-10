@@ -38,6 +38,8 @@ type KernelConf struct {
 	LeiLimit uint64 `toml:"lei_limit"`
 
 	StatedbType string `toml:"statedb_type"`
+	// StateSQL configures the sql state backend; an omitted driver defaults to SQLite.
+	StateSQL SqlDbConf `toml:"state_sql"`
 
 	KVDB KVconf `toml:"kvdb"`
 
