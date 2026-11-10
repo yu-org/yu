@@ -1,5 +1,7 @@
 # SQL table state
 
+English | [简体中文](README.zh-CN.md)
+
 This backend uses a single SQL database for finalized business tables, pending
 changes, immutable Merkle nodes, row content and retained block versions. It
 accepts an existing GORM connection. SQLite is the default; MySQL/InnoDB and
@@ -23,6 +25,10 @@ without this selection retain the legacy backend. This is a new state and block
 commitment format: existing KV state databases are not automatically migrated.
 
 ## Tables
+
+A complete, compilable tripod example is available in
+[example/sqlstate/main.go](../../../example/sqlstate/main.go). It demonstrates
+creation, read-modify-write, deletion, finalized queries and startup ordering.
 
 Register models before executing or synchronizing blocks, for example in a
 business tripod's `InitChain` before the synchronizer initializes:
