@@ -24,7 +24,7 @@ func LoadCfgFromPath(path string) *PoaConfig {
 	cfg := new(PoaConfig)
 	_, err := toml.DecodeFile(path, cfg)
 	if err != nil {
-		logrus.Fatal("load poa-config file (%s) failed: %v", path, err)
+		logrus.Fatalf("load poa-config file (%s) failed: %v", path, err)
 	}
 	return cfg
 }

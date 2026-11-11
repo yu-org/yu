@@ -21,7 +21,7 @@ func NewSqlDB(cfg *config.SqlDbConf) (SqlDB, error) {
 		return NewSqlite(cfg)
 	case "mysql":
 		return NewMysql(cfg)
-	case "postgre":
+	case "postgre", "postgres", "postgresql":
 		return NewPostgreSql(cfg)
 	default:
 		return nil, yerror.NoSqlDbType

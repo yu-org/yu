@@ -8,15 +8,17 @@ import (
 	"github.com/yu-org/yu/core/env"
 	"github.com/yu-org/yu/core/kernel"
 	. "github.com/yu-org/yu/core/keypair"
-	"github.com/yu-org/yu/core/state"
-	"github.com/yu-org/yu/core/subscribe"
+	"github.com/yu-org/yu/core/state/sqlstate"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/txdb"
 	"github.com/yu-org/yu/core/txpool"
 	. "github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/infra/p2p"
 	"github.com/yu-org/yu/infra/storage/kv"
-	"sync"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"path/filepath"
 	"testing"
 )
 
@@ -29,16 +31,16 @@ var (
 
 func initGlobalVars() {
 	myPubkey1, myPrivkey1, validators = InitDefaultKeypairs(0)
-	node1 = newPoa(myPubkey1, myPrivkey1, validators, 3, 5000)
-	println("addr1 = ", myPubkey1.Address().String())
+	node1 = newPoa(myPubkey1, myPrivkey1, validators, &PoaConfig{BlockInterval: 3, PackNum: 5000})
+	node1.SetChainEnv(&env.ChainEnv{})
 
 	myPubkey2, myPrivkey2, validators = InitDefaultKeypairs(1)
-	node2 = newPoa(myPubkey2, myPrivkey2, validators, 3, 5000)
-	println("addr2 = ", myPubkey2.Address().String())
+	node2 = newPoa(myPubkey2, myPrivkey2, validators, &PoaConfig{BlockInterval: 3, PackNum: 5000})
+	node2.SetChainEnv(&env.ChainEnv{})
 
 	myPubkey3, myPrivkey3, validators = InitDefaultKeypairs(2)
-	node3 = newPoa(myPubkey3, myPrivkey3, validators, 3, 5000)
-	println("addr3 = ", myPubkey3.Address().String())
+	node3 = newPoa(myPubkey3, myPrivkey3, validators, &PoaConfig{BlockInterval: 3, PackNum: 5000})
+	node3.SetChainEnv(&env.ChainEnv{})
 }
 
 func TestCompeteLeader(t *testing.T) {
@@ -101,62 +103,94 @@ func TestVerifyBlock(t *testing.T) {
 		Txns:   nil,
 	}
 
-	assert.True(t, node1.VerifyBlock(block))
-	assert.True(t, node2.VerifyBlock(block))
-	assert.True(t, node3.VerifyBlock(block))
+	assert.NoError(t, node1.VerifyBlock(block))
+	assert.NoError(t, node2.VerifyBlock(block))
+	assert.NoError(t, node3.VerifyBlock(block))
 }
 
+// TestChainNet replays sealed SQL-state blocks on three isolated in-process nodes.
 func TestChainNet(t *testing.T) {
-	initGlobalVars()
-
-	mockP2P := p2p.NewMockP2p(3)
-	mockP2P.AddTopic(StartBlockTopic)
-	mockP2P.AddTopic(EndBlockTopic)
-	mockP2P.AddTopic(FinalizeBlockTopic)
-
-	wg := &sync.WaitGroup{}
-	wg.Add(3)
-	go runNode(node1, mockP2P, wg)
-	go runNode(node2, mockP2P, wg)
-	go runNode(node3, mockP2P, wg)
-	wg.Wait()
-}
-
-func runNode(poaNode *Poa, mockP2P *p2p.MockP2p, wg *sync.WaitGroup) {
-	cfg := config.InitDefaultCfg()
-
-	land := tripod.NewLand()
-	land.RegisterTripods(poaNode.Tripod)
-
-	kvdb, err := kv.NewKvdb(&config.KVconf{
-		KvType: "bolt",
-		Path:   "test_poa",
-	})
-	if err != nil {
-		panic("init kvdb error: " + err.Error())
+	mock := p2p.NewMockP2p(3)
+	mock.AddTopic(StartBlockTopic)
+	nodes := make([]*Poa, 3)
+	kernels := make([]*kernel.Kernel, 3)
+	for i := range nodes {
+		nodes[i], kernels[i] = newSQLPoaNode(t, i, mock)
 	}
-
-	base := txdb.NewTxDB(FullNode, kvdb)
-	chain := blockchain.NewBlockChain(FullNode, &cfg.BlockChain, base)
-	statedb := state.NewStateDB(kvdb)
-
-	env := &env.ChainEnv{
-		State:      statedb,
-		Chain:      chain,
-		TxDB:       base,
-		Pool:       txpool.WithDefaultChecks(FullNode, &cfg.Txpool, base),
-		Sub:        subscribe.NewSubscription(),
-		P2pNetwork: mockP2P,
-	}
-	poaNode.SetChainEnv(env)
-
-	k := kernel.NewKernel(cfg, env, land)
-	for i := 0; i < 10; i++ {
-		err := k.LocalRun()
+	for round := 0; round < 3; round++ {
+		producer := round % len(nodes)
+		block, err := kernels[producer].LocalRun()
 		if err != nil {
-			panic(err)
+			t.Fatal(err)
+		}
+		if block.StateRoot == NullHash {
+			t.Fatal("sealed block lacks state root")
+		}
+		for i := range nodes {
+			encoded, err := mock.SubP2P(StartBlockTopic)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if i == producer {
+				continue
+			}
+			received, err := DecodeBlock(encoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := nodes[i].VerifyBlock(received); err != nil {
+				t.Fatal(err)
+			}
+			nodes[i].EndBlock(received)
+			nodes[i].FinalizeBlock(received)
+			head, err := nodes[i].Chain.LastFinalized()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if head.Hash != block.Hash {
+				t.Fatal("nodes disagree on finalized block")
+			}
 		}
 	}
+}
 
-	wg.Done()
+// newSQLPoaNode builds an isolated node without starting competing P2P listeners.
+func newSQLPoaNode(t *testing.T, index int, network *p2p.MockP2p) (*Poa, *kernel.Kernel) {
+	t.Helper()
+	cfg := config.InitDefaultCfg()
+	cfg.BlockChain.ChainDB.Dsn = filepath.Join(t.TempDir(), "chain.db")
+	pub, priv, validators := InitDefaultKeypairs(index)
+	node := newPoa(pub, priv, validators, &PoaConfig{BlockInterval: 1, PackNum: 10})
+	kvdb, err := kv.NewKvdb(&config.KVconf{KvType: "bolt", Path: filepath.Join(t.TempDir(), "tx.db")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	txDB, err := txdb.NewTxDB(FullNode, kvdb, config.TxnConf{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	chain := blockchain.NewBlockChain(FullNode, &cfg.BlockChain, txDB)
+	genesis := &Block{Header: &Header{Hash: BytesToHash(Sha256([]byte("sql-state-genesis")))}}
+	if err := chain.SetGenesis(genesis); err != nil {
+		t.Fatal(err)
+	}
+	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "state.db")), &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := db.DB()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = raw.Close() })
+	store, err := sqlstate.NewState(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.InitializeState(genesis); err != nil {
+		t.Fatal(err)
+	}
+	chainEnv := &env.ChainEnv{State: store, Chain: chain, TxDB: txDB, Pool: txpool.WithDefaultChecks(FullNode, &cfg.Txpool), P2pNetwork: network}
+	k := kernel.NewKernel(cfg, chainEnv, tripod.NewLand()).WithTripods(node)
+	return node, k
 }

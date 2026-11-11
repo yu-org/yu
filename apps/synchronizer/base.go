@@ -4,6 +4,7 @@ import (
 	peerstore "github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sirupsen/logrus"
 	. "github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/state"
 	. "github.com/yu-org/yu/core/tripod"
 	. "github.com/yu-org/yu/core/types"
 )
@@ -49,6 +50,7 @@ func (b *Synchronizer) syncFullHistory() error {
 	return nil
 }
 
+// syncHistoryBlocks verifies and executes blocks; SQL state is bound before append.
 func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 	for _, block := range blocks {
 		logrus.Trace("sync history block is ", block.Hash.String())
@@ -60,6 +62,29 @@ func (b *Synchronizer) syncHistoryBlocks(blocks []*Block) error {
 			return err
 		}
 
+		if managed, ok := b.State.(state.ExecutionState); ok {
+			if err := VerifyHeaderCommitments(block); err != nil {
+				return err
+			}
+			if err := b.Execute(block); err != nil {
+				return err
+			}
+			bind := managed.BindBlock
+			if b.BindState != nil {
+				bind = b.BindState
+			}
+			if err := bind(block); err != nil {
+				managed.AbortExecution()
+				return err
+			}
+			if err := b.Chain.AppendBlock(block); err != nil {
+				managed.AbortExecution()
+				return err
+			}
+			// Synchronizing a block does not decide its finality. Consensus must
+			// explicitly finalize it according to its own rules.
+			continue
+		}
 		err = b.Chain.AppendBlock(block)
 		if err != nil {
 			return err

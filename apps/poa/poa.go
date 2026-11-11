@@ -2,7 +2,6 @@ package poa
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -14,6 +13,7 @@ import (
 	"github.com/yu-org/yu/common"
 	"github.com/yu-org/yu/common/yerror"
 	"github.com/yu-org/yu/core/keypair"
+	"github.com/yu-org/yu/core/state"
 	"github.com/yu-org/yu/core/tripod"
 	"github.com/yu-org/yu/core/types"
 	"github.com/yu-org/yu/utils/log"
@@ -109,7 +109,16 @@ func (h *Poa) CheckTxn(txn *types.SignedTxn) error {
 	return nil
 }
 
+// VerifyBlock checks producer authorization and, for SQL state, sealed commitments.
 func (h *Poa) VerifyBlock(block *types.Block) error {
+	if _, ok := h.State.(state.ExecutionState); ok {
+		if err := types.VerifyHeaderCommitments(block); err != nil {
+			return err
+		}
+		if block.StateRoot == common.NullHash {
+			return errors.New("missing state root")
+		}
+	}
 	minerPubkey, err := keypair.PubKeyFromBytes(block.MinerPubkey)
 	if err != nil {
 		logrus.Warnf("parse pubkey(%s) error: %v", block.MinerPubkey, err)
@@ -163,6 +172,7 @@ func (h *Poa) InitChain() {
 	}()
 }
 
+// StartBlock builds a candidate, executing SQL state before sealing its header.
 func (h *Poa) StartBlock(block *types.Block) {
 	now := time.Now()
 	defer func() {
@@ -173,7 +183,7 @@ func (h *Poa) StartBlock(block *types.Block) {
 	h.setCurrentHeight(block.Height)
 
 	if h.cfg.PrettyLog {
-		log.StarConsole.Info(fmt.Sprintf("start a new block, height=%d", block.Height))
+		log.StarConsole.Info("start a new block, height=%d", block.Height)
 	}
 
 	if !h.AmILeader(block.Height) {
@@ -208,8 +218,22 @@ func (h *Poa) StartBlock(block *types.Block) {
 	}
 	block.TxnRoot = txnRoot
 
-	byt, _ := block.Encode()
-	block.Hash = common.BytesToHash(common.Sha256(byt))
+	managed, transactional := h.State.(state.ExecutionState)
+	if transactional {
+		block.SetTxns(txns)
+		block.MinerPubkey = h.myPubkey.BytesWithType()
+		if err := h.Execute(block); err != nil {
+			logrus.Panic("execute candidate: ", err)
+		}
+		block.Hash, err = types.ComputeHeaderHash(block)
+		if err != nil {
+			managed.AbortExecution()
+			logrus.Panic("hash candidate: ", err)
+		}
+	} else {
+		byt, _ := block.Encode()
+		block.Hash = common.BytesToHash(common.Sha256(byt))
+	}
 
 	// miner signs block
 	block.MinerSignature, err = h.myPrivKey.SignData(block.Hash.Bytes())
@@ -220,7 +244,14 @@ func (h *Poa) StartBlock(block *types.Block) {
 
 	block.SetTxns(txns)
 
-	h.State.StartBlock(block)
+	if transactional {
+		if err := h.bindState(block); err != nil {
+			managed.AbortExecution()
+			logrus.Panic("bind candidate state: ", err)
+		}
+	} else {
+		h.State.StartBlock(block)
+	}
 
 	blockByt, err := block.Encode()
 	if err != nil {
@@ -233,21 +264,35 @@ func (h *Poa) StartBlock(block *types.Block) {
 	}
 }
 
+// EndBlock executes received candidates and appends a block with bound state.
 func (h *Poa) EndBlock(block *types.Block) {
 
 	chain := h.Chain
 
 	// now := time.Now()
 	logrus.Infof("Start Execute Block %d", block.Height)
-	err := h.Execute(block)
-	if err != nil {
-		logrus.Panic("execute block failed: ", err)
+	managed, transactional := h.State.(state.ExecutionState)
+	var err error
+	if !transactional || !managed.ExecutionCommitted(block) {
+		err = h.Execute(block)
+		if err != nil {
+			logrus.Panic("execute block failed: ", err)
+		}
+		if transactional {
+			if err := h.bindState(block); err != nil {
+				managed.AbortExecution()
+				logrus.Panic("bind received state: ", err)
+			}
+		}
 	}
 	logrus.Infof("End Execute Block %d", block.Height)
 	// TODO: sync the state (execute receipt) with other nodes
 
 	err = chain.AppendBlock(block)
 	if err != nil {
+		if transactional {
+			managed.AbortExecution()
+		}
 		logrus.Panic("append block failed: ", err)
 	}
 	// fmt.Println("execute block last: ", time.Since(now).String())
@@ -262,14 +307,20 @@ func (h *Poa) EndBlock(block *types.Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("append block")
 
-	h.State.FinalizeBlock(block)
+	if finalizing, ok := h.State.(state.FinalizingState); ok {
+		if err := finalizing.FinalizeState(block); err != nil {
+			logrus.Panic("finalize SQL state: ", err)
+		}
+	} else {
+		h.State.FinalizeBlock(block)
+	}
 }
 
 func (h *Poa) FinalizeBlock(block *types.Block) {
 	//logrus.WithField("block-height", block.Height).WithField("block-hash", block.Hash.String()).
 	//	Info("finalize block")
 	if h.cfg.PrettyLog {
-		log.DoubleLineConsole.Info(fmt.Sprintf("finalize block, height=%d, hash=%s", block.Height, block.Hash.String()))
+		log.DoubleLineConsole.Info("finalize block, height=%d, hash=%s", block.Height, block.Hash.String())
 	}
 	err := h.Chain.Finalize(block)
 	if err != nil {
@@ -325,4 +376,12 @@ func (h *Poa) getCurrentHeight() common.BlockNum {
 
 func (h *Poa) setCurrentHeight(height common.BlockNum) {
 	h.currentHeight.Store(uint32(height))
+}
+
+// bindState persists the sealed identity and final receipt metadata when a kernel is attached.
+func (h *Poa) bindState(block *types.Block) error {
+	if h.BindState != nil {
+		return h.BindState(block)
+	}
+	return h.State.(state.ExecutionState).BindBlock(block)
 }

@@ -1,7 +1,10 @@
 package tripod
 
 import (
+	"fmt"
+
 	"github.com/yu-org/yu/common"
+	"github.com/yu-org/yu/core/state/sqlstate"
 	"github.com/yu-org/yu/core/types"
 )
 
@@ -47,4 +50,17 @@ func (t *Tripod) Discard() {
 
 func (t *Tripod) DiscardAll() {
 	t.State.DiscardAll()
+}
+
+// RegisterStateTable derives the business table name from the model and prefixes
+// it with the tripod name. Matching registrations are idempotent.
+// Register during InitChain before starting any block or synchronization.
+func (t *Tripod) RegisterStateTable(model any) (*sqlstate.Table, error) {
+	provider, ok := t.State.(interface {
+		RegisterTable(string, any) (*sqlstate.Table, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("state backend does not support SQL tables")
+	}
+	return provider.RegisterTable(t.Name(), model)
 }
